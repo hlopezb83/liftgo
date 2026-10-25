@@ -1,5 +1,5 @@
 import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { formDraftKey, syncFormDraftIdentity } from "@/lib/storage/formDraftStorage";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import type { AuthChangeEvent, Session } from "@supabase/supabase-js";
@@ -28,7 +28,26 @@ function session(id: string, token = id): Session {
 
 beforeEach(() => { vi.clearAllMocks(); sdk.callback = null; localStorage.clear(); });
 
+afterEach(() => { vi.unstubAllGlobals(); vi.restoreAllMocks(); });
+
 describe("auth bootstrap ordering", () => {
+  it("completes INITIAL_SESSION and logout when crypto and storage are unavailable", async () => {
+    vi.stubGlobal("crypto", undefined);
+    vi.spyOn(window, "localStorage", "get").mockImplementation(() => { throw new Error("denied"); });
+    sdk.getSession.mockReturnValue(new Promise(() => undefined));
+    sdk.signOut.mockResolvedValue({ error: null });
+    render(<AuthProvider><Status /><LogoutButton /></AuthProvider>);
+    act(() => sdk.callback?.("INITIAL_SESSION", null));
+    expect(screen.getByText("Sin sesión:sin token")).toBeVisible();
+    fireEvent.click(screen.getByRole("button", { name: "Salir" }));
+    await waitFor(() => expect(sdk.signOut).toHaveBeenCalledOnce());
+  });
+  it("completes the empty-session fallback without randomUUID", async () => {
+    vi.stubGlobal("crypto", {});
+    sdk.getSession.mockResolvedValue({ data: { session: null } });
+    render(<AuthProvider><Status /></AuthProvider>);
+    await waitFor(() => expect(screen.getByText("Sin sesión:sin token")).toBeVisible());
+  });
   it.each(["SIGNED_IN", "TOKEN_REFRESHED", "PASSWORD_RECOVERY"] as const)(
     "una respuesta inicial vacía no pisa %s", async (event) => {
       let resolve: (value: { data: { session: Session | null } }) => void = () => undefined;

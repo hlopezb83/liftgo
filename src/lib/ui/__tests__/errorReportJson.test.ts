@@ -1,12 +1,20 @@
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { extractErrorDetails, deriveErrorCode } from "../errorDetailsExtract";
 import { buildErrorReport, setAppVersion } from "../errorReport";
 import { diagnosticSnapshot, formatReportJson } from "../errorReportJson";
 import { setAuthSnapshot } from "../authSnapshot";
 
-afterEach(() => setAuthSnapshot({ user: null, organization: null, role: null }));
+afterEach(() => { vi.unstubAllGlobals(); setAuthSnapshot({ user: null, organization: null, role: null }); });
 
 describe("diagnóstico JSON", () => {
+  it("builds distinct reports without browser crypto", () => {
+    vi.stubGlobal("crypto", undefined);
+    const first = buildErrorReport({ title: "Sin conexión", error: new Error("offline") });
+    const second = buildErrorReport({ title: "Sin conexión", error: new Error("offline") });
+    expect(first.requestId).toMatch(/^local-/);
+    expect(first.requestId).not.toBe(second.requestId);
+    expect(first.errorDetails.message).toBe("offline");
+  });
   it("conserva datos útiles y no copia credenciales ni tokens de rutas o mensajes", () => {
     const report = buildErrorReport({ title: "Falló Facturapi", error: "password=temporal token=reservado",
       context: { api_key: "credencial", nested: { authorization: "Bearer prueba", rfc: "AAA010101AAA", folio: "FAC-0001" } } });

@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { EquipmentAssignmentDialog } from "../EquipmentAssignmentDialog";
 
 const availability = vi.hoisted(() => ({
+  dateRangeError: undefined as string | undefined,
   availableForklifts: [], datesSelected: false, isLoading: false,
   isSuccess: false, isError: false, refetch: vi.fn(),
 }));
@@ -19,7 +20,7 @@ vi.mock("@/features/fleet", () => ({
 describe("EquipmentAssignmentDialog", () => {
   beforeEach(() => {
     Object.assign(availability, {
-      datesSelected: false, isLoading: false, isSuccess: false, isError: false,
+      dateRangeError: undefined, datesSelected: false, isLoading: false, isSuccess: false, isError: false,
     });
   });
 
@@ -49,4 +50,17 @@ describe("EquipmentAssignmentDialog", () => {
     expect(screen.getByText("Comprobando disponibilidad…")).toBeInTheDocument();
     expect(screen.queryByText(/Sin unidades disponibles para:/)).not.toBeInTheDocument();
   });
+  it("shows a local date error instead of stock or network errors and blocks confirmation", () => {
+    Object.assign(availability, { dateRangeError: "La fecha de fin debe ser posterior a la de inicio" });
+    render(<EquipmentAssignmentDialog
+      open onOpenChange={vi.fn()} startDate="2026-09-29" endDate="2026-09-25"
+      rentalMeta={[{ modelId: "m1", quantity: 1 }]} models={[]} forklifts={[]}
+      onConfirm={vi.fn()}
+    />);
+    expect(screen.getByText(/Corrige las fechas de la cotización/)).toBeInTheDocument();
+    expect(screen.queryByText(/Sin unidades disponibles para:/)).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Reintentar" })).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Confirmar y Crear reservas" })).toBeDisabled();
+  });
+
 });

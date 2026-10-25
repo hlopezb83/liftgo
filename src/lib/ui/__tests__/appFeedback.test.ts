@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { afterEach, describe, it, expect, vi, beforeEach } from "vitest";
 import { buildErrorReport } from "../errorReport";
 
 const sonner = vi.hoisted(() => ({
@@ -27,7 +27,16 @@ beforeEach(() => {
   vi.clearAllMocks();
 });
 
+afterEach(() => vi.unstubAllGlobals());
+
 describe("appFeedback", () => {
+  it("returns the original async operation without browser crypto", async () => {
+    vi.stubGlobal("crypto", undefined);
+    const promise = Promise.resolve(42);
+    expect(notifyAsync(promise, { loading: "Guardando…", success: "Guardado" })).toBe(promise);
+    expect(sonner.promise).toHaveBeenCalledWith(promise, expect.objectContaining({ id: expect.stringMatching(/^local-/) }));
+    await expect(promise).resolves.toBe(42);
+  });
   it("muestra el motivo de negocio en español de una función", () => {
     notifyError({ error: new Error("El REP no está timbrado"), title: "No se pudo cancelar" });
     expect(sonner.error).toHaveBeenCalledWith("No se pudo cancelar", expect.objectContaining({
