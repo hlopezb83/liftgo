@@ -1,0 +1,13 @@
+{
+  "version": "8.44.35",
+  "date": "2026-10-26",
+  "type": "patch",
+  "category": "bugfix",
+  "title": "Monitoreo sin fallas de internet del dispositivo",
+  "description": "Las fallas de red de un equipo sin internet ya no se reportan como incidentes, y se protege con pruebas la edición segura de facturas de proveedor. Sin cambios de datos ni permisos.",
+  "changes": [
+    "No envía al monitoreo las fallas de conexión cuando el navegador indica que el equipo está sin internet; con internet se siguen reportando.",
+    "Añade una prueba que impide volver a escribir directo en los campos protegidos de aprobación, descuento y empresa de las facturas de proveedor.",
+    "Confirma con pruebas las correcciones previas de fechas de disponibilidad, sesión vencida y acceso financiero del despachador."
+  ]
+}

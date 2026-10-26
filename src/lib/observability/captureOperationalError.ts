@@ -22,9 +22,15 @@ function operationalIncident(error: unknown) {
   return { incident, status: detail.status, code: detail.code };
 }
 
+/** El navegador reporta el equipo sin internet: el fallo es del dispositivo, no de LiftGO. */
+function deviceOffline(): boolean {
+  return typeof navigator !== "undefined" && navigator.onLine === false;
+}
+
 /** Sólo incidentes técnicos; el reporte completo/PII copiable sigue siendo local. */
 export function captureOperationalError(error: unknown, context: ErrorContext): void {
   if (typeof window === "undefined" || context.severity === "warning" || !ACTIONABLE.has(context.errorCode ?? "UNKNOWN")) return;
+  if (context.errorCode === "NETWORK_ERROR" && deviceOffline()) return;
   try {
     if (!Sentry.getClient() || (error && typeof error === "object" && seen.has(error))) return;
     const report = operationalIncident(error);

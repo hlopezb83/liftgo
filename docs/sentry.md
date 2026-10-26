@@ -32,6 +32,8 @@ Un fallo interno de un cron sin navegador puede aparecer sólo en esos logs.
   Los filtros conocidos de ResizeObserver no ocultan fallos de chunks. Una
   versión obsoleta que la app recupera recargándose sola no se envía; si la
   guarda de recargas se agota, el fallo persistente sí se reporta.
+- Una falla de red con el navegador sin conexión (`navigator.onLine === false`)
+  no se envía; con conexión, la falla de red sí se reporta.
 
 ## Privacidad y separación empresarial
 

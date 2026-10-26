@@ -1,3 +1,7 @@
+## [8.44.35] - 2026-10-26
+
+- Las fallas de conexión de un equipo sin internet dejan de llegar al monitoreo; con internet se siguen reportando. Añade una prueba que protege la edición segura de facturas de proveedor y confirma las correcciones previas de fechas, sesión vencida y acceso del despachador. Sin migraciones, permisos ni cambios de datos.
+
 ## [8.44.34] - 2026-10-26
 
 - Las pestañas abiertas durante una publicación se recargan solas, incluidas las pantallas divididas vacías, y ese caso recuperado deja de llegar al monitoreo. Los fallos que persisten tras dos recargas se siguen reportando. Sin migraciones, permisos ni cambios de datos.
