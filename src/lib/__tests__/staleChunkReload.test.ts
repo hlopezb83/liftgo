@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { clearStaleChunkReloadGuard, isStaleChunkMessage, recoverFromStaleChunk, reloadForStaleChunk } from "@/lib/staleChunkReload";
+import { clearStaleChunkReloadGuard, handleStaleChunkPreloadError, isStaleChunkRecoveryPending, isStaleChunkMessage, recoverFromStaleChunk, reloadForStaleChunk } from "@/lib/staleChunkReload";
 
 const KEY = "vite-preload-reload";
 
@@ -21,6 +21,7 @@ describe("staleChunkReload (M-22)", () => {
 
   afterEach(() => {
     vi.useRealTimers();
+    vi.restoreAllMocks(); vi.unstubAllGlobals();
   });
 
   it("permite hasta 2 recargas dentro de la ventana y luego se rinde", () => {
@@ -28,6 +29,51 @@ describe("staleChunkReload (M-22)", () => {
     expect(reloadForStaleChunk()).toBe(true);
     expect(reloadForStaleChunk()).toBe(false);
     expect(reload).toHaveBeenCalledTimes(2);
+  });
+
+  it.each(["getItem", "setItem"] as const)("no recarga cuando %s falla", (method) => {
+    vi.stubGlobal("sessionStorage", { getItem: sessionStorage.getItem.bind(sessionStorage), [method]: () => { throw new Error("Storage blocked"); } });
+    for (let attempt = 0; attempt < 5; attempt++) {
+      expect(recoverFromStaleChunk("ChunkLoadError")).toBe(false);
+      expect(isStaleChunkRecoveryPending()).toBe(false);
+    }
+    expect(reload).not.toHaveBeenCalled();
+  });
+
+  it("no recarga si la escritura se descarta sin error", () => {
+    vi.stubGlobal("sessionStorage", { getItem: sessionStorage.getItem.bind(sessionStorage), setItem: () => undefined });
+    expect(reloadForStaleChunk()).toBe(false);
+    expect(isStaleChunkRecoveryPending()).toBe(false);
+    expect(reload).not.toHaveBeenCalled();
+  });
+
+  it.each([false, true])("con módulos nuevos mantiene el límite (storage bloqueado: %s)", async (blocked) => {
+    if (blocked) vi.stubGlobal("sessionStorage", { getItem: sessionStorage.getItem.bind(sessionStorage), setItem: () => { throw new Error("Storage blocked"); } });
+    for (let attempt = 0; attempt < 5; attempt++) {
+      vi.resetModules();
+      const fresh = await import("@/lib/staleChunkReload");
+      expect(fresh.recoverFromStaleChunk("ChunkLoadError")).toBe(!blocked && attempt < 2);
+    }
+    expect(reload).toHaveBeenCalledTimes(blocked ? 0 : 2);
+  });
+
+  it("sólo cancela preload cuando la recarga está en marcha", () => {
+    const first = new Event("vite:preloadError", { cancelable: true });
+    handleStaleChunkPreloadError(first);
+    const duplicate = new Event("vite:preloadError", { cancelable: true });
+    handleStaleChunkPreloadError(duplicate);
+    expect(first.defaultPrevented).toBe(true);
+    expect(duplicate.defaultPrevented).toBe(true);
+    expect(reload).toHaveBeenCalledTimes(1);
+  });
+
+  it.each(["exhausted", "blocked"])("no suprime el rechazo de preload cuando %s", (reason) => {
+    if (reason === "exhausted") sessionStorage.setItem(KEY, JSON.stringify({ ts: Date.now(), count: 2 }));
+    else vi.stubGlobal("sessionStorage", { getItem: sessionStorage.getItem.bind(sessionStorage), setItem: () => { throw new Error("Storage blocked"); } });
+    const event = new Event("vite:preloadError", { cancelable: true });
+    handleStaleChunkPreloadError(event);
+    expect(event.defaultPrevented).toBe(false);
+    expect(reload).not.toHaveBeenCalled();
   });
 
   it("reinicia el contador pasada la ventana de 30 s", () => {
