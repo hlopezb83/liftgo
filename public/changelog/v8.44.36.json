@@ -1,0 +1,13 @@
+{
+  "version": "8.44.36",
+  "date": "2026-10-26",
+  "type": "patch",
+  "category": "bugfix",
+  "title": "Recuperación de pantalla sin recargas en bucle",
+  "description": "La app detiene las recargas automáticas si el navegador no puede guardar su límite y conserva una alternativa manual. Sin cambios de datos, permisos ni funciones fiscales.",
+  "changes": [
+    "Detiene la recarga automática cuando el almacenamiento de sesión no se puede leer, escribir o verificar, evitando ciclos de recarga.",
+    "Mantiene el error visible cuando la recuperación no puede continuar y ofrece recargar manualmente, con aviso sobre captura sin guardar.",
+    "Conserva el reporte de errores no recuperados y añade pruebas de la guarda, eventos de carga y acciones manuales."
+  ]
+}

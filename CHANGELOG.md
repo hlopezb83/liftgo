@@ -1,3 +1,7 @@
+## [8.44.36] - 2026-10-26
+
+- Detiene las recargas automáticas si no puede persistir y verificar su guarda; conserva el error y ofrece recarga manual con aviso sobre captura sin guardar. No oculta errores no recuperados. Sin migraciones, permisos, cambios de datos ni funciones fiscales.
+
 ## [8.44.35] - 2026-10-26
 
 - Las fallas de conexión de un equipo sin internet dejan de llegar al monitoreo; con internet se siguen reportando. Añade una prueba que protege la edición segura de facturas de proveedor y confirma las correcciones previas de fechas, sesión vencida y acceso del despachador. Sin migraciones, permisos ni cambios de datos.
