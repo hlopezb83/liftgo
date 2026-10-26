@@ -31,6 +31,9 @@ const STALE_CHUNK_PATTERNS = [
   "ChunkLoadError",
   "Cannot read properties of undefined (reading 'default')",
   "Cannot read property 'default' of undefined",
+  // TanStack Router divide cada pantalla y lee `.component` del chunk dividido.
+  "Cannot read properties of undefined (reading 'component')",
+  "Cannot read property 'component' of undefined",
   "undefined is not an object (evaluating",
 ];
 
@@ -38,9 +41,26 @@ const STALE_CHUNK_PATTERNS = [
 export function isStaleChunkMessage(message: string | undefined | null): boolean {
   if (!message) return false;
   if (message.includes("undefined is not an object (evaluating")) {
-    return message.includes("default");
+    return /\.(?:default|component)'\)/.test(message);
   }
   return STALE_CHUNK_PATTERNS.some((pattern) => message.includes(pattern));
+}
+
+/** La página actual ya pidió una recarga automática por versión obsoleta. */
+let recoveryPending = false;
+
+export function isStaleChunkRecoveryPending(): boolean {
+  return recoveryPending;
+}
+
+/**
+ * Punto único de recuperación: reutiliza la recarga ya solicitada en esta
+ * página para que varios detectores del mismo fallo no consuman la guarda.
+ * Devuelve `true` sólo cuando el error queda recuperado por recarga.
+ */
+export function recoverFromStaleChunk(message: string | undefined | null): boolean {
+  if (!isStaleChunkMessage(message)) return false;
+  return recoveryPending || reloadForStaleChunk();
 }
 
 
