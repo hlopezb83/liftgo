@@ -24,7 +24,8 @@ function directSupplierBillUpdates(): { file: string; payload: string }[] {
   for (const file of sourceFiles("src")) {
     const text = readFileSync(file, "utf8");
     for (const match of text.matchAll(/from\(["']supplier_bills["']\)([\s\S]{0,400}?)\.update\(([^)]*)\)/g)) {
-      if (!/;\s*$/.test(match[1].split("\n").slice(0, -1).join("\n"))) found.push({ file, payload: match[2].trim() });
+      // Mismo encadenamiento: sin `;` entre la tabla y `.update()`.
+      if (!match[1].includes(";")) found.push({ file, payload: match[2].trim() });
     }
   }
   return found;
