@@ -6,3 +6,4 @@
 - Bank reconciliation keeps a single mounted table and a viewport-independent Sheet inspector; at close resolve the current mounted row or the accessible current list region as fallback, so virtualized or removed rows never leave focus on BODY and selection/scroll remain intact.
 - Equipment insurance disclosure derives its initial expansion from authorized visible fields only; keep financial-summary access independent from cost visibility to preserve the existing permission boundaries.
 - Stale-chunk failures go through `recoverFromStaleChunk`; recovered reloads are not sent to Sentry, but exhausted reload guards are, so post-deploy tabs make no noise without hiding persistent breakage.
+- Network failures are not sent to Sentry while the browser reports the device offline; online network failures stay reported because they may be platform outages.
