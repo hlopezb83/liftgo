@@ -8,7 +8,7 @@ import { ErrorBoundary } from "@/layouts/ErrorBoundary";
 import { reportLovableError } from "@/lib/lovable-error-reporting";
 import { captureOperationalError } from "@/lib/observability/captureOperationalError";
 import { SentryNavigationSync } from "@/lib/observability/SentryNavigationSync";
-import { isStaleChunkMessage, reloadForStaleChunk } from "@/lib/staleChunkReload";
+import { isStaleChunkRecoveryPending, recoverFromStaleChunk, reloadForStaleChunk } from "@/lib/staleChunkReload";
 import appCss from "../styles.css?url";
 import type { QueryClient } from "@tanstack/react-query";
 
@@ -33,14 +33,14 @@ const LocaleShim = new Proxy(OrigLocale, {
 if (typeof window !== "undefined") {
   window.addEventListener("vite:preloadError", (event) => {
     event.preventDefault();
-    reloadForStaleChunk();
+    if (!isStaleChunkRecoveryPending()) reloadForStaleChunk();
   });
   window.addEventListener("error", (event) => {
-    if (isStaleChunkMessage(event.message)) reloadForStaleChunk();
+    recoverFromStaleChunk(event.message);
   });
   window.addEventListener("unhandledrejection", (event) => {
     const message = event.reason instanceof Error ? event.reason.message : String(event.reason ?? "");
-    if (isStaleChunkMessage(message)) reloadForStaleChunk();
+    recoverFromStaleChunk(message);
   });
 }
 
@@ -124,6 +124,8 @@ function RootErrorComponent({ error, reset }: ErrorComponentProps) {
   const router = useRouter();
   console.error(error);
   useEffect(() => {
+    // Versión obsoleta tras publicar: la app se recarga sola y no se reporta.
+    if (recoverFromStaleChunk(error instanceof Error ? error.message : String(error ?? ""))) return;
     reportLovableError(error, { boundary: "tanstack_root_error_component" });
     captureOperationalError(error, { phase: "route", errorCode: "INTERNAL_ERROR" });
   }, [error]);

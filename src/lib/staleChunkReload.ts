@@ -31,6 +31,9 @@ const STALE_CHUNK_PATTERNS = [
   "ChunkLoadError",
   "Cannot read properties of undefined (reading 'default')",
   "Cannot read property 'default' of undefined",
+  // TanStack Router divide cada pantalla y lee `.component` del chunk dividido.
+  "Cannot read properties of undefined (reading 'component')",
+  "Cannot read property 'component' of undefined",
   "undefined is not an object (evaluating",
 ];
 
@@ -38,9 +41,26 @@ const STALE_CHUNK_PATTERNS = [
 export function isStaleChunkMessage(message: string | undefined | null): boolean {
   if (!message) return false;
   if (message.includes("undefined is not an object (evaluating")) {
-    return message.includes("default");
+    return message.includes("default") || /\.component'\)/.test(message);
   }
   return STALE_CHUNK_PATTERNS.some((pattern) => message.includes(pattern));
+}
+
+/** La página actual ya pidió una recarga automática por versión obsoleta. */
+let recoveryPending = false;
+
+export function isStaleChunkRecoveryPending(): boolean {
+  return recoveryPending;
+}
+
+/**
+ * Punto único de recuperación: reutiliza la recarga ya solicitada en esta
+ * página para que varios detectores del mismo fallo no consuman la guarda.
+ * Devuelve `true` sólo cuando el error queda recuperado por recarga.
+ */
+export function recoverFromStaleChunk(message: string | undefined | null): boolean {
+  if (!isStaleChunkMessage(message)) return false;
+  return recoveryPending || reloadForStaleChunk();
 }
 
 
@@ -83,12 +103,14 @@ export function reloadForStaleChunk(): boolean {
   const consecutive = prev && now - prev.ts <= RELOAD_WINDOW_MS ? prev.count : 0;
   if (consecutive >= MAX_RELOADS) return false; // rendirse: no recargar más
   writeState({ ts: now, count: consecutive + 1 });
+  recoveryPending = true;
   window.location.reload();
   return true;
 }
 
 /** Limpia la guarda (p.ej. antes de una recarga manual explícita del usuario). */
 export function clearStaleChunkReloadGuard(): void {
+  recoveryPending = false;
   try {
     sessionStorage.removeItem(RELOAD_KEY);
   } catch {

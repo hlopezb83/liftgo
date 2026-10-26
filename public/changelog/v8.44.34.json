@@ -1,0 +1,13 @@
+{
+  "version": "8.44.34",
+  "date": "2026-10-26",
+  "type": "patch",
+  "category": "bugfix",
+  "title": "Recarga silenciosa tras publicar una versión",
+  "description": "Las pestañas abiertas durante una publicación se recargan solas sin generar alertas en el monitoreo, sin cambios de datos ni permisos.",
+  "changes": [
+    "Reconoce también las pantallas divididas que quedan vacías tras publicar y recarga la app automáticamente.",
+    "No envía al monitoreo los fallos de versión obsoleta que se recuperan recargando; los que persisten tras dos recargas sí se reportan.",
+    "Evita que varios detectores del mismo fallo consuman el límite de recargas, con pruebas de regresión."
+  ]
+}
