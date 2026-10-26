@@ -125,7 +125,7 @@ function RootErrorComponent({ error, reset }: ErrorComponentProps) {
   console.error(error);
   useEffect(() => {
     // Versión obsoleta tras publicar: la app se recarga sola y no se reporta.
-    if (recoverFromStaleChunk(error?.message)) return;
+    if (recoverFromStaleChunk(error instanceof Error ? error.message : String(error ?? ""))) return;
     reportLovableError(error, { boundary: "tanstack_root_error_component" });
     captureOperationalError(error, { phase: "route", errorCode: "INTERNAL_ERROR" });
   }, [error]);
