@@ -69,10 +69,16 @@ interface ReloadGuardState {
   count: number;
 }
 
-function readState(): ReloadGuardState | null {
+function readState(): ReloadGuardState | null | undefined {
+  let raw: string | null;
   try {
-    const raw = sessionStorage.getItem(RELOAD_KEY);
-    if (!raw) return null;
+    raw = sessionStorage.getItem(RELOAD_KEY);
+  } catch {
+    // No poder leer la guarda no equivale a no haber recargado.
+    return undefined;
+  }
+  if (!raw) return null;
+  try {
     const parsed = JSON.parse(raw) as Partial<ReloadGuardState> | null;
     if (!parsed || typeof parsed.ts !== "number" || !Number.isFinite(parsed.ts)) return null;
     const count = typeof parsed.count === "number" && Number.isFinite(parsed.count) ? parsed.count : 1;
@@ -82,12 +88,15 @@ function readState(): ReloadGuardState | null {
   }
 }
 
-function writeState(state: ReloadGuardState): void {
+function writeState(state: ReloadGuardState): boolean {
   try {
-    sessionStorage.setItem(RELOAD_KEY, JSON.stringify(state));
+    const raw = JSON.stringify(state);
+    sessionStorage.setItem(RELOAD_KEY, raw);
+    // Algunos navegadores/entornos descartan escrituras sin lanzar un error.
+    return sessionStorage.getItem(RELOAD_KEY) === raw;
   } catch {
-    // sessionStorage no disponible (modo privado extremo, etc.) — recargar
-    // igualmente; peor caso es un bucle que el navegador termina cortando.
+    // Sin contador persistido, una recarga perdería toda la guarda en memoria.
+    return false;
   }
 }
 
@@ -98,11 +107,12 @@ function writeState(state: ReloadGuardState): void {
 export function reloadForStaleChunk(): boolean {
   const now = Date.now();
   const prev = readState();
+  if (prev === undefined) return false;
   // Fuera de la ventana de 30s el contador se reinicia (el deploy pudo
   // estabilizarse; una recarga aislada es segura).
   const consecutive = prev && now - prev.ts <= RELOAD_WINDOW_MS ? prev.count : 0;
   if (consecutive >= MAX_RELOADS) return false; // rendirse: no recargar más
-  writeState({ ts: now, count: consecutive + 1 });
+  if (!writeState({ ts: now, count: consecutive + 1 })) return false;
   recoveryPending = true;
   window.location.reload();
   return true;
@@ -116,4 +126,8 @@ export function clearStaleChunkReloadGuard(): void {
   } catch {
     /* noop */
   }
+}
+/** Vite sólo debe suprimir el rechazo cuando hay una recarga en marcha. */
+export function handleStaleChunkPreloadError(event: Event): void {
+  if (recoveryPending || reloadForStaleChunk()) event.preventDefault();
 }

@@ -4,8 +4,8 @@
 
 - [x] LIFTGO-D: recuperación ante mensajes exactos de sesión rechazada; regresiones aisladas pasan. Esto no demuestra la causa original del token rechazado ni una solución publicada.
 - [x] LIFTGO-B: portal con captura de excepciones y desbloqueo para reintentar; pruebas de acceso/recuperación sin operaciones reales de acceso/correo.
-- [x] LIFTGO-C: versión obsoleta tras publicar; recarga automática y sin reporte desde 8.44.34, resuelto en Sentry.
-- [x] LIFTGO-A: la edición usa `update_supplier_bill_details` (SECURITY DEFINER, maneja `discount`); prueba de columnas protegidas en 8.44.35, resuelto en Sentry.
+- [ ] LIFTGO-C: recuperación de chunks incorporada en 8.44.34; la corrección de la guarda cuando falla sessionStorage está preparada para revisión. El filtrado de eventos recuperados no acredita la causa de assets ni la resolución del incidente. Pendiente verificar el commit publicado y eventos posteriores.
+- [ ] LIFTGO-A: la edición usa `update_supplier_bill_details` (SECURITY DEFINER, maneja `discount`); 8.44.35 añade una prueba de columnas protegidas. Esto no acredita la resolución del incidente publicado: pendiente contrastar versión/commit servido y eventos posteriores.
 - Evidencia: 38/38 pruebas focales de acceso/sesión/transporte y ESLint sin advertencias; vista previa informa build OK. Sin build productivo manual ni CI completo. El intento Chromium no capturó petición de acceso: no acredita flujo real ni reintento end-to-end.
 - Usar short IDs LIFTGO y etiquetas/release de LiftGo para delimitar alcance, incluso si el evento pertenece al proyecto Sentry `javascript-react`; no corregir otras aplicaciones.
 

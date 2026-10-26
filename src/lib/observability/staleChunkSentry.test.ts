@@ -23,6 +23,7 @@ afterEach(async () => {
   await Sentry.close(1000);
   for (const scope of [Sentry.getCurrentScope(), Sentry.getIsolationScope()]) scope.setClient(undefined);
   envelopes.length = 0;
+  vi.restoreAllMocks(); vi.unstubAllGlobals();
   clearStaleChunkReloadGuard();
 });
 
@@ -37,6 +38,14 @@ describe("versión obsoleta tras publicar", () => {
 
   it("sí reporta cuando la guarda ya hizo 2 recargas y se rinde", async () => {
     sessionStorage.setItem("vite-preload-reload", JSON.stringify({ ts: Date.now(), count: 2 }));
+    Sentry.captureException(new Error(STALE));
+    await Sentry.flush(1000);
+    expect(events()).toHaveLength(1);
+    expect(reload).not.toHaveBeenCalled();
+  });
+
+  it.each(["getItem", "setItem"] as const)("sí reporta cuando %s impide guardar la recarga", async (method) => {
+    vi.stubGlobal("sessionStorage", { getItem: sessionStorage.getItem.bind(sessionStorage), [method]: () => { throw new Error("Storage blocked"); } });
     Sentry.captureException(new Error(STALE));
     await Sentry.flush(1000);
     expect(events()).toHaveLength(1);

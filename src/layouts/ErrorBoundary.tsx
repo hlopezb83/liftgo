@@ -72,13 +72,13 @@ export class ErrorBoundary extends Component<Props, State> {
     const { isChunkError, error } = this.state;
 
     const title = isChunkError
-      ? "Hay una nueva versión disponible"
+      ? "No se pudo cargar una parte de la app"
       : routeLabel
         ? `No se pudo cargar el módulo ${routeLabel}`
         : "Algo salió mal";
 
     const description = isChunkError
-      ? "Refresca la app para cargar la última versión. Tus datos no se perderán."
+      ? "La recarga automática se detuvo. Puedes refrescar la app manualmente; la captura sin guardar podría perderse."
       : "Se produjo un error inesperado. Intenta refrescar la app o volver al inicio. Si el problema persiste, contacta al administrador.";
 
     const containerCls =

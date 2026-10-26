@@ -8,7 +8,7 @@ import { ErrorBoundary } from "@/layouts/ErrorBoundary";
 import { reportLovableError } from "@/lib/lovable-error-reporting";
 import { captureOperationalError } from "@/lib/observability/captureOperationalError";
 import { SentryNavigationSync } from "@/lib/observability/SentryNavigationSync";
-import { isStaleChunkRecoveryPending, recoverFromStaleChunk, reloadForStaleChunk } from "@/lib/staleChunkReload";
+import { clearStaleChunkReloadGuard, handleStaleChunkPreloadError, isStaleChunkMessage, recoverFromStaleChunk } from "@/lib/staleChunkReload";
 import appCss from "../styles.css?url";
 import type { QueryClient } from "@tanstack/react-query";
 
@@ -31,10 +31,7 @@ const LocaleShim = new Proxy(OrigLocale, {
 // ported from main.tsx — recarga controlada ante chunks stale (máx. 2 por 30s,
 // la guarda vive en staleChunkReload.ts).
 if (typeof window !== "undefined") {
-  window.addEventListener("vite:preloadError", (event) => {
-    event.preventDefault();
-    if (!isStaleChunkRecoveryPending()) reloadForStaleChunk();
-  });
+  window.addEventListener("vite:preloadError", handleStaleChunkPreloadError);
   window.addEventListener("error", (event) => {
     recoverFromStaleChunk(event.message);
   });
@@ -122,6 +119,7 @@ function RootNotFound() {
 
 function RootErrorComponent({ error, reset }: ErrorComponentProps) {
   const router = useRouter();
+  const isChunkError = isStaleChunkMessage(error instanceof Error ? error.message : String(error ?? ""));
   console.error(error);
   useEffect(() => {
     // Versión obsoleta tras publicar: la app se recarga sola y no se reporta.
@@ -134,7 +132,9 @@ function RootErrorComponent({ error, reset }: ErrorComponentProps) {
       <div className="flex flex-col items-center gap-4 max-w-sm text-center px-4">
         <h1 className="text-lg font-medium text-foreground">Esta página no cargó</h1>
         <p className="text-sm text-muted-foreground">
-          Ocurrió un error inesperado. Puedes reintentar o volver al inicio.
+          {isChunkError
+            ? "No se pudo cargar una parte de la app. La recarga automática se detuvo; puedes recargar manualmente. La captura sin guardar podría perderse."
+            : "Ocurrió un error inesperado. Puedes reintentar o volver al inicio."}
         </p>
         <ErrorDiagnostic error={error} title="Esta página no cargó" phase="route" />
         <div className="flex flex-wrap gap-2">
@@ -142,11 +142,16 @@ function RootErrorComponent({ error, reset }: ErrorComponentProps) {
             type="button"
             className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground min-h-11"
             onClick={() => {
+              if (isChunkError) {
+                clearStaleChunkReloadGuard();
+                window.location.reload();
+                return;
+              }
               void router.invalidate();
               reset();
             }}
           >
-            Reintentar
+            {isChunkError ? "Recargar app" : "Reintentar"}
           </button>
           <a
             href="/"
