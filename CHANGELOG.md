@@ -1,3 +1,7 @@
+## [8.44.34] - 2026-10-26
+
+- Las pestañas abiertas durante una publicación se recargan solas, incluidas las pantallas divididas vacías, y ese caso recuperado deja de llegar al monitoreo. Los fallos que persisten tras dos recargas se siguen reportando. Sin migraciones, permisos ni cambios de datos.
+
 ## [8.44.33] - 2026-10-25
 
 - Evita que los IDs locales interrumpan autenticación y recuperación de sesión; conserva aislamiento de borradores. Valida fechas de disponibilidad antes de la consulta y el reintento, con aviso local y regresiones. Sin migraciones, permisos, operaciones fiscales ni despliegue de funciones.

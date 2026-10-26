@@ -7,7 +7,7 @@ import { Sentry } from "@/lib/observability/sentry";
 import {
   clearStaleChunkReloadGuard,
   isStaleChunkMessage,
-  reloadForStaleChunk,
+  recoverFromStaleChunk,
 } from "@/lib/staleChunkReload";
 
 interface Props {
@@ -43,18 +43,15 @@ export class ErrorBoundary extends Component<Props, State> {
 
   componentDidCatch(error: Error, info: ErrorInfo): void {
     console.error("[ErrorBoundary]", error, info.componentStack);
-    // Reporta a Sentry con contexto de scope y ruta.
+    // M-22: la guarda anti-bucle vive en `@/lib/staleChunkReload`. Una versión
+    // obsoleta que se recarga sola no es incidente; si se rinde, sí se reporta.
+    if (recoverFromStaleChunk(error?.message)) return;
     Sentry.withScope((scope) => {
       scope.setTag("scope", this.props.scope ?? "app");
       if (this.props.routeLabel) scope.setTag("routeLabel", this.props.routeLabel);
       scope.setContext("react", { componentStack: info.componentStack });
       captureOperationalError(error, { phase: "render", errorCode: "INTERNAL_ERROR" });
     });
-    // M-22: la guarda anti-bucle (timestamp + máx. 2 recargas por ventana de
-    // 30 s) vive en `@/lib/staleChunkReload` y decide si recargar o rendirse.
-    if (isStaleChunkMessage(error?.message ?? "")) {
-      reloadForStaleChunk();
-    }
   }
 
   private handleReload = (): void => {

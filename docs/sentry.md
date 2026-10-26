@@ -29,7 +29,9 @@ Un fallo interno de un cron sin navegador puede aparecer sólo en esos logs.
   Validaciones, conflictos de negocio y warnings conservan su diagnóstico local.
   Los toasts mantienen error original, JSON copiable y detalles si falla Sentry.
 - No se manda a Sentry el reporte JSON completo, formulario ni respuesta cruda.
-  Los filtros conocidos de ResizeObserver no ocultan fallos de chunks.
+  Los filtros conocidos de ResizeObserver no ocultan fallos de chunks. Una
+  versión obsoleta que la app recupera recargándose sola no se envía; si la
+  guarda de recargas se agota, el fallo persistente sí se reporta.
 
 ## Privacidad y separación empresarial
 

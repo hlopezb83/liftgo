@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { clearStaleChunkReloadGuard, isStaleChunkMessage, reloadForStaleChunk } from "@/lib/staleChunkReload";
+import { clearStaleChunkReloadGuard, isStaleChunkMessage, recoverFromStaleChunk, reloadForStaleChunk } from "@/lib/staleChunkReload";
 
 const KEY = "vite-preload-reload";
 
@@ -8,6 +8,7 @@ describe("staleChunkReload (M-22)", () => {
   const reload = vi.fn();
 
   beforeEach(() => {
+    clearStaleChunkReloadGuard();
     sessionStorage.clear();
     reload.mockClear();
     Object.defineProperty(window, "location", {
@@ -57,5 +58,15 @@ describe("staleChunkReload (M-22)", () => {
     }
     expect(reload).toHaveBeenCalledTimes(2);
     expect(isStaleChunkMessage("Cannot read properties of undefined (reading 'total')")).toBe(false);
+  });
+  it("reconoce la pantalla dividida sin `component` y reutiliza la recarga pendiente", () => {
+    expect(isStaleChunkMessage("Cannot read properties of undefined (reading 'component')")).toBe(true);
+    expect(isStaleChunkMessage("undefined is not an object (evaluating 'e.component')")).toBe(true);
+    expect(isStaleChunkMessage("Cannot read properties of undefined (reading 'components')")).toBe(false);
+    expect(recoverFromStaleChunk("Cannot read properties of undefined (reading 'component')")).toBe(true);
+    expect(recoverFromStaleChunk("ChunkLoadError")).toBe(true);
+    expect(reload).toHaveBeenCalledTimes(1);
+    expect(JSON.parse(sessionStorage.getItem(KEY) ?? "{}").count).toBe(1);
+    expect(recoverFromStaleChunk("Fallo de consulta")).toBe(false);
   });
 });
