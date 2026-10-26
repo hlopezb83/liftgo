@@ -41,7 +41,7 @@ const STALE_CHUNK_PATTERNS = [
 export function isStaleChunkMessage(message: string | undefined | null): boolean {
   if (!message) return false;
   if (message.includes("undefined is not an object (evaluating")) {
-    return /\.(?:default|component)'\)/.test(message);
+    return message.includes("default") || /\.component'\)/.test(message);
   }
   return STALE_CHUNK_PATTERNS.some((pattern) => message.includes(pattern));
 }
@@ -103,12 +103,14 @@ export function reloadForStaleChunk(): boolean {
   const consecutive = prev && now - prev.ts <= RELOAD_WINDOW_MS ? prev.count : 0;
   if (consecutive >= MAX_RELOADS) return false; // rendirse: no recargar más
   writeState({ ts: now, count: consecutive + 1 });
+  recoveryPending = true;
   window.location.reload();
   return true;
 }
 
 /** Limpia la guarda (p.ej. antes de una recarga manual explícita del usuario). */
 export function clearStaleChunkReloadGuard(): void {
+  recoveryPending = false;
   try {
     sessionStorage.removeItem(RELOAD_KEY);
   } catch {
