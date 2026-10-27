@@ -6,8 +6,8 @@ import { FormControl, FormField, FormItem, FormMessage } from "@/components/ui/f
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { CustomerSelector } from "@/features/customers";
-import { formatYmdMx } from "../../lib/formatYmdMx";
 import { useNextInvoiceNumber } from "../../hooks/invoices/useNextInvoiceNumber";
+import { formatYmdMx } from "../../lib/formatYmdMx";
 import { MultiBookingSelector } from "./MultiBookingSelector";
 import type { InvoiceFormValues } from "../../lib/invoiceFormSchema";
 import type { UseFormReturn } from "react-hook-form";

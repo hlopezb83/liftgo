@@ -12,13 +12,13 @@ import { Textarea } from "@/components/ui/textarea";
 import { useLinkExtensionInvoice } from "@/features/bookings";
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import { useUnsavedChangesGuard } from "@/hooks/useUnsavedChangesGuard";
+import { formatCurrencyWithCode } from "@/lib/format/formatCurrency";
 import { useParams, useSearchParams } from "@/lib/router-compat";
 import { notifySuccess } from "@/lib/ui/appFeedback";
 import { CfdiFieldsCard } from "../components/invoice-form/CfdiFieldsCard";
 import { EditableLineItemsTable } from "../components/invoice-form/EditableLineItemsTable";
-import { InvoiceSourceNotice } from "../components/invoice-form/InvoiceSourceNotice";
-import { formatCurrencyWithCode } from "@/lib/format/formatCurrency";
 import { InvoiceDetailsCard } from "../components/invoice-form/InvoiceDetailsCard";
+import { InvoiceSourceNotice } from "../components/invoice-form/InvoiceSourceNotice";
 import { SaleAssignmentBlocked } from "../components/invoice-form/SaleAssignmentBlocked";
 import { useDamagePrefill } from "../hooks/useDamagePrefill";
 import { useInvoiceFormLogic } from "../hooks/useInvoiceFormLogic";
@@ -27,6 +27,17 @@ import type { InvoiceFormValues } from "../lib/invoiceFormSchema";
 function invoiceSubmitBlock(chargeBlock: string | null, isEdit: boolean, version: number | null | undefined) {
   if (chargeBlock) return chargeBlock;
   return isEdit && version == null ? "Cargando la factura…" : undefined;
+}
+
+function StickySubmitBar({ total, currency, children }: { total: number; currency: string | undefined; children: React.ReactNode }) {
+  return (
+    <div className="sticky bottom-0 z-10 flex flex-col gap-3 rounded-t-lg border-t bg-background/95 py-3 backdrop-blur sm:flex-row sm:items-center sm:justify-between">
+      <p className="text-sm text-muted-foreground">
+        Total <span className="ml-1 font-mono text-base font-semibold text-foreground">{formatCurrencyWithCode(total, currency)}</span>
+      </p>
+      {children}
+    </div>
+  );
 }
 
 export default function InvoiceForm() {
@@ -202,15 +213,12 @@ export default function InvoiceForm() {
 
           {/* R5-16: en edición, bloquear Guardar hasta que `existing` resuelva
               y haya invoiceVersion; sin ella el UPDATE iría sin bloqueo optimista. */}
-          <div className="sticky bottom-0 z-10 -mx-4 flex flex-col gap-3 border-t bg-background/95 px-4 py-3 backdrop-blur sm:flex-row sm:items-center sm:justify-between">
-            <p className="text-sm text-muted-foreground">
-              Total <span className="ml-1 font-mono text-base font-semibold text-foreground">{formatCurrencyWithCode(f.total, currency)}</span>
-            </p>
+          <StickySubmitBar total={f.total} currency={currency}>
             <FormActions submitLabel={f.isEdit ? "Actualizar factura" : "Crear factura"} isPending={f.isPending} onCancel={() => navigate(-1)}
-            submitDisabled={!!submitBlock}
-            submitDisabledReason={submitBlock}
+              submitDisabled={!!submitBlock}
+              submitDisabledReason={submitBlock}
             />
-          </div>
+          </StickySubmitBar>
         </form>
       </Form>
     </PageContainer>
