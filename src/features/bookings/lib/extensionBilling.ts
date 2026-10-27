@@ -86,7 +86,7 @@ export function resolveExtensionRates(
 
 
 /** Partida de extensión con su clave de unidad SAT ya resuelta. */
-export type ExtensionLineItem = LineItem & { clave_unidad: string };
+type ExtensionLineItem = LineItem & { clave_unidad: string };
 
 /**
  * Clave de unidad SAT (catálogo c_ClaveUnidad) según cómo se cobró la partida:
@@ -95,7 +95,7 @@ export type ExtensionLineItem = LineItem & { clave_unidad: string };
  * completo, así que se factura como "Unidad de servicio" (E48), la misma
  * convención que el prorrateo del flujo recurrente.
  */
-export function satUnitForRentalItem(item: Pick<LineItem, "rate_type" | "description">): string {
+function satUnitForRentalItem(item: Pick<LineItem, "rate_type" | "description">): string {
   if (item.rate_type === "monthly") {
     return item.description.startsWith("Renta mensual (prorrateo") ? "E48" : "MON";
   }
