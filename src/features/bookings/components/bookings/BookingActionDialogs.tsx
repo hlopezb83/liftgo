@@ -9,10 +9,12 @@ import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogD
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { formatDateMty } from "@/lib/format/dateFormats";
-import { formatCurrencyWithCode } from "@/lib/format/formatCurrency";
+import { formatDateMty, toYMD } from "@/lib/format/dateFormats";
 import { formatDateRange } from "@/lib/utils";
 import { BOOKING_STATUS_LABELS, getValidTransitions } from "../../hooks/bookingActions/useBookingActionsLogic";
+import { extensionBillableRange } from "../../lib/extensionBilling";
+import { BookingExtensionEstimate } from "./BookingExtensionEstimate";
+import type { BookingExtensionPreview } from "../../hooks/bookingActions/useExtendBookingPreview";
 import type { BookingWithForklift } from "../../hooks/bookings/useBookings";
 import type { ComponentProps } from "react";
 
@@ -77,33 +79,61 @@ interface ExtendDialogProps {
   currentEndDate: string;
   newEndDate: Date | undefined;
   setNewEndDate: (d: Date | undefined) => void;
-  extendPreview: { total: number; currency: string } | null;
+  extendPreview: BookingExtensionPreview | null;
   isPending: boolean;
   onExtend: () => void;
+  recurringBilling?: boolean | null;
+  onCloseAutoFocus?: ComponentProps<typeof FormDialog>["onCloseAutoFocus"];
+}
+
+function extensionDateState(currentEndDate: string, newEndDate: Date | undefined) {
+  const validNewDate = newEndDate && Number.isFinite(newEndDate.getTime()) ? newEndDate : undefined;
+  const endYmd = toYMD(validNewDate);
+  const range = endYmd ? extensionBillableRange(currentEndDate, endYmd) : null;
+  const dateError = newEndDate && !validNewDate
+    ? "Selecciona una fecha válida."
+    : newEndDate && !range ? "La nueva fecha debe ser posterior al fin actual." : undefined;
+  return { validNewDate, endYmd, range, dateError };
 }
 
 export function BookingExtendDialog({
-  open, onOpenChange, currentEndDate, newEndDate, setNewEndDate, extendPreview, isPending, onExtend,
+  open, onOpenChange, currentEndDate, newEndDate, setNewEndDate, extendPreview, isPending, onExtend, recurringBilling = false, onCloseAutoFocus,
 }: ExtendDialogProps) {
+  const { validNewDate, endYmd, range, dateError } = extensionDateState(currentEndDate, newEndDate);
   return (
     <FormDialog
       isPending={isPending}
       open={open}
       onOpenChange={onOpenChange}
       title="Extender Reserva"
-      description={`Fecha de fin actual: ${formatDateMty(currentEndDate)}`}
+      description="Revisa el periodo adicional y su costo estimado."
+      onCloseAutoFocus={onCloseAutoFocus}
     >
       <div className="space-y-4">
-        <DatePickerField label="Nueva Fecha de Fin" date={newEndDate} onSelect={setNewEndDate} />
-        {extendPreview && (
-          <div className="p-3 rounded-lg bg-muted text-sm">
-            <p>Cargo adicional estimado: <span className="font-bold">{formatCurrencyWithCode(extendPreview.total, extendPreview.currency)}</span></p>
-          </div>
+        <dl className="grid grid-cols-2 gap-3 rounded-lg bg-muted/40 p-3 text-sm">
+          <div className="min-w-0"><dt className="text-muted-foreground">Fin actual</dt><dd className="font-medium">{formatDateMty(currentEndDate)}</dd></div>
+          <div className="min-w-0"><dt className="text-muted-foreground">Nuevo fin</dt><dd className="font-medium">{endYmd ? formatDateMty(endYmd) : "Por seleccionar"}</dd></div>
+        </dl>
+        <fieldset disabled={isPending} className="min-w-0">
+          <DatePickerField label="Nueva Fecha de Fin" date={validNewDate} onSelect={setNewEndDate} required invalidateOnPartial error={dateError} />
+        </fieldset>
+        {range && (
+          <p className="text-sm">
+            <span className="font-medium">{range.days} {range.days === 1 ? "día adicional" : "días adicionales"}</span>
+            <span className="block text-muted-foreground">Del {formatDateMty(range.start)} al {formatDateMty(range.end)}, ambos incluidos.</span>
+          </p>
         )}
+        {recurringBilling && (
+          <p className="text-sm text-muted-foreground">
+            Los días adicionales de esta reserva se incluyen al generar el borrador del periodo mensual correspondiente.
+          </p>
+        )}
+        {range && extendPreview && <BookingExtensionEstimate preview={extendPreview} recurringBilling={recurringBilling} />}
+        {range && !extendPreview && <p className="text-sm text-muted-foreground">No hay una estimación disponible para este periodo.</p>}
 
         <FormDialogFooter>
-          <FormDialogCancelButton onCancel={() => onOpenChange(false)} />
-          <Button onClick={onExtend} disabled={isPending}>Extender</Button>
+          <FormDialogCancelButton disabled={isPending} onCancel={() => onOpenChange(false)} />
+          <Button onClick={onExtend} disabled={isPending || !range}>Extender</Button>
         </FormDialogFooter>
       </div>
     </FormDialog>

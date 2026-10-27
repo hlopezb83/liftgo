@@ -191,6 +191,13 @@ export function BookingActions({ booking, deliveries, transportsLoading, transpo
     ? undefined
     : "Tu rol solo puede consultar reservas; pide a un administrador cancelarla";
   const { moreRef, focusMore } = useMoreFocus();
+  const extendRef = useRef<HTMLButtonElement>(null);
+  const focusExtend = useCallback((event: Event) => {
+    const target = extendRef.current;
+    if (!target || !target.isConnected || target.disabled || target.getClientRects().length === 0) return;
+    event.preventDefault();
+    target.focus({ preventScroll: true });
+  }, []);
 
   const statusChangeDialog = (
     <BookingStatusChangeDialog
@@ -251,7 +258,7 @@ export function BookingActions({ booking, deliveries, transportsLoading, transpo
           <DocumentIcon className="h-4 w-4 mr-1" />Crear contrato
         </Button>
       )}
-      {canManageBooking && <Button variant="outline" size="sm" className={TOUCH} onClick={() => { logic.setNewEndDate(undefined); logic.setExtendOpen(true); }}>
+      {canManageBooking && <Button ref={extendRef} variant="outline" size="sm" className={TOUCH} onClick={() => { logic.setNewEndDate(undefined); logic.setExtendOpen(true); }}>
         <CalendarPlus className="h-4 w-4 mr-1" />Extender
       </Button>}
 
@@ -299,6 +306,8 @@ export function BookingActions({ booking, deliveries, transportsLoading, transpo
         extendPreview={logic.extendPreview}
         isPending={logic.extendBookingPending}
         onExtend={() => logic.handleExtend(() => logic.setExtendOpen(false))}
+        recurringBilling={booking.recurring_billing}
+        onCloseAutoFocus={focusExtend}
       />}
 
       {statusChangeDialog}

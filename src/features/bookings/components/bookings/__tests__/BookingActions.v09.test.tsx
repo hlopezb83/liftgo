@@ -32,9 +32,11 @@ vi.mock("../../../hooks/bookingActions/useBookingActionsLogic", async (orig) => 
     ...actual,
     useBookingActionsLogic: () => {
       const [statusOpen, setStatusOpen] = useState(false);
+      const [extendOpen, setExtendOpenState] = useState(false);
       return {
         isAdmin: state.isAdmin, navigate,
-        extendOpen: false, setExtendOpen,
+        extendOpen,
+        setExtendOpen: (v: boolean) => { setExtendOpen(v); setExtendOpenState(v); },
         statusDialogOpen: statusOpen,
         setStatusDialogOpen: (v: boolean) => { setStatusDialogOpen(v); setStatusOpen(v); },
         newStatus: "", setNewStatus: vi.fn(),
@@ -173,6 +175,18 @@ describe("V09 · acciones de reserva", () => {
     fireEvent.keyDown(dialog, { key: "Escape" });
     await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull());
     await waitFor(() => expect(screen.getByRole("button", { name: "Más acciones" })).toHaveFocus());
+  });
+
+  it("Extender abre su diálogo y Cancelar devuelve foco al disparador persistente", async () => {
+    setup();
+    const trigger = await screen.findByRole("button", { name: "Extender" });
+    vi.spyOn(trigger, "getClientRects").mockReturnValue([new DOMRect()] as unknown as DOMRectList);
+    trigger.focus();
+    fireEvent.click(trigger);
+    const dialog = await screen.findByRole("dialog", { name: "Extender Reserva" });
+    fireEvent.click(within(dialog).getByRole("button", { name: "Cancelar" }));
+    await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull());
+    await waitFor(() => expect(trigger).toHaveFocus());
   });
 
   it("completada/cancelada sin admin: ninguna acción", () => {

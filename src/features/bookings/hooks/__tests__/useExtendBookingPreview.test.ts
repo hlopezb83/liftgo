@@ -77,4 +77,46 @@ describe("useExtendBookingPreview · BL-A1 IVA 16%", () => {
   it("regresa null cuando no hay fecha o forklift", () => {
     expect(useExtendBookingPreview(booking, undefined)).toBeNull();
   });
+
+  it("expone el mismo tramo inclusivo y las partidas canónicas del cálculo", () => {
+    const result = useExtendBookingPreview(booking, new Date("2026-08-20T12:00:00"));
+    expect(result!.range).toEqual({ start: "2026-08-16", end: "2026-08-20", days: 5 });
+    expect(result!.items).toEqual(buildExtensionLineItems({
+      originalEndDate: booking.end_date,
+      newEndDate: "2026-08-20",
+      forkliftRates: forkliftsData[0],
+      bookingRates: booking,
+      forkliftName: "Toyota A",
+      serialNumber: "SN-1",
+    }));
+    expect(result!.items[0].clave_unidad).toBe("DAY");
+    expect(result!.rateSource).toBe("catalog");
+    expect(result!.taxRate).toBe(16);
+    expect(result!.currency).toBe("MXN");
+  });
+
+  it("muestra la semana pactada y conserva la moneda sin sustituir la tarifa por catálogo", () => {
+    const agreedBooking = {
+      ...booking, end_date: "2026-10-31", daily_rate: 0, weekly_rate: 4500, monthly_rate: 0, currency: "USD",
+    } as BookingWithForklift;
+    const result = useExtendBookingPreview(agreedBooking, new Date("2026-11-07T12:00:00"));
+    expect(result!.range).toEqual({ start: "2026-11-01", end: "2026-11-07", days: 7 });
+    expect(result!.items[0]).toMatchObject({ quantity: 1, unit_price: 4500, total: 4500, rate_type: "weekly", clave_unidad: "WEE" });
+    expect(result).toMatchObject({ subtotal: 4500, taxAmount: 720, total: 5220, currency: "USD", rateSource: "booking" });
+  });
+
+  it("identifica el contrato pactado también al derivar una tarifa diaria desde la mensual", () => {
+    const agreedBooking = { ...booking, daily_rate: 0, weekly_rate: 0, monthly_rate: 15000 } as BookingWithForklift;
+    const result = useExtendBookingPreview(agreedBooking, new Date("2026-08-20T12:00:00"));
+    expect(result).toMatchObject({ rateSource: "booking", subtotal: 2500 });
+    expect(result!.items[0]).toMatchObject({ quantity: 5, unit_price: 500, clave_unidad: "DAY" });
+  });
+
+  it.each(["2026-08-15", "2026-08-14"])("no produce un estimado para un fin que no añade días (%s)", (end) => {
+    expect(useExtendBookingPreview(booking, new Date(`${end}T12:00:00`))).toBeNull();
+  });
+
+  it("no calcula partidas ni días NaN para una fecha inválida", () => {
+    expect(useExtendBookingPreview(booking, new Date(Number.NaN))).toBeNull();
+  });
 });
