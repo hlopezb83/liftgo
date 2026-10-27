@@ -91,6 +91,10 @@ jobs:
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@v7
+      # Eliminar sin leer antes de que Bun/Vite puedan cargar archivos locales.
+      # El build mantiene exclusivamente las variables ficticias del step Build.
+      - name: Excluir archivos de entorno locales del build
+        run: rm -f -- .env .env.*
       - uses: ./.github/actions/setup-bun-project
         with:
           save-cache: "true"
@@ -146,6 +150,22 @@ jobs:
         env:
           SMOKE_REUSE_BUILD: "1"
         run: bunx playwright test --config playwright.invoice-ui.config.ts
+
+      - name: Quote acceptance 360/390/1440 (real build, fake data)
+        env:
+          SMOKE_REUSE_BUILD: "1"
+        run: bunx playwright test --config playwright.quotes-design.config.ts
+
+      - name: Upload quote acceptance evidence
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: quotes-design-artifacts
+          path: |
+            playwright-report/quotes-design/
+            test-results/quotes-design/
+          retention-days: 7
+          if-no-files-found: ignore
 
       - name: Subir evidencia móvil
         if: always()

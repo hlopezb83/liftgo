@@ -5,7 +5,7 @@ import {
   quoteMxnId, quoteUsdId, quoteAcceptedId, type QuoteTransportOptions,
 } from "./fixtures";
 
-const evidenceDir = "../quote-evidence";
+const evidenceDir = "test-results/quotes-design/evidence";
 mkdirSync(evidenceDir, { recursive: true });
 const test = base.extend<{
   transportOptions: QuoteTransportOptions;

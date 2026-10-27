@@ -12,12 +12,15 @@ const baseURL = "http://127.0.0.1:4187";
 export default defineConfig({
   ...smoke,
   testDir: "./tests/quotes-design",
-  outputDir: "../quote-evidence/test-results",
+  outputDir: "test-results/quotes-design",
   fullyParallel: false,
   workers: 1,
   retries: 0,
   timeout: 60_000,
-  reporter: [["list"]],
+  reporter: [
+    ["list"],
+    ["html", { outputFolder: "playwright-report/quotes-design", open: "never" }],
+  ],
   webServer: {
     ...smoke.webServer as object,
     command: "node node_modules/wrangler/bin/wrangler.js dev --ip 127.0.0.1 --port 4187 --inspector-port 9237 --var SENTRY_DSN:http://public@127.0.0.1:54321/1",
@@ -28,9 +31,9 @@ export default defineConfig({
     ...smoke.use,
     baseURL,
     actionTimeout: 10_000,
-    launchOptions: {
-      executablePath: process.env.SMOKE_CHROMIUM_PATH ?? "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe",
-    },
+    launchOptions: process.env.SMOKE_CHROMIUM_PATH
+      ? { executablePath: process.env.SMOKE_CHROMIUM_PATH }
+      : {},
   },
   projects: [
     { name: "desktop-1440", use: { viewport: { width: 1440, height: 1000 } } },

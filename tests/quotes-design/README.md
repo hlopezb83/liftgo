@@ -27,5 +27,9 @@ seven lines and both discount types, read permissions, cancel/back and the
 unsaved changes guard. The 430px reduced viewport approximates available
 space while a mobile keyboard is open; it is not a native OS keyboard test.
 
-Viewport screenshots and JSON geometry/network ledgers are written only to
-`../quote-evidence/`. Failures keep traces in its `test-results/` directory.
+Viewport screenshots and JSON geometry/network ledgers are written to
+`test-results/quotes-design/evidence/`. Failures keep traces under
+`test-results/quotes-design/`; the HTML report is in
+`playwright-report/quotes-design/`. These paths are already ignored by Git
+and uploaded by CI. CI uses Playwright's managed Chromium; set
+`SMOKE_CHROMIUM_PATH` only when selecting an installed local Chromium.

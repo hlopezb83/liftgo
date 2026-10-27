@@ -16,7 +16,7 @@ function config() {
 function walk(directory) {
   return fs.readdirSync(directory, { withFileTypes: true }).flatMap(entry => {
     const filename = path.join(directory, entry.name);
-    return entry.isDirectory() ? walk(filename) : filename.endsWith('.ts') ? [filename] : [];
+    return entry.isDirectory() ? walk(filename) : /\.tsx?$/.test(filename) ? [filename] : [];
   });
 }
 test('browser typecheck includes every E2E spec, setup, teardown and fixture', () => {
@@ -24,6 +24,13 @@ test('browser typecheck includes every E2E spec, setup, teardown and fixture', (
   const e2eFiles = walk(path.join(root, 'tests/e2e'));
   assert.ok(e2eFiles.filter(file => file.endsWith('.spec.ts')).length >= 17);
   assert.deepEqual(e2eFiles.filter(file => !roots.has(file)), []);
+});
+test('browser typecheck includes quote design specs, fixtures and config', () => {
+  const roots = new Set(config().fileNames);
+  const quoteFiles = walk(path.join(root, 'tests/quotes-design'));
+  assert.ok(quoteFiles.some(file => file.endsWith('.spec.ts')), 'quote design must contain a spec');
+  const expected = [...quoteFiles, path.join(root, 'playwright.quotes-design.config.ts')];
+  assert.deepEqual(expected.filter(file => !roots.has(file)), []);
 });
 test('an incompatible type in a formerly excluded spec fails without executing it', () => {
   const parsed = config();

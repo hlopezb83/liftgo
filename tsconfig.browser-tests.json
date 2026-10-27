@@ -5,6 +5,8 @@
     "tests/smoke/**/*.ts",
     "playwright.smoke.config.ts",
     "playwright.prod-smoke.config.ts",
+    "tests/quotes-design/**/*.ts",
+    "playwright.quotes-design.config.ts",
     "tests/mobile/**/*.ts",
     "tests/invoice-ui/**/*.ts",
     "playwright.invoice-ui.config.ts",
