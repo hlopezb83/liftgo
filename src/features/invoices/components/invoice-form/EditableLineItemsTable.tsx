@@ -6,6 +6,7 @@ import { FormControl, FormField, FormItem, FormMessage } from "@/components/ui/f
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Textarea } from "@/components/ui/textarea";
 import { applyDiscountToBase, lineItemTotal } from "@/lib/domain/invoiceHelpers";
 import { CLAVE_PROD_SERV, CLAVE_UNIDAD } from "@/lib/domain/satCatalogs";
 import { formatCurrencyWithCode } from "@/lib/format/formatCurrency";
@@ -32,14 +33,14 @@ export function EditableLineItemsTable() {
         </div>
         <p className="text-sm text-muted-foreground">El importe neto incluye el descuento, antes de IVA.</p>
       </CardHeader>
-      <CardContent className="p-0">
-        <Table>
+      <CardContent className="p-0 overflow-x-auto">
+        <Table className="min-w-[56rem]">
           <TableHeader>
             <TableRow>
-              <TableHead>Descripción</TableHead>
-              <TableHead className="w-28">ClaveProdServ</TableHead>
-              <TableHead className="w-20">ClaveUnidad</TableHead>
-              <TableHead className="w-20">Cant.</TableHead>
+              <TableHead className="min-w-[16rem]">Descripción</TableHead>
+              <TableHead className="w-40">Clave SAT</TableHead>
+              <TableHead className="w-36">Unidad SAT</TableHead>
+              <TableHead className="w-24">Cant.</TableHead>
               <TableHead className="w-28">Precio Unit.</TableHead>
               <TableHead className="w-28 text-right">Descuento</TableHead>
               <TableHead className="w-28 text-right">Importe neto</TableHead>
@@ -80,7 +81,7 @@ function LineItemRow({ index, onRemove }: RowProps) {
   const gross = lineItemTotal(Number(quantity ?? 0), Number(unitPrice ?? 0));
   const net = applyDiscountToBase(gross, discount, discountType);
   const discountLabel = discount && discount > 0
-    ? (discountType === "$" ? `-${formatCurrencyWithCode(discount, currency)}` : `-${discount}%`) : "—";
+    ? (discountType === "$" ? `-${formatCurrencyWithCode(discount, currency)}` : `-${discount}%`) : "Sin descuento";
 
   const syncTotal = (q: number, p: number) => {
     const next = lineItemTotal(q, p);
@@ -92,13 +93,13 @@ function LineItemRow({ index, onRemove }: RowProps) {
     <TableRow>
       <TableCell>
         <FormField control={control} name={`lineItems.${index}.description`} render={({ field }) => (
-          <FormItem><FormControl><Input className="h-8" {...field} /></FormControl><FormMessage /></FormItem>
+          <FormItem><FormControl><Textarea rows={3} className="min-h-[4.5rem] resize-y text-sm" aria-label={`Descripción partida ${index + 1}`} {...field} /></FormControl><FormMessage /></FormItem>
         )} />
         {origin && <p className="text-xs text-muted-foreground mt-1">Cargo vinculado a cotización</p>}
       </TableCell>
       <TableCell>
         <FormField control={control} name={`lineItems.${index}.clave_prod_serv`} render={({ field }) => (
-          <FormItem>
+          <FormItem title={CLAVE_PROD_SERV.find((c) => c.code === field.value)?.label}>
             <Select value={field.value || ""} onValueChange={field.onChange}>
               <FormControl><SelectTrigger className="h-8 text-xs"><SelectValue placeholder="Código" /></SelectTrigger></FormControl>
               <SelectContent>
@@ -111,7 +112,7 @@ function LineItemRow({ index, onRemove }: RowProps) {
       </TableCell>
       <TableCell>
         <FormField control={control} name={`lineItems.${index}.clave_unidad`} render={({ field }) => (
-          <FormItem>
+          <FormItem title={CLAVE_UNIDAD.find((c) => c.code === field.value)?.label}>
             <Select value={field.value || ""} onValueChange={field.onChange}>
               <FormControl><SelectTrigger className="h-8 text-xs"><SelectValue placeholder="Unidad" /></SelectTrigger></FormControl>
               <SelectContent>
@@ -150,7 +151,7 @@ function LineItemRow({ index, onRemove }: RowProps) {
           </FormItem>
         )} />
       </TableCell>
-      <TableCell className="text-right font-mono">{discountLabel}</TableCell>
+      <TableCell className={discount && discount > 0 ? "text-right font-mono" : "text-right text-xs text-muted-foreground"}>{discountLabel}</TableCell>
       <TableCell className="text-right font-mono">
         <output aria-label={`Importe neto partida ${index + 1}`}>{formatCurrencyWithCode(net, currency)}</output>
       </TableCell>

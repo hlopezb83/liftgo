@@ -1,0 +1,15 @@
+{
+  "version": "8.45.0",
+  "date": "2026-10-26",
+  "type": "minor",
+  "category": "improvement",
+  "title": "Pantalla de nueva factura más clara",
+  "description": "Mejoras visuales al crear facturas: aviso de origen, partidas legibles y total siempre visible. Sin cambios de cálculos, reglas fiscales, permisos ni datos.",
+  "changes": [
+    "Aviso arriba cuando la factura viene de una extensión (folio, periodo y días) o de una cotización.",
+    "Periodo de facturación mostrado en formato mexicano dd/mm/aaaa y ayuda en lenguaje claro.",
+    "Cliente sin caja doble y ayuda bajo la fecha de vencimiento.",
+    "Descripción de partidas en varias líneas, claves SAT más anchas con nombre completo al pasar el cursor y «Sin descuento» en lugar de un guion.",
+    "Barra inferior fija con el total y los botones Cancelar y Crear factura; folio tentativo en color neutro."
+  ]
+}

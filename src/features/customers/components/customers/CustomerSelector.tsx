@@ -23,6 +23,8 @@ interface CustomerSelectorProps {
   error?: string;
   /** Variante compacta para formularios densos. */
   compact?: boolean;
+  /** Sin tarjeta propia: para incrustarlo dentro de otra tarjeta. */
+  bare?: boolean;
 }
 
 function useSelectorSearchState(customers: CustomerSelectorOption[] | undefined) {
@@ -80,6 +82,7 @@ export function CustomerSelector({
   helpText,
   error,
   compact,
+  bare,
 }: CustomerSelectorProps) {
   const search = useSelectorSearchState(customers);
   const selected = useSelectedCustomer(search.initialItems, search.searchQuery, customerId);
@@ -98,11 +101,7 @@ export function CustomerSelector({
     onCustomerContactChange?.("");
   };
 
-  return (
-    <Card>
-      {!compact && <CardHeader><CardTitle className="text-base">Cliente</CardTitle></CardHeader>}
-      <CardContent className={cn("space-y-4", compact && "p-4")}>
-        {(search.initialItems.length > 0 || selected) && (
+  const combobox = (
           <CustomerCombobox
             items={search.items}
             selected={selected}
@@ -122,7 +121,22 @@ export function CustomerSelector({
             onSelect={handleSelect}
             onClear={handleClear}
           />
-        )}
+  );
+
+  if (bare) {
+    return (
+      <div className="space-y-2">
+        {(search.initialItems.length > 0 || selected) && combobox}
+        {error && <p className="text-sm text-destructive">{error}</p>}
+      </div>
+    );
+  }
+
+  return (
+    <Card>
+      {!compact && <CardHeader><CardTitle className="text-base">Cliente</CardTitle></CardHeader>}
+      <CardContent className={cn("space-y-4", compact && "p-4")}>
+        {(search.initialItems.length > 0 || selected) && combobox}
         {!hideManualName && (
           <ManualCustomerFields
             customerName={customerName}
