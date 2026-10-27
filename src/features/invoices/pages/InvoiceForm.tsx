@@ -5,7 +5,6 @@ import { EmptyState } from "@/components/feedback/EmptyState";
 import { FormActions } from "@/components/forms/FormActions";
 import { FormPageHeader } from "@/components/layout/FormPageHeader";
 import { PageContainer } from "@/components/layout/PageContainer";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form, FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form";
 import { Textarea } from "@/components/ui/textarea";
@@ -17,6 +16,7 @@ import { useParams, useSearchParams } from "@/lib/router-compat";
 import { notifySuccess } from "@/lib/ui/appFeedback";
 import { CfdiFieldsCard } from "../components/invoice-form/CfdiFieldsCard";
 import { EditableLineItemsTable } from "../components/invoice-form/EditableLineItemsTable";
+import { InvoiceAvailabilityNotice } from "../components/invoice-form/InvoiceAvailabilityNotice";
 import { InvoiceDetailsCard } from "../components/invoice-form/InvoiceDetailsCard";
 import { InvoiceSourceNotice } from "../components/invoice-form/InvoiceSourceNotice";
 import { SaleAssignmentBlocked } from "../components/invoice-form/SaleAssignmentBlocked";
@@ -174,14 +174,12 @@ export default function InvoiceForm() {
 
           <CfdiFieldsCard />
 
-          {(f.chargeBlock || f.bookingAvailabilityBlock) && (
-            <div role="alert" className="rounded-lg border border-destructive/40 bg-destructive/5 p-4 space-y-2">
-              <p>{f.chargeBlock || f.bookingAvailabilityBlock}</p>
-              <p className="text-sm text-muted-foreground">Los borradores también reservan cargos. Si hay partidas históricas sin vínculo, concílialas antes de continuar.</p>
-              <Button type="button" variant="outline" size="sm" disabled={f.isLoadingChargeAvailability}
-                onClick={() => void f.retryChargeAvailability()}>Reintentar consulta</Button>
-            </div>
-          )}
+          <InvoiceAvailabilityNotice
+            chargeBlock={f.chargeBlock}
+            bookingAvailabilityBlock={f.bookingAvailabilityBlock}
+            isLoading={f.isLoadingChargeAvailability}
+            onRetry={f.retryChargeAvailability}
+          />
           <EditableLineItemsTable />
 
           <TotalsSummary
