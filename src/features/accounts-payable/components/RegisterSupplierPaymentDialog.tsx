@@ -150,6 +150,7 @@ function SupplierPaymentSession({
   return (
     <FormDialog
       onCloseAutoFocus={onCloseAutoFocus}
+      className="[&_input]:scroll-mt-32 [&_textarea]:scroll-mt-32 [&_input]:scroll-mb-24 [&_textarea]:scroll-mb-24"
       isPending={register.isPending || uploader.isPending}
       isDirty={form.formState.isDirty || receiptFile !== null}
       open={open} onOpenChange={onOpenChange} title={`Registrar pago — ${billNumber}`}>
