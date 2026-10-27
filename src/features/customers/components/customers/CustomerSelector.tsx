@@ -23,6 +23,8 @@ interface CustomerSelectorProps {
   error?: string;
   /** Variante compacta para formularios densos. */
   compact?: boolean;
+  /** Sin tarjeta propia: para incrustarlo dentro de otra tarjeta. */
+  bare?: boolean;
 }
 
 function useSelectorSearchState(customers: CustomerSelectorOption[] | undefined) {
@@ -97,6 +99,15 @@ export function CustomerSelector({
     onCustomerNameChange("");
     onCustomerContactChange?.("");
   };
+
+  if (bare) {
+    return (
+      <div className="space-y-2">
+        {(search.initialItems.length > 0 || selected) && combobox}
+        {error && <p className="text-sm text-destructive">{error}</p>}
+      </div>
+    );
+  }
 
   return (
     <Card>
