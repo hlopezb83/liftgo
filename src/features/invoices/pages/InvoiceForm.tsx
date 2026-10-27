@@ -16,6 +16,8 @@ import { useParams, useSearchParams } from "@/lib/router-compat";
 import { notifySuccess } from "@/lib/ui/appFeedback";
 import { CfdiFieldsCard } from "../components/invoice-form/CfdiFieldsCard";
 import { EditableLineItemsTable } from "../components/invoice-form/EditableLineItemsTable";
+import { InvoiceSourceNotice } from "../components/invoice-form/InvoiceSourceNotice";
+import { formatCurrencyWithCode } from "@/lib/format/formatCurrency";
 import { InvoiceDetailsCard } from "../components/invoice-form/InvoiceDetailsCard";
 import { SaleAssignmentBlocked } from "../components/invoice-form/SaleAssignmentBlocked";
 import { useDamagePrefill } from "../hooks/useDamagePrefill";
@@ -149,6 +151,7 @@ export default function InvoiceForm() {
       <Form {...f.form}>
         {/* eslint-disable-next-line react-hooks/refs -- onSubmit only writes justSavedRef inside async callbacks */}
         <form onSubmit={f.form.handleSubmit(onSubmit)} className="space-y-6">
+          <InvoiceSourceNotice extension={f.extension} quoteNumber={f.sourceQuote?.quote_number ?? null} />
           <InvoiceDetailsCard
             isEdit={f.isEdit}
             form={f.form}
@@ -199,10 +202,15 @@ export default function InvoiceForm() {
 
           {/* R5-16: en edición, bloquear Guardar hasta que `existing` resuelva
               y haya invoiceVersion; sin ella el UPDATE iría sin bloqueo optimista. */}
-          <FormActions submitLabel={f.isEdit ? "Actualizar factura" : "Crear factura"} isPending={f.isPending} onCancel={() => navigate(-1)}
+          <div className="sticky bottom-0 z-10 -mx-4 flex flex-col gap-3 border-t bg-background/95 px-4 py-3 backdrop-blur sm:flex-row sm:items-center sm:justify-between">
+            <p className="text-sm text-muted-foreground">
+              Total <span className="ml-1 font-mono text-base font-semibold text-foreground">{formatCurrencyWithCode(f.total, currency)}</span>
+            </p>
+            <FormActions submitLabel={f.isEdit ? "Actualizar factura" : "Crear factura"} isPending={f.isPending} onCancel={() => navigate(-1)}
             submitDisabled={!!submitBlock}
             submitDisabledReason={submitBlock}
-          />
+            />
+          </div>
         </form>
       </Form>
     </PageContainer>
