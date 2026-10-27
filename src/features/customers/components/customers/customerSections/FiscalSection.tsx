@@ -33,7 +33,13 @@ export function FiscalSection() {
           placeholder="64000"
         />
       </div>
-      <div className="grid grid-cols-1 gap-3">
+      <div className="grid grid-cols-1 gap-3 [&_button]:scroll-mt-24 [&_button]:scroll-mb-24" onFocusCapture={(event) => {
+        const field = event.target;
+        if (field.getAttribute("role") !== "combobox") return;
+        requestAnimationFrame(() => {
+          if (document.activeElement === field) field.scrollIntoView?.({ block: "nearest", inline: "nearest" });
+        });
+      }}>
         <SelectField
           control={control}
           name="regimen_fiscal"
