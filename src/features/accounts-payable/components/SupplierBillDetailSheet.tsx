@@ -30,10 +30,10 @@ export function SupplierBillDetailSheet({ billId, open, onOpenChange, onCloseAut
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent className="sm:max-w-lg overflow-y-auto" onCloseAutoFocus={onCloseAutoFocus}>
-        <SheetHeader>
-          <SheetTitle className="flex items-center gap-2">
-            <DocumentIcon className="h-5 w-5" />
+      <SheetContent className="sm:max-w-lg flex flex-col gap-0 overflow-hidden p-0" onCloseAutoFocus={onCloseAutoFocus}>
+        <SheetHeader className="shrink-0 border-b px-6 py-5 pr-12 text-left">
+          <SheetTitle className="flex items-start gap-2 [overflow-wrap:anywhere]">
+            <DocumentIcon className="mt-0.5 h-5 w-5 shrink-0" />
             {bill?.bill_number ?? (isError ? "Error" : "Cargando…")}
           </SheetTitle>
         </SheetHeader>

@@ -1,3 +1,4 @@
+import { useRef, type ReactNode } from "react";
 import { StatusBadge } from "@/components/feedback/StatusBadge";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { Separator } from "@/components/ui/separator";
@@ -12,16 +13,16 @@ import { BillApprovalSection } from "./BillApprovalSection";
 import { CancelSupplierBillDialog } from "./CancelSupplierBillDialog";
 import { RegisterSupplierPaymentDialog } from "./RegisterSupplierPaymentDialog";
 import { SupplierBillFormDialog } from "./SupplierBillFormDialog";
+import { SupplierBillHeaderActions } from "./SupplierBillHeaderActions";
 import { SupplierBillPaymentActions } from "./SupplierBillPaymentActions";
 import { SupplierPaymentRow } from "./SupplierPaymentRow";
 import type { BillPermissions } from "../lib/billPermissions";
-import type { ReactNode } from "react";
 
 function Row({ label, value }: { label: string; value: ReactNode }) {
   return (
-    <div className="flex items-start justify-between gap-3 py-1.5 text-sm">
+    <div className="grid grid-cols-[minmax(0,1fr)_minmax(0,2fr)] gap-3 py-1.5 text-sm">
       <span className="text-muted-foreground">{label}</span>
-      <span className="font-medium text-right break-words">{value || "—"}</span>
+      <span className="min-w-0 font-medium text-right [overflow-wrap:anywhere]">{value || "-"}</span>
     </div>
   );
 }
@@ -96,19 +97,10 @@ interface Props {
 }
 
 function BillHeaderRow({ bill }: { bill: DetailBill }) {
-  // N9-UI: balance calculado de solo lectura (total − pagos), no el valor
-  // crudo de la columna editable (N9, pendiente DB4-08c).
-  const paidSum = (bill.payments ?? []).reduce((s, p) => s + Number(p.amount), 0);
-  const computedBalance = Math.max(0, Number(bill.total) - paidSum);
   return (
-    <div className="flex items-center justify-between">
+    <div className="space-y-2">
+      <p className="text-base font-semibold [overflow-wrap:anywhere]">{bill.suppliers?.name || "-"}</p>
       <StatusBadge status={bill.status} label={SUPPLIER_BILL_STATUS_LABELS[bill.status as keyof typeof SUPPLIER_BILL_STATUS_LABELS]} />
-      <div className="text-right">
-        <p className="text-xs text-muted-foreground" title="Calculado: total menos pagos registrados">
-          Saldo (calculado)
-        </p>
-        <p className="text-xl font-bold tabular-nums">{formatCurrencyWithCode(computedBalance, bill.currency)}</p>
-      </div>
     </div>
   );
 }
@@ -116,7 +108,6 @@ function BillHeaderRow({ bill }: { bill: DetailBill }) {
 function BillMetadataRows({ bill }: { bill: DetailBill }) {
   return (
     <div className="space-y-0">
-      <Row label="Proveedor" value={bill.suppliers?.name} />
       <Row label="RFC" value={bill.suppliers?.rfc} />
       <Row label="Categoría" value={bill.category ? EXPENSE_CATEGORY_LABELS[bill.category as keyof typeof EXPENSE_CATEGORY_LABELS] : "—"} />
       <Row label="Emisión" value={formatDateMty(bill.issue_date)} />
@@ -145,9 +136,25 @@ function PaymentsList({ bill }: { bill: DetailBill }) {
 }
 
 export function SupplierBillDetailContent({ bill, perms, isAdmin, dialogs, onClose, onDelete }: Props) {
+  const paymentTriggerRef = useRef<HTMLButtonElement>(null);
+  const paymentSummaryRef = useRef<HTMLDivElement>(null);
+  // Preserve the existing read-only balance: historical total minus applied payments.
+  const paidSum = (bill.payments ?? []).reduce((sum, payment) => sum + Number(payment.amount), 0);
+  const computedBalance = Math.max(0, Number(bill.total) - paidSum);
   return (
-    <div className="mt-4 space-y-4">
+    <div className="flex min-h-0 flex-1 flex-col">
+      <div className="min-h-0 flex-1 overflow-y-auto px-6 py-4 space-y-4">
       <BillHeaderRow bill={bill} />
+      <RoleGuard module="Facturas de Proveedor" minAccess="full" fallback={null}>
+        <SupplierBillHeaderActions
+          bill={bill}
+          isAdmin={isAdmin}
+          {...perms}
+          onCancelClick={() => dialogs.setCancelDialog(true)}
+          onEditClick={() => dialogs.setEditDialog(true)}
+          onDeleteClick={() => dialogs.setDeleteDialog(true)}
+        />
+      </RoleGuard>
       <Separator />
       <BillMetadataRows bill={bill} />
       <Separator />
@@ -158,7 +165,7 @@ export function SupplierBillDetailContent({ bill, perms, isAdmin, dialogs, onClo
           <Separator />
           <div>
             <p className="text-xs text-muted-foreground mb-1">Descripción</p>
-            <p className="text-sm whitespace-pre-wrap">{bill.description}</p>
+            <p className="text-sm whitespace-pre-wrap [overflow-wrap:anywhere]">{bill.description}</p>
           </div>
         </>
       )}
@@ -176,23 +183,21 @@ export function SupplierBillDetailContent({ bill, perms, isAdmin, dialogs, onClo
       />
 
 
-      <Separator />
-      <RoleGuard module="Facturas de Proveedor" minAccess="full" fallback={null}>
+      </div>
+      <div className="shrink-0 space-y-3 border-t bg-background px-6 pt-3 pb-[calc(1rem+env(safe-area-inset-bottom))]">
+        <div ref={paymentSummaryRef} tabIndex={-1} role="region" aria-label={`Saldo de ${bill.bill_number}`} className="space-y-1">
+          <p className="text-xs text-muted-foreground [overflow-wrap:anywhere]">{bill.bill_number}</p>
+          <p className="text-xs text-muted-foreground" title="Calculado: total menos pagos registrados">Saldo (calculado) · {bill.currency}</p>
+          <p className="text-xl font-bold tabular-nums [overflow-wrap:anywhere]">{formatCurrencyWithCode(computedBalance, bill.currency)}</p>
+        </div>
+        <RoleGuard module="Facturas de Proveedor" minAccess="full" fallback={null}>
         <SupplierBillPaymentActions
           bill={bill}
-          isAdmin={isAdmin}
-          canEdit={perms.canEdit}
-          canDelete={perms.canDelete}
-          editBlockedReason={perms.editBlockedReason}
-          deleteBlockedReason={perms.deleteBlockedReason}
-          editBlock={perms.editBlock}
-          deleteBlock={perms.deleteBlock}
+          paymentTriggerRef={paymentTriggerRef}
           onPayClick={() => dialogs.setPayDialog(true)}
-          onCancelClick={() => dialogs.setCancelDialog(true)}
-          onEditClick={() => dialogs.setEditDialog(true)}
-          onDeleteClick={() => dialogs.setDeleteDialog(true)}
         />
-      </RoleGuard>
+        </RoleGuard>
+      </div>
 
       <RegisterSupplierPaymentDialog
         open={dialogs.payDialog}
@@ -201,6 +206,13 @@ export function SupplierBillDetailContent({ bill, perms, isAdmin, dialogs, onClo
         billNumber={bill.bill_number}
         balance={Number(bill.balance)}
         currency={bill.currency ?? "MXN"}
+        onCloseAutoFocus={(event) => {
+          const target = paymentTriggerRef.current ?? paymentSummaryRef.current;
+          if (target?.isConnected) {
+            event.preventDefault();
+            target.focus({ preventScroll: true });
+          }
+        }}
       />
       <CancelSupplierBillDialog
         open={dialogs.cancelDialog}
