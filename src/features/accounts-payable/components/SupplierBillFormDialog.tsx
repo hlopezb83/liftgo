@@ -25,6 +25,20 @@ interface Props {
 
 const CURRENCY_OPTIONS: SelectOption[] = CURRENCIES.map((c) => ({ value: c, label: c }));
 
+function revealSupplierBillControl(field: HTMLElement) {
+  const dialog = field.closest<HTMLElement>('[role="dialog"]');
+  if (!dialog || document.activeElement !== field) return;
+  const bounds = dialog.getBoundingClientRect();
+  const header = dialog.querySelector<HTMLElement>(":scope > .sticky");
+  const footer = dialog.querySelector<HTMLElement>(".supplier-bill-form-footer");
+  const visibleTop = (header?.getBoundingClientRect().bottom ?? bounds.top) + 8;
+  const visibleBottom = (footer?.getBoundingClientRect().top ?? bounds.bottom) - 8;
+  const control = field.getBoundingClientRect();
+  if (control.bottom > visibleBottom) dialog.scrollTop += control.bottom - visibleBottom;
+  const currentTop = field.getBoundingClientRect().top;
+  if (currentTop < visibleTop) dialog.scrollTop -= visibleTop - currentTop;
+}
+
 
 export function SupplierBillFormDialog({ open, onOpenChange, bill, overrides, titleOverride }: Props) {
   const isEdit = !!bill;
@@ -91,7 +105,6 @@ export function SupplierBillFormDialog({ open, onOpenChange, bill, overrides, ti
 
   return (
     <FormDialog
-      className="[&_input]:scroll-mt-24 [&_textarea]:scroll-mt-24 [&_input]:scroll-mb-64 [&_textarea]:scroll-mb-64"
       isPending={isPending}
       isDirty={form.formState.isDirty}
       open={open}
@@ -103,9 +116,7 @@ export function SupplierBillFormDialog({ open, onOpenChange, bill, overrides, ti
         <form onSubmit={onSubmit} className="space-y-4" onFocusCapture={(event) => {
           const field = event.target;
           if (!field.matches('input, textarea, [role="combobox"]')) return;
-          requestAnimationFrame(() => {
-            if (document.activeElement === field) field.scrollIntoView?.({ block: "nearest", inline: "nearest" });
-          });
+          requestAnimationFrame(() => revealSupplierBillControl(field));
         }}>
           {allowImport && (
             <FormSection title="Comprobante fiscal (XML)" first>
@@ -133,7 +144,7 @@ export function SupplierBillFormDialog({ open, onOpenChange, bill, overrides, ti
             selectedSupplier={selectedSupplier}
             suggestedDueDate={suggestedDueDate}
           />
-          <FormDialogFooter>
+          <FormDialogFooter className="supplier-bill-form-footer">
             <div className="w-full space-y-3">
             <SupplierBillTotalPanel
               total={total}
