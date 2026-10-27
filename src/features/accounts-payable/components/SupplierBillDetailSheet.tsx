@@ -41,13 +41,17 @@ export function SupplierBillDetailSheet({ billId, open, onOpenChange, onCloseAut
         <Activity mode={open ? "visible" : "hidden"}>
         {/* A4-06: sin esta rama la query fallida dejaba el spinner infinito. */}
         {isError ? (
-          <QueryErrorState bare entity="el detalle de la factura de proveedor" onRetry={() => { void refetch(); }} />
+          <div className="min-h-0 flex-1 overflow-y-auto px-6 py-4">
+            <QueryErrorState bare entity="el detalle de la factura de proveedor" onRetry={() => { void refetch(); }} />
+          </div>
         ) : isLoading ? (
-          <div className="flex items-center justify-center py-12 text-muted-foreground">
+          <div className="min-h-0 flex-1 overflow-y-auto px-6 py-12 text-muted-foreground">
+            <div className="flex justify-center">
             <SpinnerIcon className="h-5 w-5 animate-spin" />
+            </div>
           </div>
         ) : !bill ? (
-          <p className="py-12 text-center text-sm text-muted-foreground">Factura no encontrada</p>
+          <p className="min-h-0 flex-1 overflow-y-auto px-6 py-12 text-center text-sm text-muted-foreground">Factura no encontrada</p>
         ) : (
           <SupplierBillDetailContent
             bill={bill as Parameters<typeof SupplierBillDetailContent>[0]["bill"]}
