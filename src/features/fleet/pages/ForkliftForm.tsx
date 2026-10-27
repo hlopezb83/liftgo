@@ -43,7 +43,13 @@ export default function ForkliftForm() {
       <FormPageHeader title={isEdit ? "Editar montacargas" : "Agregar montacargas"} />
 
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 [&_input]:scroll-mb-28 [&_textarea]:scroll-mb-28">
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 [&_input]:scroll-mt-20 [&_textarea]:scroll-mt-20 [&_input]:scroll-mb-28 [&_textarea]:scroll-mb-28" onFocusCapture={(event) => {
+          const field = event.target;
+          if (!field.matches('input, textarea, [role="combobox"]')) return;
+          requestAnimationFrame(() => {
+            if (document.activeElement === field) field.scrollIntoView?.({ block: "nearest", inline: "nearest" });
+          });
+        }}>
           <EquipmentDetailsSection
             isEdit={isEdit}
             manufacturers={manufacturers}
