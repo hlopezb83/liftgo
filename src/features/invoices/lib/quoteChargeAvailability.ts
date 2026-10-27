@@ -48,12 +48,20 @@ export function parseQuoteChargeAvailability(value: unknown, requestedQuoteIds: 
   return parsed.data;
 }
 
-export function requireQuoteChargeAvailability(quoteIds: string[], availability?: QuoteChargeAvailability) {
+/** Complete response for every requested quote; legacy history is not judged here. */
+function resolveQuoteChargeAvailability(quoteIds: string[], availability?: QuoteChargeAvailability) {
   if (quoteIds.length === 0) return [];
   if (!availability?.complete || !Array.isArray(availability.quotes)) throw new Error(CHARGE_AVAILABILITY_UNAVAILABLE);
   return [...new Set(quoteIds)].map((id) => {
     const quote = availability.quotes.find((q) => q.quote_id === id);
     if (!quote || !Array.isArray(quote.lines)) throw new Error(CHARGE_AVAILABILITY_UNAVAILABLE);
+    return quote;
+  });
+}
+
+/** Adding quote charges requires verifiable history: never assign by description. */
+export function requireQuoteChargeAvailability(quoteIds: string[], availability?: QuoteChargeAvailability) {
+  return resolveQuoteChargeAvailability(quoteIds, availability).map((quote) => {
     if (quote.legacy_review_required) throw new Error(CHARGE_LEGACY_REVIEW);
     return quote;
   });
@@ -82,16 +90,19 @@ export function buildAvailableQuoteChargeLines(quoteIds: string[], availability?
   }));
 }
 
-/** The database accepts one row per source charge; never silently merge duplicates. */
+/** The database accepts one row per source charge; never silently merge duplicates.
+ * Like the database guard, unverifiable legacy history blocks only invoices that
+ * carry charges of that quote: rent-only invoices (e.g. extensions) stay allowed. */
 export function quoteChargeSelectionError(
   quoteIds: string[], lines: LineItemValues[], availability?: QuoteChargeAvailability,
 ): string | null {
   try {
-    const quotes = requireQuoteChargeAvailability(quoteIds, availability);
+    const quotes = resolveQuoteChargeAvailability(quoteIds, availability);
     const requested = new Map<string, number>();
     for (const line of lines) {
       if (!line.source_quote_id && !line.source_quote_line_id) continue;
       const quote = quotes.find((q) => q.quote_id === line.source_quote_id);
+      if (quote?.legacy_review_required) return CHARGE_LEGACY_REVIEW;
       const charge = quote?.lines.find((c) => c.quote_line_id === line.source_quote_line_id);
       if (!charge) return "El origen de un cargo ya no coincide con la cotización seleccionada. Recarga y revisa las partidas.";
       const key = `${quote?.quote_id}:${charge.quote_line_id}`;
