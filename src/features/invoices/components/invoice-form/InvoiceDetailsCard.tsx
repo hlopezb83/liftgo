@@ -6,6 +6,7 @@ import { FormControl, FormField, FormItem, FormMessage } from "@/components/ui/f
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { CustomerSelector } from "@/features/customers";
+import { formatYmdMx } from "../../lib/formatYmdMx";
 import { useNextInvoiceNumber } from "../../hooks/invoices/useNextInvoiceNumber";
 import { MultiBookingSelector } from "./MultiBookingSelector";
 import type { InvoiceFormValues } from "../../lib/invoiceFormSchema";
@@ -29,6 +30,8 @@ export function InvoiceDetailsCard({
   const { data: nextNumber, isLoading: loadingNext } = useNextInvoiceNumber(!isEdit);
   const bookingIds = useWatch({ control: form.control, name: "bookingIds" }) ?? [];
   const issueDate = useWatch({ control: form.control, name: "issueDate" });
+  const [periodStart, periodEnd] = useWatch({ control: form.control, name: ["billingPeriodStart", "billingPeriodEnd"] });
+  const periodLabel = periodStart && periodEnd ? `${formatYmdMx(periodStart)} al ${formatYmdMx(periodEnd)}` : null;
   const hasBooking = bookingIds.length > 0 || !!form.getValues("bookingId");
 
   return (
@@ -41,7 +44,7 @@ export function InvoiceDetailsCard({
               <span className="text-sm text-muted-foreground">Folio próximo</span>
               <span className="text-2xs text-muted-foreground/80">Tentativo · se asigna al guardar</span>
             </div>
-            <span className="font-semibold text-primary">
+            <span className="font-semibold text-foreground">
               {loadingNext ? "Calculando…" : (nextNumber ?? "—")}
             </span>
           </div>
@@ -65,9 +68,9 @@ export function InvoiceDetailsCard({
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <FormField control={form.control} name="customerId" render={({ field }) => (
             <FormItem>
-              <Label>Cliente</Label>
               <FormControl>
                 <CustomerSelector
+                  bare
                   customers={customers ?? []}
                   customerId={field.value}
                   customerName={form.getValues("customerName")}
@@ -85,6 +88,7 @@ export function InvoiceDetailsCard({
           <FormField control={form.control} name="dueDate" render={({ field }) => (
             <FormItem>
               <DatePickerField label="Fecha de Vencimiento" date={field.value} onSelect={field.onChange} placeholder="Seleccionar fecha" />
+              <p className="text-xs text-muted-foreground">Opcional. Déjala vacía si se paga en una sola exhibición (PUE).</p>
               <FormMessage />
             </FormItem>
           )} />
@@ -93,8 +97,11 @@ export function InvoiceDetailsCard({
         {hasBooking && (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 rounded-md border bg-muted/30 p-4">
             <p className="text-sm text-muted-foreground sm:col-span-2">
-              Periodo de facturación — requerido para reservas. El índice de duplicados usa este rango.
+              Periodo de facturación (obligatorio con reservas). Sirve para evitar cobrar dos veces los mismos días.
             </p>
+            {periodLabel && (
+              <p className="text-sm font-medium sm:col-span-2">Del {periodLabel}</p>
+            )}
             <FormField control={form.control} name="billingPeriodStart" render={({ field }) => (
               <FormItem>
                 <Label>Periodo · Inicio</Label>
