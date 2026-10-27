@@ -89,3 +89,36 @@ describe("buildExtensionLineItems", () => {
     ).toEqual([]);
   });
 });
+
+describe("unidad SAT de las partidas de extensión", () => {
+  it("un mes completo sale con MON, no con DAY", () => {
+    const items = buildExtensionLineItems({
+      originalEndDate: "2026-09-30",
+      newEndDate: "2026-10-31",
+      forkliftRates: { daily_rate: 500, monthly_rate: 30000 },
+      bookingRates: { monthly_rate: 30000 },
+    });
+    expect(items).toHaveLength(1);
+    expect(items[0]).toMatchObject({ quantity: 1, total: 30000, clave_unidad: "MON" });
+  });
+
+  it("semanas salen con WEE y días sueltos con DAY", () => {
+    const items = buildExtensionLineItems({
+      originalEndDate: "2026-08-11",
+      newEndDate: "2026-08-20",
+      forkliftRates: { daily_rate: 500, weekly_rate: 2800 },
+    });
+    expect(items.map((i) => [i.quantity, i.clave_unidad])).toEqual([[1, "WEE"], [2, "DAY"]]);
+  });
+
+  it("el prorrateo parcial de un mes sale como unidad de servicio E48", () => {
+    const items = buildExtensionLineItems({
+      originalEndDate: "2026-03-04",
+      newEndDate: "2026-04-02",
+      forkliftRates: { daily_rate: 500, monthly_rate: 9000 },
+    });
+    expect(items).toHaveLength(1);
+    expect(items[0].description).toContain("prorrateo");
+    expect(items[0]).toMatchObject({ quantity: 1, clave_unidad: "E48" });
+  });
+});

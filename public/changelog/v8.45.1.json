@@ -1,0 +1,13 @@
+{
+  "version": "8.45.1",
+  "date": "2026-10-26",
+  "type": "patch",
+  "category": "fix",
+  "title": "Unidad SAT correcta en facturas de extensión",
+  "description": "Las partidas de una extensión ya llevan la unidad SAT según cómo se cobran: mes (MON), semana (WEE), día (DAY) o unidad de servicio (E48) en prorrateos. Sin cambios de importes, permisos ni datos.",
+  "changes": [
+    "La factura de una extensión mensual sale con unidad MON en lugar de DAY fijo.",
+    "Semanas usan WEE, días DAY y el prorrateo parcial E48, igual que el flujo recurrente.",
+    "Pruebas de regresión para cada tipo de cobro."
+  ]
+}

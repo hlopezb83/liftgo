@@ -85,6 +85,24 @@ export function resolveExtensionRates(
 }
 
 
+/** Partida de extensión con su clave de unidad SAT ya resuelta. */
+type ExtensionLineItem = LineItem & { clave_unidad: string };
+
+/**
+ * Clave de unidad SAT (catálogo c_ClaveUnidad) según cómo se cobró la partida:
+ * meses → MON, semanas → WEE, días → DAY. El prorrateo de extensión sale como
+ * una sola partida de importe parcial (cantidad 1); no equivale a un mes
+ * completo, así que se factura como "Unidad de servicio" (E48), la misma
+ * convención que el prorrateo del flujo recurrente.
+ */
+function satUnitForRentalItem(item: Pick<LineItem, "rate_type" | "description">): string {
+  if (item.rate_type === "monthly") {
+    return item.description.startsWith("Renta mensual (prorrateo") ? "E48" : "MON";
+  }
+  if (item.rate_type === "weekly") return "WEE";
+  return "DAY";
+}
+
 /**
  * Partidas de factura para el tramo extendido. Reutiliza `calculateRentalCost`
  * (mensual → semanal → diario) para respetar el mismo escalonado de tarifas
@@ -97,7 +115,7 @@ export function buildExtensionLineItems({
   bookingRates,
   forkliftName,
   serialNumber,
-}: ExtensionLineItemsInput): LineItem[] {
+}: ExtensionLineItemsInput): ExtensionLineItem[] {
   const range = extensionBillableRange(originalEndDate, newEndDate);
   if (!range) return [];
 
@@ -118,6 +136,7 @@ export function buildExtensionLineItems({
   return items.map((item) => ({
     ...item,
     line_kind: "rental",
+    clave_unidad: satUnitForRentalItem(item),
     description: `${prefix}Extensión: ${item.description} (${range.start} al ${range.end})${serieSuffix}`,
   }));
 }
