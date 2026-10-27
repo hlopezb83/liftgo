@@ -1,6 +1,7 @@
 import { createHash } from "node:crypto";
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
+import { closeOfflinePages } from "../offlineTeardown";
 import { test as base, expect, type Locator, type Page, type TestInfo } from "@playwright/test";
 import { bookingId, customerName, forkliftName, installBookingTransport, modelName, type BookingScenario } from "./offlineFixtures";
 
@@ -21,12 +22,12 @@ const test = base.extend<{
     page.on("pageerror", (error) => errors.push(error.message));
     context.on("page", (page) => page.on("pageerror", (error) => errors.push(error.message)));
     await use(transport);
-    // Drain local asset requests from the last navigation before Playwright
-    // tears down the context. Keep the strict transport active throughout.
-    await Promise.all(context.pages().map((page) => page.waitForLoadState("networkidle", { timeout: 10_000 })));
-    writeFileSync(evidencePath(testInfo, "network.json"), JSON.stringify({ ...transport, errors }, null, 2));
+    // Drain and close all pages before retiring the strict transport.
+    const teardownErrors = await closeOfflinePages(context);
+    writeFileSync(evidencePath(testInfo, "network.json"), JSON.stringify({ ...transport, errors, teardownErrors, phase: "after-pages-closed" }, null, 2));
     expect(transport.unexpected, "No unexpected reads or writes may escape the offline transport").toEqual([]);
     expect(errors, "The real application should have no uncaught browser errors").toEqual([]);
+    expect(teardownErrors).toEqual([]);
   }, { auto: true }],
 });
 

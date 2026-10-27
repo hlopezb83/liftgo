@@ -39,6 +39,14 @@ export const billNumber = "QA-FACTURA-PROVEEDOR-INDUSTRIAL-1234567890";
 const bill = { id: billId, organization_id: ORG, supplier_id: SUPPLIER, bill_number: billNumber, suppliers: supplier, folio: "1234567890", serie: "QA", cfdi_uuid: id(91), issue_date: "2026-10-01", due_date: "2026-11-30", subtotal: 1200000000, tax_amount: 192000000, retention_iva: 10000000, retention_isr: 5000000, total: 1377000000, balance: 1234567890.12, currency: "USD", exchange_rate: 20, payment_method_sat: "PPD", payment_form_sat: "99", status: "partial", approval_status: "approved", approved_at: "2026-10-02T12:00:00Z", approval_notes: "Fixture ficticio: aprobación existente para revisar contexto sin autorizar operaciones.", category: "mantenimiento", description: "Servicio ficticio de mantenimiento con descripción larga para revisar ajuste de líneas dentro del detalle y las acciones al desplazarse.", payments: [{ id: id(72), bill_id: billId, amount: 142432109.88, payment_date: "2026-10-02", payment_method: "transferencia", reference: "QA-REFERENCIA-FICTICIA-LARGA-000001", rep_required: false, rep_status: "not_required", receipt_url: null }], payment_in_progress_at: null };
 
 export interface FixtureProfile { role?: "admin" | "dispatcher" | "mechanic" | "ventas"; invoicesAccess?: "full" | "read" | "none"; payablesAccess?: "full" | "read" | "none"; currency?: "MXN" | "USD"; approval?: "approved" | "pending"; billError?: boolean; }
+interface GroupCTransportLedger {
+  unexpected: string[]; observed: string[]; externalBlocked: string[]; pageErrors: string[];
+  provenance: { version: string; generatedAt: string; sourceSha256: string }; profile: FixtureProfile;
+}
+const contextLedgers = new WeakMap<BrowserContext, GroupCTransportLedger[]>();
+export function getGroupCTransportLedgers(context: BrowserContext): readonly GroupCTransportLedger[] {
+  return contextLedgers.get(context) ?? [];
+}
 export async function installGroupCTransport(context: BrowserContext, origin: string, profile: FixtureProfile = {}) {
   if (!["localhost", "127.0.0.1"].includes(new URL(origin).hostname)) throw new Error("Local origin required");
   const role = profile.role ?? "admin";
@@ -115,5 +123,9 @@ export async function installGroupCTransport(context: BrowserContext, origin: st
     }
     return reject();
   });
-  return { unexpected, observed, externalBlocked, pageErrors, provenance };
+  const ledger = { unexpected, observed, externalBlocked, pageErrors, provenance, profile };
+  const ledgers = contextLedgers.get(context) ?? [];
+  ledgers.push(ledger);
+  contextLedgers.set(context, ledgers);
+  return ledger;
 }

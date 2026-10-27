@@ -1,5 +1,6 @@
 import { test as base, expect, type Locator, type Page } from "@playwright/test";
 import { mkdirSync, writeFileSync } from "node:fs";
+import { closeOfflinePages } from "../offlineTeardown";
 import {
   installQuoteTransport, customerName, modelLabel, detailDescription,
   quoteMxnId, quoteUsdId, quoteAcceptedId, type QuoteTransportOptions,
@@ -17,11 +18,13 @@ const test = base.extend<{
     const pageErrors: string[] = [];
     context.on("page", (page) => page.on("pageerror", (error) => pageErrors.push(error.message)));
     await use(result);
+    const teardownErrors = await closeOfflinePages(context);
     const name = `${testInfo.project.name}-${testInfo.title.replace(/\W+/g, "-")}`;
-    writeFileSync(`${evidenceDir}/${name}-network.json`, JSON.stringify({ ...result, pageErrors }, null, 2));
+    writeFileSync(`${evidenceDir}/${name}-network.json`, JSON.stringify({ ...result, pageErrors, teardownErrors, phase: "after-pages-closed" }, null, 2));
     expect(result.unexpected, "No unexpected network or server-function request").toEqual([]);
     expect(result.blockedWrites, "No application write was even attempted").toEqual([]);
     expect(pageErrors, "No real build page error").toEqual([]);
+    expect(teardownErrors).toEqual([]);
   }, { auto: true }],
 });
 

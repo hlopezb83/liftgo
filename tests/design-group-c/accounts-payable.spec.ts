@@ -1,7 +1,8 @@
 import { mkdirSync, writeFileSync } from "node:fs";
 import { expect, test as base, type Locator, type Page } from "@playwright/test";
-import { billNumber, installGroupCTransport, type FixtureProfile } from "./fixtures";
+import { billNumber, getGroupCTransportLedgers, installGroupCTransport, type FixtureProfile } from "./fixtures";
 import { evidenceRoot } from "./paths";
+import { closeOfflinePages } from "../offlineTeardown";
 
 mkdirSync(evidenceRoot, { recursive: true });
 const test = base.extend<{ profile: FixtureProfile; audit: Awaited<ReturnType<typeof installGroupCTransport>> }>({
@@ -9,10 +10,13 @@ const test = base.extend<{ profile: FixtureProfile; audit: Awaited<ReturnType<ty
   audit: [async ({ context, baseURL, profile }, use, info) => {
     const transport = await installGroupCTransport(context, new URL(baseURL!).origin, profile);
     await use(transport);
-    await context.unrouteAll({ behavior: "wait" });
-    writeFileSync(`${evidenceRoot}/${info.project.name}-${info.title.replace(/\W+/g, "-")}-network.json`, JSON.stringify(transport, null, 2));
-    expect(transport.unexpected).toEqual([]);
-    expect(transport.pageErrors).toEqual([]);
+    const teardownErrors = await closeOfflinePages(context);
+    const transports = getGroupCTransportLedgers(context);
+    writeFileSync(`${evidenceRoot}/${info.project.name}-${info.title.replace(/\W+/g, "-")}-network.json`, JSON.stringify({ phase: "after-pages-closed", transports, teardownErrors }, null, 2));
+    for (const ledger of transports) {
+      expect.soft(ledger.unexpected).toEqual([]); expect.soft(ledger.pageErrors).toEqual([]);
+    }
+    expect(teardownErrors).toEqual([]);
   }, { auto: true }],
 });
 

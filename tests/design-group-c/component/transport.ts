@@ -1,12 +1,21 @@
-import type { BrowserContext } from "@playwright/test";
+import type { BrowserContext, Page } from "@playwright/test";
 import { componentOrigin } from "../paths";
 
 /** Supplemental comparison only: data hooks, permissions and navigation are
  * synthetic. Only the enumerated local Vite assets may reach a server. */
+interface ComponentTransportLedger { unexpected: string[]; externalBlocked: string[]; observed: string[]; errors: string[]; }
+const contextLedgers = new WeakMap<BrowserContext, ComponentTransportLedger[]>();
+export function getComponentTransportLedgers(context: BrowserContext): readonly ComponentTransportLedger[] {
+  return contextLedgers.get(context) ?? [];
+}
 export async function installComponentTransport(context: BrowserContext) {
   const unexpected: string[] = [];
   const externalBlocked: string[] = [];
   const observed: string[] = [];
+  const errors: string[] = [];
+  const captureErrors = (page: Page) => page.on("pageerror", error => errors.push(error.message));
+  context.pages().forEach(captureErrors);
+  context.on("page", captureErrors);
   await context.routeWebSocket("**/*", socket => socket.close());
   await context.route("**/*", async route => {
     const request = route.request();
@@ -31,5 +40,9 @@ export async function installComponentTransport(context: BrowserContext) {
     observed.push(description);
     return route.fulfill({ response });
   });
-  return { unexpected, externalBlocked, observed };
+  const ledger = { unexpected, externalBlocked, observed, errors };
+  const ledgers = contextLedgers.get(context) ?? [];
+  ledgers.push(ledger);
+  contextLedgers.set(context, ledgers);
+  return ledger;
 }

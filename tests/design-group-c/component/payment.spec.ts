@@ -1,16 +1,23 @@
 import { mkdirSync, writeFileSync } from "node:fs";
 import { expect, test } from "@playwright/test";
 import { evidenceRoot as evidence } from "../paths";
-import { installComponentTransport } from "./transport";
+import { getComponentTransportLedgers, installComponentTransport } from "./transport";
+import { closeOfflinePages } from "../../offlineTeardown";
 mkdirSync(evidence, { recursive: true });
 
-test.afterEach(async ({ context }) => { await context.unrouteAll({ behavior: "wait" }); });
+test.afterEach(async ({ context }, info) => {
+  const teardownErrors = await closeOfflinePages(context);
+  const transports = getComponentTransportLedgers(context);
+  writeFileSync(`${evidence}/${info.project.name}-${info.title.replace(/\W+/g, "-")}-final-network.json`, JSON.stringify({ phase: "after-pages-closed", transports, teardownErrors }, null, 2));
+  for (const ledger of transports) {
+    expect.soft(ledger.errors).toEqual([]); expect.soft(ledger.unexpected).toEqual([]); expect.soft(ledger.externalBlocked).toEqual([]);
+  }
+  expect(teardownErrors).toEqual([]);
+});
 
 for (const state of ["before", "after"] as const) {
   for (const currency of ["USD", "MXN"] as const) {
     test(`${state} ${currency} payment labels and safe close`, async ({ context, page }, info) => {
-      const errors: string[] = [];
-      page.on("pageerror", e => errors.push(e.message));
       const transport = await installComponentTransport(context);
       await page.goto(`/tests/design-group-c/component/index.html?state=${state}&currency=${currency}`);
       const dialog = page.getByRole("dialog", { name: /Registrar pago/ });
@@ -28,9 +35,7 @@ for (const state of ["before", "after"] as const) {
       await dialog.getByRole("button", { name: "Cancelar", exact: true }).click();
       await page.getByRole("button", { name: "Descartar", exact: true }).click();
       await expect(dialog).toBeHidden();
-      await context.unrouteAll({ behavior: "wait" });
-      expect(errors).toEqual([]); expect(transport.unexpected).toEqual([]); expect(transport.externalBlocked).toEqual([]);
-      writeFileSync(`${evidence}/${info.project.name}-payment-${state}-${currency}.json`, JSON.stringify({ state, currency, fieldCurrency, rawAmount: 1234567890.12, ...transport, errors }, null, 2));
+      writeFileSync(`${evidence}/${info.project.name}-payment-${state}-${currency}.json`, JSON.stringify({ state, currency, fieldCurrency, rawAmount: 1234567890.12, ...transport }, null, 2));
     });
   }
 }
