@@ -1,8 +1,9 @@
 # Revisión visual local de reservas
 
 Este harness sirve el build real en `http://127.0.0.1:4186` con fixtures
-sintéticos. No inicia sesión en LiftGO remoto, crea reservas, confirma
-extensiones ni envía otras mutaciones. No está conectado automáticamente a CI.
+sintéticos. El job `quality` de CI ejecuta esta suite offline contra el build
+real con backend ficticio. No inicia sesión en LiftGO remoto, crea reservas,
+confirma extensiones ni envía otras mutaciones.
 Coordina el turno de build/navegador antes de ejecutarlo en una máquina compartida.
 
 Ejecuta los comandos desde la raíz del checkout aislado. Debe tener las
@@ -51,6 +52,9 @@ Para una revisión focalizada puede añadirse `--project mobile-390` o `--grep`
 al último comando. Las capturas PNG y los registros de red/geometría se guardan
 en `../booking-evidence` respecto de la raíz del checkout; se puede cambiar
 con `BOOKINGS_EVIDENCE_DIR` a otro directorio local autorizado. No se suben a Library.
+En CI, `BOOKINGS_EVIDENCE_DIR=test-results/bookings/evidence` mantiene las capturas
+y registros dentro del árbol ignorado; se sube `test-results/bookings/` como
+artefacto de la ejecución.
 
 ## Barrera de red
 
@@ -75,6 +79,8 @@ MXN/USD, recurrencia mensual, cierres Escape/Cancelar/X y retorno de foco.
 Nueva reserva se llena sin enviar; comprueba resumen, acción única, sticky,
 borrador y el flujo interno lista → Nueva reserva → cambio → Cancelar/Volver →
 confirmación de salida → lista, sin enviar la reserva.
+La entrada desde la lista usa Enter. Los clics automatizados de navegación y
+cierre no certifican un tap táctil nativo.
 
 El caso de teclado verifica que enfocar un input móvil deja el panel de acciones
 en flujo normal y repite la comprobación con altura de viewport 420. Esto cubre

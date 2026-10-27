@@ -32,6 +32,13 @@ test('browser typecheck includes quote design specs, fixtures and config', () =>
   const expected = [...quoteFiles, path.join(root, 'playwright.quotes-design.config.ts')];
   assert.deepEqual(expected.filter(file => !roots.has(file)), []);
 });
+test('browser typecheck includes booking specs, fixtures and config', () => {
+  const roots = new Set(config().fileNames);
+  const bookingFiles = walk(path.join(root, 'tests/bookings'));
+  assert.ok(bookingFiles.some(file => file.endsWith('.spec.ts')), 'booking acceptance must contain a spec');
+  const expected = [...bookingFiles, path.join(root, 'tests/bookings/playwright.config.ts')];
+  assert.deepEqual(expected.filter(file => !roots.has(file)), []);
+});
 test('an incompatible type in a formerly excluded spec fails without executing it', () => {
   const parsed = config();
   const target = path.join(root, 'tests/e2e/customer-create.spec.ts');

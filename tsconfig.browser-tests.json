@@ -7,6 +7,7 @@
     "playwright.prod-smoke.config.ts",
     "tests/quotes-design/**/*.ts",
     "playwright.quotes-design.config.ts",
+    "tests/bookings/**/*.ts",
     "tests/mobile/**/*.ts",
     "tests/invoice-ui/**/*.ts",
     "playwright.invoice-ui.config.ts",

@@ -156,6 +156,21 @@ jobs:
           SMOKE_REUSE_BUILD: "1"
         run: bunx playwright test --config playwright.quotes-design.config.ts
 
+      - name: Booking acceptance 360/390/1440 (real build, fake data)
+        env:
+          SMOKE_REUSE_BUILD: "1"
+          BOOKINGS_EVIDENCE_DIR: test-results/bookings/evidence
+        run: bunx playwright test --config tests/bookings/playwright.config.ts
+
+      - name: Upload booking acceptance evidence
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: bookings-design-artifacts
+          path: test-results/bookings/
+          retention-days: 7
+          if-no-files-found: ignore
+
       - name: Upload quote acceptance evidence
         if: always()
         uses: actions/upload-artifact@v7
