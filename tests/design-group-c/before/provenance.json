@@ -1,0 +1,30 @@
+{
+  "base": "9f3e07c289eb5508251b6c43d282a267ee46ff6d",
+  "adaptation": "Import paths only; UTF-8 source bytes decoded directly from Git blobs.",
+  "files": [
+    {
+      "source": "src/features/accounts-payable/components/RegisterSupplierPaymentDialog.tsx",
+      "fixture": "before/RegisterSupplierPaymentDialog.tsx",
+      "sourceSha256": "dfd9f68dacd9041730e98c8df4e8de2c048e675c3343543ec21ae5cde35ef9df",
+      "fixtureSha256": "0615002fc61776ce3482207a14d97a51c52bc34d265427c8e062444bb6caeee1"
+    },
+    {
+      "source": "src/features/customers/components/customer-detail/CustomerInvoicesList.tsx",
+      "fixture": "before/CustomerInvoicesList.tsx",
+      "sourceSha256": "255663152d1dbb938bf773b8e476e6fd6ed2ea9d70b166b52c3d68e43d86ed32",
+      "fixtureSha256": "255663152d1dbb938bf773b8e476e6fd6ed2ea9d70b166b52c3d68e43d86ed32"
+    },
+    {
+      "source": "src/features/customers/components/customer-detail/CustomerBookingsHistory.tsx",
+      "fixture": "before/CustomerBookingsHistory.tsx",
+      "sourceSha256": "a8bb68b7209746130d3ba97b7c05f791806967d22f896a1a5dc854e6cb47c2c4",
+      "fixtureSha256": "a8bb68b7209746130d3ba97b7c05f791806967d22f896a1a5dc854e6cb47c2c4"
+    },
+    {
+      "source": "src/features/customers/components/customer-detail/CustomerContactCard.tsx",
+      "fixture": "before/CustomerContactCard.tsx",
+      "sourceSha256": "c1a4e6727262d4d7b1eebe4551ff324b65441cf56b75e3f7e2ca7a5ee6630841",
+      "fixtureSha256": "1276480d036f57d2d6353eaffc0e8cd197357cd12e02b8d6840ba9d52ad5f9bb"
+    }
+  ]
+}
