@@ -75,7 +75,18 @@ describe("authoritative quote-charge availability", () => {
     const data = availability();
     data.quotes[0].legacy_review_required = true;
     expect(() => buildAvailableQuoteChargeLines([quoteId], data)).toThrow(CHARGE_LEGACY_REVIEW);
-    expect(quoteChargeSelectionError([quoteId], [], data)).toBe(CHARGE_LEGACY_REVIEW);
+    const [charge] = buildAvailableQuoteChargeLines([quoteId], availability());
+    expect(quoteChargeSelectionError([quoteId], [charge], data)).toBe(CHARGE_LEGACY_REVIEW);
+  });
+
+  it("allows a rent-only invoice (extension) despite unverifiable charge history of its quote", () => {
+    const data = availability();
+    data.quotes[0].legacy_review_required = true;
+    const extension = { line_kind: "rental" as const, description: "MC — Extensión: Renta mensual (2026-10-01 al 2026-10-31)",
+      quantity: 1, unit_price: 30000, total: 30000, clave_prod_serv: "78181500", clave_unidad: "DAY", objeto_imp: "02" };
+    expect(quoteChargeSelectionError([quoteId], [extension], data)).toBeNull();
+    expect(quoteChargeSelectionError([quoteId], [], data)).toBeNull();
+    expect(quoteChargeSelectionError([quoteId], [extension], undefined)).toBe(CHARGE_AVAILABILITY_UNAVAILABLE);
   });
 
   it("requires explicit review of partial fixed discounts in prefill and in the edited quantities", () => {

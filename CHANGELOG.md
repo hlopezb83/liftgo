@@ -1,3 +1,7 @@
+## [8.44.36] - 2026-10-26
+
+- Las facturas de sólo renta, como las extensiones, ya no se bloquean por facturas anteriores sin vínculo con los cargos de la cotización; agregar esos cargos sigue requiriendo revisión, igual que en el servidor. Sin migraciones, permisos ni cambios a facturas timbradas.
+
 ## [8.44.35] - 2026-10-26
 
 - Las fallas de conexión de un equipo sin internet dejan de llegar al monitoreo; con internet se siguen reportando. Añade una prueba que protege la edición segura de facturas de proveedor y confirma las correcciones previas de fechas, sesión vencida y acceso del despachador. Sin migraciones, permisos ni cambios de datos.

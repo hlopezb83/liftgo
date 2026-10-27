@@ -7,3 +7,4 @@
 - Equipment insurance disclosure derives its initial expansion from authorized visible fields only; keep financial-summary access independent from cost visibility to preserve the existing permission boundaries.
 - Stale-chunk failures go through `recoverFromStaleChunk`; recovered reloads are not sent to Sentry, but exhausted reload guards are, so post-deploy tabs make no noise without hiding persistent breakage.
 - Network failures are not sent to Sentry while the browser reports the device offline; online network failures stay reported because they may be platform outages.
+- Invoice-form legacy quote-charge review blocks only invoices carrying traced charges of that quote, mirroring the database guard; rent-only invoices (extensions) must not be blocked by unrelated history.
