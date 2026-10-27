@@ -20,14 +20,19 @@ export function BookingExtensionEstimate({ preview, recurringBilling = false }: 
 
   return (
     <section aria-label="Desglose estimado de la extensión" className="min-w-0 rounded-lg border bg-card">
-      <div className="space-y-3 p-4">
+      <div className="space-y-1 rounded-t-lg border-b bg-muted/40 p-3 sm:p-4">
+        <p className="text-sm font-medium">{recurringBilling ? "Total estimado del tramo adicional" : "Total adicional estimado"}</p>
+        <p className="break-words text-2xl font-semibold tabular-nums">{amount(preview.total)}</p>
+        <p className="text-xs text-muted-foreground">Esta estimación no es una factura emitida.</p>
+      </div>
+      <div className="space-y-2 p-3 sm:space-y-3 sm:p-4">
         <div>
           <h3 className="text-sm font-medium">Renta adicional</h3>
           <p className="text-xs text-muted-foreground">
             Cálculo con {preview.rateSource === "booking" ? "tarifas pactadas" : "tarifas del catálogo"}
           </p>
         </div>
-        <ul className="space-y-3">
+        <ul className="space-y-2 sm:space-y-3">
           {preview.items.map((item, index) => (
             <li key={index} className="flex min-w-0 flex-wrap items-start justify-between gap-x-3 gap-y-1 text-sm">
               <div className="min-w-0 flex-1 basis-36">
@@ -38,7 +43,7 @@ export function BookingExtensionEstimate({ preview, recurringBilling = false }: 
             </li>
           ))}
         </ul>
-        <dl className="space-y-2 border-t pt-3 text-sm">
+        <dl className="space-y-1.5 border-t pt-2 text-sm sm:space-y-2 sm:pt-3">
           <div className="flex flex-wrap justify-between gap-x-3 gap-y-1">
             <dt className="text-muted-foreground">Subtotal</dt>
             <dd className="break-words tabular-nums">{amount(preview.subtotal)}</dd>
@@ -48,11 +53,6 @@ export function BookingExtensionEstimate({ preview, recurringBilling = false }: 
             <dd className="break-words tabular-nums">{amount(preview.taxAmount)}</dd>
           </div>
         </dl>
-      </div>
-      <div className="space-y-1 rounded-b-lg border-t bg-muted/40 p-4">
-        <p className="text-sm font-medium">{recurringBilling ? "Total estimado del tramo adicional" : "Total adicional estimado"}</p>
-        <p className="break-words text-xl font-semibold tabular-nums sm:text-2xl">{amount(preview.total)}</p>
-        <p className="text-xs text-muted-foreground">Esta estimación no es una factura emitida.</p>
       </div>
     </section>
   );
