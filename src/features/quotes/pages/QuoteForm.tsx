@@ -1,3 +1,4 @@
+import { useRef } from "react";
 import { NotesCard } from "@/components/domain/NotesCard";
 import { FormPageHeader } from "@/components/layout/FormPageHeader";
 import { PageContainer } from "@/components/layout/PageContainer";
@@ -12,11 +13,15 @@ import { CostSummaryCard } from "../components/quotes/CostSummaryCard";
 import { RentalLineItems } from "../components/quotes/RentalLineItems";
 import { SaleLineItems } from "../components/quotes/SaleLineItems";
 import { useQuoteFormLogic } from "../hooks/quoteForm/useQuoteFormLogic";
+import { useQuoteFormVisibility } from "../hooks/quoteForm/useQuoteFormVisibility";
 
 export default function QuoteForm() {
   const f = useQuoteFormLogic();
   const { form } = f;
   const isRental = f.quoteType === "rental";
+  const formRef = useRef<HTMLFormElement>(null);
+  const footerRef = useRef<HTMLDivElement>(null);
+  useQuoteFormVisibility(formRef, footerRef);
 
   return (
     <PageContainer className="mx-auto max-w-7xl">
@@ -25,7 +30,7 @@ export default function QuoteForm() {
         subtitle={f.id ? f.quoteNumber ?? undefined : undefined}
       />
       <Form {...form}>
-        <form onSubmit={f.handleSubmit} className="space-y-4">
+        <form ref={formRef} onSubmit={f.handleSubmit} className="space-y-4">
           <div className="grid items-start gap-6 xl:grid-cols-[minmax(0,1fr)_20rem]">
             <div className="min-w-0 space-y-4">
               <QuoteTypeCard value={f.quoteType} onChange={f.handleTypeChange} />
@@ -107,6 +112,7 @@ export default function QuoteForm() {
             </aside>
           </div>
           <QuoteFormFooter
+            ref={footerRef}
             total={f.total}
             currency={f.currency}
             isAmountLocked={f.isAmountLocked}

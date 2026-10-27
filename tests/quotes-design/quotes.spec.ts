@@ -69,6 +69,23 @@ async function assertDesktopSummary(page: Page, content: Locator) {
   expect(summaryBox!.width, "Desktop summary has readable width").toBeGreaterThanOrEqual(280);
 }
 
+async function focusGeometry(page: Page, field: Locator) {
+  const [fieldBox, footerBox, id] = await Promise.all([field.boundingBox(), footer(page).boundingBox(), field.getAttribute("id")]);
+  return { viewport: page.viewportSize(), id, fieldBox, footerBox };
+}
+
+async function assertFocusedFieldClearOfBars(page: Page, field: Locator, name: string) {
+  await expect(field).toBeFocused();
+  const initial = await focusGeometry(page, field);
+  const path = `${evidenceDir}/${test.info().project.name}-${name}-focus-geometry.json`;
+  writeFileSync(path, JSON.stringify({ initial, passed: false }, null, 2));
+  await expect.poll(async () => {
+    const [fieldBox, footerBox] = await Promise.all([field.boundingBox(), footer(page).boundingBox()]);
+    return !!fieldBox && !!footerBox && fieldBox.y >= 48 && fieldBox.y + fieldBox.height <= footerBox.y;
+  }, { message: "The focused field remains fully visible between the application header and action bar" }).toBe(true);
+  writeFileSync(path, JSON.stringify({ initial, final: await focusGeometry(page, field), passed: true }, null, 2));
+}
+
 async function selectCurrency(page: Page, currency: "MXN" | "USD") {
   await card(page, "Detalles de Cotización").getByRole("combobox").first().click();
   await page.getByRole("option", { name: new RegExp(`^${currency} \\(`) }).click();
@@ -82,7 +99,7 @@ async function chooseCustomer(page: Page) {
 async function chooseModel(page: Page, kind: "renta" | "venta") {
   const row = page.getByRole("group", { name: `Equipo de ${kind} 1`, exact: true });
   await row.getByRole("combobox", { name: "Modelo *", exact: true }).click();
-  await page.getByRole("option", { name: modelLabel, exact: true }).click();
+  await page.getByRole("option", { name: modelLabel.replace(" - ", " — "), exact: true }).click();
   await expect(row.locator("p").filter({ hasText: modelLabel })).toHaveText(modelLabel);
   await expect(row.getByRole("combobox")).toHaveAccessibleDescription(modelLabel);
   return row;
@@ -98,14 +115,14 @@ async function checkNotesAndKeyboard(page: Page, name: string, total: number, cu
     // Reduced visual area approximates a keyboard; no claim of a native OS IME.
     await page.setViewportSize({ width: original.width, height: 430 });
     await notes.click();
-    await expect(notes).toBeFocused();
-    const [inputBox, footerBox] = await Promise.all([notes.boundingBox(), footer(page).boundingBox()]);
-    expect(inputBox).not.toBeNull(); expect(footerBox).not.toBeNull();
-    expect(inputBox!.y, "Focused notes are below sticky application header").toBeGreaterThanOrEqual(48);
-    expect(inputBox!.y + inputBox!.height, "Focused notes are not covered by the action bar").toBeLessThanOrEqual(footerBox!.y + 1);
+    await assertFocusedFieldClearOfBars(page, notes, `${name}-notes-430`);
     await assertFooterVisible(page, total, currency);
     await assertNoOverflow(page, `${name}-keyboard-430`);
     await capture(page, `${name}-keyboard-430`);
+    const amount = page.getByRole("spinbutton", { name: /^(Precio Unit\.|Tarifa Diaria) \(USD\)$/ }).first();
+    await amount.focus();
+    await assertFocusedFieldClearOfBars(page, amount, `${name}-amount-430`);
+    await capture(page, `${name}-amount-focus-430`);
     await page.setViewportSize(original);
   }
   await assertNoOverflow(page, name);
@@ -153,10 +170,22 @@ test("sale capture MXN and USD, model identity and net amount", async ({ page })
   await capture(page, "sale-mxn-equipment", row);
   await assertDesktopSummary(page, card(page, "Equipos a Cotizar"));
   if (test.info().project.name === "desktop-1440") {
+    const discount = row.getByRole("spinbutton", { name: "Descuento", exact: true });
+    const price = row.getByRole("spinbutton", { name: "Precio Unit. (MXN)", exact: true });
+    await price.click();
+    await page.keyboard.press("Tab");
+    await expect(discount).toBeFocused();
+    await page.keyboard.press("Shift+Tab");
+    await expect(price).toBeFocused();
+    await page.keyboard.press("Tab");
+    await expect(discount).toBeFocused();
+    writeFileSync(`${evidenceDir}/desktop-1440-sale-before-resize-focus-geometry.json`, JSON.stringify(await focusGeometry(page, discount), null, 2));
+    await capture(page, "sale-keyboard-before-resize");
     await page.setViewportSize({ width: 1024, height: 800 });
+    await assertFocusedFieldClearOfBars(page, discount, "sale-discount-1024");
     await assertFooterVisible(page, 261000);
     await assertNoOverflow(page, "sale-tablet-1024");
-    await capture(page, "sale-tablet-1024", row);
+    await capture(page, "sale-tablet-1024");
     await page.setViewportSize({ width: 1440, height: 1000 });
   }
   await selectCurrency(page, "USD");
@@ -182,7 +211,8 @@ for (const currency of ["MXN", "USD"] as const) {
     await expect(lines).toContainText("-10%");
     if (currency === "USD") await expect(lines.getByText(money(15000, "MXN"), { exact: true })).toHaveCount(0);
     await capture(page, `detail-${currency.toLowerCase()}-top`);
-    await capture(page, `detail-${currency.toLowerCase()}-lines`, lines.getByText(detailDescription, { exact: true }));
+    const firstDescription = lines.getByText(detailDescription, { exact: true });
+    await capture(page, `detail-${currency.toLowerCase()}-lines`, test.info().project.name.startsWith("mobile") ? firstDescription.locator("..") : firstDescription);
     await assertDesktopSummary(page, lines);
     const subtotal = page.getByText("Subtotal", { exact: true });
     await subtotal.scrollIntoViewIfNeeded();
