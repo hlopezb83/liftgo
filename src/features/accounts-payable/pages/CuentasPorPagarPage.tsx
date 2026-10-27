@@ -139,6 +139,7 @@ export default function CuentasPorPagarPage() {
       <PaymentBatchDialogs canManage={canManageBatches} exportDialog={exportDialog} batchesDialog={batchesDialog}
         onCloseAutoFocus={(event) => restorePaymentActionsFocus(event, moreActionsRef.current)} />
       <SupplierBillDetailSheet
+        onCloseAutoFocus={(event) => restorePaymentActionsFocus(event, moreActionsRef.current)}
         billId={selectedId}
         open={selectedId !== null}
         onOpenChange={(o) => { if (!o) setSelectedId(null); }}
