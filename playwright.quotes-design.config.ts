@@ -1,0 +1,42 @@
+import { defineConfig } from "@playwright/test";
+import smoke from "./playwright.smoke.config";
+
+// Importing smoke preserves its local-only origin and fake-build validation.
+// This suite never builds automatically: the coordinated build must finish first.
+if (process.env.SMOKE_REUSE_BUILD !== "1") {
+  throw new Error("[quotes-design] Build with the smoke fake backend first, then set SMOKE_REUSE_BUILD=1.");
+}
+
+const baseURL = "http://127.0.0.1:4187";
+
+export default defineConfig({
+  ...smoke,
+  testDir: "./tests/quotes-design",
+  outputDir: "../quote-evidence/test-results",
+  fullyParallel: false,
+  workers: 1,
+  retries: 0,
+  timeout: 60_000,
+  reporter: [["list"]],
+  webServer: {
+    ...smoke.webServer as object,
+    command: "node node_modules/wrangler/bin/wrangler.js dev --ip 127.0.0.1 --port 4187 --inspector-port 9237 --var SENTRY_DSN:http://public@127.0.0.1:54321/1",
+    url: baseURL,
+    reuseExistingServer: false,
+  },
+  use: {
+    ...smoke.use,
+    baseURL,
+    actionTimeout: 10_000,
+    launchOptions: {
+      executablePath: process.env.SMOKE_CHROMIUM_PATH ?? "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe",
+    },
+  },
+  projects: [
+    { name: "desktop-1440", use: { viewport: { width: 1440, height: 1000 } } },
+    ...[360, 390].map((width) => ({
+      name: `mobile-${width}`,
+      use: { viewport: { width, height: 800 }, isMobile: true, hasTouch: true, deviceScaleFactor: 1 },
+    })),
+  ],
+});

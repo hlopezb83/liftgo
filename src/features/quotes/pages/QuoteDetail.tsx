@@ -64,7 +64,7 @@ export default function QuoteDetail() {
     : `Asigna los equipos del inventario antes de facturar (${assignmentStatus.totalAssigned}/${assignmentStatus.totalRequired} asignados)`;
 
   return (
-    <PageContainer maxWidth="wide">
+    <PageContainer className="mx-auto max-w-7xl">
       <DetailPageHeader
         title={quote.quote_number}
         backTo="/quotes"
@@ -108,15 +108,25 @@ export default function QuoteDetail() {
         />
       </div>
 
-      <ReadOnlyLineItemsTable lineItems={lineItems} />
+      <div className="grid items-start gap-6 xl:grid-cols-[minmax(0,1fr)_19rem]">
+        <div className="min-w-0">
+          <ReadOnlyLineItemsTable lineItems={lineItems} currency={currency} />
+        </div>
 
-      <TotalsSummary
-        subtotal={quote.subtotal}
-        taxRate={quote.tax_rate}
-        taxAmount={quote.tax_amount}
-        total={quote.total}
-        currency={currency}
-      />
+        <aside aria-label="Resumen de la cotización" className="min-w-0 space-y-3 xl:sticky xl:top-16">
+          <div className="flex items-center justify-between gap-3">
+            <h2 className="text-base font-semibold">Resumen de la cotización</h2>
+            {currency && <span className="text-xs text-muted-foreground">{currency}</span>}
+          </div>
+          <TotalsSummary
+            subtotal={quote.subtotal}
+            taxRate={quote.tax_rate}
+            taxAmount={quote.tax_amount}
+            total={quote.total}
+            currency={currency}
+          />
+        </aside>
+      </div>
 
       {quote.notes && <NotesCard value={quote.notes} title="Notas para el cliente" readOnly />}
 

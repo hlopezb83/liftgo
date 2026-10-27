@@ -25,22 +25,22 @@ export function CostSummaryCard({ lineItems, subtotal, taxRate, taxAmount, total
   return (
     <Card>
       <CardHeader><CardTitle className="text-base">Vista Previa de Costos</CardTitle></CardHeader>
-      <CardContent className="space-y-2">
+      <CardContent className="space-y-3">
         {lineItems.map((item, i) => (
-          <div key={i} className="flex justify-between text-sm">
-            <span>
+          <div key={i} className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-3 text-sm">
+            <span className="break-words">
               {item.description} × {item.quantity}
               {(item.discount ?? 0) > 0 && (
                 <span className="text-destructive text-xs ml-1">{discountLabel(item, currency)}</span>
               )}
             </span>
-            <span className="tabular-nums">{fmt(applyDiscount(item))}</span>
+            <span className="text-right tabular-nums whitespace-nowrap">{fmt(applyDiscount(item))}</span>
           </div>
         ))}
         <div className="border-t pt-2 mt-2 space-y-1">
           <div className="flex justify-between text-sm"><span>Subtotal</span><span className="tabular-nums">{fmt(subtotal)}</span></div>
           <div className="flex justify-between text-sm"><span>IVA ({taxRate}%)</span><span className="tabular-nums">{fmt(taxAmount)}</span></div>
-          <div className="flex justify-between font-bold"><span>Total</span><span className="tabular-nums">{fmt(total)}</span></div>
+          <div className="flex flex-wrap justify-between gap-2 pt-2 text-lg font-bold"><span>Total <span className="text-xs font-normal text-muted-foreground">{currency}</span></span><span className="tabular-nums">{fmt(total)}</span></div>
         </div>
       </CardContent>
     </Card>
