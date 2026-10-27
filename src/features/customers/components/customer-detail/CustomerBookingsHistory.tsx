@@ -23,9 +23,9 @@ export function CustomerBookingsHistory({ bookings }: { bookings: BookingRow[] }
         {bookings.length > 0 ? (
           <div className="space-y-2">
             {bookings.map((b) => (
-              <div key={b.id} className="flex items-center justify-between p-3 rounded-lg bg-muted/40 text-sm">
-                <div>
-                  <p className="font-medium">{b.forklift?.name || "—"} — {b.forklift?.model || ""}</p>
+              <div key={b.id} className="flex flex-col items-start gap-3 rounded-lg bg-muted/40 p-3 text-sm sm:flex-row sm:items-center sm:justify-between">
+                <div className="min-w-0 space-y-1">
+                  <p className="break-words font-medium [overflow-wrap:anywhere]">{b.forklift?.name || "-"} - {b.forklift?.model || ""}</p>
                   <p className="text-xs text-muted-foreground">
                     {formatDateRange(b.start_date, b.end_date)}
                   </p>

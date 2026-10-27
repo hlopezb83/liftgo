@@ -60,18 +60,23 @@ export function CustomerInvoicesList({ invoices }: { invoices: InvoiceRow[] }) {
                       onKeyDown: (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); openInvoice(inv.id); } },
                     }
                   : {})}
-                className={`flex items-center justify-between p-3 rounded-lg bg-muted/40 text-sm ${canOpenInvoice ? "cursor-pointer hover:bg-muted/60" : ""}`}
+                className={`flex flex-col gap-3 rounded-lg bg-muted/40 p-3 text-sm sm:flex-row sm:items-center sm:justify-between ${canOpenInvoice ? "cursor-pointer hover:bg-muted/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2" : ""}`}
               >
-                <div>
-                  <p className="font-medium">{inv.invoice_number}</p>
-                  <p className="text-xs text-muted-foreground">
-                    {formatDateMty(inv.issued_at)}
-                    {inv.due_date ? ` — Vence: ${formatDateMty(inv.due_date)}` : ""}
-                  </p>
+                <div className="min-w-0 space-y-1 sm:flex-1">
+                  <p className="break-words font-medium [overflow-wrap:anywhere]">{inv.invoice_number}</p>
+                  <div className="flex flex-wrap gap-x-3 gap-y-1 text-xs text-muted-foreground">
+                    <span>Emisión: {formatDateMty(inv.issued_at)}</span>
+                    {inv.due_date && <span>Vence: {formatDateMty(inv.due_date)}</span>}
+                  </div>
                 </div>
-                <div className="flex items-center gap-3">
-                  <span className="font-mono font-semibold">{formatCurrencyWithCode(Number(inv.total), inv.currency ?? "MXN")}</span>
-                  <span className="text-xs text-muted-foreground">{inv.currency ?? "MXN"}</span>
+                <div className="flex w-full flex-wrap items-center justify-between gap-x-3 gap-y-2 sm:w-auto sm:justify-end">
+                  <div className="min-w-0">
+                    <p className="mb-0.5 text-xs text-muted-foreground sm:text-right">Total</p>
+                    <p className="flex flex-wrap items-baseline gap-x-1.5">
+                      <span className="break-words font-mono font-semibold tabular-nums [overflow-wrap:anywhere]">{formatCurrencyWithCode(Number(inv.total), inv.currency ?? "MXN")}</span>
+                      <span className="text-xs text-muted-foreground">{inv.currency ?? "MXN"}</span>
+                    </p>
+                  </div>
                   <StatusBadge status={inv.status} />
                 </div>
               </div>

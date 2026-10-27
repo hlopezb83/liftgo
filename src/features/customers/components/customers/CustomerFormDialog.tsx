@@ -63,7 +63,7 @@ function CustomerFormSession({ open, onOpenChange, initialData, isEdit, isPendin
       open={open}
       onOpenChange={onOpenChange}
       title={isEdit ? "Editar cliente" : "Nuevo cliente"}
-      width="lg"
+      width="xl"
       testId="customer-form-dialog"
     >
       <Form {...form}>
