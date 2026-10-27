@@ -1,3 +1,7 @@
+## [8.45.0] - 2026-10-26
+
+- La pantalla de nueva factura indica si viene de una extensión o cotización, muestra el periodo en formato mexicano, partidas legibles y una barra fija con el total y Crear factura. Sin cambios de cálculos, reglas fiscales, permisos ni datos.
+
 ## [8.44.36] - 2026-10-26
 
 - Las facturas de sólo renta, como las extensiones, ya no se bloquean por facturas anteriores sin vínculo con los cargos de la cotización; agregar esos cargos sigue requiriendo revisión, igual que en el servidor. Sin migraciones, permisos ni cambios a facturas timbradas.

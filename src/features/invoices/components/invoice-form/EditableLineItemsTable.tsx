@@ -93,7 +93,7 @@ function LineItemRow({ index, onRemove }: RowProps) {
     <TableRow>
       <TableCell>
         <FormField control={control} name={`lineItems.${index}.description`} render={({ field }) => (
-          <FormItem><FormControl><Textarea rows={2} className="min-h-[2.5rem] resize-y text-sm" aria-label={`Descripción partida ${index + 1}`} {...field} /></FormControl><FormMessage /></FormItem>
+          <FormItem><FormControl><Textarea rows={3} className="min-h-[4.5rem] resize-y text-sm" aria-label={`Descripción partida ${index + 1}`} {...field} /></FormControl><FormMessage /></FormItem>
         )} />
         {origin && <p className="text-xs text-muted-foreground mt-1">Cargo vinculado a cotización</p>}
       </TableCell>
