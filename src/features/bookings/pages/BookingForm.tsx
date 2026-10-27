@@ -17,6 +17,11 @@ import { BookingPostDialogs } from "../components/bookings/BookingPostDialogs";
 import { useBookingFormLogic } from "../hooks/bookingForm/useBookingFormLogic";
 import { allowsRecurringBilling } from "../lib/recurringBillingEligibility";
 
+function summaryCustomerName(customerId: string, freeName: string, customers: ReadonlyArray<{ id: string; name: string }> | undefined) {
+  if (!customerId) return freeName;
+  return customers?.find((customer) => customer.id === customerId)?.name || freeName || "Cliente seleccionado";
+}
+
 export default function BookingForm() {
   const {
     form, customers, createBooking, draft, isSubmitting, submitError,
@@ -117,7 +122,7 @@ export default function BookingForm() {
           </fieldset>
           <aside className="sticky bottom-0 z-20 min-w-0 space-y-3 rounded-lg border bg-background/95 p-3 shadow-sm backdrop-blur max-lg:group-has-[input:focus]/booking-form:static max-lg:group-has-[textarea:focus]/booking-form:static lg:bottom-auto lg:top-16 lg:p-4 [@media(max-height:500px)]:static" aria-label="Revisar y crear reserva">
             <BookingFormSummary
-              customerName={customerName}
+              customerName={summaryCustomerName(customerId, customerName, customers)}
               forkliftName={forkliftName}
               startDate={startDate}
               endDate={endDate}

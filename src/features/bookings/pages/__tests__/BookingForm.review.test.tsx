@@ -7,6 +7,7 @@ import BookingForm from "../BookingForm";
 
 const mocks = vi.hoisted(() => ({
   onSubmit: vi.fn(), navigate: vi.fn(), busy: false, blocked: false, error: null as string | null,
+  customerName: "Cliente sintético",
 }));
 vi.mock("@/features/customers", () => ({ CustomerSelector: () => <div>Selector de cliente</div> }));
 vi.mock("@/features/fleet", () => ({ ForkliftSelector: () => <div>Selector de equipo</div>, ForkliftAvailabilityHelp: () => null }));
@@ -15,9 +16,9 @@ vi.mock("../../components/bookings/BookingPostDialogs", () => ({ BookingPostDial
 vi.mock("../../hooks/bookingForm/useBookingFormLogic", () => ({
   useBookingFormLogic: () => {
     const dateRange = { from: new Date(2026, 10, 1), to: new Date(2026, 10, 7) };
-    const form = useForm<BookingFormData>({ defaultValues: { date_range: dateRange, forklift_id: "equipment-1", customer_id: "customer-1", customer_name: "Cliente sintético", customer_contact: "", recurring_billing: false } });
+    const form = useForm<BookingFormData>({ defaultValues: { date_range: dateRange, forklift_id: "equipment-1", customer_id: "customer-1", customer_name: mocks.customerName, customer_contact: "", recurring_billing: false } });
     return {
-      form, customers: [], createBooking: { isPending: mocks.busy }, draft: { submitBlocked: mocks.blocked },
+      form, customers: [{ id: "customer-1", name: "Cliente sintético" }], createBooking: { isPending: mocks.busy }, draft: { submitBlocked: mocks.blocked },
       isSubmitting: false, submitError: mocks.error, dateRange, forkliftId: "equipment-1",
       availableForklifts: [], datesSelected: true, availabilityLoading: false, availabilityError: false,
       availabilityFetching: false, revalidateAvailability: vi.fn(), onSubmit: mocks.onSubmit,
@@ -36,9 +37,17 @@ beforeEach(() => {
   mocks.busy = false;
   mocks.blocked = false;
   mocks.error = null;
+  mocks.customerName = "Cliente sintético";
 });
 
 describe("BookingForm review and actions", () => {
+  it("resuelve el cliente seleccionado cuando el borrador no guarda el nombre libre", async () => {
+    mocks.customerName = "";
+    renderPage();
+    expect(await screen.findByText("Cliente sintético")).toBeVisible();
+    expect(screen.queryByText("Sin cliente")).not.toBeInTheDocument();
+  });
+
   it("conserva una sola acción de envío y pasa la captura existente", async () => {
     renderPage();
     expect(await screen.findByRole("heading", { name: "Resumen de reserva" })).toBeVisible();
