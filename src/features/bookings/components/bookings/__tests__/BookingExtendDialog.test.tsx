@@ -1,8 +1,13 @@
 import { useRef, useState } from "react";
 import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { BookingExtensionPreview } from "../../../hooks/bookingActions/useExtendBookingPreview";
 import { BookingExtendDialog } from "../BookingActionDialogs";
+
+const permissions = vi.hoisted(() => ({ financial: true }));
+vi.mock("@/features/users", () => ({ useHasFinancialAccess: () => permissions.financial }));
+
+beforeEach(() => { permissions.financial = true; });
 
 const preview: BookingExtensionPreview = {
   items: [{ description: "Equipo ficticio de nombre largo - Extensión semanal", quantity: 1, unit_price: 4500, total: 4500, rate_type: "weekly", clave_unidad: "WEE" }],
@@ -33,6 +38,46 @@ function Harness({ estimate = preview, pending = false, recurringBilling = false
 }
 
 describe("BookingExtendDialog", () => {
+  it.each(["MXN", "USD"])("sin permiso financiero mantiene la extensión operativa y oculta datos privilegiados stale en %s", (currency) => {
+    permissions.financial = false;
+    const onExtend = vi.fn();
+    render(<Harness estimate={{ ...preview, currency }} recurringBilling onExtend={onExtend} />);
+    const dialog = screen.getByRole("dialog", { name: "Extender Reserva" });
+    expect(within(dialog).getByRole("textbox", { name: "Nueva Fecha de Fin" })).toBeEnabled();
+    expect(dialog).toHaveTextContent("Fin actual31/10/2026");
+    expect(dialog).toHaveTextContent("Nuevo fin07/11/2026");
+    expect(dialog).toHaveTextContent("7 días adicionales");
+    expect(dialog).toHaveTextContent("Del 01/11/2026 al 07/11/2026, ambos incluidos.");
+    expect(within(dialog).queryByRole("region", { name: "Desglose estimado de la extensión" })).toBeNull();
+    expect(dialog).not.toHaveTextContent(/4,500|720|5,220|MXN|USD|IVA|tarifa|factura|borrador mensual|costo estimado/i);
+    const submit = within(dialog).getByRole("button", { name: "Extender" });
+    expect(submit).toBeEnabled();
+    fireEvent.click(submit);
+    expect(onExtend).toHaveBeenCalledOnce();
+  });
+
+  it("retira el desglose al perder permiso aunque el preview privilegiado permanezca en memoria", () => {
+    const view = render(<Harness estimate={{ ...preview, currency: "USD" }} />);
+    expect(screen.getByRole("region", { name: "Desglose estimado de la extensión" })).toBeVisible();
+    permissions.financial = false;
+    view.rerender(<Harness estimate={{ ...preview, currency: "USD" }} />);
+    expect(screen.queryByRole("region", { name: "Desglose estimado de la extensión" })).toBeNull();
+    expect(screen.getByRole("dialog")).not.toHaveTextContent(/4,500|720|5,220|USD|IVA|tarifa/i);
+    expect(screen.getByRole("button", { name: "Extender" })).toBeEnabled();
+  });
+
+  it("sin permiso financiero conserva las guardas de fecha y pending", () => {
+    permissions.financial = false;
+    const onExtend = vi.fn();
+    const view = render(<Harness onExtend={onExtend} />);
+    fireEvent.change(screen.getByRole("textbox", { name: "Nueva Fecha de Fin" }), { target: { value: "08/11/20" } });
+    expect(screen.getByRole("button", { name: "Extender" })).toBeDisabled();
+    view.rerender(<Harness pending onExtend={onExtend} />);
+    expect(screen.getByRole("textbox", { name: "Nueva Fecha de Fin" })).toBeDisabled();
+    expect(screen.getByRole("button", { name: "Extender" })).toBeDisabled();
+    expect(onExtend).not.toHaveBeenCalled();
+  });
+
   it.each(["MXN", "USD"])("explica comparación, días, tarifa, IVA y estimación en %s", (currency) => {
     render(<Harness estimate={{ ...preview, currency }} />);
     const dialog = screen.getByRole("dialog", { name: "Extender Reserva" });

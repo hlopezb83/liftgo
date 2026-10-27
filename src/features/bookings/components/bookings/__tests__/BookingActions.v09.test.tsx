@@ -6,6 +6,7 @@ import { BookingActions } from "../BookingActions";
 
 const state = vi.hoisted(() => ({
   isAdmin: true,
+  financial: true,
   level: "full" as "full" | "read" | "none",
   returnBlock: null as unknown,
   isEarly: false,
@@ -21,6 +22,7 @@ vi.mock("@/features/users", () => ({
   useUserRole: () => ({ data: state.isAdmin ? "admin" : "ventas" }),
   useRolePermissions: () => ({ data: [] }),
   getAccessLevel: () => state.level,
+  useHasFinancialAccess: () => state.financial,
 }));
 vi.mock("../../../hooks/bookingActions/returnActionAvailability", () => ({
   returnActionAvailability: () => ({ block: state.returnBlock, isEarly: state.isEarly }),
@@ -65,7 +67,7 @@ async function openMenu() {
 }
 
 beforeEach(() => {
-  Object.assign(state, { isAdmin: true, level: "full", returnBlock: null, isEarly: false, deletePending: false, cancelPending: false });
+  Object.assign(state, { isAdmin: true, financial: true, level: "full", returnBlock: null, isEarly: false, deletePending: false, cancelPending: false });
   vi.clearAllMocks();
 });
 
@@ -81,6 +83,16 @@ describe("V09 · acciones de reserva", () => {
       expect(within(menu).getByRole("menuitem", { name })).toBeInTheDocument();
     }
     expect(within(menu).getByText("En reserva confirmada sólo permite cancelar")).toBeInTheDocument();
+  });
+
+  it("Reservas full sin acceso financiero conserva Extender y su captura operativa", async () => {
+    Object.assign(state, { isAdmin: false, financial: false, level: "full" });
+    setup();
+    fireEvent.click(await screen.findByRole("button", { name: "Extender" }));
+    const dialog = await screen.findByRole("dialog", { name: "Extender Reserva" });
+    expect(within(dialog).getByRole("textbox", { name: "Nueva Fecha de Fin" })).toBeEnabled();
+    expect(within(dialog).getByRole("button", { name: "Extender" })).toBeDisabled();
+    expect(dialog).not.toHaveTextContent(/desglose|IVA|MXN|USD|tarifa|costo estimado/i);
   });
 
   it("devolución navega con early=1 cuando aplica", async () => {

@@ -9,6 +9,7 @@ import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogD
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { useHasFinancialAccess } from "@/features/users";
 import { formatDateMty, toYMD } from "@/lib/format/dateFormats";
 import { formatDateRange } from "@/lib/utils";
 import { BOOKING_STATUS_LABELS, getValidTransitions } from "../../hooks/bookingActions/useBookingActionsLogic";
@@ -99,6 +100,7 @@ function extensionDateState(currentEndDate: string, newEndDate: Date | undefined
 export function BookingExtendDialog({
   open, onOpenChange, currentEndDate, newEndDate, setNewEndDate, extendPreview, isPending, onExtend, recurringBilling = false, onCloseAutoFocus,
 }: ExtendDialogProps) {
+  const canSeeFinancials = useHasFinancialAccess();
   const { validNewDate, endYmd, range, dateError } = extensionDateState(currentEndDate, newEndDate);
   return (
     <FormDialog
@@ -106,7 +108,7 @@ export function BookingExtendDialog({
       open={open}
       onOpenChange={onOpenChange}
       title="Extender Reserva"
-      description="Revisa el periodo adicional y su costo estimado."
+      description={canSeeFinancials ? "Revisa el periodo adicional y su costo estimado." : "Revisa el periodo adicional de la reserva."}
       onCloseAutoFocus={onCloseAutoFocus}
     >
       <div className="space-y-4">
@@ -123,13 +125,17 @@ export function BookingExtendDialog({
             <span className="block text-muted-foreground">Del {formatDateMty(range.start)} al {formatDateMty(range.end)}, ambos incluidos.</span>
           </p>
         )}
-        {recurringBilling && (
-          <p className="text-sm text-muted-foreground">
-            Los días adicionales de esta reserva se incluyen al generar el borrador del periodo mensual correspondiente.
-          </p>
+        {canSeeFinancials && (
+          <>
+            {recurringBilling && (
+              <p className="text-sm text-muted-foreground">
+                Los días adicionales de esta reserva se incluyen al generar el borrador del periodo mensual correspondiente.
+              </p>
+            )}
+            {range && extendPreview && <BookingExtensionEstimate preview={extendPreview} recurringBilling={recurringBilling} />}
+            {range && !extendPreview && <p className="text-sm text-muted-foreground">No hay una estimación disponible para este periodo.</p>}
+          </>
         )}
-        {range && extendPreview && <BookingExtensionEstimate preview={extendPreview} recurringBilling={recurringBilling} />}
-        {range && !extendPreview && <p className="text-sm text-muted-foreground">No hay una estimación disponible para este periodo.</p>}
 
         <FormDialogFooter>
           <FormDialogCancelButton disabled={isPending} onCancel={() => onOpenChange(false)} />
