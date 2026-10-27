@@ -93,7 +93,7 @@ describe("EditableLineItemsTable — descuentos visibles", () => {
     expect(screen.getByText("-50%")).toBeInTheDocument();
     expect(screen.getByLabelText("Importe neto partida 1")).toHaveTextContent("$0.01");
     expect(screen.getByLabelText("Importe neto partida 2")).toHaveTextContent("$0.00");
-    expect(within(screen.getAllByRole("row")[3]).getByText("Sin descuento")).toBeInTheDocument();
+    expect(within(screen.getAllByRole("row")[3]).getByText("Sin descuento", { selector: "td" })).toBeInTheDocument();
     expect(screen.getByLabelText("Importe neto partida 3")).toHaveTextContent("$10.00");
   });
 });
