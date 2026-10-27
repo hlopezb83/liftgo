@@ -1,3 +1,7 @@
+## [8.45.1] - 2026-10-26
+
+- Las partidas de una factura de extensión ya llevan la unidad SAT según cómo se cobran: mes (MON), semana (WEE), día (DAY) o unidad de servicio (E48) en prorrateos, en lugar de DAY fijo. Sin cambios de importes, permisos ni datos.
+
 ## [8.45.0] - 2026-10-26
 
 - La pantalla de nueva factura indica si viene de una extensión o cotización, muestra el periodo en formato mexicano, partidas legibles y una barra fija con el total y Crear factura. Sin cambios de cálculos, reglas fiscales, permisos ni datos.
