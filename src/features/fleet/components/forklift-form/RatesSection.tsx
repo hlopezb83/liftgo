@@ -9,7 +9,7 @@ export function RatesSection() {
   return (
     <Card>
       <CardHeader><CardTitle className="text-base">Tarifas y Costos</CardTitle></CardHeader>
-      <CardContent className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <CardContent className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <FormField control={control} name="daily_rate" render={({ field }) => (
           <FormItem><FormLabel>Tarifa Diaria ($)</FormLabel><FormControl><Input type="number" placeholder="150" {...field} /></FormControl><FormMessage /></FormItem>
         )} />
@@ -20,7 +20,7 @@ export function RatesSection() {
           <FormItem><FormLabel>Tarifa Mensual ($)</FormLabel><FormControl><Input type="number" placeholder="2500" {...field} /></FormControl><FormMessage /></FormItem>
         )} />
         <FormField control={control} name="acquisition_cost" render={({ field }) => (
-          <FormItem><FormLabel>Costo de Adquisición ($)</FormLabel><FormControl><Input type="number" placeholder="250000" {...field} /></FormControl><FormMessage /></FormItem>
+          <FormItem className="border-t pt-4 sm:col-span-3"><FormLabel>Costo de Adquisición ($)</FormLabel><FormControl><Input type="number" placeholder="250000" {...field} /></FormControl><FormMessage /></FormItem>
         )} />
       </CardContent>
     </Card>
