@@ -1,0 +1,13 @@
+{
+  "version": "8.44.36",
+  "date": "2026-10-26",
+  "type": "patch",
+  "category": "bugfix",
+  "title": "Facturar extensiones con historial anterior sin vínculo",
+  "description": "Las facturas que sólo cobran renta, como las extensiones, ya no se bloquean por facturas anteriores sin vínculo con los cargos de la cotización. Sin cambios de datos, permisos ni facturas timbradas.",
+  "changes": [
+    "La revisión de facturas anteriores sin vínculo sólo bloquea cuando la nueva factura incluye cargos de esa cotización (logística, seguro), igual que la regla del servidor.",
+    "Las extensiones y facturas de sólo renta se pueden crear; agregar cargos de una cotización con historial dudoso sigue bloqueado.",
+    "Añade pruebas de regresión para ambos casos."
+  ]
+}
