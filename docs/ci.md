@@ -27,6 +27,18 @@ Agrupar reúne actualizaciones disponibles; no obliga a que todos los paquetes
 cambien ni tengan la misma versión. CI comprueba la compatibilidad del conjunto.
 La configuración no habilita fusiones automáticas ni cambia versiones instaladas.
 
+Los jobs de seguridad de Happy DOM y DOMPurify del 2026-10-28 despacharon
+`npm_and_yarn` con `command=security` y directorio `/.`, aunque este YAML ya
+declaraba Bun. El fetcher eligió npm y rechazó `bun.lock` sin lock npm/yarn/pnpm
+(`misconfigured_tooling`). Referencias: [Happy DOM](https://github.com/hlopezb83/liftgo/actions/runs/40620717154)
+y [DOMPurify](https://github.com/hlopezb83/liftgo/actions/runs/40620717072).
+La [tabla oficial](https://docs.github.com/en/code-security/reference/supply-chain-security/supported-ecosystems-and-repositories)
+distingue soporte de actualizaciones de versión y de seguridad para Bun.
+Actualmente Bun admite las primeras, sin soporte nativo de las segundas.
+Fijar `packageManager` documenta el gestor de instalación; no demuestra reparar
+el despacho de seguridad. El seguimiento queda externo, sin crear un lock npm
+en la raíz ni cambiar los ajustes de seguridad.
+
 ### Dependencias de funciones Cloud
 
 Dependabot Deno lee `supabase/functions/deno.json` y regenera `deno.lock`.
@@ -56,6 +68,9 @@ El formato del lock admitido por el empaquetador y la compatibilidad de los SDK
 con el runtime de ejecución son comprobaciones distintas; no cambiar sólo el
 número del lock.
 Sentry Deno >=11 queda ignorado hasta comprobar un runtime Cloud >=2.8.3.
+El CLI de CI se fija en Deno 2.9.7, la versión ya usada para comprobar el
+formato del lock. Este pin no cambia ni certifica el runtime desplegado de
+Cloud; el manifiesto, el lock y los imports Edge conservan sus versiones.
 El SDK del frontend tiene su propio ciclo y no comparte esta restricción.
 Este bloque configura actualizaciones de versión; los controles de seguridad
 se verifican por separado.
@@ -75,7 +90,7 @@ bloquean la integración. Los avisos informativos de pruebas aprobadas se conser
 | `quality` | siempre | ESLint, typecheck, guardrails de arquitectura, build, **smoke de arranque**, **20 escenarios móviles offline** y **24 escenarios de Nueva factura** |
 | `tests` (matriz 1/6 … 6/6) | siempre | Suite completa de Vitest, repartida en seis shards |
 | `tests-merge` | siempre | Une los blobs y aplica los **umbrales de cobertura** |
-| `deno-functions` | si cambió `supabase/functions/**` | `deno fmt`, `deno lint` y tests unitarios **sin red** |
+| `deno-functions` | si cambió `supabase/functions/**`, o manual | `deno fmt`, `deno lint` y tests unitarios **sin red** |
 | `supabase-lint` | si cambiaron migraciones | GRANT / RLS / POLICY / `search_path` en las migraciones del diff |
 | `dependency-review` | solo PR | CVEs altos y licencias no permitidas |
 | `actionlint` | push y PR si cambió `.github/**`, o manual | YAML de workflows |
@@ -430,8 +445,12 @@ los artefactos de release de la aplicación.
 
 ## Herramienta de CI (nota de mantenimiento)
 
-GitHub Actions instala Bun 1.4.2 y Node 24 vía `.github/actions/setup-bun-project`
-con `bun install --frozen-lockfile`. El pin exacto de Bun se actualiza mediante un
+GitHub Actions instala Bun 1.4.4 y Node 24.22.1 vía `.github/actions/setup-bun-project`
+con `bun install --frozen-lockfile`. Antes valida el runtime efectivo contra
+`engines`, `packageManager`, `.node-version`, `.nvmrc` y `.bun-version`; después
+comprueba que la instalación conserva el SHA-256 de `bun.lock`. La misma action
+se usa en los workflows manuales y programados que instalan el proyecto.
+El pin exacto de Bun se actualiza mediante un
 lote validado en CI (no Dependabot). Las suites completas, cobertura, build real y
 smoke se ejecutan únicamente en GitHub Actions.
 
