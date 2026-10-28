@@ -3,8 +3,8 @@ import { resolve } from "node:path";
 // Run the harness from the repository root. Overrides may be absolute or
 // relative to that root; no dotenv loader participates in path resolution.
 export const repositoryRoot = resolve(".");
-export const buildRoot = resolve(repositoryRoot, process.env.GROUP_C_BUILD_DIR ?? "../group-c-build-input");
-export const evidenceRoot = resolve(repositoryRoot, process.env.GROUP_C_EVIDENCE_DIR ?? "../group-c-evidence");
+export const buildRoot = resolve(repositoryRoot, process.env.GROUP_C_BUILD_DIR ?? ".");
+export const evidenceRoot = resolve(repositoryRoot, process.env.GROUP_C_EVIDENCE_DIR ?? "test-results/group-c");
 export const compiledRoot = resolve(buildRoot, "dist/server/_ssr");
 export const wranglerConfig = resolve(buildRoot, "dist/server/wrangler.json");
 export const appOrigin = "http://127.0.0.1:4195";

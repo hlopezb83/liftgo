@@ -30,11 +30,13 @@ El carril suplementario sólo admite assets GET locales enumerados de Vite; usa 
 
 Los controles de envío sólo se pulsan con formularios inválidos para comprobar validaciones. Los tests unitarios de pago utilizan hooks sintéticos para comprobar errores y limpieza de comprobantes; no suben archivos a Storage.
 
+La integracion usa por defecto el build dist/ de este checkout aislado (GROUP_C_BUILD_DIR=.) y guarda evidencia en test-results/group-c. Ambos destinos admiten overrides locales. Mantener el prebuild con backend ficticio; sus metadatos generados locales se respaldan/restauran segun el protocolo y no se incluyen en commits UI.
+
 ## Ejecución
 
 Usar dependencias ya preparadas y un solo worker. Configurar `SMOKE_CHROMIUM_PATH` si se necesita un Chrome instalado; sin esa variable Playwright utiliza su navegador administrado. `GROUP_C_BUILD_DIR` selecciona la copia de build y `GROUP_C_EVIDENCE_DIR` el destino local de evidencia.
 
-Primero compilar la copia aislada con valores ficticios explícitos. La generación de metadatos ocurre en esa copia y no modifica versión ni changelog del checkout UI. Después ejecutar:
+Primero compilar el checkout aislado con valores ficticios explicitos y prebuild habilitado. La generacion local actualiza public/version.json y public/changelog-recent.json: respaldarlos y restaurarlos segun el protocolo, sin bump ni incluirlos en commits UI. Despues ejecutar:
 
 ```text
 node node_modules/typescript/bin/tsc --noEmit -p tsconfig.group-c-design.json
@@ -45,4 +47,4 @@ node node_modules/@playwright/test/cli.js test --config playwright.group-c-desig
 
 Si el sandbox de Windows impide renombrar la caché temporal, fijar `TEMP` y `TMP` a un directorio dentro del workspace. No modificar configuraciones compartidas para resolverlo.
 
-Estas configuraciones están separadas de `tests/mobile` y no quedan incorporadas automáticamente a CI ni a `tsconfig.browser-tests.json`. El wiring común se coordina en la integración final. No subir capturas a Library ni publicar la rama desde este harness.
+Las configuraciones estan integradas en el job quality de CI y en tsconfig.browser-tests.json, incluidos los fixtures .tsx y el config Vite. La aceptacion real y las comparaciones suplementarias conservan sus proyectos y escenarios existentes. CI esta configurada para ejecutarlas; este documento no acredita una corrida remota.

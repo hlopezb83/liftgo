@@ -39,6 +39,17 @@ test('browser typecheck includes booking specs, fixtures and config', () => {
   const expected = [...bookingFiles, path.join(root, 'tests/bookings/playwright.config.ts')];
   assert.deepEqual(expected.filter(file => !roots.has(file)), []);
 });
+test('browser typecheck includes all group C harness sources and shared teardown', () => {
+  const roots = new Set(config().fileNames);
+  const files = walk(path.join(root, 'tests/design-group-c'));
+  assert.ok(files.some(file => file.endsWith('.tsx')), 'component fixtures must be included');
+  const expected = [...files, ...[
+    'playwright.group-c-design.config.ts', 'playwright.group-c-component.config.ts',
+    'vite.group-c-fixture.config.ts', 'tests/offlineTeardown.ts',
+  ].map(file => path.join(root, file))];
+  assert.deepEqual(expected.filter(file => !roots.has(file)), []);
+});
+
 test('an incompatible type in a formerly excluded spec fails without executing it', () => {
   const parsed = config();
   const target = path.join(root, 'tests/e2e/customer-create.spec.ts');
