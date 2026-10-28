@@ -72,13 +72,20 @@ bloquean la integración. Los avisos informativos de pruebas aprobadas se conser
 
 | Job | Corre | Qué protege |
 | --- | --- | --- |
-| `quality` | siempre | ESLint, typecheck, guardrails de arquitectura, build, **smoke de arranque** y **16 escenarios móviles offline** |
+| `quality` | siempre | ESLint, typecheck, guardrails de arquitectura, build, **smoke de arranque**, **20 escenarios móviles offline** y **24 escenarios de Nueva factura** |
 | `tests` (matriz 1/6 … 6/6) | siempre | Suite completa de Vitest, repartida en seis shards |
 | `tests-merge` | siempre | Une los blobs y aplica los **umbrales de cobertura** |
 | `deno-functions` | si cambió `supabase/functions/**` | `deno fmt`, `deno lint` y tests unitarios **sin red** |
 | `supabase-lint` | si cambiaron migraciones | GRANT / RLS / POLICY / `search_path` en las migraciones del diff |
 | `dependency-review` | solo PR | CVEs altos y licencias no permitidas |
 | `actionlint` | push y PR si cambió `.github/**`, o manual | YAML de workflows |
+
+La aceptación de Nueva factura se ejecuta después de móvil con
+`bunx playwright test --config playwright.invoice-ui.config.ts` y
+`SMOKE_REUSE_BUILD=1`. Reutiliza el build ficticio validado y cubre escritorio de
+1440px y móviles de 360/390px, ocho escenarios por viewport. El interceptor
+bloquea mutaciones, endpoints no enumerados y red externa; no guarda ni timbra
+facturas. Ver [su cobertura y límites](../tests/invoice-ui/README.md).
 
 No hay job agregador. `main` **no tiene branch protection ni checks requeridos**
 hoy: los resultados se leen en la propia corrida. Un `ci-success` que solo relee

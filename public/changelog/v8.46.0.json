@@ -1,0 +1,14 @@
+{
+  "version": "8.46.0",
+  "date": "2026-10-27",
+  "type": "minor",
+  "category": "improvement",
+  "title": "Partidas de factura adaptadas a móvil y resumen lateral",
+  "description": "Captura y revisa las partidas de Nueva factura en tarjetas que caben en móvil, con datos SAT legibles y un resumen de importes al costado en escritorio. Conserva los cálculos y las protecciones del formulario.",
+  "changes": [
+    "Las partidas se presentan en tarjetas sin desplazamiento horizontal en móvil.",
+    "Descripción, cantidad, precio unitario, importe neto y descuento quedan agrupados en cada partida.",
+    "La clave de producto y la unidad SAT muestran su código y nombre completos y siguen disponibles para revisión.",
+    "El resumen de importes aparece al costado en escritorio; en móvil se conserva la barra fija con total, Cancelar y Crear factura."
+  ]
+}

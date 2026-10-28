@@ -6,6 +6,8 @@
     "playwright.smoke.config.ts",
     "playwright.prod-smoke.config.ts",
     "tests/mobile/**/*.ts",
+    "tests/invoice-ui/**/*.ts",
+    "playwright.invoice-ui.config.ts",
     "playwright.mobile.config.ts",
     "tests/multi-tenant-ab/**/*.ts",
     "tests/e2e/**/*.ts",

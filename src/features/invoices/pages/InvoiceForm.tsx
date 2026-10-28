@@ -1,5 +1,5 @@
 import { useRef } from "react";
-import { useWatch } from "react-hook-form";
+import { useFormContext, useWatch } from "react-hook-form";
 import { TotalsSummary } from "@/components/domain/TotalsSummary";
 import { EmptyState } from "@/components/feedback/EmptyState";
 import { FormActions } from "@/components/forms/FormActions";
@@ -37,6 +37,25 @@ function StickySubmitBar({ total, currency, children }: { total: number; currenc
       </p>
       {children}
     </div>
+  );
+}
+
+function InvoiceNotesCard() {
+  const { control } = useFormContext<InvoiceFormValues>();
+  return (
+    <Card className="min-w-0 xl:col-start-1">
+      <CardHeader><CardTitle className="text-base">Notas</CardTitle></CardHeader>
+      <CardContent>
+        <FormField control={control} name="notes" render={({ field }) => (
+          <FormItem>
+            <FormControl>
+              <Textarea placeholder="Notas adicionales…" rows={3} {...field} />
+            </FormControl>
+            <FormMessage />
+          </FormItem>
+        )} />
+      </CardContent>
+    </Card>
   );
 }
 
@@ -180,34 +199,28 @@ export default function InvoiceForm() {
             isLoading={f.isLoadingChargeAvailability}
             onRetry={f.retryChargeAvailability}
           />
-          <EditableLineItemsTable />
+          <div className="grid items-start gap-6 xl:grid-cols-[minmax(0,1fr)_20rem]">
+            <EditableLineItemsTable />
 
-          <TotalsSummary
-            subtotal={f.subtotal}
-            taxRate={taxRate}
-            taxAmount={f.taxAmount}
-            total={f.total}
-            currency={currency}
-            onTaxRateChange={(v) => f.form.setValue("taxRate", v, { shouldDirty: true })}
-          />
+            <aside aria-label="Resumen de importes" className="min-w-0 space-y-3 xl:sticky xl:top-20">
+              <h2 className="text-base font-semibold">Resumen de importes</h2>
+              <TotalsSummary
+                subtotal={f.subtotal}
+                taxRate={taxRate}
+                taxAmount={f.taxAmount}
+                total={f.total}
+                currency={currency}
+                onTaxRateChange={(v) => f.form.setValue("taxRate", v, { shouldDirty: true })}
+              />
 
-          {f.form.formState.errors.taxRate?.message && (
-            <p role="alert" className="text-sm text-destructive">{f.form.formState.errors.taxRate.message}</p>
-          )}
+              {f.form.formState.errors.taxRate?.message && (
+                <p role="alert" className="text-sm text-destructive">{f.form.formState.errors.taxRate.message}</p>
+              )}
 
-          <Card>
-            <CardHeader><CardTitle className="text-base">Notas</CardTitle></CardHeader>
-            <CardContent>
-              <FormField control={f.form.control} name="notes" render={({ field }) => (
-                <FormItem>
-                  <FormControl>
-                    <Textarea placeholder="Notas adicionales…" rows={3} {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )} />
-            </CardContent>
-          </Card>
+            </aside>
+
+            <InvoiceNotesCard />
+          </div>
 
           {/* R5-16: en edición, bloquear Guardar hasta que `existing` resuelva
               y haya invoiceVersion; sin ella el UPDATE iría sin bloqueo optimista. */}

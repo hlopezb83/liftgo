@@ -3,7 +3,7 @@ import { readFileSync, readdirSync } from "node:fs";
 import { expect, type BrowserContext } from "@playwright/test";
 
 const BACKEND = "http://127.0.0.1:54321";
-export type OfflineProfile = "dispatcher" | "portal";
+export type OfflineProfile = "dispatcher" | "portal" | "invoice";
 
 const USER = "00000000-0000-4000-8000-000000000001";
 const ORG = "00000000-0000-4000-8000-000000000002";
@@ -155,6 +155,43 @@ const portalRows: Record<string, unknown[]> = {
   payments: [],
 };
 
+// Invoice review uses the same real app and fail-closed transport as mobile QA.
+// All identity and fiscal values below are deliberately synthetic.
+export const invoiceCustomerName = "QA Cliente ficticio para revisión de factura";
+const invoiceRows: Record<string, unknown[]> = {
+  user_roles: [{ role: "admin", user_id: USER }],
+  role_permissions: [
+    { role: "admin", module: "Facturas", access_level: "full" },
+  ],
+  organization_customers: [{
+    organization_id: ORG,
+    status: "active",
+    alias: invoiceCustomerName,
+    razon_social: invoiceCustomerName,
+    rfc: "AAA010101AAA",
+    regimen_fiscal: "601",
+    uso_cfdi: "G03",
+    domicilio_fiscal_cp: "64000",
+    tax_rate: 16,
+    customers: {
+      id: "00000000-0000-4000-8000-000000000031",
+      name: invoiceCustomerName,
+      company: invoiceCustomerName,
+      rfc: "AAA010101AAA",
+      created_by_organization_id: ORG,
+    },
+  }],
+  bookings: [],
+  forklifts: [],
+  invoices: [],
+  invoice_bookings: [],
+  booking_extensions: [],
+  return_inspections: [],
+  profiles: [],
+  notifications: [],
+  user_preferences: [],
+};
+
 // Resolve generated IDs from this exact compiled artifact, never hard-code a
 // hash or inject application internals. Only these two read server functions
 // are mocked; an unexpected server function fails closed.
@@ -203,7 +240,7 @@ export async function installOfflineDispatcher(
   const functions = authenticated
     ? serverFunctionIds(profile)
     : new Map<string, unknown>();
-  const activeRows = profile === "portal" ? portalRows : rows;
+  const activeRows = profile === "portal" ? portalRows : profile === "invoice" ? invoiceRows : rows;
   const unexpected: string[] = [];
   const observed = new Set<string>();
   const now = Math.floor(Date.now() / 1000);
@@ -282,6 +319,10 @@ export async function installOfflineDispatcher(
       get_public_branding: [{ razon_social: "QA Empresa ficticia móvil" }],
       get_sidebar_badge_counts: {},
     };
+    if (profile === "invoice") {
+      // This RPC only previews the number; it never reserves/increments it.
+      readRpcs.peek_next_draft_invoice_number = "QA-FAC-001";
+    }
     if (profile === "portal" && method === "POST") {
       if (rpc === "get_portal_invoices_page") {
         const input = request.postDataJSON();
