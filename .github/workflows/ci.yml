@@ -73,6 +73,7 @@ jobs:
               - '.bun-version'
               - 'scripts/tests/dependency-security.test.mjs'
               - 'scripts/tests/happy-dom-security.test.mjs'
+              - 'scripts/tests/supabase-sdk-contracts.test.mjs'
               - '.github/actions/setup-bun-project/**'
               - '.github/workflows/ci.yml'
             workflows:
