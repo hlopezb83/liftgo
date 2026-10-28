@@ -60,10 +60,10 @@ describe("EditableLineItemsTable — descuentos visibles", () => {
 
   it("RSV-0006 muestra descuentos y netos que suman el subtotal real", () => {
     render(<Harness />);
-    expect(screen.getByRole("columnheader", { name: "Descuento" })).toBeInTheDocument();
-    expect(screen.getByRole("columnheader", { name: "Importe neto" })).toBeInTheDocument();
-    expect(screen.getByText("-$425.03")).toBeInTheDocument();
-    expect(screen.getByText("-$75.05")).toBeInTheDocument();
+    expect(screen.getByRole("group", { name: "Partida 1" })).toHaveTextContent("Descuento:");
+    expect(screen.getByRole("group", { name: "Partida 2" })).toHaveTextContent("Importe neto");
+    expect(screen.getByText(/-\$425\.03/)).toBeInTheDocument();
+    expect(screen.getByText(/-\$75\.05/)).toBeInTheDocument();
     expect(screen.getByLabelText("Importe neto partida 1")).toHaveTextContent("$3,825.22");
     expect(screen.getByLabelText("Importe neto partida 2")).toHaveTextContent("$675.45");
     expect(JSON.parse(screen.getByLabelText("Totales contables").textContent ?? "{}"))
@@ -90,15 +90,26 @@ describe("EditableLineItemsTable — descuentos visibles", () => {
       { description: "Fijo mayor", quantity: 1, unit_price: 100, total: 100, discount: 150, discount_type: "$" },
       { description: "Sin descuento", quantity: 1, unit_price: 10, total: 10 },
     ]} />);
-    expect(screen.getByText("-50%")).toBeInTheDocument();
+    expect(screen.getByText(/-50%/)).toBeInTheDocument();
     expect(screen.getByLabelText("Importe neto partida 1")).toHaveTextContent("$0.01");
     expect(screen.getByLabelText("Importe neto partida 2")).toHaveTextContent("$0.00");
-    expect(within(screen.getAllByRole("row")[3]).getByText("Sin descuento", { selector: "td" })).toBeInTheDocument();
+    expect(within(screen.getByRole("group", { name: "Partida 3" })).getByText(/Sin descuento/, { selector: "p" })).toBeInTheDocument();
     expect(screen.getByLabelText("Importe neto partida 3")).toHaveTextContent("$10.00");
   });
 });
 
 describe("EditableLineItemsTable — persistent quote origins", () => {
+  it("exposes SAT code and name and keeps codes outside the usual catalog without changing the line", () => {
+    const line: LineItemValues = { description: "Servicio", quantity: 1, unit_price: 100, total: 100,
+      clave_prod_serv: "78181501", clave_unidad: "ZZZ" };
+    render(<Harness lines={[line]} />);
+    expect(screen.getByRole("combobox", { name: "Clave SAT partida 1" }))
+      .toHaveTextContent("78181501 - Alquiler de montacargas");
+    expect(screen.getByRole("combobox", { name: "Unidad SAT partida 1" }))
+      .toHaveTextContent("ZZZ (fuera del catálogo habitual)");
+    expect(JSON.parse(screen.getByLabelText("Partidas conservadas").textContent ?? "[]")[0]).toEqual(line);
+  });
+
   it("keeps source IDs during a fractional quantity edit and locks the quoted unit price", () => {
     const line: LineItemValues = { description: "Entrega", quantity: 2, unit_price: 100, total: 200,
       line_kind: "charge", source_quote_id: "11111111-1111-4111-8111-111111111111",

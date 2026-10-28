@@ -1,3 +1,7 @@
+## [8.46.0] - 2026-10-27
+
+- Nueva factura muestra partidas en tarjetas sin scroll horizontal móvil, campos agrupados y códigos SAT con su nombre completo, además de un resumen lateral de importes en escritorio. Conserva cálculos, descuentos, impuestos, moneda, cancelación y acciones fijas en móvil.
+
 ## [8.45.1] - 2026-10-26
 
 - Las partidas de una factura de extensión ya llevan la unidad SAT según cómo se cobran: mes (MON), semana (WEE), día (DAY) o unidad de servicio (E48) en prorrateos, en lugar de DAY fijo. Sin cambios de importes, permisos ni datos.

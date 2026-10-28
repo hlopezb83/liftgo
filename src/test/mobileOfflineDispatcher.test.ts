@@ -21,6 +21,7 @@ import {
   installOfflineDispatcher,
   portalInvoices,
   portalQuotes,
+  invoiceCustomerName,
   type OfflineProfile,
 } from "../../tests/mobile/offlineDispatcher";
 
@@ -136,6 +137,48 @@ describe("mobile offline fixture isolation", () => {
     await expect(
       installOfflineDispatcher({} as BrowserContext, "https://example.invalid"),
     ).rejects.toThrow();
+  });
+});
+
+describe("invoice review read-only fixtures", () => {
+  it("provides only synthetic identity, customer and empty billing history", async () => {
+    const { state, request } = await fixture(true, "invoice");
+    const role = await request(`${BACKEND}/rest/v1/user_roles`);
+    expect(JSON.parse(role.fulfill.mock.calls[0][0].body)[0].role).toBe("admin");
+    const customers = await request(`${BACKEND}/rest/v1/organization_customers`);
+    const customer = JSON.parse(customers.fulfill.mock.calls[0][0].body)[0];
+    expect(customer.customers.name).toBe(invoiceCustomerName);
+    expect(customer.rfc).toBe("AAA010101AAA");
+    const history = await request(`${BACKEND}/rest/v1/invoices`);
+    expect(JSON.parse(history.fulfill.mock.calls[0][0].body)).toEqual([]);
+    const number = await request(`${BACKEND}/rest/v1/rpc/peek_next_draft_invoice_number`, "POST");
+    expect(JSON.parse(number.fulfill.mock.calls[0][0].body)).toBe("QA-FAC-001");
+    expect(state.unexpected).toEqual([]);
+  });
+
+  it.each([
+    ["/rest/v1/invoices", "POST"],
+    ["/rest/v1/invoices", "PATCH"],
+    ["/rest/v1/invoices", "DELETE"],
+    ["/rest/v1/rpc/save_invoice_with_bookings", "POST"],
+    ["/rest/v1/rpc/next_invoice_number", "POST"],
+    ["/rest/v1/rpc/get_portal_invoice", "POST"],
+    ["/rest/v1/customers", "GET"],
+    ["/functions/v1/stamp-invoice", "POST"],
+    ["/auth/v1/token", "POST"],
+  ])("rejects writes, fiscal calls and unlisted invoice reads: %s %s", async (path, method) => {
+    const { state, request } = await fixture(true, "invoice");
+    const result = await request(`${BACKEND}${path}`, method);
+    expect(result.abort).toHaveBeenCalledOnce();
+    expect(result.fulfill).not.toHaveBeenCalled();
+    expect(result.fetch).not.toHaveBeenCalled();
+    expect(state.unexpected).toHaveLength(1);
+  });
+
+  it.each(["dispatcher", "portal"] as const)("does not expand %s RPC allowlist", async (profile) => {
+    const { request } = await fixture(true, profile);
+    const result = await request(`${BACKEND}/rest/v1/rpc/peek_next_draft_invoice_number`, "POST");
+    expect(result.abort).toHaveBeenCalledOnce();
   });
 });
 

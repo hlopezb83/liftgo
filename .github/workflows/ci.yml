@@ -142,6 +142,11 @@ jobs:
           SMOKE_REUSE_BUILD: "1"
         run: bun run test:e2e:mobile
 
+      - name: Aceptación Nueva factura (24 escenarios, datos ficticios)
+        env:
+          SMOKE_REUSE_BUILD: "1"
+        run: bunx playwright test --config playwright.invoice-ui.config.ts
+
       - name: Subir evidencia móvil
         if: always()
         uses: actions/upload-artifact@v7
