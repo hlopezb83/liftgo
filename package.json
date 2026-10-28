@@ -36,7 +36,7 @@
     "knip": "knip",
     "knip:deep": "knip --files --dependencies --exports --include-entry-exports",
     "format": "prettier --write .",
-    "test:dependencies": "node --test scripts/tests/dependency-security.test.mjs"
+    "test:dependencies": "node --test scripts/tests/dependency-security.test.mjs scripts/tests/happy-dom-security.test.mjs"
   },
   "overrides": {
     "zod-validation-error": "^4.0.2",
@@ -157,7 +157,7 @@
     "eslint-plugin-react-hooks": "7",
     "eslint-plugin-react-refresh": "^0.5.7",
     "globals": "^17.13.0",
-    "happy-dom": "^20.14.5",
+    "happy-dom": "^21.0.4",
     "jsdom": "30.1.1",
     "knip": "^6.39.0",
     "nitro": "3.0.260603-beta",
