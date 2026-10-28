@@ -1,0 +1,361 @@
+# Diagnostic only: no production credentials, migration changes or SQL exceptions.
+name: PR357 catalog validation
+'on':
+  pull_request:
+    paths:
+    - scripts/tests/pr357-*
+    - .github/workflows/pr357-catalog-validation.yml
+    - .github/workflows/rls-db-tests.yml
+    - scripts/ci_database.py
+    - scripts/patch_legacy_migrations.py
+    - scripts/ci-drizzle-*.mjs
+    - supabase/migrations/**
+    - drizzle/migrations/**
+  workflow_dispatch:
+    inputs:
+      expected_sha:
+        description: Exact 40-character commit SHA selected for this diagnostic run
+        required: true
+        type: string
+permissions:
+  contents: read
+concurrency:
+  group: pr357-catalog-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+env:
+  CI: 'true'
+  PR357_EXPECTED_SHA: ${{ github.event.pull_request.head.sha || inputs.expected_sha }}
+jobs:
+  contracts:
+    name: Harness contracts and workflow lint
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+    steps:
+    - uses: actions/checkout@v7
+      with:
+        ref: ${{ github.event.pull_request.head.sha || github.sha }}
+        fetch-depth: 0
+    - name: Bind validation to the requested commit
+      run: |
+        node - <<'JS'
+        const {execFileSync} = require('node:child_process');
+        const assert = require('node:assert/strict');
+        const expected = process.env.PR357_EXPECTED_SHA;
+        assert.match(expected ?? '', /^[0-9a-f]{40}$/);
+        assert.equal(execFileSync('git', ['rev-parse','HEAD'], {encoding:'utf8'}).trim(), expected);
+        assert.equal(process.env.GITHUB_REPOSITORY, 'hlopezb83/liftgo');
+        console.log(`Validation bound to ${expected}`);
+        JS
+    - uses: ./.github/actions/setup-bun-project
+      id: deps
+    - name: Unit contracts (not database execution)
+      run: |
+        node --test scripts/tests/pr357-*.test.mjs
+        bun run test:ci-tools
+    - name: Actionlint
+      uses: reviewdog/action-actionlint@3cbf14efd750961dba35fccbf00f9e14028cb1f5
+      with:
+        fail_level: error
+        filter_mode: nofilter
+        reporter: local
+  gitleaks:
+    name: Gitleaks complete history (redacted)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+    steps:
+    - uses: actions/checkout@v7
+      with:
+        ref: ${{ github.event.pull_request.head.sha || github.sha }}
+        fetch-depth: 0
+    - name: Bind validation to the requested commit
+      run: |
+        node - <<'JS'
+        const {execFileSync} = require('node:child_process');
+        const assert = require('node:assert/strict');
+        const expected = process.env.PR357_EXPECTED_SHA;
+        assert.match(expected ?? '', /^[0-9a-f]{40}$/);
+        assert.equal(execFileSync('git', ['rev-parse','HEAD'], {encoding:'utf8'}).trim(), expected);
+        assert.equal(process.env.GITHUB_REPOSITORY, 'hlopezb83/liftgo');
+        console.log(`Validation bound to ${expected}`);
+        JS
+    - name: Scan full history with active exact exception
+      run: |
+        python3 - <<'PYTHON'
+        import pathlib,urllib.request,hashlib,tarfile,subprocess,json,tempfile,sys
+        out=pathlib.Path('reports');out.mkdir(exist_ok=True)
+        with tempfile.TemporaryDirectory(prefix='pr357-gitleaks-') as tmp:
+            p=pathlib.Path(tmp);name='gitleaks_8.24.3_linux_x64.tar.gz'
+            base='https://github.com/gitleaks/gitleaks/releases/download/v8.24.3/'
+            archive=urllib.request.urlopen(base+name,timeout=60).read()
+            sums=urllib.request.urlopen(base+'gitleaks_8.24.3_checksums.txt',timeout=60).read().decode()
+            expected=next(line.split()[0] for line in sums.splitlines() if line.split()[-1]==name)
+            assert hashlib.sha256(archive).hexdigest()==expected
+            (p/name).write_bytes(archive)
+            with tarfile.open(p/name) as t:
+                member=t.getmember('gitleaks');assert member.isfile()
+                (p/'gitleaks').write_bytes(t.extractfile(member).read())
+            (p/'gitleaks').chmod(0o755)
+            report=p/'redacted.json'
+            r=subprocess.run([str(p/'gitleaks'),'detect','--source','.','--config','.gitleaks.toml','--gitleaks-ignore-path','.gitleaksignore','--log-opts=HEAD','--redact=100','--no-banner','--no-color','--report-format=json','--report-path',str(report)],capture_output=True,text=True)
+            rows=json.loads(report.read_text()) if report.exists() else []
+            safe=[{k:v.get(k) for k in ['RuleID','File','StartLine','Commit','Fingerprint']} for v in rows]
+            (out/'pr357-gitleaks.json').write_text(json.dumps({'scanner':'8.24.3','exit_code':r.returncode,'findings':safe},indent=2)+'\n')
+            print(f'Gitleaks complete history: exit={r.returncode}, findings={len(safe)}; match/secret output suppressed')
+            sys.exit(r.returncode)
+        PYTHON
+    - name: Upload safe secret-scan metadata
+      if: always()
+      uses: actions/upload-artifact@v7
+      with:
+        name: pr357-gitleaks
+        path: reports/pr357-gitleaks.json
+        retention-days: 14
+        if-no-files-found: warn
+  native-catalog:
+    name: Native PostgreSQL 17 catalog and negative controls
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    needs: contracts
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+    env:
+      PG_BIN: /usr/lib/postgresql/17/bin
+      RUN_PR357_NATIVE_CATALOG: '1'
+    steps:
+    - uses: actions/checkout@v7
+      with:
+        ref: ${{ github.event.pull_request.head.sha || github.sha }}
+        fetch-depth: 0
+    - name: Bind validation to the requested commit
+      run: |
+        node - <<'JS'
+        const {execFileSync} = require('node:child_process');
+        const assert = require('node:assert/strict');
+        const expected = process.env.PR357_EXPECTED_SHA;
+        assert.match(expected ?? '', /^[0-9a-f]{40}$/);
+        assert.equal(execFileSync('git', ['rev-parse','HEAD'], {encoding:'utf8'}).trim(), expected);
+        assert.equal(process.env.GITHUB_REPOSITORY, 'hlopezb83/liftgo');
+        console.log(`Validation bound to ${expected}`);
+        JS
+    - uses: ./.github/actions/setup-bun-project
+      id: deps
+    - name: Install official PostgreSQL 17 on disposable runner
+      run: |
+        set -euo pipefail
+        # Official signed PGDG packages, installed only on this disposable GitHub runner.
+        # https://www.postgresql.org/download/linux/ubuntu/
+        . /etc/os-release
+        test "$VERSION_CODENAME" = noble
+        sudo apt-get update
+        sudo apt-get install -y --no-install-recommends ca-certificates curl gnupg postgresql-common
+        curl --fail --silent --show-error --location https://www.postgresql.org/media/keys/ACCC4CF8.asc -o "$RUNNER_TEMP/pr357-pgdg.asc"
+        fingerprint=$(gpg --show-keys --with-colons "$RUNNER_TEMP/pr357-pgdg.asc" | awk -F: '$1 == "fpr" {print $10; exit}')
+        test "$fingerprint" = B97B0AFCAA1A47F044F244A07FCC7D46ACCC4CF8
+        sudo install -m 0644 "$RUNNER_TEMP/pr357-pgdg.asc" /usr/share/postgresql-common/pgdg/apt.postgresql.org.asc
+        printf '%s\n' 'Types: deb' 'URIs: https://apt.postgresql.org/pub/repos/apt' 'Suites: noble-pgdg' 'Components: main' 'Signed-By: /usr/share/postgresql-common/pgdg/apt.postgresql.org.asc' | sudo tee /etc/apt/sources.list.d/pr357-pgdg.sources >/dev/null
+        sudo apt-get update
+        sudo apt-get install -y --no-install-recommends postgresql-17 postgresql-client-17
+        /usr/lib/postgresql/17/bin/postgres --version
+    - name: Execute real catalog queries and negative fixtures
+      run: node scripts/tests/pr357-native-catalog.mjs run
+    - name: Verify native cluster cleanup
+      if: always() && steps.deps.outcome == 'success'
+      run: node scripts/tests/pr357-native-catalog.mjs cleanup
+    - name: Upload native catalog and cleanup evidence
+      if: always()
+      uses: actions/upload-artifact@v7
+      with:
+        name: pr357-native-catalog
+        path: reports/pr357-native-catalog*.json
+        retention-days: 14
+        if-no-files-found: warn
+  supabase-replay:
+    name: Full Supabase replay and effective catalog
+    runs-on: ubuntu-24.04
+    timeout-minutes: 40
+    needs: native-catalog
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+    env:
+      SUPABASE_INTERNAL_IMAGE_REGISTRY: public.ecr.aws
+      DB_URL: postgresql://postgres:postgres@127.0.0.1:54322/postgres
+    steps:
+    - uses: actions/checkout@v7
+      with:
+        ref: ${{ github.event.pull_request.head.sha || github.sha }}
+        fetch-depth: 0
+    - name: Bind validation to the requested commit
+      run: |
+        node - <<'JS'
+        const {execFileSync} = require('node:child_process');
+        const assert = require('node:assert/strict');
+        const expected = process.env.PR357_EXPECTED_SHA;
+        assert.match(expected ?? '', /^[0-9a-f]{40}$/);
+        assert.equal(execFileSync('git', ['rev-parse','HEAD'], {encoding:'utf8'}).trim(), expected);
+        assert.equal(process.env.GITHUB_REPOSITORY, 'hlopezb83/liftgo');
+        console.log(`Validation bound to ${expected}`);
+        JS
+    - uses: ./.github/actions/setup-bun-project
+      id: deps
+    - name: Probar ejecutor SQL antes de arrancar la BD
+      run: python3 -m unittest discover -s scripts/tests -p test_run_sql_suites.py
+    - name: Setup Supabase CLI
+      uses: supabase/setup-cli@45a513f8c64c0bc8e0e3dfe572b5c95be85f6359
+      with:
+        version: 2.34.0
+    - name: Claim fresh ephemeral Supabase resources
+      id: ownership
+      run: node scripts/tests/pr357-supabase-catalog.mjs prepare
+    - name: Parchar migraciones fuera de orden (solo en el runner)
+      run: python3 scripts/patch_legacy_migrations.py
+    - name: Exigir base vacía y deshabilitar seed local
+      run: python3 scripts/ci_database.py prepare
+    - name: Start Supabase (DB + auth, sin gateway ni PostgREST)
+      continue-on-error: false
+      timeout-minutes: 15
+      run: |
+        python3 - <<'PYTHON'
+        import subprocess,sys,time,re
+        start=time.monotonic()
+        r=subprocess.run(['supabase','start','-x','studio,imgproxy,logflare,vector,edge-runtime,realtime,storage-api,mailpit,postgres-meta,supavisor,kong,postgrest'],capture_output=True,text=True,timeout=840)
+        print(f'Supabase start exit={r.returncode}, elapsed={time.monotonic()-start:.1f}s; raw service status suppressed')
+        if r.returncode:
+            # Print only known infrastructure signals; status may contain ephemeral JWTs.
+            for label,pattern in [('registry-rate-limit',r'toomanyrequests|Data limit exceeded'),('image-pull-failed',r'failed to pull docker image'),('unhealthy-service',r'not healthy|service.*unhealthy')]:
+                if re.search(pattern,r.stdout+r.stderr,re.I):print('Infrastructure diagnostic: '+label)
+        sys.exit(r.returncode)
+        PYTHON
+    - name: Verificar schema auth disponible
+      run: |
+        set -euo pipefail
+        HAS_USERS=$(psql "$DB_URL" -Atc "select to_regclass('auth.users') is not null")
+        HAS_UID=$(psql "$DB_URL" -Atc "select exists (select 1 from pg_proc p join pg_namespace n on n.oid = p.pronamespace where n.nspname = 'auth' and p.proname = 'uid')")
+        echo "auth.users: $HAS_USERS / auth.uid(): $HAS_UID"
+        if [[ "$HAS_USERS" != "t" || "$HAS_UID" != "t" ]]; then
+          echo "::error::El schema auth no está completo (auth.users=$HAS_USERS, auth.uid()=$HAS_UID)"
+          exit 1
+        fi
+    - name: Diagnóstico de arranque (solo en fallo)
+      if: failure()
+      run: echo "Supabase startup failed; raw status and container logs suppressed to avoid credential output."
+    - name: Verificar migraciones aplicadas
+      id: database-verified
+      run: python3 scripts/ci_database.py verify
+    - name: Validar journal de migraciones Drizzle
+      run: bun run migrations:check
+    - name: Probar guard y preparar replay Drizzle efímero
+      run: |
+        bun run test:ci-tools
+        bun scripts/ci-drizzle-replay.mjs prepare
+        mkdir -p reports
+        cp .ci-drizzle-replay/manifest.json reports/ci-drizzle-replay-manifest.json
+    - name: Aplicar y verificar migraciones Drizzle del replay efímero
+      id: drizzle
+      run: |
+        set -euo pipefail
+        bunx drizzle-kit migrate --config=drizzle.ci.config.ts
+        bun scripts/ci-drizzle-replay.mjs verify
+    - name: Audit effective table contracts after verified replay
+      id: catalog
+      run: node scripts/tests/pr357-supabase-catalog.mjs collect
+    - name: Diagnóstico PostgreSQL de Drizzle (sólo rollback en fallo)
+      if: failure() && steps.drizzle.outcome == 'failure'
+      run: bun scripts/ci-drizzle-diagnostics.mjs
+    - name: Exportar definiciones efectivas de Estado de Resultados
+      if: success() && steps.drizzle.outcome == 'success'
+      run: node scripts/ci-drizzle-function-report.mjs
+    - name: Prepare reports directory
+      run: mkdir -p reports
+    - name: Recurring invoice locking regression (18 isolated scenarios)
+      env:
+        RUN_LOCAL_RECURRING_TESTS: '1'
+        PG_BIN: /usr/lib/postgresql/16/bin
+      run: |
+        set -euo pipefail
+        for binary in initdb pg_ctl postgres; do
+          test -x "$PG_BIN/$binary" || { echo "::error::Missing trusted PostgreSQL binary: $binary"; exit 1; }
+        done
+        "$PG_BIN/postgres" --version
+        node scripts/tests/recurring-invoice-locking.test.cjs 2>&1 | tee reports/recurring-invoice-locking.log
+        test "$(grep -c '^PASS ' reports/recurring-invoice-locking.log)" -eq 18 || {
+          echo "::error::Expected all 18 recurring invoice locking scenarios; skip or partial runs are not accepted"
+          exit 1
+        }
+    - name: REP recovery persistence (real isolated PostgreSQL, synthetic PAC)
+      env:
+        RUN_LOCAL_FISCAL_TESTS: '1'
+        PG_BIN: /usr/lib/postgresql/16/bin
+      run: |
+        set -euo pipefail
+        node node_modules/typescript/bin/tsc --noEmit -p scripts/tests/fiscal/tsconfig.json
+        node scripts/tests/fiscal/run-rep-postgres.mjs 2>&1 | tee reports/rep-postgres-integration.log
+    - name: Statement documents and inherited ACL regression (isolated PostgreSQL)
+      env:
+        PG_BIN: /usr/lib/postgresql/16/bin
+      run: |
+        set -euo pipefail
+        node scripts/tests/reports/income-statement-documents.cjs 2>&1 | tee reports/statement-documents.log
+    - name: Statement calculation and detail regression (isolated PostgreSQL)
+      env:
+        PG_BIN: /usr/lib/postgresql/16/bin
+      run: |
+        set -euo pipefail
+        node scripts/tests/reports/income-statement-calculations.cjs 2>&1 | tee reports/statement-calculations.log
+    - name: Non-recurring invoice overlap regression (isolated PostgreSQL)
+      env:
+        RUN_LOCAL_OVERLAP_TESTS: '1'
+        PGHOST: 127.0.0.1
+        PGPORT: '54322'
+        PGUSER: postgres
+        PGPASSWORD: postgres
+      run: |
+        set -euo pipefail
+        python3 scripts/tests/test_nonrecurring_invoice_overlap.py 2>&1 | tee reports/nonrecurring-invoice-overlap.log
+    - name: Protección del último raíz con dos sesiones concurrentes
+      run: python3 scripts/platform_root_concurrency.py
+    - name: Global permission audit and atomic release (isolated PostgreSQL)
+      env:
+        RUN_LOCAL_SUMMARY_TESTS: '1'
+        PGHOST: 127.0.0.1
+        PGPORT: '54322'
+        PGUSER: postgres
+        PGPASSWORD: postgres
+      run: |
+        set -euo pipefail
+        python3 -m unittest discover -s scripts/tests -p test_prepare_dispatcher_audit_release.py -v
+        python3 scripts/tests/test_global_role_permission_audit.py -v 2>&1 | tee reports/global-permission-audit.log
+    - name: RLS suites (supabase/tests/rls/*.sql)
+      id: rls
+      run: |
+        python3 scripts/run_sql_suites.py \
+          --db-url "$DB_URL" \
+          --dir supabase/tests/rls \
+          --junit reports/rls-db-junit.xml \
+          --suite-name "RLS DB" \
+          --mode strict
+    - name: Smoke SQL (supabase/tests/*.sql)
+      id: smoke
+      if: always() && steps.database-verified.outcome == 'success' && steps.drizzle.outcome == 'success'
+      run: |
+        python3 scripts/run_sql_suites.py \
+          --db-url "$DB_URL" \
+          --dir supabase/tests \
+          --junit reports/sql-smoke-junit.xml \
+          --suite-name "SQL smoke" \
+          --mode smoke
+    - name: Recurring invoice concurrency on full replayed schema (5 scenarios)
+      run: |
+        set -euo pipefail
+        node scripts/tests/fiscal/recurring-full-schema.mjs 2>&1 | tee reports/recurring-full-schema.log
+        test "$(grep -c '^PASS full-schema ' reports/recurring-full-schema.log)" -eq 5
+    - name: Destroy owned Supabase resources and verify cleanup
+      if: always() && steps.ownership.outcome == 'success'
+      run: node scripts/tests/pr357-supabase-catalog.mjs cleanup
+    - name: Upload replay, catalog and cleanup evidence
+      if: always()
+      uses: actions/upload-artifact@v7
+      with:
+        name: pr357-supabase-catalog
+        path: reports/
+        retention-days: 14
+        if-no-files-found: warn

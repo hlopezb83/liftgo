@@ -151,29 +151,22 @@ export function evaluateCatalog(snapshot) {
     validation_scope: "Catalog contract only; actual SQL collection/replay and row operations require separate evidence" };
 }
 
-export async function auditTemporaryCatalog(sql, options) {
-  const expectedDataDirectory = guardLocalMarker(options);
-  // A fresh transaction rejects writes at the server, not just by convention.
-  return sql.begin("read only", async (tx) => {
-    const [identity] = await tx.unsafe(`SELECT current_database() AS database,
+export const CATALOG_IDENTITY_SQL = `SELECT current_database() AS database,
       current_setting('data_directory') AS data_directory,
       current_setting('server_version_num')::integer AS server_version_num,
       current_setting('transaction_read_only') AS transaction_read_only,
-      inet_server_addr()::text AS server_address`);
-    if (identity.data_directory !== expectedDataDirectory || identity.database !== "pr357_catalog_validation"
-        || ![null, "127.0.0.1", "::1"].includes(identity.server_address)
-        || identity.transaction_read_only !== "on"
-        || identity.server_version_num < 170000 || identity.server_version_num >= 180000) {
-      throw new Error("Connection is not the marked disposable PostgreSQL 17 validation database");
-    }
-    const tables = await tx.unsafe(`WITH target AS (${TABLES_CTE})
+      inet_server_addr()::text AS server_address, current_user AS current_user, session_user AS session_user`;
+
+// Fixed catalog-only statements shared by independently guarded native and Docker harnesses.
+export const CATALOG_QUERIES = Object.freeze({
+  tables: `WITH target AS (${TABLES_CTE})
       SELECT relname AS name, relkind AS kind, owner_name AS owner,
-        relrowsecurity AS rls_enabled, relforcerowsecurity AS rls_forced FROM target ORDER BY relname`);
-    const roles = await tx.unsafe(`SELECT rolname AS name, rolsuper AS superuser,
+        relrowsecurity AS rls_enabled, relforcerowsecurity AS rls_forced FROM target ORDER BY relname`,
+  roles: `SELECT rolname AS name, rolsuper AS superuser,
       rolbypassrls AS bypass_rls, rolcreaterole AS create_role, rolcreatedb AS create_database,
       rolreplication AS replication, rolinherit AS inherit, rolcanlogin AS login
-      FROM pg_catalog.pg_roles ORDER BY rolname`);
-    const policies = await tx.unsafe(`WITH target AS (${TABLES_CTE})
+      FROM pg_catalog.pg_roles ORDER BY rolname`,
+  policies: `WITH target AS (${TABLES_CTE})
       SELECT t.relname AS table, p.polname AS name, p.polcmd AS command, p.polpermissive AS permissive,
         ARRAY(SELECT (CASE WHEN role_oid = 0 THEN 'PUBLIC' ELSE pg_catalog.pg_get_userbyid(role_oid) END)::text
           FROM unnest(p.polroles) AS role_oid ORDER BY role_oid) AS roles,
@@ -181,53 +174,70 @@ export async function auditTemporaryCatalog(sql, options) {
         COALESCE(regexp_replace(pg_catalog.pg_get_expr(p.polwithcheck,p.polrelid), '[()[:space:]]', '', 'g') = 'false', false) AS check_false,
         md5(pg_catalog.pg_get_expr(p.polqual,p.polrelid)) AS using_expression_hash,
         md5(pg_catalog.pg_get_expr(p.polwithcheck,p.polrelid)) AS check_expression_hash
-      FROM target t JOIN pg_catalog.pg_policy p ON p.polrelid = t.oid ORDER BY t.relname,p.polname`);
-    const tableAcl = await tx.unsafe(`WITH target AS (${TABLES_CTE})
+      FROM target t JOIN pg_catalog.pg_policy p ON p.polrelid = t.oid ORDER BY t.relname,p.polname`,
+  table_acl: `WITH target AS (${TABLES_CTE})
       SELECT t.relname AS table, CASE WHEN a.grantee = 0 THEN 'PUBLIC' ELSE pg_catalog.pg_get_userbyid(a.grantee) END AS grantee,
         pg_catalog.pg_get_userbyid(a.grantor) AS grantor, a.privilege_type AS privilege, a.is_grantable
       FROM target t CROSS JOIN LATERAL pg_catalog.aclexplode(COALESCE(t.relacl,pg_catalog.acldefault('r',t.relowner))) a
-      ORDER BY t.relname,grantee,privilege`);
-    const columnAcl = await tx.unsafe(`WITH target AS (${TABLES_CTE})
+      ORDER BY t.relname,grantee,privilege`,
+  column_acl: `WITH target AS (${TABLES_CTE})
       SELECT t.relname AS table, c.attname AS column, CASE WHEN a.grantee = 0 THEN 'PUBLIC' ELSE pg_catalog.pg_get_userbyid(a.grantee) END AS grantee,
         pg_catalog.pg_get_userbyid(a.grantor) AS grantor, a.privilege_type AS privilege, a.is_grantable
       FROM target t JOIN pg_catalog.pg_attribute c ON c.attrelid = t.oid AND c.attnum > 0 AND NOT c.attisdropped
-      CROSS JOIN LATERAL pg_catalog.aclexplode(c.attacl) a ORDER BY t.relname,c.attname,grantee,privilege`);
-    const effectivePrivileges = await tx.unsafe(`WITH target AS (${TABLES_CTE}), checked_roles AS (${CHECKED_ROLES_CTE}),
+      CROSS JOIN LATERAL pg_catalog.aclexplode(c.attacl) a ORDER BY t.relname,c.attname,grantee,privilege`,
+  effective_privileges: `WITH target AS (${TABLES_CTE}), checked_roles AS (${CHECKED_ROLES_CTE}),
       privileges AS (SELECT unnest(ARRAY['SELECT','INSERT','UPDATE','DELETE','TRUNCATE','REFERENCES','TRIGGER','MAINTAIN']) AS privilege)
       SELECT t.relname AS table, r.rolname AS role, 'table' AS scope, p.privilege,
         pg_catalog.has_table_privilege(r.oid,t.oid,p.privilege) AS allowed FROM target t CROSS JOIN checked_roles r CROSS JOIN privileges p
       UNION ALL SELECT t.relname,r.rolname,'column',p.privilege,
         pg_catalog.has_any_column_privilege(r.oid,t.oid,p.privilege) FROM target t CROSS JOIN checked_roles r
         CROSS JOIN (SELECT unnest(ARRAY['SELECT','INSERT','UPDATE','REFERENCES']) AS privilege) p
-      ORDER BY 1,2,3,4`);
-    const roleReachability = await tx.unsafe(`WITH target AS (${TABLES_CTE}), checked_roles AS (${CHECKED_ROLES_CTE})
+      ORDER BY 1,2,3,4`,
+  role_reachability: `WITH target AS (${TABLES_CTE}), checked_roles AS (${CHECKED_ROLES_CTE})
       SELECT origin.rolname AS from_role, elevated.rolname AS reachable_role,
       pg_catalog.pg_has_role(origin.oid,elevated.oid,'MEMBER') AS member,
       pg_catalog.pg_has_role(origin.oid,elevated.oid,'USAGE') AS usage,
       pg_catalog.pg_has_role(origin.oid,elevated.oid,'SET') AS set_role
       FROM checked_roles origin CROSS JOIN pg_catalog.pg_roles elevated
-      ORDER BY origin.rolname,elevated.rolname`);
-    const memberships = await tx.unsafe(`SELECT pg_catalog.pg_get_userbyid(m.member) AS member,
+      ORDER BY origin.rolname,elevated.rolname`,
+  memberships: `SELECT pg_catalog.pg_get_userbyid(m.member) AS member,
       pg_catalog.pg_get_userbyid(m.roleid) AS role, pg_catalog.pg_get_userbyid(m.grantor) AS grantor,
-      m.admin_option,m.inherit_option,m.set_option FROM pg_catalog.pg_auth_members m ORDER BY 1,2,3`);
-    const schemaAcl = await tx.unsafe(`SELECT CASE WHEN a.grantee = 0 THEN 'PUBLIC' ELSE pg_catalog.pg_get_userbyid(a.grantee) END AS grantee,
+      m.admin_option,m.inherit_option,m.set_option FROM pg_catalog.pg_auth_members m ORDER BY 1,2,3`,
+  public_schema_acl: `SELECT CASE WHEN a.grantee = 0 THEN 'PUBLIC' ELSE pg_catalog.pg_get_userbyid(a.grantee) END AS grantee,
       pg_catalog.pg_get_userbyid(a.grantor) AS grantor,a.privilege_type AS privilege,a.is_grantable
       FROM pg_catalog.pg_namespace n CROSS JOIN LATERAL pg_catalog.aclexplode(COALESCE(n.nspacl,pg_catalog.acldefault('n',n.nspowner))) a
-      WHERE n.nspname='public' ORDER BY 1,3`);
-    const schemaPrivileges = await tx.unsafe(`WITH target AS (${TABLES_CTE}), checked_roles AS (${CHECKED_ROLES_CTE})
+      WHERE n.nspname='public' ORDER BY 1,3`,
+  schema_privileges: `WITH target AS (${TABLES_CTE}), checked_roles AS (${CHECKED_ROLES_CTE})
       SELECT r.rolname AS role, pg_catalog.has_schema_privilege(r.oid,n.oid,'USAGE') AS usage,
         pg_catalog.has_schema_privilege(r.oid,n.oid,'CREATE') AS create
-      FROM checked_roles r CROSS JOIN pg_catalog.pg_namespace n WHERE n.nspname='public' ORDER BY r.rolname`);
-    const defaultAcl = await tx.unsafe(`SELECT pg_catalog.pg_get_userbyid(d.defaclrole) AS owner,
+      FROM checked_roles r CROSS JOIN pg_catalog.pg_namespace n WHERE n.nspname='public' ORDER BY r.rolname`,
+  default_acl: `SELECT pg_catalog.pg_get_userbyid(d.defaclrole) AS owner,
       COALESCE(n.nspname,'(all schemas)') AS schema,d.defaclobjtype AS object_type,
       CASE WHEN a.grantee=0 THEN 'PUBLIC' ELSE pg_catalog.pg_get_userbyid(a.grantee) END AS grantee,
       a.privilege_type AS privilege,a.is_grantable FROM pg_catalog.pg_default_acl d
       LEFT JOIN pg_catalog.pg_namespace n ON n.oid=d.defaclnamespace
       CROSS JOIN LATERAL pg_catalog.aclexplode(d.defaclacl) a
-      WHERE d.defaclnamespace=0 OR n.nspname='public' ORDER BY 1,2,3,4,5`);
-    const snapshot = { tables, roles, policies, table_acl: tableAcl, column_acl: columnAcl,
-      effective_privileges: effectivePrivileges, role_reachability: roleReachability,
-      memberships, public_schema_acl: schemaAcl, schema_privileges: schemaPrivileges, default_acl: defaultAcl };
+      WHERE d.defaclnamespace=0 OR n.nspname='public' ORDER BY 1,2,3,4,5`,
+});
+
+export async function collectCatalog(tx) {
+  const snapshot = {};
+  for (const [key, query] of Object.entries(CATALOG_QUERIES)) snapshot[key] = await tx.unsafe(query);
+  return snapshot;
+}
+
+export async function auditTemporaryCatalog(sql, options) {
+  const expectedDataDirectory = guardLocalMarker(options);
+  // The native ownership/identity guard is unchanged; Docker has a separate guard.
+  return sql.begin("read only", async (tx) => {
+    const [identity] = await tx.unsafe(CATALOG_IDENTITY_SQL);
+    if (identity.data_directory !== expectedDataDirectory || identity.database !== "pr357_catalog_validation"
+        || ![null, "127.0.0.1", "::1"].includes(identity.server_address)
+        || identity.transaction_read_only !== "on"
+        || identity.server_version_num < 170000 || identity.server_version_num >= 180000) {
+      throw new Error("Connection is not the marked disposable PostgreSQL 17 validation database");
+    }
+    const snapshot = await collectCatalog(tx);
     return { ...evaluateCatalog(snapshot), snapshot, evidence_scope: "Read-only catalog of the marked temporary PostgreSQL 17 database; replay provenance must be supplied separately" };
   });
 }
