@@ -8,7 +8,7 @@ mkdirSync(evidence, { recursive: true });
 test.afterEach(async ({ context }, info) => {
   const teardownErrors = await closeOfflinePages(context);
   const transports = getComponentTransportLedgers(context);
-  writeFileSync(`${evidence}/${info.project.name}-${info.title.replace(/\W+/g, "-")}-final-network.json`, JSON.stringify({ phase: "after-pages-closed", transports, teardownErrors }, null, 2));
+  writeFileSync(`${evidence}/${info.project.name}-${info.title.replace(/\W+/g, "-").slice(0, 64)}-${info.testId}-final-network.json`, JSON.stringify({ phase: "after-pages-closed", transports, teardownErrors }, null, 2));
   for (const ledger of transports) {
     expect.soft(ledger.errors).toEqual([]); expect.soft(ledger.unexpected).toEqual([]); expect.soft(ledger.externalBlocked).toEqual([]);
   }

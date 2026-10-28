@@ -12,7 +12,7 @@ const test = base.extend<{ profile: FixtureProfile; audit: Awaited<ReturnType<ty
     await use(transport);
     const teardownErrors = await closeOfflinePages(context);
     const transports = getGroupCTransportLedgers(context);
-    writeFileSync(`${evidenceRoot}/${info.project.name}-${info.title.replace(/\W+/g, "-")}-network.json`, JSON.stringify({ phase: "after-pages-closed", transports, teardownErrors }, null, 2));
+    writeFileSync(`${evidenceRoot}/${info.project.name}-${info.title.replace(/\W+/g, "-").slice(0, 64)}-${info.testId}-network.json`, JSON.stringify({ phase: "after-pages-closed", transports, teardownErrors }, null, 2));
     for (const ledger of transports) {
       expect.soft(ledger.unexpected).toEqual([]); expect.soft(ledger.pageErrors).toEqual([]);
     }

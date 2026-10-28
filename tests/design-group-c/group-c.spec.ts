@@ -10,7 +10,7 @@ const test = base.extend<{ transport: Awaited<ReturnType<typeof installGroupCTra
     await use(transport);
     const teardownErrors = await closeOfflinePages(context);
     const transports = getGroupCTransportLedgers(context);
-    writeFileSync(`${evidence}/${info.project.name}-${info.title.replace(/\W+/g, "-")}-network.json`, JSON.stringify({ phase: "after-pages-closed", transports, teardownErrors }, null, 2));
+    writeFileSync(`${evidence}/${info.project.name}-${info.title.replace(/\W+/g, "-").slice(0, 64)}-${info.testId}-network.json`, JSON.stringify({ phase: "after-pages-closed", transports, teardownErrors }, null, 2));
     for (const ledger of transports) {
       expect.soft(ledger.unexpected).toEqual([]); expect.soft(ledger.pageErrors).toEqual([]);
       if (ledger.profile.invoicesAccess === "read" || ledger.profile.invoicesAccess === "none") {
