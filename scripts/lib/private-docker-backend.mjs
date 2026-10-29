@@ -14,6 +14,9 @@ const CONTROLLERS = ['cpu', 'memory', 'pids'];
 // another module. The no-SQL trial must review and compare the full inventory.
 const REQUIRED_MODULES = ['bridge', 'br_netfilter', 'overlay', 'nf_conntrack', 'nf_nat', 'ip_tables', 'ip6_tables'];
 const HEX64 = /^[a-f0-9]{64}$/;
+const TRIAL_RESOLVER_MODE = 'private-docker-trial-v2';
+const TRIAL_RESOLVER_CONFIG = 'nameserver 127.254.36.1\noptions timeout:1 attempts:1\n';
+const TRIAL_RESOLVER_SHA256 = hash(TRIAL_RESOLVER_CONFIG);
 const FS = Object.freeze({ lstatSync, mkdirSync, readFileSync, readdirSync, realpathSync, rmSync, rmdirSync, statSync, writeFileSync,
   uid: () => process.getuid(), now: () => Date.now() });
 const NS = Object.freeze({ run: runInPinnedNamespace, observe: observeEmptyBoundary });
@@ -49,6 +52,12 @@ function sessionIdentity(state) {
   need(state.fs.uid() === 0, 'PRIVATE_BACKEND_REQUIRES_ROOT');
   privateDir(state.fs, state.paths.directory, state.directoryInode); cgroupIdentity(state);
   for (const [name, text] of Object.entries(state.configs)) need(state.fs.readFileSync(state.paths[name], 'utf8') === text, 'PRIVATE_DAEMON_CONFIG_CHANGED');
+  if (state.trialResolver) {
+    const row = state.fs.lstatSync(state.paths.resolverConfig);
+    need(row.isFile() && !row.isSymbolicLink() && row.uid === 0 && (row.mode & 0o077) === 0 &&
+      row.ino === state.resolverSourceInode && state.fs.realpathSync(state.paths.resolverConfig) === state.paths.resolverConfig &&
+      hash(state.fs.readFileSync(state.paths.resolverConfig)) === TRIAL_RESOLVER_SHA256, 'PRIVATE_RESOLVER_SOURCE_CHANGED');
+  }
 }
 function plainFile(fs, path) {
   const row = fs.lstatSync(path);
@@ -139,8 +148,13 @@ function live(cap, phases) {
 // Both daemons inherit ONE new private mount namespace; host mounts cannot propagate.
 // Child PIDs are placed below an empty session root, preserving cgroup-v2 topology.
 const LAUNCH = String.raw`
-import ctypes, json, os, stat, subprocess, sys, time
+import ctypes, hashlib, json, os, stat, subprocess, sys, time
 cfg=json.loads(sys.argv[1])
+# Record only the target path; never inherit or consult its original DNS data.
+resolver_target=None
+if cfg['resolver']:
+    resolver_target=os.path.realpath('/etc/resolv.conf')
+    if not resolver_target.startswith('/') or not os.path.isfile(resolver_target): raise RuntimeError('unsupported resolver target')
 libc=ctypes.CDLL(None,use_errno=True)
 if libc.unshare(0x00020000)!=0: raise OSError(ctypes.get_errno(),'mount namespace')
 if libc.mount(None,b'/',None,16384|262144,None)!=0: raise OSError(ctypes.get_errno(),'private mounts')
@@ -154,6 +168,26 @@ if os.path.islink(var_run):
 elif not os.path.isdir(var_run): raise RuntimeError('unsupported var/run tree')
 for target in ['/run']+([var_run] if var_run else []):
     if libc.mount(b'tmpfs',target.encode(),b'tmpfs',14,b'mode=755,size=16m')!=0: raise OSError(ctypes.get_errno(),'private runtime mask')
+# A trial resolver is optional and has one fixed local-only upstream. Binding an
+# FD prevents a pathname replacement from silently choosing another source.
+if cfg['resolver']:
+    source=os.open(cfg['resolver']['source'],os.O_RDONLY|os.O_CLOEXEC|os.O_NOFOLLOW)
+    try:
+        st=os.fstat(source)
+        expected=b'nameserver 127.254.36.1\noptions timeout:1 attempts:1\n'
+        if not stat.S_ISREG(st.st_mode) or st.st_uid!=0 or st.st_mode&0o077: raise RuntimeError('unowned resolver source')
+        data=os.read(source,4096)
+        if data!=expected or hashlib.sha256(data).hexdigest()!=cfg['resolver']['sha256']: raise RuntimeError('trial resolver source changed')
+        if not os.path.exists(resolver_target):
+            if not resolver_target.startswith('/run/') and not resolver_target.startswith('/var/run/'): raise RuntimeError('resolver target disappeared')
+            os.makedirs(os.path.dirname(resolver_target),mode=0o755,exist_ok=True)
+            placeholder=os.open(resolver_target,os.O_WRONLY|os.O_CREAT|os.O_EXCL|os.O_NOFOLLOW,0o600); os.close(placeholder)
+        if not stat.S_ISREG(os.stat(resolver_target).st_mode): raise RuntimeError('resolver target not regular')
+        if libc.mount(('/proc/self/fd/'+str(source)).encode(),resolver_target.encode(),None,4096,None)!=0: raise OSError(ctypes.get_errno(),'trial resolver bind')
+        if libc.mount(None,resolver_target.encode(),None,4096|32|1,None)!=0: raise OSError(ctypes.get_errno(),'readonly trial resolver')
+        with open('/etc/resolv.conf','rb') as f: actual=f.read()
+        if actual!=expected or not os.statvfs('/etc/resolv.conf').f_flag&os.ST_RDONLY: raise RuntimeError('trial resolver not verified read only')
+    finally: os.close(source)
 # Preserve the already-loaded AppArmor policy. A read-only private bind prevents
 # a trusted daemon from loading/replacing profiles through securityfs.
 security='/sys/kernel/security'
@@ -209,6 +243,34 @@ for role,path in json.loads(sys.argv[1]).items():
         result[role]={'pid':pid,'uid':uid,'gid':gid}
 print(json.dumps(result))
 `;
+const VERIFY_RESOLVER = String.raw`
+import ctypes, hashlib, json, os, sys
+record=json.loads(sys.argv[1]); pid=record['pid']
+def ticks():
+    with open('/proc/'+str(pid)+'/stat') as f: text=f.read()
+    if not text.startswith(str(pid)+' ('): raise RuntimeError('resolver process changed')
+    return text[text.rfind(') ')+2:].split()[19]
+if ticks()!=record['startTicks']: raise RuntimeError('resolver process changed')
+fd=os.open('/proc/'+str(pid)+'/ns/mnt',os.O_RDONLY|os.O_CLOEXEC)
+try:
+    if os.fstat(fd).st_ino!=record['mountNamespaceInode'] or ticks()!=record['startTicks']: raise RuntimeError('resolver namespace changed')
+    libc=ctypes.CDLL(None,use_errno=True)
+    if libc.setns(fd,0x00020000)!=0: raise OSError(ctypes.get_errno(),'resolver namespace')
+    with open('/etc/resolv.conf','rb') as f: data=f.read()
+    result={'sha256':hashlib.sha256(data).hexdigest(),'readOnly':bool(os.statvfs('/etc/resolv.conf').f_flag&os.ST_RDONLY),'mountNamespaceInode':os.stat('/proc/self/ns/mnt').st_ino}
+finally: os.close(fd)
+print(json.dumps(result))
+`;
+function resolverObservation(state) {
+  if (!state.trialResolver) return {};
+  const output = state.ns.run(state.pin, state.tools.python.path, ['-I', '-c', VERIFY_RESOLVER, JSON.stringify(state.processes.dockerd)]);
+  const measured = JSON.parse(output);
+  keys(measured, ['sha256', 'readOnly', 'mountNamespaceInode'], 'PRIVATE_RESOLVER_OBSERVATION_UNPROVEN');
+  need(measured.sha256 === TRIAL_RESOLVER_SHA256 && measured.readOnly === true &&
+    measured.mountNamespaceInode === state.processes.dockerd.mountNamespaceInode, 'PRIVATE_RESOLVER_NOT_READONLY_OR_CHANGED');
+  return { trialResolver: TRIAL_RESOLVER_MODE, resolverConfigSha256: TRIAL_RESOLVER_SHA256,
+    resolverControl: { target: '/etc/resolv.conf', contentVerified: true, readOnly: true, mountNamespaceInode: measured.mountNamespaceInode } };
+}
 function socketPeers(state) {
   const output = state.ns.run(state.pin, state.tools.python.path, ['-I', '-c', PEERS, JSON.stringify({
     containerd: state.paths.containerdSocket, dockerd: state.paths.dockerSocket,
@@ -236,8 +298,9 @@ finally: os.close(fd)
 print('{}')
 `;
 
-export function createPrivateDockerBackend({ binding, runnerTemp, pin, toolchain: supplied }, options = {}) {
+export function createPrivateDockerBackend({ binding, runnerTemp, pin, toolchain: supplied, trialResolver }, options = {}) {
   const context = validateBinding(binding), io = drivers(options), fs = io.fs;
+  need(trialResolver === undefined || trialResolver === TRIAL_RESOLVER_MODE, 'UNREVIEWED_PRIVATE_TRIAL_RESOLVER');
   need(fs.uid() === 0, 'PRIVATE_BACKEND_REQUIRES_ROOT');
   absolute(runnerTemp); outsideMaskedRuntime(runnerTemp); privateDir(fs, runnerTemp);
   const tools = toolchain(fs, supplied), baselineModules = modules(fs), baselineAppArmor = apparmor(fs), boundary = io.ns.observe(pin);
@@ -249,10 +312,11 @@ export function createPrivateDockerBackend({ binding, runnerTemp, pin, toolchain
   const paths = { directory, cgroup, containerdRoot: directory + '/cd-root', containerdState: directory + '/cd-state',
     dataRoot: directory + '/data', execRoot: directory + '/exec', dockerSocket: directory + '/docker.sock',
     containerdSocket: directory + '/containerd.sock', containerdConfig: directory + '/containerd.toml',
+    ...(trialResolver ? { resolverConfig: directory + '/resolv.conf' } : {}),
     dockerdConfig: directory + '/daemon.json', moduleBlocker: directory + '/blocked-module-loader', clientConfig: directory + '/client/config.json', clientDirectory: directory + '/client', pidfile: directory + '/dockerd.pid' };
   need(Buffer.byteLength(paths.dockerSocket) < 100 && Buffer.byteLength(paths.containerdSocket) < 100, 'PRIVATE_SOCKET_PATH_TOO_LONG');
   fs.mkdirSync(directory, { mode: 0o700 });
-  const state = { ...io, pin, binding: context, paths, tools, baselineModules, baselineAppArmor, phase: 'preparing', busy: false,
+  const state = { ...io, pin, binding: context, paths, tools, trialResolver, baselineModules, baselineAppArmor, phase: 'preparing', busy: false,
     directoryInode: privateDir(fs, directory), namespaceInode: boundary.anchor.namespaceInode,
     hostMountNamespaceInode: fs.statSync('/proc/self/ns/mnt').ino, processes: null, socketInodes: null, cleanupUncertain: false };
   const cap = Object.freeze({ kind: 'PRIVATE_DOCKER_BACKEND', replay_authorized: false });
@@ -271,7 +335,9 @@ export function createPrivateDockerBackend({ binding, runnerTemp, pin, toolchain
     for (const name of ['daemons', 'containers', 'native']) fs.mkdirSync(cgroup + '/' + name, { mode: 0o700 });
     for (const path of [paths.containerdRoot, paths.containerdState, paths.dataRoot, paths.execRoot, paths.clientDirectory]) fs.mkdirSync(path, { mode: 0o700 });
     state.configs = { containerdConfig: `version = 2\nroot = ${JSON.stringify(paths.containerdRoot)}\nstate = ${JSON.stringify(paths.containerdState)}\ndisabled_plugins = ["io.containerd.grpc.v1.cri"]\n[grpc]\naddress = ${JSON.stringify(paths.containerdSocket)}\n`, dockerdConfig: '{}\n', clientConfig: '{}\n', moduleBlocker: 'Explicit module loading is disabled in this private daemon session.\n' };
+    if (trialResolver) state.configs.resolverConfig = TRIAL_RESOLVER_CONFIG;
     for (const [key, text] of Object.entries(state.configs)) fs.writeFileSync(paths[key], text, { flag: 'wx', mode: 0o600 });
+    if (trialResolver) state.resolverSourceInode = fs.lstatSync(paths.resolverConfig).ino;
     const namespace = 'lg' + suffix;
     state.commands = {
       containerd: [tools.containerd.path, '--config', paths.containerdConfig],
@@ -279,7 +345,8 @@ export function createPrivateDockerBackend({ binding, runnerTemp, pin, toolchain
         '--containerd', paths.containerdSocket, '--containerd-namespace', namespace, '--containerd-plugins-namespace', namespace + 'p',
         '--data-root', paths.dataRoot, '--exec-root', paths.execRoot, '--pidfile', paths.pidfile,
         '--cgroup-parent', '/' + cgroup.split('/').at(-1) + '/containers', '--exec-opt', 'native.cgroupdriver=cgroupfs',
-        '--default-cgroupns-mode', 'private', '--userland-proxy=true', '--iptables=true', '--ip6tables=true'],
+        '--default-cgroupns-mode', 'private', '--userland-proxy=true', '--iptables=true', '--ip6tables=true',
+        ...(trialResolver ? ['--bip', '172.30.36.1/24'] : [])],
     };
     state.phase = 'prepared'; sessionIdentity(state); return cap;
   } catch (error) {
@@ -314,6 +381,7 @@ export async function startPrivateDockerBackend(cap) {
     }
     state.ns.run(state.pin, '/usr/sbin/ip', ['link', 'set', 'dev', 'lo', 'up']);
     const output = state.ns.run(state.pin, state.tools.python.path, ['-I', '-c', LAUNCH, JSON.stringify({
+      resolver: state.trialResolver ? { source: state.paths.resolverConfig, sha256: TRIAL_RESOLVER_SHA256 } : null,
       daemonCgroup: state.paths.cgroup + '/daemons', moduleBlocker: state.paths.moduleBlocker, apparmorEnabled: state.baselineAppArmor.enabled, dbusAddress: 'unix:path=' + state.paths.directory + '/disabled-dbus.sock', containerd: state.commands.containerd, dockerd: state.commands.dockerd,
       containerdLog: state.paths.directory + '/containerd.log', dockerdLog: state.paths.directory + '/dockerd.log', containerdSocket: state.paths.containerdSocket,
     })]);
@@ -348,12 +416,12 @@ export function inspectPrivateDockerBackend(cap) {
     info.CgroupDriver === 'cgroupfs' && info.CgroupVersion === '2' && info.ServerVersion === state.tools.dockerd.version,
   'PRIVATE_DAEMON_INFO_MISMATCH');
   if (state.daemonId) need(info.ID === state.daemonId, 'PRIVATE_DAEMON_ID_CHANGED');
-  state.daemonId = info.ID; daemonIdentity(state);
+  state.daemonId = info.ID; const resolver = resolverObservation(state); daemonIdentity(state);
   return { schema_version: 1, status: 'PRIVATE_DAEMONS_OBSERVED', binding: clone(state.binding),
     dockerHost: 'unix://' + state.paths.dockerSocket, daemonId: info.ID, namespaceInode: state.namespaceInode,
     mountNamespaceInode: state.processes.dockerd.mountNamespaceInode, cgroup: state.paths.cgroup,
     bridge: 'normal', kernelModuleInventorySha256: hash(JSON.stringify(state.baselineModules)), apparmor: clone(state.baselineAppArmor),
-    replay_authorized: false, runtime_validated: false };
+    ...resolver, replay_authorized: false, runtime_validated: false };
   } catch (error) { state.phase = 'observation-failed'; throw error; }
 }
 
@@ -406,12 +474,18 @@ export async function cleanupPrivateDockerBackend(cap) {
       /^populated 0$/m.test(state.fs.readFileSync(state.paths.cgroup + '/cgroup.events', 'utf8')), 'OWNED_CGROUP_REMAINS_POPULATED');
     noOwnedMounts(state); cgroupIdentity(state); removeCgroupTree(state, state.paths.cgroup); state.cgroupRemoved = true;
     privateDir(state.fs, state.paths.directory, state.directoryInode); state.fs.rmSync(state.paths.directory, { recursive: true, force: false });
+    if (state.trialResolver) {
+      let absent = false;
+      try { state.fs.lstatSync(state.paths.resolverConfig); } catch (error) { if (error.code === 'ENOENT') absent = true; else throw error; }
+      need(absent, 'PRIVATE_RESOLVER_SOURCE_REMAINS');
+    }
     state.resourcesRemoved = true;
     need(toolsTrusted && !graceUnproven, 'CLEANED_WITH_UNPROVEN_GRACE_OR_TOOLCHAIN');
     need(JSON.stringify(modules(state.fs)) === JSON.stringify(state.baselineModules), 'KERNEL_MODULE_INVENTORY_CHANGED');
     need(JSON.stringify(apparmor(state.fs)) === JSON.stringify(state.baselineAppArmor), 'APPARMOR_STATE_CHANGED');
     state.phase = 'closed'; state.busy = false;
-    return { status: 'PRIVATE_DAEMONS_CLEANED', replay_authorized: false, binding: clone(state.binding), runtime_validated: false };
+    return { status: 'PRIVATE_DAEMONS_CLEANED', replay_authorized: false, binding: clone(state.binding), runtime_validated: false,
+      ...(state.trialResolver ? { trialResolver: TRIAL_RESOLVER_MODE, resolverConfigSha256: TRIAL_RESOLVER_SHA256, resolverSourceRemoved: true } : {}) };
   } catch {
     state.cleanupUncertain = true; state.busy = false; state.phase = 'cleanup-failed';
     const error = new Error('PRIVATE_DAEMON_CLEANUP_UNPROVEN'); error.code = 'PRIVATE_DAEMON_CLEANUP_UNPROVEN';

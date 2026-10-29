@@ -1,5 +1,6 @@
 // Composition of the real infrastructure primitives. No Supabase/SQL/app entry.
 import assert from 'node:assert/strict';
+import { dirname } from 'node:path';
 import { validateBinding } from './ephemeral-bootstrap-contract.mjs';
 import { createOuterNetworkSession, outerNetworkPin, inspectOuterNetworkSession, cleanupOuterNetworkSession } from './outer-network-session.mjs';
 import { createPrivateDockerBackend, startPrivateDockerBackend, inspectPrivateDockerBackend, cleanupPrivateDockerBackend } from './private-docker-backend.mjs';
@@ -31,15 +32,16 @@ function observations(state) {
 }
 
 /** No historical SQL, registry access, containers or application commands. */
-export async function prepareIsolatedDockerSession({ binding, runnerTemp, toolchain }, options = {}) {
+export async function prepareIsolatedDockerSession({ binding, runnerTemp, toolchain, trialResolver }, options = {}) {
   const context = validateBinding(binding), { io, fixture } = ports(options);
   const outer = await io.createOuterNetworkSession({ binding: context });
   try {
     const observed = io.inspectOuterNetworkSession(outer);
     assert.deepEqual(observed.binding, context); need(observed.status === 'BOUNDARY_READY', 'OUTER_NOT_READY');
-    const backend = io.createPrivateDockerBackend({ binding: context, runnerTemp, pin: io.outerNetworkPin(outer), toolchain });
+    const backend = io.createPrivateDockerBackend({ binding: context, runnerTemp, pin: io.outerNetworkPin(outer), toolchain,
+      ...(trialResolver === undefined ? {} : { trialResolver }) });
     const cap = Object.freeze({ kind: 'ISOLATED_DOCKER_SESSION', sql_authorized: false });
-    sessions.set(cap, { binding: context, io, fixture, outer, backend, phase: 'prepared' }); return cap;
+    sessions.set(cap, { binding: context, io, fixture, outer, backend, toolchain: structuredClone(toolchain), phase: 'prepared' }); return cap;
   } catch (cause) {
     // Failed private preparation must itself report rollback uncertainty. Closing
     // the inert anchor never certifies that directories/cgroups were removed.
@@ -64,6 +66,21 @@ export function inspectIsolatedDockerSession(cap) {
   const state = stateFor(cap, ['started']);
   try { return observations(state); }
   catch { state.phase = 'start-failed'; need(false, 'ISOLATED_DOCKER_OBSERVATION_FAILED'); }
+}
+
+// Trusted, in-process trial consumer only. JSON cannot recreate this FD capability.
+export function privateDockerTrialContext(cap) {
+  const state = stateFor(cap, ['started']), receipt = observations(state), docker = receipt.docker;
+  need(docker.trialResolver === 'private-docker-trial-v2' &&
+    docker.resolverConfigSha256 === '3040f26161cf270f957c7ddc73dd5d18a25cbfe03cbd63cbef355c0d891942ec' &&
+    docker.resolverControl?.contentVerified === true && docker.resolverControl.readOnly === true &&
+    docker.resolverControl.mountNamespaceInode === docker.mountNamespaceInode && docker.resolverControl.target === '/etc/resolv.conf',
+  'TRIAL_RESOLVER_NOT_OBSERVED');
+  need(typeof state.toolchain?.docker?.path === 'string' && docker.dockerHost.startsWith('unix:///'), 'TRIAL_CLIENT_NOT_OBSERVED');
+  const directory = dirname(docker.dockerHost.slice('unix://'.length));
+  return { pin: state.io.outerNetworkPin(state.outer), dockerHost: docker.dockerHost, dockerPath: state.toolchain.docker.path,
+    clientDirectory: directory + '/client', dataRoot: directory + '/data',
+    resolver: { daemonAddress: '127.254.36.1', sandboxAddress: '198.18.0.1', configuredBeforeDaemon: true } };
 }
 
 export async function cleanupIsolatedDockerSession(cap) {

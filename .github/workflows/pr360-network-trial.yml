@@ -1,0 +1,84 @@
+name: PR360 isolated network trial
+
+# Manual v2 only. This workflow cannot authorize database or application replay.
+on:
+  workflow_dispatch:
+    inputs:
+      expected_sha:
+        description: Exact reviewed v2 workflow and checkout SHA
+        required: true
+        type: string
+      authorization:
+        description: Separately approved private Docker trial; no database or ERP
+        required: true
+        type: choice
+        options:
+          - private-docker-local-only-v2
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pr360-private-docker-trial-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  private-docker-trial:
+    name: Disposable private Docker infrastructure trial v2
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    env:
+      CI: 'true'
+      PR360_EXPECTED_SHA: ${{ inputs.expected_sha }}
+      PR360_TRIAL_AUTHORIZATION: ${{ inputs.authorization }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # observed in trial 1
+        timeout-minutes: 1
+        with:
+          ref: ${{ inputs.expected_sha }}
+          fetch-depth: 1
+          persist-credentials: false
+      - name: Bind manual event, checkout, authorization and fresh nonce
+        id: context
+        timeout-minutes: 1
+        run: node scripts/ci-pr360-private-docker-trial.mjs context
+      - name: Offline contracts only
+        timeout-minutes: 1
+        run: >-
+          node --test scripts/tests/outer-network-session.test.mjs
+          scripts/tests/private-docker-backend.test.mjs
+          scripts/tests/isolated-docker-session.test.mjs
+          scripts/tests/private-docker-trial-canaries.test.mjs
+          scripts/tests/private-docker-trial-probes.test.mjs
+          scripts/tests/private-docker-trial.test.mjs
+      - name: Approved infrastructure trial with live in-process cleanup ownership
+        id: trial
+        timeout-minutes: 8
+        env:
+          PR360_TRIAL_NONCE: ${{ steps.context.outputs.nonce }}
+        run: |
+          sudo /usr/bin/env -i \
+            PATH=/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin \
+            CI=true GITHUB_ACTIONS=true \
+            RUNNER_ENVIRONMENT="$RUNNER_ENVIRONMENT" RUNNER_OS="$RUNNER_OS" RUNNER_ARCH="$RUNNER_ARCH" \
+            GITHUB_REPOSITORY="$GITHUB_REPOSITORY" GITHUB_EVENT_NAME="$GITHUB_EVENT_NAME" \
+            GITHUB_SHA="$GITHUB_SHA" GITHUB_RUN_ID="$GITHUB_RUN_ID" GITHUB_RUN_ATTEMPT="$GITHUB_RUN_ATTEMPT" \
+            GITHUB_JOB="$GITHUB_JOB" GITHUB_WORKFLOW_REF="$GITHUB_WORKFLOW_REF" GITHUB_WORKSPACE="$GITHUB_WORKSPACE" \
+            PR360_EXPECTED_SHA="$PR360_EXPECTED_SHA" PR360_TRIAL_AUTHORIZATION="$PR360_TRIAL_AUTHORIZATION" \
+            PR360_TRIAL_NONCE="$PR360_TRIAL_NONCE" \
+            /usr/bin/node scripts/ci-pr360-private-docker-trial.mjs run
+      - name: Verify terminal measurements and owned cleanup; never resume JSON capabilities
+        if: always()
+        timeout-minutes: 1
+        env:
+          PR360_TRIAL_NONCE: ${{ steps.context.outputs.nonce }}
+        run: node scripts/ci-pr360-private-docker-trial.mjs verify
+      - name: Upload only safe infrastructure metadata
+        if: always()
+        timeout-minutes: 1
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # observed in trial 1
+        with:
+          name: pr360-private-docker-trial-v2-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ steps.context.outputs.report_dir }}/result.json
+          retention-days: 7
+          if-no-files-found: error

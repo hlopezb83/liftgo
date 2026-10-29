@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { prepareIsolatedDockerSession, startIsolatedDockerSession, inspectIsolatedDockerSession, cleanupIsolatedDockerSession } from '../lib/isolated-docker-session.mjs';
+import { prepareIsolatedDockerSession, startIsolatedDockerSession, inspectIsolatedDockerSession, cleanupIsolatedDockerSession, privateDockerTrialContext } from '../lib/isolated-docker-session.mjs';
 function fixture(profile = 'catalog') {
   const binding = { sha: 'a'.repeat(40), runId: '9', attempt: '1', job: 'supabase-replay', profile, nonce: '11111111-1111-4111-8111-111111111111' };
   const calls = [], outer = {}, backend = {}, pin = {}, data = { createFails: false, startFails: false, cleanupFails: false, outerCleanupFails: false, privatePending: null,
@@ -92,4 +92,30 @@ test('partial test drivers are rejected without falling back to default infrastr
   const f = fixture();
   await assert.rejects(prepareIsolatedDockerSession({ binding: f.binding }, { testDrivers: { createOuterNetworkSession: f.drivers.createOuterNetworkSession } }), /PAIR_ALL/);
   assert.equal(f.calls.length, 0);
+});
+test('trial context requires the resolver actually observed before the daemons', async () => {
+  const f = fixture(), cap = await f.prepare(); await startIsolatedDockerSession(cap);
+  assert.throws(() => privateDockerTrialContext(cap), /TRIAL_RESOLVER_NOT_OBSERVED/);
+  await cleanupIsolatedDockerSession(cap);
+});
+test('trial mode is forwarded narrowly and only the live same-session pin is exposed', async () => {
+  const f = fixture(), original = f.drivers.createPrivateDockerBackend;
+  f.drivers.createPrivateDockerBackend = value => { assert.equal(value.trialResolver, 'private-docker-trial-v2'); return original(value); };
+  const cap = await prepareIsolatedDockerSession({ binding: f.binding, runnerTemp: '/tmp/private', toolchain: { docker: { path: '/owned/docker' } }, trialResolver: 'private-docker-trial-v2' }, { testDrivers: f.drivers });
+  f.data.docker = { ...f.data.docker, dockerHost: 'unix:///tmp/private/docker-owned/docker.sock', mountNamespaceInode: 404,
+    trialResolver: 'private-docker-trial-v2', resolverConfigSha256: '3040f26161cf270f957c7ddc73dd5d18a25cbfe03cbd63cbef355c0d891942ec',
+    resolverControl: { target: '/etc/resolv.conf', contentVerified: true, readOnly: true, mountNamespaceInode: 404 } };
+  await startIsolatedDockerSession(cap);
+  const observed = privateDockerTrialContext(cap);
+  assert.equal(observed.dockerPath, '/owned/docker'); assert.equal(observed.dataRoot, '/tmp/private/docker-owned/data');
+  assert.equal(observed.clientDirectory, '/tmp/private/docker-owned/client'); assert.equal(observed.resolver.configuredBeforeDaemon, true);
+  await cleanupIsolatedDockerSession(cap);
+  assert.throws(() => privateDockerTrialContext(cap), /PHASE_INVALID/);
+});
+test('a resolver observation from another mount namespace cannot grant trial context', async () => {
+  const f = fixture(), cap = await f.prepare(); await startIsolatedDockerSession(cap);
+  Object.assign(f.data.docker, { trialResolver: 'private-docker-trial-v2', resolverConfigSha256: '3040f26161cf270f957c7ddc73dd5d18a25cbfe03cbd63cbef355c0d891942ec',
+    mountNamespaceInode: 404, resolverControl: { target: '/etc/resolv.conf', contentVerified: true, readOnly: true, mountNamespaceInode: 405 } });
+  assert.throws(() => privateDockerTrialContext(cap), /TRIAL_RESOLVER_NOT_OBSERVED/);
+  await cleanupIsolatedDockerSession(cap);
 });
