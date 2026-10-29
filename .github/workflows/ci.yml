@@ -119,18 +119,15 @@ jobs:
       # Build con destino DELIBERADAMENTE inexistente: smoke y móvil usan sólo
       # respuestas ficticias, nunca datos reales. Así el CI no necesita secretos.
       - name: Build
-        env:
-          SUPABASE_URL: http://127.0.0.1:54321
-          SENTRY_DSN: http://public@127.0.0.1:54321/1
-          VITE_SUPABASE_URL: http://127.0.0.1:54321
-          VITE_SUPABASE_PUBLISHABLE_KEY: smoke-placeholder-key
-          VITE_SUPABASE_PROJECT_ID: smoke-placeholder
-        run: bun run build
+        run: node scripts/browser-test-server.mjs --build-only
 
       - name: Preparar Chromium
         uses: ./.github/actions/setup-playwright
         with:
           save-cache: "true"
+
+      - name: Verificar aislamiento de navegador y Worker con destinos locales
+        run: node --test scripts/tests/browser-test-*.test.mjs
 
       - name: Smoke de arranque (build real)
         env:
