@@ -79,12 +79,16 @@ class GuardedBootstrapTests(unittest.TestCase):
     def row(off=True):
         return {"name": "cron.launch_active_jobs", "setting": "off" if off else "on",
                 "source": "configuration file" if off else "default",
-                "sourcefile": "/data/postgresql.auto.conf" if off else None,
-                "pending_restart": False, "context": "sighup", "data_directory": "/data"}
+                "sourcefile": ci.DB_DATA_DIRECTORY + "/postgresql.auto.conf" if off else None,
+                "pending_restart": False, "context": "sighup", "data_directory": ci.DB_DATA_DIRECTORY,
+                "postmaster_started_at": "2026-10-29T21:00:00"}
 
-    def run_guard(self, profile="rls", fail_at=None, row_change=None, reload_value="t", *, check_sources=False):
+    def run_guard(self, profile="rls", fail_at=None, row_change=None, reload_value="t", *, check_sources=False,
+                  identity_change=None, admin_fail=None, ownership_error=None, later_row_change=None, change_after_history=False):
         events = []
         state = {"off": False, "query": 0}
+        self.admin_operations = []
+        self.normal_sql = []
 
         def run(command, **kwargs):
             if command[:2] == ["supabase", "start"]:
@@ -95,6 +99,7 @@ class GuardedBootstrapTests(unittest.TestCase):
                 self.assertEqual(command, ["supabase", "start", "-x", ci.START_EXCLUDES[profile]])
                 self.assertTrue(self.backup.exists())
             elif command == ["supabase", "migration", "up", "--local"]:
+                self.assertEqual(self.admin_operations, ["identity", "cron-off", "reload", "verify"])
                 events.append("history")
                 self.assertEqual(self.config.read_bytes(), self.replay)
                 self.assertEqual(self.backup.read_bytes(), self.replay)
@@ -105,6 +110,7 @@ class GuardedBootstrapTests(unittest.TestCase):
             return subprocess.CompletedProcess(command, 0)
 
         def psql(sql):
+            self.normal_sql.append(sql)
             if sql == ci.EMPTY_BOOTSTRAP:
                 events.append("empty")
             elif sql == ci.CRON_QUERY:
@@ -117,24 +123,47 @@ class GuardedBootstrapTests(unittest.TestCase):
                 row = self.row(state["off"])
                 if row_change:
                     row.update(row_change)
+                if state["query"] > 1 and later_row_change and (not change_after_history or "history" in events):
+                    row.update(later_row_change(state["query"]) if callable(later_row_change) else later_row_change)
                 return [json.dumps(row)]
-            elif sql == "ALTER SYSTEM SET cron.launch_active_jobs = 'off'":
+            else:
+                self.fail("Unexpected SQL through the normal postgres connection")
+            if fail_at == events[-1]:
+                raise subprocess.CalledProcessError(1, ["psql"])
+            return []
+
+        def admin(container_id, operation):
+            self.assertEqual(container_id, "a" * 64)
+            self.assertNotIn("history", events)
+            self.admin_operations.append(operation)
+            if operation == admin_fail:
+                raise subprocess.TimeoutExpired(["docker", "exec"], 15)
+            if operation == "identity":
+                identity = {"current_user": "supabase_admin", "session_user": "supabase_admin", "rolsuper": True,
+                            "database": "postgres", "data_directory": ci.DB_DATA_DIRECTORY,
+                            "postmaster_started_at": self.row()["postmaster_started_at"]}
+                identity.update(identity_change or {})
+                return [json.dumps(identity)]
+            if operation == "cron-off":
                 events.append("alter")
                 state["off"] = True
-                self.assertNotIn("BEGIN", sql)
-            elif sql == "SELECT pg_reload_conf()":
+            elif operation == "reload":
                 events.append("reload")
                 if fail_at == "interrupt":
                     raise KeyboardInterrupt()
                 return [reload_value]
+            elif operation == "verify":
+                return [json.dumps(self.row())]
             else:
-                self.fail("Unexpected SQL in mock")
+                self.fail("Unexpected privileged operation")
             if fail_at == events[-1]:
                 raise subprocess.CalledProcessError(1, ["psql"])
             return []
 
         source_check = contextlib.nullcontext() if check_sources else mock.patch.object(ci, "check_http_sources")
-        with source_check, mock.patch.object(ci.subprocess, "run", side_effect=run), mock.patch.object(ci, "psql", side_effect=psql), mock.patch.object(ci.time, "sleep"):
+        with source_check, mock.patch.object(ci.subprocess, "run", side_effect=run), mock.patch.object(ci, "psql", side_effect=psql), \
+                mock.patch.object(ci, "owned_db_container", return_value="a" * 64, side_effect=ownership_error), \
+                mock.patch.object(ci, "admin_cron_command", side_effect=admin), mock.patch.object(ci.time, "sleep"):
             try:
                 ci.start_guarded(profile, self.config, self.backup)
             finally:
@@ -235,6 +264,101 @@ class GuardedBootstrapTests(unittest.TestCase):
                 self.assertEqual(events[-2:], ["history", "observation"])
                 self.assertEqual(self.config.read_bytes(), self.replay)
                 self.assertFalse(self.backup.exists())
+                self.assertEqual(self.admin_operations, ["identity", "cron-off", "reload", "verify"])
+                self.assertEqual(set(self.normal_sql), {ci.EMPTY_BOOTSTRAP, ci.CRON_QUERY})
+
+    def test_administrator_dispatch_has_only_fixed_operations_and_exact_argv(self):
+        self.assertEqual(set(ci.ADMIN_SQL), {"identity", "cron-off", "reload", "verify"})
+        for operation in ci.ADMIN_SQL:
+            with self.subTest(operation=operation), mock.patch.object(ci, "command_lines", return_value=[]) as lines:
+                ci.admin_cron_command("a" * 64, operation)
+                self.assertEqual(lines.call_args.args[0], [
+                    "docker", "exec", "a" * 64, "psql", "-h127.0.0.1", "-p5432", "-U", "supabase_admin",
+                    "-dpostgres", "-X", "-w", "-vON_ERROR_STOP=1", "-Atc", ci.ADMIN_SQL[operation],
+                ])
+                self.assertEqual(lines.call_args.kwargs, {"timeout": 15})
+        for container, operation in (("a" * 64, "SELECT 1"), ("a" * 64, "identity; DROP ROLE postgres"), ("--other", "identity")):
+            with self.subTest(container=container, operation=operation), mock.patch.object(ci, "command_lines") as lines, self.assertRaises(ValueError):
+                ci.admin_cron_command(container, operation)
+            lines.assert_not_called()
+        self.assertEqual(ci.ADMIN_SQL["cron-off"], "ALTER SYSTEM SET cron.launch_active_jobs = 'off'")
+        self.assertEqual(ci.ADMIN_SQL["reload"], "SELECT pg_reload_conf()")
+
+    def test_container_binding_requires_fresh_owned_running_image_and_loopback_port(self):
+        created = ci.datetime.fromisoformat("2026-10-29T00:00:00+00:00")
+        metadata = {"id": "a" * 64, "name": "/supabase_db_local", "image": ci.DB_IMAGE, "image_id": "sha256:" + "b" * 64,
+                    "project": "local", "compose_project": "local", "running": True, "created": created.isoformat(),
+                    "ports": [{"HostIp": "0.0.0.0", "HostPort": "54322"}]}
+        image = {"id": metadata["image_id"], "tags": [ci.DB_IMAGE], "os": "linux", "architecture": "amd64"}
+
+        def inspect(container=metadata, observed_image=image):
+            return mock.patch.object(ci, "command_lines", side_effect=[[json.dumps(container)], [json.dumps(observed_image)]])
+
+        with mock.patch.object(ci.time, "time", return_value=created.timestamp() + 1):
+            with inspect() as lines:
+                self.assertEqual(ci.owned_db_container("local", created.timestamp() - 1), "a" * 64)
+                self.assertEqual([call.args[0] for call in lines.call_args_list], [
+                    ["docker", "inspect", "--type", "container", "--format", ci.CONTAINER_VIEW, "supabase_db_local"],
+                    ["docker", "image", "inspect", "--format", ci.IMAGE_VIEW, metadata["image_id"]],
+                ])
+                self.assertTrue(all(call.kwargs == {"timeout": 15} for call in lines.call_args_list))
+                self.assertNotIn(".Config.Env", ci.CONTAINER_VIEW)
+            for change in ({"id": "short"}, {"name": "/supabase_db_other"}, {"project": "other"}, {"compose_project": "other"},
+                           {"running": False}, {"image": "postgres:17"}, {"image_id": "bad"}, {"created": "2000-01-01T00:00:00Z"},
+                           {"created": "not-a-date"}, {"created": None}, {"ports": None},
+                           {"ports": [{"HostIp": "127.0.0.1", "HostPort": "54323"}]},
+                           {"ports": [{"HostIp": "192.0.2.1", "HostPort": "54322"}]}):
+                with self.subTest(container=change), inspect({**metadata, **change}), self.assertRaises(ValueError):
+                    ci.owned_db_container("local", created.timestamp() - 1)
+            for change in ({"id": "sha256:" + "c" * 64}, {"tags": ["postgres:17"]}, {"os": "windows"}, {"architecture": "arm64"}):
+                with self.subTest(image=change), inspect(observed_image={**image, **change}), self.assertRaises(ValueError):
+                    ci.owned_db_container("local", created.timestamp() - 1)
+            for rows in ([], ["{}", "{}"], ["[]"]):
+                with self.subTest(rows=rows), mock.patch.object(ci, "command_lines", return_value=rows), self.assertRaises((ValueError, KeyError)):
+                    ci.owned_db_container("local", created.timestamp() - 1)
+
+    def test_wrong_administrator_identity_never_alters_or_runs_history(self):
+        for change in ({"current_user": "postgres"}, {"session_user": "postgres"}, {"rolsuper": False}, {"rolsuper": "true"},
+                       {"database": "other"}, {"data_directory": "/other"}, {"postmaster_started_at": "another-cluster"}):
+            with self.subTest(identity=change), self.assertRaises(ValueError):
+                self.run_guard(identity_change=change)
+            self.assertEqual(self.admin_operations, ["identity"])
+            self.assertNotIn("history", self.events)
+            self.assertEqual(self.config.read_bytes(), self.replay)
+            self.assertFalse(self.backup.exists())
+
+    def test_administrator_or_inspect_failure_never_falls_back_or_runs_history(self):
+        for operation in ci.ADMIN_SQL:
+            with self.subTest(operation=operation), self.assertRaises(subprocess.TimeoutExpired):
+                self.run_guard(admin_fail=operation)
+            self.assertNotIn("history", self.events)
+            self.assertEqual(set(self.normal_sql), {ci.EMPTY_BOOTSTRAP, ci.CRON_QUERY})
+            self.assertEqual(self.config.read_bytes(), self.replay)
+            self.assertFalse(self.backup.exists())
+        with self.assertRaises(subprocess.TimeoutExpired):
+            self.run_guard(ownership_error=subprocess.TimeoutExpired(["docker", "inspect"], 15))
+        self.assertEqual(self.admin_operations, [])
+        self.assertNotIn("history", self.events)
+        self.assertEqual(self.config.read_bytes(), self.replay)
+
+    def test_changed_normal_connection_identity_blocks_replay_or_fails_final_gate(self):
+        for change in ({"data_directory": "/other", "sourcefile": "/other/postgresql.auto.conf"},
+                       {"postmaster_started_at": "another-cluster"}):
+            with self.subTest(change=change), self.assertRaises(ValueError):
+                self.run_guard(later_row_change=change)
+            self.assertNotIn("history", self.events)
+            self.assertEqual(self.config.read_bytes(), self.replay)
+            self.assertFalse(self.backup.exists())
+        with self.assertRaises(ValueError):
+            self.run_guard(later_row_change=lambda query: {"postmaster_started_at": "transient-other-cluster"} if query == 2 else {})
+        self.assertEqual(self.normal_sql.count(ci.CRON_QUERY), 2)
+        self.assertNotIn("history", self.events)
+        self.assertEqual(self.config.read_bytes(), self.replay)
+        with self.assertRaises(ValueError):
+            self.run_guard(later_row_change={"postmaster_started_at": "another-cluster"}, change_after_history=True)
+        self.assertIn("history", self.events)
+        self.assertEqual(self.config.read_bytes(), self.replay)
+        self.assertFalse(self.backup.exists())
 
     def test_failure_never_applies_history_and_restores_config(self):
         for failure in ("start", "empty", "missing-guc", "alter", "interrupt"):
@@ -253,7 +377,7 @@ class GuardedBootstrapTests(unittest.TestCase):
     def test_unsupported_or_never_off_image_fails_closed(self):
         for change in ({"context": "postmaster"}, {"pending_restart": "false"},
                        {"setting": "on"}, {"source": "session"},
-                       {"pending_restart": True}, {"sourcefile": "/elsewhere.conf"}):
+                       {"pending_restart": True}, {"sourcefile": "/elsewhere.conf"}, {"sourcefile": None}):
             with self.subTest(change=change), self.assertRaises(ValueError):
                 self.run_guard(row_change=change)
             self.assertNotIn("history", self.events)

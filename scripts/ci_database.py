@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+from datetime import datetime
 import hashlib
 import json
 import os
@@ -18,6 +19,10 @@ import tomllib
 LOCAL_DB_URL = "postgresql://postgres:postgres@127.0.0.1:54322/postgres"
 CONFIG = Path("supabase/config.toml")
 BACKUP = Path("supabase/config.toml.ci-runtime-backup")
+DB_IMAGE = "public.ecr.aws/supabase/postgres:17.4.1.068"
+DB_DATA_DIRECTORY = "/var/lib/postgresql/data"
+CONTAINER_VIEW = '{"id":{{json .Id}},"name":{{json .Name}},"image":{{json .Config.Image}},"image_id":{{json .Image}},"project":{{json (index .Config.Labels "com.supabase.cli.project")}},"compose_project":{{json (index .Config.Labels "com.docker.compose.project")}},"running":{{json .State.Running}},"created":{{json .Created}},"ports":{{json (index .NetworkSettings.Ports "5432/tcp")}}}'
+IMAGE_VIEW = '{"id":{{json .Id}},"tags":{{json .RepoTags}},"os":{{json .Os}},"architecture":{{json .Architecture}}}'
 START_EXCLUDES = {
     "rls": "studio,imgproxy,logflare,vector,edge-runtime,realtime,storage-api,mailpit,postgres-meta,supavisor,kong,postgrest",
     "ab": "studio,imgproxy,logflare,vector,edge-runtime,realtime,mailpit,postgres-meta,supavisor",
@@ -43,8 +48,19 @@ PATCHED_HTTP_SOURCES = {
 }
 CRON_QUERY = """SELECT row_to_json(s) FROM (
  SELECT name,setting,source,sourcefile,pending_restart,context,
- current_setting('data_directory') AS data_directory
+ current_setting('data_directory') AS data_directory,
+ pg_postmaster_start_time() AT TIME ZONE 'UTC' AS postmaster_started_at
  FROM pg_settings WHERE name='cron.launch_active_jobs') s"""
+ADMIN_SQL = {
+    "identity": """SELECT row_to_json(s) FROM (
+ SELECT current_user AS current_user, session_user AS session_user,
+ (SELECT rolsuper FROM pg_roles WHERE rolname=current_user) AS rolsuper,
+ current_database() AS database, current_setting('data_directory') AS data_directory,
+ pg_postmaster_start_time() AT TIME ZONE 'UTC' AS postmaster_started_at) s""",
+    "cron-off": "ALTER SYSTEM SET cron.launch_active_jobs = 'off'",
+    "reload": "SELECT pg_reload_conf()",
+    "verify": CRON_QUERY,
+}
 EMPTY_BOOTSTRAP = """DO $guard$ DECLARE n bigint; BEGIN
  IF to_regclass('supabase_migrations.schema_migrations') IS NOT NULL THEN
    EXECUTE 'SELECT count(*) FROM supabase_migrations.schema_migrations' INTO n;
@@ -225,6 +241,47 @@ def psql(sql: str) -> list[str]:
     return command_lines(["psql", LOCAL_DB_URL, "-X", "-v", "ON_ERROR_STOP=1", "-Atc", sql], timeout=15)
 
 
+def json_object(rows: list[str]) -> dict:
+    if len(rows) != 1 or not isinstance(value := json.loads(rows[0]), dict):
+        raise ValueError("Expected one JSON identity object")
+    return value
+
+
+def owned_db_container(project_id: str, started_at: float) -> str:
+    if not isinstance(project_id, str) or not re.fullmatch(r"[A-Za-z0-9_-]+", project_id):
+        raise ValueError("Invalid local project identity")
+    name = "supabase_db_" + project_id
+    row = json_object(command_lines(["docker", "inspect", "--type", "container", "--format", CONTAINER_VIEW, name], timeout=15))
+    if not isinstance(row.get("created"), str):
+        raise ValueError("Missing database container creation time")
+    created = datetime.fromisoformat(row["created"].replace("Z", "+00:00"))
+    ports = row.get("ports")
+    if (not isinstance(row.get("id"), str) or not re.fullmatch(r"[a-f0-9]{64}", row["id"])
+            or row.get("name") != "/" + name or row.get("project") != project_id or row.get("compose_project") != project_id
+            or row.get("running") is not True or row.get("image") != DB_IMAGE
+            or not isinstance(row.get("image_id"), str) or not re.fullmatch(r"sha256:[a-f0-9]{64}", row["image_id"])
+            or created.tzinfo is None or not started_at <= created.timestamp() <= time.time()
+            or not isinstance(ports, list) or not any(
+                isinstance(port, dict) and port.get("HostIp") in ("127.0.0.1", "0.0.0.0") and port.get("HostPort") == "54322"
+                for port in ports)):
+        raise ValueError("Database container ownership, image, freshness or local port differs")
+    image = json_object(command_lines(["docker", "image", "inspect", "--format", IMAGE_VIEW, row["image_id"]], timeout=15))
+    if (image.get("id") != row["image_id"] or not isinstance(image.get("tags"), list) or DB_IMAGE not in image["tags"]
+            or image.get("os") != "linux" or image.get("architecture") != "amd64"):
+        raise ValueError("Database image identity differs")
+    return row["id"]
+
+
+def admin_cron_command(container_id: str, operation: str) -> list[str]:
+    """Only four fixed cron bootstrap operations; no privileged SQL argument."""
+    if not isinstance(container_id, str) or not re.fullmatch(r"[a-f0-9]{64}", container_id) or operation not in ADMIN_SQL:
+        raise ValueError("Unknown administrator cron operation or container ID")
+    return command_lines([
+        "docker", "exec", container_id, "psql", "-h127.0.0.1", "-p5432", "-U", "supabase_admin",
+        "-dpostgres", "-X", "-w", "-vON_ERROR_STOP=1", "-Atc", ADMIN_SQL[operation],
+    ], timeout=15)
+
+
 def cron_setting() -> dict:
     rows = psql(CRON_QUERY)
     if len(rows) != 1:
@@ -235,10 +292,12 @@ def cron_setting() -> dict:
     return row
 
 
-def assert_cron_off(row: dict) -> None:
+def assert_cron_off(row: dict, *, identity: dict | None = None) -> None:
     directory = row.get("data_directory")
     if row.get("setting") != "off" or row.get("source") != "configuration file" or row.get("pending_restart") is not False or row.get("context") != "sighup" or not isinstance(directory, str) or not directory.startswith("/") or any(part in ("", ".", "..") for part in directory.split("/")[1:]) or row.get("sourcefile") != directory + "/postgresql.auto.conf":
         raise ValueError("cron.launch_active_jobs is not effectively OFF from ALTER SYSTEM")
+    if identity is not None and any(row.get(key) != identity[key] for key in ("data_directory", "postmaster_started_at")):
+        raise ValueError("Cron verification changed database identity")
 
 
 def publish_backup(temporary: Path, path: Path) -> None:
@@ -287,16 +346,28 @@ def start_guarded(profile: str, config: Path = CONFIG, backup: Path = BACKUP) ->
     write_atomic(backup, replay, exclusive=True)
     try:
         write_atomic(config, temporary)
+        started_at = time.time()
         subprocess.run(["supabase", "start", "-x", START_EXCLUDES[profile]], check=True, timeout=840)
         psql(EMPTY_BOOTSTRAP)
-        cron_setting()  # Reject missing/unsupported GUC before writing a custom setting.
-        psql("ALTER SYSTEM SET cron.launch_active_jobs = 'off'")  # Separate command, never a transaction.
-        if psql("SELECT pg_reload_conf()") != ["t"]:
+        initial = cron_setting()  # Reject missing/unsupported GUC before the administrator operation.
+        container_id = owned_db_container(tomllib.loads(replay.decode("utf-8"))["project_id"], started_at)
+        identity = json_object(admin_cron_command(container_id, "identity"))
+        if (identity.get("current_user") != "supabase_admin" or identity.get("session_user") != "supabase_admin"
+                or identity.get("rolsuper") is not True or identity.get("database") != "postgres"
+                or identity.get("data_directory") != DB_DATA_DIRECTORY or identity.get("data_directory") != initial.get("data_directory")
+                or not isinstance(initial.get("postmaster_started_at"), str) or not initial["postmaster_started_at"]
+                or identity.get("postmaster_started_at") != initial["postmaster_started_at"]):
+            raise ValueError("Existing administrator identity does not match the local bootstrap database")
+        admin_cron_command(container_id, "cron-off")  # Separate command, never a transaction.
+        if admin_cron_command(container_id, "reload") != ["t"]:
             raise ValueError("PostgreSQL rejected configuration reload")
         consecutive = 0
         for _ in range(30):
+            observed = cron_setting()  # Each invocation is a new postgres connection.
+            if any(observed.get(key) != identity[key] for key in ("data_directory", "postmaster_started_at")):
+                raise ValueError("Cron verification changed database identity")
             try:
-                assert_cron_off(cron_setting())  # Each psql invocation is a new connection.
+                assert_cron_off(observed)
                 consecutive += 1
                 if consecutive == 2:
                     break
@@ -305,11 +376,13 @@ def start_guarded(profile: str, config: Path = CONFIG, backup: Path = BACKUP) ->
             time.sleep(0.2)
         else:
             raise ValueError("Scheduler OFF was not observed after reload")
+        observed = json_object(admin_cron_command(container_id, "verify"))
+        assert_cron_off(observed, identity=identity)
         restore_config(config, backup, keep_backup=True)
         if config.read_bytes() != replay:
             raise ValueError("Replay config restoration differs")
         subprocess.run(["supabase", "migration", "up", "--local"], check=True, timeout=840)
-        assert_cron_off(cron_setting())
+        assert_cron_off(cron_setting(), identity=identity)
     finally:
         restore_config(config, backup)
 
