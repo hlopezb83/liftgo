@@ -4,7 +4,8 @@ name: Multi-tenant A/B gate
 #
 # Levanta un Supabase local del runner (Postgres + gotrue + kong + postgrest +
 # storage-api), aplica el MISMO carril de migraciones que RLS DB tests (parche
-# legado local + start sobre volumen vacío sin seed + Drizzle en el orden oficial), siembra dos
+# legado local + bootstrap sin historial ni seed + cron OFF + migration up +
+# Drizzle en el orden oficial), siembra dos
 # organizaciones ficticias y ejecuta la suite Playwright del gate:
 # aislamiento de datos por API, Storage por API real y portal en navegador.
 #
@@ -147,6 +148,9 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
+      - name: Probar guard de base antes de arrancar la BD
+        run: python3 -m unittest discover -s scripts/tests -p test_ci_database.py
+
       - name: Setup Supabase CLI
         uses: supabase/setup-cli@45a513f8c64c0bc8e0e3dfe572b5c95be85f6359 # v3.0.1
         with:
@@ -157,6 +161,9 @@ jobs:
 
       # Mismo parche local que RLS DB tests: migraciones históricas escritas
       # contra producción que desde cero fallarían con 42P01.
+      - name: Verificar historial canonico antes de parches locales
+        run: python3 scripts/ci_database.py preflight
+
       - name: Parchar migraciones fuera de orden (solo en el runner)
         run: python3 scripts/patch_legacy_migrations.py
 
@@ -169,8 +176,10 @@ jobs:
         timeout-minutes: 15
         run: |
           set -euxo pipefail
-          supabase start \
-            -x studio,imgproxy,logflare,vector,edge-runtime,realtime,mailpit,postgres-meta,supavisor
+          trap 'cron_bootstrap_status=$?; trap - EXIT; python3 scripts/ci_database.py restore-config || cron_bootstrap_status=1; exit "$cron_bootstrap_status"' EXIT
+          trap 'exit 130' INT
+          trap 'exit 143' TERM
+          python3 scripts/ci_database.py start-guarded --profile ab
           supabase status
 
       - name: Verificar schema auth disponible
@@ -202,6 +211,7 @@ jobs:
           set -euo pipefail
           bunx drizzle-kit migrate --config=drizzle.ci.config.ts
           bun scripts/ci-drizzle-replay.mjs verify
+          python3 scripts/ci_database.py check-cron-off
 
       - name: Diagnóstico PostgreSQL de Drizzle (sólo rollback en fallo)
         if: failure() && steps.drizzle.outcome == 'failure'
@@ -303,4 +313,8 @@ jobs:
         if: always()
         run: |
           rm -f .dev.vars
+          set +e
+          python3 scripts/ci_database.py restore-config
+          RESTORE_CONFIG_STATUS=$?
           supabase stop --no-backup || true
+          exit "$RESTORE_CONFIG_STATUS"
