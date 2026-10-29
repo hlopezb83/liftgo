@@ -122,6 +122,12 @@ on:
       - "package.json"
       - ".github/workflows/multi-tenant-ab.yml"
   workflow_dispatch:
+    inputs:
+      run_supabase:
+        description: "Descargar y arrancar Supabase efímero para este gate"
+        type: boolean
+        required: false
+        default: false
 
 permissions:
   contents: read
@@ -135,8 +141,9 @@ jobs:
     name: Gate A/B multiempresa (Supabase local efímero)
     runs-on: ubuntu-24.04
     timeout-minutes: 35
-    # Mismo criterio que rls-db-tests: los PRs desde forks no corren jobs con Docker.
-    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+    # PR/push y manual sin opt-in quedan skipped; no acreditan pruebas DB.
+    # La descarga y el arranque requieren la opción manual explícita.
+    if: github.event_name == 'workflow_dispatch' && inputs.run_supabase == true
 
     env:
       DB_URL: postgresql://postgres:postgres@127.0.0.1:54322/postgres

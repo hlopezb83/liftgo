@@ -60,6 +60,12 @@ on:
       - "scripts/check-drizzle-journal.ts"
       - ".github/workflows/rls-db-tests.yml"
   workflow_dispatch:
+    inputs:
+      run_supabase:
+        description: "Descargar y arrancar Supabase efímero para este gate"
+        type: boolean
+        required: false
+        default: false
 
 permissions:
   contents: read
@@ -73,10 +79,9 @@ jobs:
     name: RLS DB tests (Supabase local)
     runs-on: ubuntu-24.04
     timeout-minutes: 25
-    # Mismo criterio que los jobs e2e/edge-functions de ci.yml: los PRs desde
-    # forks no tienen acceso al entorno con secrets, y este job depende del
-    # runner con Docker del repo. "Skipped" cuenta como success en el gate.
-    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+    # PR/push y manual sin opt-in quedan skipped; no acreditan pruebas DB.
+    # La descarga y el arranque requieren la opción manual explícita.
+    if: github.event_name == 'workflow_dispatch' && inputs.run_supabase == true
     permissions:
       contents: read
       checks: write
