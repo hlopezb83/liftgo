@@ -33,6 +33,14 @@ HTTP_SOURCES = {
     "20260723204610_1fe64056-80bf-40c9-abdc-d48e3f5ed5c3.sql": "bf4d8fcb8b74c18b13b95e299023b442ac9ba6f74c6874caa91bbd8e423b78bf",
     "20260831203519_bb578f8c-da6a-431a-ae66-437908ec41e5.sql": "8dab41eae21b5099fa54ad1a9fe49df74664d21541100e22e875396d7454d30d",
 }
+# Exact UTF-8/LF output of the pinned legacy patcher, not an alternative source
+# allowlist. It wraps four internal_get_cron_secret and two upsert_billing_secret
+# GRANT/REVOKE statements; all four stored HTTP command literals stay unchanged.
+PATCHED_HTTP_SOURCES = {
+    **HTTP_SOURCES,
+    "20260721021751_ee302549-17c5-4ba0-a3f6-2fd8205864d7.sql": "ebf3f6c961a03dcb0d6b73999520bfe782f7fa5d67aa63ed90c48bcee67e21bb",
+    "20260723204610_1fe64056-80bf-40c9-abdc-d48e3f5ed5c3.sql": "3ee6f108313244fbda13b33637e81b71d34b291683f115b1625f042442ee0a9c",
+}
 CRON_QUERY = """SELECT row_to_json(s) FROM (
  SELECT name,setting,source,sourcefile,pending_restart,context,
  current_setting('data_directory') AS data_directory
@@ -117,15 +125,16 @@ def command_lines(command: list[str], *, env: dict[str, str] | None = None, time
     return [line.strip() for line in result.stdout.splitlines() if line.strip()]
 
 
-def check_http_sources(root: Path = Path(".")) -> None:
+def check_http_sources(root: Path = Path("."), *, after_patching: bool = False) -> None:
     """Bounded source check, not a general SQL parser. Full pins are mandatory."""
+    expected = PATCHED_HTTP_SOURCES if after_patching else HTTP_SOURCES
     found = set()
     for directory in SOURCE_TREES:
         for path in (root / directory).glob("*.sql"):
             data = path.read_bytes()
             sql = data.decode("utf-8")
             if path.name in HTTP_SOURCES and directory == "supabase/migrations":
-                if hashlib.sha256(data).hexdigest() != HTTP_SOURCES[path.name]:
+                if hashlib.sha256(data).hexdigest() != expected[path.name]:
                     raise ValueError("Reviewed scheduled HTTP source changed: " + path.name)
                 # Only this reviewed inner literal is data for cron, not executable DO code.
                 spans = re.findall(r"v_command\s*:=\s*format\(\s*\$cmd\$(SELECT net\.http_post\(.*?\);)\$cmd\$", sql, re.S)
@@ -272,7 +281,7 @@ def restore_config(config: Path = CONFIG, backup: Path = BACKUP, *, keep_backup:
 def start_guarded(profile: str, config: Path = CONFIG, backup: Path = BACKUP) -> None:
     if profile not in START_EXCLUDES or config.is_symlink() or backup.exists() or backup.is_symlink():
         raise ValueError("Invalid bootstrap profile or stale config backup")
-    check_http_sources()
+    check_http_sources(after_patching=True)
     replay = config.read_bytes()
     temporary = bootstrap_config(replay)
     write_atomic(backup, replay, exclusive=True)

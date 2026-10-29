@@ -2,8 +2,11 @@
 
 from importlib.util import module_from_spec, spec_from_file_location
 from pathlib import Path
+import contextlib
+import io
 import json
 import subprocess
+import sys
 import tempfile
 import unittest
 from unittest import mock
@@ -79,7 +82,7 @@ class GuardedBootstrapTests(unittest.TestCase):
                 "sourcefile": "/data/postgresql.auto.conf" if off else None,
                 "pending_restart": False, "context": "sighup", "data_directory": "/data"}
 
-    def run_guard(self, profile="rls", fail_at=None, row_change=None, reload_value="t"):
+    def run_guard(self, profile="rls", fail_at=None, row_change=None, reload_value="t", *, check_sources=False):
         events = []
         state = {"off": False, "query": 0}
 
@@ -130,12 +133,98 @@ class GuardedBootstrapTests(unittest.TestCase):
                 raise subprocess.CalledProcessError(1, ["psql"])
             return []
 
-        with mock.patch.object(ci, "check_http_sources"), mock.patch.object(ci.subprocess, "run", side_effect=run), mock.patch.object(ci, "psql", side_effect=psql), mock.patch.object(ci.time, "sleep"):
+        source_check = contextlib.nullcontext() if check_sources else mock.patch.object(ci, "check_http_sources")
+        with source_check, mock.patch.object(ci.subprocess, "run", side_effect=run), mock.patch.object(ci, "psql", side_effect=psql), mock.patch.object(ci.time, "sleep"):
             try:
                 ci.start_guarded(profile, self.config, self.backup)
             finally:
                 self.events = events
         return events
+
+    @contextlib.contextmanager
+    def runner_pipeline(self):
+        """Real Git/source/patcher pipeline; only Docker, Supabase and SQL mocked."""
+        root = Path(__file__).parents[2]
+        fixture = Path(self.directory.name) / "checkout"
+        git_dir = subprocess.check_output(["git", "-C", str(root), "rev-parse", "--path-format=absolute", "--git-common-dir"], text=True).strip()
+        revision = subprocess.check_output(["git", "-C", str(root), "rev-parse", "HEAD"], text=True).strip()
+        # Temporary repository reads the existing local objects directly. This
+        # also works with shallow checkouts, without clone's upload-pack shell.
+        subprocess.run(["git", "init", "--quiet", str(fixture)], check=True, capture_output=True)
+        (fixture / ".git/objects/info/alternates").write_text(
+            (Path(git_dir) / "objects").as_posix() + "\n", encoding="utf-8", newline="\n")
+        update = subprocess.run(["git", "-C", str(fixture), "update-ref", "--no-deref", "HEAD", revision], capture_output=True)
+        self.assertEqual(update.returncode, 0, update.stderr.decode("utf-8", errors="replace"))
+        subprocess.run(["git", "-C", str(fixture), "-c", "core.autocrlf=false", "restore", "--source=HEAD", "--worktree", "--",
+                        *ci.SOURCE_TREES, "scripts/patch_legacy_migrations.py", "supabase/config.toml"],
+                       check=True, capture_output=True)
+        with contextlib.chdir(fixture):
+            ci.preflight_sources()  # Real canonical trees, file bytes and patcher pin.
+            originals = {name: (Path("supabase/migrations") / name).read_bytes() for name in ci.HTTP_SOURCES}
+            legacy_spec = spec_from_file_location("legacy_pipeline", Path("scripts/patch_legacy_migrations.py"))
+            legacy = module_from_spec(legacy_spec)
+            legacy_spec.loader.exec_module(legacy)
+            read_text, write_text = Path.read_text, Path.write_text
+            # Match the Ubuntu runner's UTF-8/LF filesystem I/O on Windows too;
+            # the actual pinned patcher main and all transformations run unchanged.
+            with mock.patch.object(sys, "argv", ["patch_legacy_migrations.py"]), contextlib.redirect_stdout(io.StringIO()), \
+                    mock.patch.object(Path, "read_text", lambda path: read_text(path, encoding="utf-8")), \
+                    mock.patch.object(Path, "write_text", lambda path, text: write_text(path, text, encoding="utf-8", newline="\n")):
+                self.assertEqual(legacy.main(), 0)
+            for name, before in originals.items():
+                after = (Path("supabase/migrations") / name).read_bytes()
+                self.assertEqual(ci.re.findall(rb"\$cmd\$(.*?)\$cmd\$", before, ci.re.S),
+                                 ci.re.findall(rb"\$cmd\$(.*?)\$cmd\$", after, ci.re.S))
+            with self.assertRaises(ValueError):
+                ci.check_http_sources()  # The canonical phase never accepts runner bytes.
+            ci.check_http_sources(after_patching=True)
+            env = {"GITHUB_ACTIONS": "true", "DB_URL": ci.LOCAL_DB_URL}
+            with mock.patch.dict(ci.os.environ, env), mock.patch.object(sys, "argv", ["ci_database.py", "prepare"]), \
+                    mock.patch.object(ci, "command_lines", return_value=[]) as docker, contextlib.redirect_stdout(io.StringIO()):
+                self.assertEqual(ci.main(), 0)
+                self.assertEqual([call.args[0] for call in docker.call_args_list], [
+                    ["docker", "volume", "ls", "--format", "{{.Name}}"],
+                    ["docker", "ps", "-a", "--format", "{{.Names}}"],
+                ])
+            self.config = Path("supabase/config.toml").resolve()
+            self.backup = Path("supabase/config.toml.ci-runtime-backup").resolve()
+            self.replay = self.config.read_bytes()
+            yield fixture
+
+    def test_real_runner_pipeline_accepts_only_exact_patcher_output(self):
+        with self.runner_pipeline():
+            for profile in ("rls", "ab"):
+                with self.subTest(profile=profile):
+                    events = self.run_guard(profile, check_sources=True)
+                    self.assertEqual(events[:5], ["start", "empty", "observation", "alter", "reload"])
+                    self.assertEqual(events[-2:], ["history", "observation"])
+                    self.assertEqual(self.config.read_bytes(), self.replay)
+                    self.assertFalse(self.backup.exists())
+
+    def test_real_runner_pipeline_rejects_unexpected_changes_before_start(self):
+        with self.runner_pipeline():
+            for name in ci.HTTP_SOURCES:
+                path = Path("supabase/migrations") / name
+                runner = path.read_bytes()
+                canonical = (Path(__file__).parents[2] / path).read_bytes()
+                mutations = [runner + b"\n-- unexpected runner edit\n"]
+                if runner != canonical:
+                    mutations.append(canonical)  # Wrong phase is not an alternative hash.
+                for data in mutations:
+                    path.write_bytes(data)
+                    with self.subTest(file=name, canonical=data == canonical), self.assertRaises(ValueError):
+                        self.run_guard(check_sources=True)
+                    self.assertEqual(self.events, [])
+                    self.assertFalse(self.backup.exists())
+                path.write_bytes(runner)
+            unknown = Path("drizzle/migrations/9999_unknown.sql")
+            for sql in ("SELECT net.http_get('x');", "ALTER SYSTEM SET cron.launch_active_jobs='on';"):
+                unknown.write_text(sql, encoding="utf-8")
+                with self.subTest(sql=sql), self.assertRaises(ValueError):
+                    self.run_guard(check_sources=True)
+                self.assertEqual(self.events, [])
+                self.assertFalse(self.backup.exists())
+            unknown.unlink()
 
     def test_successful_order_and_exact_recovery_with_both_profiles(self):
         for profile in ("rls", "ab"):
