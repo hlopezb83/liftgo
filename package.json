@@ -36,7 +36,7 @@
     "knip": "knip",
     "knip:deep": "knip --files --dependencies --exports --include-entry-exports",
     "format": "prettier --write .",
-    "test:dependencies": "node --test scripts/tests/dependency-security.test.mjs scripts/tests/happy-dom-security.test.mjs"
+    "test:dependencies": "node --test scripts/tests/dependency-security.test.mjs scripts/tests/happy-dom-security.test.mjs scripts/tests/supabase-sdk-contracts.test.mjs"
   },
   "overrides": {
     "zod-validation-error": "^4.0.2",
@@ -81,7 +81,7 @@
     "@react-pdf/renderer": "^4.6.1",
     "@sentry/cloudflare": "11.7.0",
     "@sentry/react": "11.7.0",
-    "@supabase/supabase-js": "^2.117.2",
+    "@supabase/supabase-js": "2.118.0",
     "@tailwindcss/vite": "^4.2.1",
     "@tanstack/query-sync-storage-persister": "^5.104.3",
     "@tanstack/react-query": "^5.104.3",
