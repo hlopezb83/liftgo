@@ -1,0 +1,91 @@
+name: PR360 isolated network trial
+
+# Deliberately no PR/push/workflow_call trigger. This cannot approve ERP replay.
+on:
+  workflow_dispatch:
+    inputs:
+      expected_sha:
+        description: Exact reviewed commit SHA for this infrastructure-only trial
+        required: true
+        type: string
+      authorization:
+        description: Approved disposable-runner local network trial; no ERP SQL
+        required: true
+        type: choice
+        options:
+          - local-network-only-v1
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pr360-network-trial-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  trial:
+    name: Disposable local network and Docker DNS trial
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    env:
+      CI: 'true'
+      PR360_EXPECTED_SHA: ${{ inputs.expected_sha }}
+      PR360_TRIAL_AUTHORIZATION: ${{ inputs.authorization }}
+    steps:
+      - uses: actions/checkout@v7
+        timeout-minutes: 1
+        with:
+          ref: ${{ inputs.expected_sha }}
+          fetch-depth: 1
+          persist-credentials: false
+      - name: Require the reviewed workflow and checkout SHA
+        id: context
+        timeout-minutes: 1
+        run: |
+          python3 -B - <<'PY'
+          import os,re,subprocess,uuid
+          expected=os.environ['PR360_EXPECTED_SHA']
+          assert re.fullmatch('[0-9a-f]{40}',expected)
+          assert os.environ['GITHUB_SHA']==expected
+          assert subprocess.check_output(['git','rev-parse','HEAD'],text=True).strip()==expected
+          assert os.environ['GITHUB_EVENT_NAME']=='workflow_dispatch'
+          assert os.environ['GITHUB_REPOSITORY']=='hlopezb83/liftgo'
+          assert os.environ['RUNNER_ENVIRONMENT']=='github-hosted'
+          assert os.environ['PR360_TRIAL_AUTHORIZATION']=='local-network-only-v1'
+          with open(os.environ['GITHUB_OUTPUT'],'a') as output:
+              output.write('nonce='+str(uuid.uuid4())+'\n')
+          PY
+      - name: Offline trial contracts (no security operations)
+        timeout-minutes: 1
+        run: python3 -B -m unittest discover -s scripts/tests -p test_pr360_network_trial.py -v
+      - name: Execute only the approved local infrastructure trial
+        id: trial
+        timeout-minutes: 7
+        env:
+          PR360_TRIAL_NONCE: ${{ steps.context.outputs.nonce }}
+        run: |
+          sudo --preserve-env=CI,GITHUB_ACTIONS,RUNNER_ENVIRONMENT,RUNNER_OS,RUNNER_ARCH,GITHUB_REPOSITORY,GITHUB_SHA,GITHUB_RUN_ID,GITHUB_RUN_ATTEMPT,GITHUB_JOB,GITHUB_EVENT_NAME,GITHUB_WORKSPACE,RUNNER_TEMP,PR360_EXPECTED_SHA,PR360_TRIAL_AUTHORIZATION,PR360_TRIAL_NONCE \
+            /usr/bin/python3 -B scripts/tests/pr360-network-trial.py run
+      - name: Verify or finish owned cleanup
+        if: always()
+        timeout-minutes: 2
+        env:
+          PR360_TRIAL_NONCE: ${{ steps.context.outputs.nonce }}
+        run: |
+          sudo --preserve-env=CI,GITHUB_ACTIONS,RUNNER_ENVIRONMENT,RUNNER_OS,RUNNER_ARCH,GITHUB_REPOSITORY,GITHUB_SHA,GITHUB_RUN_ID,GITHUB_RUN_ATTEMPT,GITHUB_JOB,GITHUB_EVENT_NAME,GITHUB_WORKSPACE,RUNNER_TEMP,PR360_EXPECTED_SHA,PR360_TRIAL_AUTHORIZATION,PR360_TRIAL_NONCE \
+            /usr/bin/python3 -B scripts/tests/pr360-network-trial.py cleanup
+      - name: Verify terminal infrastructure-only evidence
+        if: always()
+        timeout-minutes: 1
+        env:
+          PR360_TRIAL_NONCE: ${{ steps.context.outputs.nonce }}
+        run: python3 -B scripts/tests/pr360-network-trial.py verify
+      - name: Upload safe trial and cleanup metadata
+        if: always()
+        timeout-minutes: 1
+        uses: actions/upload-artifact@v7
+        with:
+          name: pr360-network-trial-${{ github.run_id }}-${{ github.run_attempt }}
+          path: reports/pr360-network-trial.json
+          retention-days: 7
+          if-no-files-found: error
