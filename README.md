@@ -18,12 +18,21 @@ Consulta las versiones y scripts exactos en `package.json`.
 
 ## Requisitos y comandos
 
-Se requiere Node.js 24 o posterior y Bun.
+Se requieren Node.js **24.22.1** y Bun **1.4.4**. Los pines están en
+`.node-version`, `.nvmrc`, `.bun-version` y `package.json`; CI usa esas mismas
+versiones. Instala los runtimes oficiales o selecciónalos con tu gestor local
+de versiones y comprueba `node --version` y `bun --version` antes de instalar.
 
 ```bash
-bun install
+bun install --frozen-lockfile
 bun run dev
 ```
+
+La raíz usa exclusivamente `bun.lock`: no ejecutar `npm install` ni generar
+`package-lock.json`. Para cambiar dependencias, actualiza intencionalmente el
+manifiesto y el lock con Bun 1.4.4 y revisa el diff; las instalaciones normales
+y CI deben conservar el hash del lock. `@types/node` se fija en 24.19.2,
+compatible con Node 24, los peers de Vite/Vitest y TypeScript 6.0.3.
 
 Comprobaciones habituales:
 

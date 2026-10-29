@@ -68,6 +68,9 @@ jobs:
             dependencies:
               - 'package.json'
               - 'bun.lock'
+              - '.node-version'
+              - '.nvmrc'
+              - '.bun-version'
               - 'scripts/tests/dependency-security.test.mjs'
               - '.github/actions/setup-bun-project/**'
               - '.github/workflows/ci.yml'
@@ -301,14 +304,14 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 10
     needs: changes
-    if: needs.changes.outputs.functions == 'true'
+    if: needs.changes.outputs.functions == 'true' || github.event_name == 'workflow_dispatch'
     steps:
       - uses: actions/checkout@v7
 
       - name: Setup Deno
         uses: denoland/setup-deno@22d081ff2d3a40755e97629de92e3bcbfa7cf2ed # v2.0.5 (Node 24)
         with:
-          deno-version: v2.x
+          deno-version: v2.9.7
 
       - name: Cache de dependencias Deno
         uses: actions/cache@v6
