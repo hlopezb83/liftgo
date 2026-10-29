@@ -18,9 +18,6 @@ export default defineConfig({
       isMobile: true,
       hasTouch: true,
       deviceScaleFactor: 1,
-      launchOptions: process.env.SMOKE_CHROMIUM_PATH
-        ? { executablePath: process.env.SMOKE_CHROMIUM_PATH }
-        : {},
     },
   })),
 });
