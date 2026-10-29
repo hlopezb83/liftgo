@@ -25,6 +25,10 @@
   ],
 
   "ignoreDependencies": [
+    // Pin de seguridad transitivo de TanStack; probado por test:dependencies.
+    // Retirar cuando sus padres exijan Seroval corregido (docs/security/).
+    "seroval",
+    "seroval-plugins",
     // drizzle-kit carga el ORM en tiempo de ejecución para `migrate` (CI RLS/A-B).
     "drizzle-orm",
     "lovable-tagger",

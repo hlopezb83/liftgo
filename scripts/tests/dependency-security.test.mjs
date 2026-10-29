@@ -75,7 +75,7 @@ test("all nine security families resolve patched copies through their consumers"
     [createRequire(path.join(root, "node_modules/@tanstack/devtools-bundler-core/package.json")),
       "launch-editor", "2.14.2"],
     [typographyRequire, "postcss-selector-parser", "7.1.6"],
-    [consumerRequire("solid-js"), "seroval", "1.6.3"],
+    [consumerRequire("solid-js"), "seroval", "1.6.11"],
     [consumerRequire("miniflare"), "sharp", "0.35.5"],
     [consumerRequire("launch-editor"), "shell-quote", "1.11.0"],
     [createRequire(path.join(root, "node_modules/knip/package.json")), "smol-toml", "1.9.0"],
@@ -84,6 +84,24 @@ test("all nine security families resolve patched copies through their consumers"
   for (const [consumer, dependency, minimum] of copies) {
     assertPatchedVersion(dependencyManifest(consumer, dependency).pkg.version, minimum, dependency);
   }
+});
+
+test("Zod rejects oversized collections before processing attacker-controlled elements", () => {
+  const { z } = require("zod");
+  let visits = 0;
+  const element = z.preprocess((value) => { visits++; return value; }, z.string());
+  for (const [schema, input] of [
+    [z.array(element).max(2), [1, 2, 3]],
+    [z.set(element).max(2), new Set([1, 2, 3])],
+    [z.map(element, element).max(2), new Map([[1, 1], [2, 2], [3, 3]])],
+  ]) {
+    const result = schema.safeParse(input);
+    assert.equal(result.success, false);
+    assert.deepEqual(result.error.issues.map((issue) => issue.code), ["too_big"]);
+    assert.equal(visits, 0);
+  }
+  assert.deepEqual(z.array(element).max(2).parse(["one", "two"]), ["one", "two"]);
+  assert.equal(visits, 2);
 });
 
 test("typography preserves trailing pseudo-element handling with parser 7", () => {
@@ -242,4 +260,92 @@ test("legacy-compatible lock retains registry integrity and has no Git or tarbal
       assert.ok(official || existingMirror, name);
     }
   }
+});
+
+test("TanStack production consumers resolve patched Seroval while Solid keeps its supported family", () => {
+  const { satisfies } = require("semver");
+  const consumers = [
+    "@tanstack/router-core", "@tanstack/start-client-core",
+    "@tanstack/start-server-core", "@tanstack/start-plugin-core",
+  ];
+  for (const parent of consumers) {
+    // Start cores export their entry only under the ESM import condition.
+    // Resolve that real entry, then resolve dependencies from its location.
+    const parentEntry = fileURLToPath(import.meta.resolve(parent));
+    const parentRequire = createRequire(parentEntry);
+    const parentManifest = JSON.parse(readFileSync(path.join(root, "node_modules", parent, "package.json"), "utf8"));
+    const installed = dependencyManifest(parentRequire, "seroval").pkg.version;
+    assertPatchedVersion(installed, "1.7.2", `${parent}/seroval`);
+    assert.ok(satisfies(installed, parentManifest.dependencies.seroval),
+      `${parent}: retain the declared Seroval contract`);
+    if (parentManifest.dependencies["seroval-plugins"]) {
+      const plugins = dependencyManifest(parentRequire, "seroval-plugins").pkg;
+      assertPatchedVersion(plugins.version, "1.7.2", `${parent}/seroval-plugins`);
+      assert.ok(satisfies(plugins.version, parentManifest.dependencies["seroval-plugins"]),
+        `${parent}: retain the declared plugin contract`);
+      assert.ok(satisfies(installed, plugins.peerDependencies.seroval));
+    }
+  }
+  const solid = dependencyManifest(require, "solid-js");
+  const solidRequire = consumerRequire("solid-js");
+  const solidSeroval = dependencyManifest(solidRequire, "seroval").pkg.version;
+  const solidPlugins = dependencyManifest(solidRequire, "seroval-plugins").pkg.version;
+  assert.ok(satisfies(solidSeroval, solid.pkg.dependencies.seroval));
+  assert.ok(satisfies(solidPlugins, solid.pkg.dependencies["seroval-plugins"]));
+  assert.ok(satisfies(solidSeroval, "~1.6.8"), "Do not override Solid with Seroval 1.7");
+  assertPatchedVersion(solidSeroval, "1.6.11", "Solid devtools/seroval");
+  assertPatchedVersion(solidPlugins, "1.6.12", "Solid devtools/seroval-plugins");
+  assert.notEqual(dependencyManifest(solidRequire, "seroval").entry,
+    dependencyManifest(consumerRequire("@tanstack/router-core"), "seroval").entry);
+});
+
+test("TanStack's production Seroval preserves trusted values and shared references", () => {
+  const { toJSON, fromJSON } = consumerRequire("@tanstack/router-core")("seroval");
+  const shared = { amount: 42n };
+  const source = {
+    first: shared, second: shared,
+    date: new Date("2026-10-28T00:00:00.000Z"),
+    pattern: /^invoice-\d+$/iu,
+    map: new Map([["line", shared]]),
+    set: new Set(["MXN", "USD"]),
+  };
+  const result = fromJSON(toJSON(source));
+  assert.deepEqual(result, source);
+  assert.equal(result.first, result.second);
+  assert.equal(result.map.get("line"), result.first);
+  assert.equal(result.pattern.test("INVOICE-42"), true);
+});
+
+test("production Seroval cannot crash Node with an ignored rejected promise", { timeout: 10000 }, () => {
+  // GHSA-3pfx-gxff-vg76 / upstream commit 737afa1. An isolated process with
+  // strict rejection handling proves the fix without masking errors through a
+  // global rejection handler. No network, credentials or application DB is used.
+  const entry = dependencyManifest(consumerRequire("@tanstack/router-core"), "seroval").entry;
+  const script = `
+    import assert from "node:assert/strict";
+    import { createRequire } from "node:module";
+    import { setTimeout as settle } from "node:timers/promises";
+    const load = createRequire(${JSON.stringify(entry)});
+    const api = load(${JSON.stringify(entry)});
+    for (const [encode, decode] of [
+      [api.toJSONAsync, api.fromJSON], [api.toCrossJSONAsync, api.fromCrossJSON]
+    ]) {
+      const ignored = await encode({ unused: Promise.reject(new Error("unused rejection")) }, { refs: new Map() });
+      decode(ignored, { refs: new Map() });
+      await settle(25);
+      const observed = await encode({ awaited: Promise.reject(new Error("observed rejection")) }, { refs: new Map() });
+      const decoded = decode(observed, { refs: new Map() });
+      await assert.rejects(decoded.awaited, /observed rejection/);
+    }
+    await settle(25);
+    process.stdout.write("survived-seroval-rejections\\n");
+  `;
+  const result = spawnSync(process.execPath,
+    ["--unhandled-rejections=strict", "--input-type=module", "-e", script], {
+      encoding: "utf8", timeout: 7000, windowsHide: true,
+      env: { SystemRoot: process.env.SystemRoot, TEMP: process.env.TEMP, TMP: process.env.TMP },
+    });
+  assert.equal(result.error, undefined, result.error?.message);
+  assert.equal(result.status, 0, result.stderr);
+  assert.match(result.stdout, /survived-seroval-rejections/);
 });
