@@ -102,7 +102,9 @@ jobs:
         run: node --test scripts/tests/eslint-guardrails.test.mjs
 
       - name: Contratos de guardrails (AST, blobs y alcance de tipos)
-        run: node --test scripts/tests/feature-imports.test.mjs scripts/tests/vitest-blob-provenance.test.mjs scripts/tests/browser-typecheck.test.mjs
+        run: |
+          node --test scripts/tests/feature-imports.test.mjs scripts/tests/vitest-blob-provenance.test.mjs scripts/tests/browser-typecheck.test.mjs
+          node --test scripts/tests/lint-migrations.test.mjs
 
       - name: ESLint
         run: bun run lint --max-warnings=0
