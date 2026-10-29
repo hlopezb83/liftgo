@@ -1,9 +1,11 @@
 import { useEffect, useEffectEvent, useRef, useState } from "react";
 import { useHotkeys } from "react-hotkeys-hook";
-import { SearchIcon } from "@/components/icons";
+import { CloseIcon, SearchIcon } from "@/components/icons";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useDebouncedValue } from "@/hooks/useDebouncedValue";
+import { cn } from "@/lib/utils";
 
 
 interface SearchBarProps {
@@ -69,9 +71,18 @@ export function SearchBar({
     { enabled: captureCtrlK, enableOnFormTags: true },
   );
 
+  const handleClear = () => {
+    setLocal("");
+    inputRef.current?.focus();
+  };
+
+  const prClass = captureCtrlK
+    ? local ? "pr-24" : "pr-16"
+    : local ? "pr-9" : "pr-3";
+
   return (
     <div className={`relative flex-1 ${className}`}>
-      <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+      <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
       <Input
         ref={inputRef}
         type="search"
@@ -79,9 +90,25 @@ export function SearchBar({
         aria-label={ariaLabel ?? placeholder}
         value={local}
         onChange={(e) => setLocal(e.target.value)}
-        className={captureCtrlK ? "pl-9 pr-16" : "pl-9"}
+        className={cn("pl-9", prClass)}
         data-testid={testId}
       />
+      {local ? (
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon"
+          onClick={handleClear}
+          className={cn(
+            "absolute top-1/2 -translate-y-1/2 h-6 w-6 text-muted-foreground hover:text-foreground rounded-full",
+            captureCtrlK ? "right-14" : "right-1.5",
+          )}
+          aria-label="Limpiar búsqueda"
+          title="Limpiar búsqueda"
+        >
+          <CloseIcon className="h-3.5 w-3.5" />
+        </Button>
+      ) : null}
       {captureCtrlK && (
         <Badge
           variant="secondary"

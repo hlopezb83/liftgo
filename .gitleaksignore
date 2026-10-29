@@ -4,3 +4,6 @@ be74f4b2865e431e3632efb4ef61c017874d0985:tests/e2e/fixtures/seed.ts:jwt:22
 8e5a49937a4bd6393d96e961d776c0d31d369697:.env:jwt:2
 # UUID de auth.users en migración de limpieza — no es una API key.
 515c288f6bf1f63c72375fbb3a60c0db303c4411:supabase/migrations/20260718065420_51b1d80a-c8ac-4599-90d6-bd332b10228d.sql:generic-api-key:2
+# Sec-WebSocket-Key fijas de handshake sintético local; no son credenciales.
+c419b846d075474512b77be9425178e3ece1d0e2:scripts/tests/browser-test-proxy.test.mjs:generic-api-key:143
+c419b846d075474512b77be9425178e3ece1d0e2:scripts/tests/browser-test-chromium.test.mjs:generic-api-key:43
