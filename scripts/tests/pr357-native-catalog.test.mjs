@@ -4,7 +4,7 @@ import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
 import { test } from "node:test";
-import { assertScenarioResult, cleanupNativeCatalog, launcherSettings, NATIVE_SCENARIOS, updatedCleanupReport, validateOwnedState } from "./pr357-native-catalog.mjs";
+import { assertScenarioResult, cleanupNativeCatalog, launcherSettings, nativeEvidenceBinding, NATIVE_SCENARIOS, updatedCleanupReport, validateOwnedState } from "./pr357-native-catalog.mjs";
 
 // These tests verify launcher contracts only. The launcher itself must run on
 // installed PostgreSQL 17 before any real catalog/replay result can be claimed.
@@ -13,6 +13,14 @@ test("native launcher requires opt in and refuses existing connection settings",
   for (const key of ["DB_URL", "DATABASE_URL", "PGHOST", "PGPORT", "PGUSER", "PGPASSWORD", "PGDATA", "PGSERVICE", "PR357_NATIVE_DB_URL"]) {
     assert.throws(() => launcherSettings({ RUN_PR357_NATIVE_CATALOG: "1", [key]: "not-a-real-connection" }), /Existing database connection/);
   }
+});
+
+test("native CI invocation refuses unbound hosted metadata and emits versioned nonce binding", () => {
+  assert.throws(()=>launcherSettings({RUN_PR357_NATIVE_CATALOG:"1",GITHUB_ACTIONS:"true"}),/exact hosted checkout/);
+  const settings={sourceHead:"a".repeat(40),run:{id:"101",attempt:"2",job:"native-catalog"}};
+  const nonce=randomUUID();
+  assert.deepEqual(nativeEvidenceBinding(settings,nonce),{schema_version:2,producer:"pr357-native-catalog",checkout_sha:settings.sourceHead,
+    run_id:"101",run_attempt:"2",job:"native-catalog",nonce});
 });
 
 test("native cleanup is idempotent when no cluster state was created", () => {
@@ -62,7 +70,7 @@ test("fixture plan covers all three RLS contracts and non-RLS, inherited and SET
   assert.equal(names.size, NATIVE_SCENARIOS.length);
   for (const name of ["baseline", "counters_rls_disabled", "object_ledger_rls_disabled", "reference_ledger_rls_disabled",
     "counter_policy_added", "object_ledger_policy_added", "reference_ledger_policy_added", "public_table_grant", "public_column_grant",
-    "inherited_table_grant", "set_role_inherited_owner", "set_role_inherited_acl", "service_without_bypass", "product_non_rls_privilege"]) {
+    "inherited_table_grant", "set_role_inherited_owner", "set_role_inherited_acl", "service_without_bypass", "product_non_rls_privilege", "inherited_relation_exposure"]) {
     assert(names.has(name), name);
   }
 });

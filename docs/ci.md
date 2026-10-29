@@ -91,7 +91,7 @@ bloquean la integración. Los avisos informativos de pruebas aprobadas se conser
 | `tests` (matriz 1/6 … 6/6) | siempre | Suite completa de Vitest, repartida en seis shards |
 | `tests-merge` | siempre | Une los blobs y aplica los **umbrales de cobertura** |
 | `deno-functions` | si cambió `supabase/functions/**`, o manual | `deno fmt`, `deno lint` y tests unitarios **sin red** |
-| `supabase-lint` | si cambiaron migraciones | GRANT / RLS / POLICY / `search_path` en las migraciones del diff |
+| `supabase-lint` | migraciones, auditor o guard; también manual | Linter original, contratos acotados y replay fresco obligatorio con catálogo, negativos y cleanup |
 | `dependency-review` | solo PR | CVEs altos y licencias no permitidas |
 | `actionlint` | push y PR si cambió `.github/**`, o manual | YAML de workflows |
 
@@ -123,6 +123,73 @@ Knip **no corre en CI**: no puede fallar por una regresión funcional y su
 señal (archivos, dependencias, exports y tipos sin uso) se revisa en local con
 `bun run knip`. La configuración y sus excepciones se explican en
 [architecture-guardrails.md](./architecture-guardrails.md#revisión-de-código-sin-uso-con-knip).
+
+### Validación compuesta de los tres contratos administrativos
+
+CI conserva `scripts/lint-migrations.ts` y sus diagnósticos originales. La
+inspección acotada de `ci-pr357-static-contracts.mjs` comprueba los contratos
+de `organization_document_counters`, `storage_object_migrations` y
+`storage_reference_migrations`; nunca produce un PASS autónomo. Los nombres
+vinculan propiedades, archivo de creación y tipo de contrato, no una excepción.
+
+Counters exige revocación explícita de PUBLIC/anon/authenticated desde 0016,
+SELECT/INSERT/UPDATE para service_role, RLS acumulada mediante 0031, cero
+políticas y FORCE deshabilitado. Los ledgers exigen RLS, revocaciones de
+anon/authenticated y una sola política PUBLIC/FOR ALL/USING(false)/CHECK(false).
+Grants inesperados, RLS deshabilitada, cambios de políticas u otros
+incumplimientos directos bloquean aunque un catálogo final parezca cerrado.
+La ausencia de un GRANT a producto no demuestra por sí sola ausencia de ACL
+PUBLIC o heredadas; esas propiedades se comprueban sobre PostgreSQL real.
+
+Sólo los tres diagnósticos uniformes por archivo pueden quedar pendientes del
+replay cuando coinciden exactamente con la creación y las propiedades
+comprobadas. Cualquier otro diagnóstico, fallo o salida no reconocida del
+linter bloquea. Se guardan stdout, stderr y código de salida originales. Las
+reglas del resto de tablas, SECURITY DEFINER y políticas amplias se conservan.
+DO, funciones invocadas y SQL que el análisis acotado no interprete requieren
+el replay; no se intenta construir un intérprete universal ni certificar RPC.
+La selección conserva el alcance previo: dispatch analiza los 123 Drizzle;
+PR/push añaden los Supabase modificados. El replay sí aplica todo el carril
+Supabase canónico. No se afirma que dispatch analice cada cláusula por archivo
+del historial Supabase completo ni que el catálogo final pruebe todos los
+estados intermedios de SQL opaco.
+
+`pr357-catalog-validation.yml` es reutilizable desde CI. Las PR apiladas también
+activan CI; ya no se limita su evento pull_request a main. Una detección de
+cambios fallida no puede omitir silenciosamente el gate. El workflow mantiene
+su ejecución manual con `expected_sha` exacto y evita un segundo replay
+automático independiente del mismo cambio.
+
+El gate final exige éxito terminal de contratos, Gitleaks, controles nativos y
+replay Supabase. Descarga artefactos por los IDs de esos productores en el run
+actual; compara sus digests con outputs de los jobs y vuelve a calcular las
+propiedades. No acepta rutas o IDs de evidencia histórica como entradas.
+Se exigen el mismo SHA/run/intento, nonces de ownership, orden temporal,
+fuentes y código limpios del checkout, journal/manifiesto/ledger exactos y
+las transformaciones existentes del runner. Los hashes aquí acreditan
+integridad de las fuentes y del transporte; no exceptúan diagnósticos SQL.
+
+Antes del arranque, `verify-baseline` exige recursos ausentes y configuración
+canónica, con la única transformación existente que deshabilita seed.
+PostgreSQL 17 y su volumen deben ser nuevos y propiedad de esa invocación.
+Después del replay se comprueban ACL de tabla/columna, privilegios efectivos
+incluidos herencia y SET ROLE, bypass, RLS, políticas y ausencia de relaciones
+de herencia/partición de los tres objetos. El JSON incompleto o con tipos
+incorrectos se rechaza. PUBLIC se identifica mediante OID 0.
+
+Los controles nativos ejecutan los catorce escenarios anteriores y uno nuevo
+de exposición mediante herencia, con un baseline restaurado después de cada
+uno. El gate reevalúa sus snapshots. Exige limpieza nativa y Supabase
+verificadas: un stop fallido, recursos restantes, evidencia omitida, un job
+cancelado/omitido o un resultado de otro SHA/run/intento impiden PASS.
+
+La confianza del protocolo incluye los jobs y outputs de GitHub y el código
+del workflow revisado. Un digest no certifica por sí solo que se ejecutó SQL.
+Un PASS corresponde al replay de ese SHA sobre ese baseline efímero; no
+certifica producción, cualquier catálogo previo ni seguridad de RPC. El run
+histórico de #359 fundamentó este diseño, pero no satisface el gate de un
+cambio posterior. Las pruebas unitarias con snapshots sintéticos sólo
+comprueban el protocolo y nunca se presentan como ejecución de PostgreSQL.
 
 ### Integridad de los guardrails y pruebas de navegador
 

@@ -4,12 +4,12 @@ import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
 import { randomUUID } from "node:crypto";
-import { auditTemporaryCatalog, evaluateCatalog, TARGET_TABLES } from "./pr357-catalog-audit.mjs";
+import { auditTemporaryCatalog, evaluateCatalog, TARGET_TABLES, validateCatalogSnapshot } from "./pr357-catalog-audit.mjs";
 
 // These are evaluator/guard unit tests, NOT PostgreSQL execution or a replay.
 function fixture() {
   const role = (name, extra = {}) => ({ name, superuser: false, bypass_rls: false,
-    create_role: false, replication: false, ...extra });
+    create_role: false, create_database: false, replication: false, inherit: true, login: false, ...extra });
   const effectivePrivileges = [];
   for (const table of TARGET_TABLES) {
     for (const name of ["anon", "authenticated", "service_role", "postgres"]) {
@@ -23,12 +23,13 @@ function fixture() {
   return {
     tables: TARGET_TABLES.map((name) => ({ name,kind:"r",owner:"postgres",rls_enabled:true,rls_forced:false })),
     roles: [role("anon"),role("authenticated"),role("service_role",{ bypass_rls:true }),role("postgres",{ superuser:true })],
-    policies: TARGET_TABLES.slice(1).map((table) => ({ table,command:"*",permissive:true,roles:["PUBLIC"],using_false:true,check_false:true })),
+    policies: TARGET_TABLES.slice(1).map((table) => ({ table,name:`deny_${table}`,command:"*",permissive:true,roles:["PUBLIC"],roles_public_only:true,
+      using_false:true,check_false:true,using_expression_hash:"0".repeat(32),check_expression_hash:"0".repeat(32) })),
     table_acl: [],column_acl: [],effective_privileges: effectivePrivileges,
     role_reachability: ["anon","authenticated","service_role","postgres"].flatMap((from_role) =>
       ["anon","authenticated","service_role","postgres"].map((reachable_role) => ({from_role,reachable_role,
         member:from_role===reachable_role,usage:from_role===reachable_role,set_role:from_role===reachable_role}))),
-    memberships: [],public_schema_acl: [],default_acl: [],
+    memberships: [],public_schema_acl: [],default_acl: [],inheritance: [],
     schema_privileges: ["anon","authenticated","service_role","postgres"].map((role)=>({role,usage:true,create:role==="postgres"})),
   };
 }
@@ -39,7 +40,32 @@ function fails(snapshot, code) {
 }
 
 test("catalog evaluator accepts only the documented table contract (mock snapshot)", () => {
+  assert.equal(validateCatalogSnapshot(fixture()).tables.length,3);
   assert.equal(evaluateCatalog(fixture()).status,"PASS");
+});
+test("catalog evidence rejects missing/coerced booleans, incomplete matrices and duplicate rows", () => {
+  for (const mutate of [
+    (s)=>{delete s.effective_privileges[0].allowed;},
+    (s)=>{s.effective_privileges[0].allowed="false";},
+    (s)=>{delete s.roles[0].superuser;},
+    (s)=>{delete s.roles[0].bypass_rls;},
+    (s)=>{delete s.roles[0].create_role;},
+    (s)=>{delete s.roles[0].replication;},
+    (s)=>{delete s.tables[0].rls_forced;},
+    (s)=>{delete s.policies[0].roles_public_only;},
+    (s)=>{s.effective_privileges.pop();},
+    (s)=>{s.role_reachability.pop();},
+    (s)=>{s.schema_privileges.pop();},
+    (s)=>{s.effective_privileges.push({...s.effective_privileges[0]});},
+    (s)=>{s.role_reachability.push({...s.role_reachability[0]});},
+    (s)=>{delete s.inheritance;},
+  ]) {const s=fixture();mutate(s);assert.throws(()=>validateCatalogSnapshot(s),/malformed/);}
+});
+test("inheritance edges and a quoted role named PUBLIC cannot mimic the closed contract", () => {
+  const s=fixture();s.inheritance.push({child_schema:"public",child_name:TARGET_TABLES[1],parent_schema:"public",parent_name:"exposed_parent",child_is_partition:false});
+  validateCatalogSnapshot(s);fails(s,"INHERITANCE_EDGE_PRESENT");
+  const quoted=fixture();quoted.policies[0].roles_public_only=false;
+  validateCatalogSnapshot(quoted);fails(quoted,"UNREVIEWED_LEDGER_POLICY");
 });
 test("missing roles/tables, disabled RLS, and unexpected counter policies fail", () => {
   let s=fixture();s.roles=s.roles.filter((r)=>r.name!=="anon");fails(s,"MISSING_ROLE");

@@ -3,8 +3,8 @@ import { test } from "node:test";
 import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
-import { assertPristine, buildSnapshotSql, cleanupSupabase, prepareSupabase, requireCiContext,
-  validateDockerIdentity, verifySnapshotIdentity, verifySupabaseVersions } from "./pr357-supabase-catalog.mjs";
+import { assertPristine, buildSnapshotSql, cleanupSupabase, expectedBaselineConfig, prepareSupabase, requireCiContext,
+  validateDockerIdentity, verifySnapshotIdentity, verifySupabaseBaseline, verifySupabaseVersions } from "./pr357-supabase-catalog.mjs";
 import { CATALOG_QUERIES } from "./pr357-catalog-audit.mjs";
 
 const SHA = "e748d828543427d2067334d64a8367d19798cb36";
@@ -23,7 +23,7 @@ function mockRunner() {
   const temporary = mkdtempSync(join(tmpdir(), "liftgo-pr357-supabase-contract-"));
   const root = join(temporary, "repo");
   const runnerTemp = join(temporary, "runner-temp");
-  for (const directory of ["supabase/migrations", "drizzle/migrations/meta", "scripts", "reports"]) mkdirSync(join(root, directory), { recursive: true });
+  for (const directory of ["supabase/migrations", "drizzle/migrations/meta", "scripts/tests", "reports"]) mkdirSync(join(root, directory), { recursive: true });
   mkdirSync(runnerTemp);
   writeFileSync(join(root, "supabase/config.toml"), 'project_id = "local_test"\n');
   writeFileSync(join(root, "supabase/migrations/20260101000000_test.sql"), "SELECT 1;\n");
@@ -31,9 +31,12 @@ function mockRunner() {
   writeFileSync(join(root, "drizzle/migrations/meta/_journal.json"), "{}\n");
   writeFileSync(join(root, "scripts/patch_legacy_migrations.py"), "# Contract fixture; subprocess is mocked.\n");
   writeFileSync(join(root, "scripts/ci-drizzle-replay.mjs"), "// Contract fixture.\n");
+  writeFileSync(join(root, "scripts/ci_database.py"), "# Contract fixture.\n");
+  writeFileSync(join(root, "scripts/tests/pr357-catalog-audit.mjs"), "// Contract fixture.\n");
+  writeFileSync(join(root, "scripts/tests/pr357-supabase-catalog.mjs"), "// Contract fixture.\n");
   const env = { CI: "true", GITHUB_ACTIONS: "true", RUNNER_ENVIRONMENT: "github-hosted",
     GITHUB_REPOSITORY: "hlopezb83/liftgo", GITHUB_RUN_ID: "123", GITHUB_RUN_ATTEMPT: "1",
-    PR357_EXPECTED_SHA: SHA, GITHUB_EVENT_NAME: "workflow_dispatch", GITHUB_WORKSPACE: root, RUNNER_TEMP: runnerTemp };
+    PR357_EXPECTED_SHA: SHA, GITHUB_EVENT_NAME: "workflow_dispatch", GITHUB_JOB: "supabase-replay", GITHUB_WORKSPACE: root, RUNNER_TEMP: runnerTemp };
   const calls = [];
   let volumes = "";
   let containers = "";
@@ -44,7 +47,7 @@ function mockRunner() {
     if (command === "git" && args[0] === "rev-parse") return `${SHA}\n`;
     if (command === "git" && args[0] === "diff") return "";
     if (command === "git" && args[0] === "ls-tree") return "supabase/migrations/20260101000000_test.sql\ndrizzle/migrations/0000_test.sql\n";
-    if (command === "python3") return "";
+    if (command === "python3") return args.includes("-c") ? `${options.input.trimEnd()}\n\n[db.seed]\nenabled = false\n` : "";
     if (command === "docker" && args[0] === "volume" && args[1] === "ls") return volumes;
     if (command === "docker" && args[0] === "ps") return args.includes("--filter") ? "" : containers;
     if (command === "docker" && args[0] === "network" && args[1] === "ls") return "";
@@ -85,6 +88,8 @@ test("Docker guard rejects changed identity, image, freshness, mount and reused 
     (f) => { f.container.Mounts[0].Type = "bind"; },
     (f) => { f.container.Mounts[0].RW = false; },
     (f) => { f.container.Mounts.push({ ...f.container.Mounts[0] }); },
+    (f) => { f.container.Mounts.push({ Type:"bind",Destination:"/var/lib/postgresql/data/nested",RW:true }); },
+    (f) => { f.container.Mounts.push({ Type:"volume",Destination:"/var/lib/postgresql",RW:false }); },
     (f) => { f.volume.Name = "other"; },
     (f) => { f.volume.CreatedAt = "2026-10-28T21:59:00Z"; },
   ];
@@ -142,7 +147,7 @@ test("CI context refuses missing/remote/unbound input before external commands",
   const fixture = mockRunner();
   try {
     for (const mutation of [{ RUNNER_ENVIRONMENT: "self-hosted" }, { GITHUB_REPOSITORY: "other/repo" },
-      { GITHUB_EVENT_NAME: "push" }, { PR357_EXPECTED_SHA: "bad" }, { GITHUB_RUN_ID: "../../bad" }]) {
+      { GITHUB_EVENT_NAME: "schedule" }, { PR357_EXPECTED_SHA: "bad" }, { GITHUB_RUN_ID: "../../bad" }, { GITHUB_JOB: "" }]) {
       assert.throws(() => requireCiContext({ root: fixture.root, env: { ...fixture.env, ...mutation }, run: fixture.run }));
     }
     for (const mutation of [{ DOCKER_HOST: "tcp://remote.example:2376" }, { DOCKER_CONTEXT: "other" },
@@ -163,10 +168,62 @@ test("prepare records exact source and predicted existing transformation in priv
     const marker = JSON.parse(readFileSync(join(f.runnerTemp, "liftgo-pr357-supabase-123-1/ownership.json"), "utf8"));
     assert.equal(marker.sha, SHA);
     assert.equal(marker.projectId, "local_test");
+    assert.equal(marker.job, "supabase-replay");
+    assert.equal(result.schema_version, 2);
+    assert.equal(result.nonce, marker.nonce);
     assert.deepEqual(marker.expectedPatchedSupabase, marker.supabaseSource);
     assert(f.calls.some((c) => c.command === "python3" && c.cwd.includes("predict-legacy-")));
     assert.throws(() => prepareSupabase({ root: f.root, env: f.env, run: f.run }));
   } finally { f.close(); }
+});
+
+test("pre-start baseline binds seed-disabled config, exact sources and this invocation", () => {
+  const f=mockRunner();
+  try {
+    prepareSupabase({root:f.root,env:f.env,run:f.run});
+    assert.throws(()=>verifySupabaseBaseline({root:f.root,env:f.env,run:f.run}),/seed-disabled/);
+    const config=join(f.root,"supabase/config.toml");
+    writeFileSync(config,readFileSync(config,"utf8").trimEnd()+"\n\n[db.seed]\nenabled = false\n");
+    const report=verifySupabaseBaseline({root:f.root,env:f.env,run:f.run});
+    assert.equal(report.status,"PASS");
+    assert.equal(report.baseline.config_seed_disabled,true);
+    assert.equal(report.schema_version,2);
+    assert.equal(report.job,"supabase-replay");
+    assert.throws(()=>verifySupabaseBaseline({root:f.root,env:{...f.env,GITHUB_RUN_ATTEMPT:"2"},run:f.run}));
+    f.setInventory("supabase_db_local_test\n","");
+    assert.throws(()=>verifySupabaseBaseline({root:f.root,env:f.env,run:f.run}),/pre-existing/);
+    f.setInventory("","");
+    writeFileSync(join(f.root,"drizzle/migrations/0000_test.sql"),"SELECT 2;\n");
+    assert.throws(()=>verifySupabaseBaseline({root:f.root,env:f.env,run:f.run}),/Replay sources differ/);
+  } finally {f.close();}
+});
+
+test("canonical config prediction uses the existing seed helper and rejects database overrides", () => {
+  const f=mockRunner();
+  try {
+    writeFileSync(join(f.root,"scripts/ci_database.py"),readFileSync(new URL("../ci_database.py",import.meta.url)));
+    const result=expectedBaselineConfig(f.root);
+    assert.match(result.sourceSha256,/^[0-9a-f]{64}$/);
+    assert.match(result.replaySha256,/^[0-9a-f]{64}$/);
+    assert.notEqual(result.sourceSha256,result.replaySha256);
+    for (const suffix of ["\n[db]\nport = 54323\n", "\n[db.seed]\nsql_paths = ['seed.sql']\n", "\n[storage]\nenabled = true\n"]) {
+      writeFileSync(join(f.root,"supabase/config.toml"),'project_id = "local_test"\n'+suffix);
+      assert.throws(()=>expectedBaselineConfig(f.root),/python3 failed/);
+    }
+  } finally {f.close();}
+});
+
+test("cleanup version2 is bound to the preparation nonce and current job", () => {
+  const f=mockRunner();
+  try {
+    const prepared=prepareSupabase({root:f.root,env:f.env,run:f.run});
+    const report=cleanupSupabase({root:f.root,env:f.env,run:f.run});
+    assert.equal(report.nonce,prepared.nonce);
+    assert.equal(report.schema_version,2);
+    assert.equal(report.prepared_at,prepared.prepared_at);
+    assert(report.verified_at>=report.prepared_at);
+    assert.throws(()=>cleanupSupabase({root:f.root,env:{...f.env,GITHUB_JOB:"other"},run:f.run}),/does not match/);
+  } finally {f.close();}
 });
 
 test("prepare rejects untracked migration SQL even when tracked git diff is clean", () => {

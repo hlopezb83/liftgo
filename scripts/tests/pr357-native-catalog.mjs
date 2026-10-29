@@ -24,7 +24,21 @@ function ownRegularFile(path) {
 function invocation(env) {
   const sourceHead = execFileSync("git", ["rev-parse", "--verify", "HEAD"], { cwd: ROOT, encoding: "utf8", env: CHILD_ENV }).trim();
   if (!/^[0-9a-f]{40}$/.test(sourceHead)) throw new Error("Source HEAD is not a full Git commit");
+  if (env.GITHUB_ACTIONS === "true") {
+    if (env.CI !== "true" || env.RUNNER_ENVIRONMENT !== "github-hosted"
+        || env.GITHUB_REPOSITORY !== "hlopezb83/liftgo" || env.PR357_EXPECTED_SHA !== sourceHead
+        || !/^\d+$/.test(env.GITHUB_RUN_ID ?? "") || !/^\d+$/.test(env.GITHUB_RUN_ATTEMPT ?? "")
+        || !["pull_request", "push", "workflow_dispatch"].includes(env.GITHUB_EVENT_NAME)
+        || !env.GITHUB_JOB || !env.GITHUB_WORKSPACE || realpathSync(env.GITHUB_WORKSPACE) !== realpathSync(ROOT)) {
+      throw new Error("Native CI evidence requires this exact hosted checkout, run and attempt");
+    }
+  }
   return { sourceHead, run: { id: env.GITHUB_RUN_ID ?? "local", attempt: env.GITHUB_RUN_ATTEMPT ?? "local", job: env.GITHUB_JOB ?? "local" } };
+}
+
+export function nativeEvidenceBinding(settings, nonce) {
+  return { schema_version: 2, producer: "pr357-native-catalog", checkout_sha: settings.sourceHead,
+    run_id: settings.run.id, run_attempt: settings.run.attempt, job: settings.run.job, nonce };
 }
 
 export function launcherSettings(env = process.env) {
@@ -163,6 +177,7 @@ export const NATIVE_SCENARIOS = Object.freeze([
   { name: "set_role_inherited_acl", mutation: "GRANT TRUNCATE ON public.storage_reference_migrations TO pr357_grant_parent; GRANT pr357_grant_parent TO pr357_bridge WITH INHERIT TRUE, SET FALSE; GRANT pr357_bridge TO authenticated WITH INHERIT FALSE, SET TRUE", expected: ["PRODUCT_PRIVILEGE_PRESENT"] },
   { name: "service_without_bypass", mutation: "ALTER ROLE service_role NOBYPASSRLS", expected: ["COUNTERS_SERVICE_BYPASS_MISSING"] },
   { name: "product_non_rls_privilege", mutation: "GRANT TRUNCATE ON public.storage_object_migrations TO authenticated", expected: ["PRODUCT_PRIVILEGE_PRESENT"] },
+  { name: "inherited_relation_exposure", mutation: "CREATE TABLE public.synthetic_exposed_parent (id integer, marker text); GRANT SELECT ON public.synthetic_exposed_parent TO authenticated; ALTER TABLE public.storage_object_migrations INHERIT public.synthetic_exposed_parent", expected: ["INHERITANCE_EDGE_PRESENT"] },
 ]);
 
 export function assertScenarioResult(scenario, result) {
@@ -194,7 +209,8 @@ export async function runNativeCatalog(env = process.env) {
     rmSync(directory, { recursive: true, force: true });
     throw error;
   }
-  const report = { status: "RUNNING", source_head: settings.sourceHead, postgresql_version: trusted.version,
+  const report = { ...nativeEvidenceBinding(settings, state.nonce), status: "RUNNING", source_head: settings.sourceHead,
+    started_at: Date.now(), postgresql_version: trusted.version,
     scope: "Real PostgreSQL 17 catalog queries against synthetic native fixtures; not a Supabase migration replay",
     scenarios: [], restored_baselines: [], cleanup: { status: "PENDING" } };
   let admin;
@@ -203,7 +219,7 @@ export async function runNativeCatalog(env = process.env) {
   const onSignal = (signal) => {
     report.status = "FAIL";
     report.interrupted_by = signal;
-    try { report.cleanup = cleanupNativeCatalog(settings, env); }
+    try { report.cleanup = { ...cleanupNativeCatalog(settings, env), nonce: state.nonce, verified_at: Date.now() }; }
     catch (error) { report.cleanup = { status: "FAIL", error: safeError(error) }; }
     writeJson(REPORT, report);
     process.exit(signal === "SIGINT" ? 130 : 143);
@@ -253,12 +269,13 @@ export async function runNativeCatalog(env = process.env) {
         return auditTemporaryCatalog(sql, auditOptions);
       });
       const detected = assertScenarioResult(scenario, result);
-      report.scenarios.push({ name: scenario.name, status: "PASS", expected_audit_status: scenario.expected.length ? "FAIL" : "PASS", actual_audit_status: result.status, detected_codes: detected, real_postgresql: true });
+      report.scenarios.push({ name: scenario.name, status: "PASS", expected_audit_status: scenario.expected.length ? "FAIL" : "PASS",
+        actual_audit_status: result.status, detected_codes: detected, real_postgresql: true, snapshot: result.snapshot });
       if (scenario.name === "baseline") report.baseline_snapshot = result.snapshot;
       // Check actual restored role state and fresh table state after every case.
       const restored = await withFreshDatabase((sql) => auditTemporaryCatalog(sql, auditOptions));
       assertScenarioResult(NATIVE_SCENARIOS[0], restored);
-      report.restored_baselines.push({ after: scenario.name, status: "PASS", real_postgresql: true });
+      report.restored_baselines.push({ after: scenario.name, status: "PASS", real_postgresql: true, snapshot: restored.snapshot });
       writeJson(REPORT, report);
     }
     report.stage = "completed";
@@ -271,10 +288,11 @@ export async function runNativeCatalog(env = process.env) {
   } finally {
     try { if (active) await active.end({ timeout: 5 }); } catch { /* Stop below remains authoritative. */ }
     try { if (admin) await admin.end({ timeout: 5 }); } catch { /* Stop below remains authoritative. */ }
-    try { report.cleanup = cleanupNativeCatalog(settings, env); }
+    try { report.cleanup = { ...cleanupNativeCatalog(settings, env), nonce: state.nonce, verified_at: Date.now() }; }
     catch (error) { report.cleanup = { status: "FAIL", error: safeError(error) }; report.status = "FAIL"; failure ??= error; }
     process.removeListener("SIGINT", interrupt);
     process.removeListener("SIGTERM", terminate);
+    report.completed_at = Date.now();
     writeJson(REPORT, report);
   }
   if (failure) throw new Error("Native catalog validation failed; inspect the safe JSON report");
@@ -292,14 +310,19 @@ export function updatedCleanupReport(report, cleanup) {
 export function cleanupCommand(env = process.env) {
   const settings = launcherSettings(env);
   const cleanup = cleanupNativeCatalog(settings, env);
-  writeJson(CLEANUP_REPORT, { source_head: settings.sourceHead, cleanup });
+  let report;
   if (existsSync(REPORT)) {
-    const report = JSON.parse(readFileSync(REPORT, "utf8"));
-    if (report.source_head === settings.sourceHead) {
-      writeJson(REPORT, updatedCleanupReport(report, cleanup));
+    report = JSON.parse(readFileSync(REPORT, "utf8"));
+    if (report.source_head !== settings.sourceHead || report.checkout_sha !== settings.sourceHead
+        || report.run_id !== settings.run.id || report.run_attempt !== settings.run.attempt || report.job !== settings.run.job
+        || !/^[0-9a-f-]{36}$/i.test(report.nonce ?? "")) {
+      throw new Error("Native cleanup report differs from this exact invocation");
     }
   }
-  return cleanup;
+  const verified = { ...cleanup, nonce: report?.nonce ?? null, verified_at: Date.now() };
+  writeJson(CLEANUP_REPORT, { ...nativeEvidenceBinding(settings, report?.nonce ?? null), source_head: settings.sourceHead, cleanup: verified });
+  if (report) writeJson(REPORT, updatedCleanupReport(report, verified));
+  return verified;
 }
 
 if (process.argv[1] && pathToFileURL(resolve(process.argv[1])).href === import.meta.url) {

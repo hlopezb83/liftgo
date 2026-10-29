@@ -6,11 +6,11 @@ name: CI
 #     los blobs y aplica los umbrales de cobertura.
 #   - Jobs condicionales que solo corren cuando su área cambió.
 #   - CERO secretos de producción: el build de CI apunta a un backend
-#     inexistente a propósito. Las pruebas con escritura viven fuera de aquí.
+#     inexistente a propósito. El replay de migraciones escribe únicamente en
+#     bases efímeras nuevas, verificadas y destruidas por el guard compuesto.
 
 on:
   pull_request:
-    branches: [main]
     paths-ignore:
       - "**/*.md"
       - ".lovable/**"
@@ -64,6 +64,21 @@ jobs:
               # viven aquí, así que también deben disparar el lint.
               - 'drizzle/migrations/**'
               - 'scripts/lint-migrations.ts'
+              - 'package.json'
+              - 'bun.lock'
+              - '.node-version'
+              - '.nvmrc'
+              - '.bun-version'
+              - 'supabase/config.toml'
+              - '.github/actions/setup-bun-project/**'
+              - 'scripts/run_sql_suites.py'
+              - 'scripts/ci-pr357-*.mjs'
+              - 'scripts/ci-drizzle-*.mjs'
+              - 'scripts/ci_database.py'
+              - 'scripts/patch_legacy_migrations.py'
+              - 'scripts/tests/pr357-*'
+              - 'scripts/tests/ci-drizzle-pr357-*.test.mjs'
+              - '.github/workflows/pr357-catalog-validation.yml'
               - '.github/workflows/ci.yml'
             dependencies:
               - 'package.json'
@@ -357,46 +372,14 @@ jobs:
           if-no-files-found: ignore
 
   supabase-lint:
-    name: Lint de migraciones
-    runs-on: ubuntu-24.04
-    timeout-minutes: 10
+    name: Lint y replay obligatorio de migraciones
     needs: changes
-    if: needs.changes.outputs.migrations == 'true' || github.event_name == 'workflow_dispatch'
-    steps:
-      - uses: actions/checkout@v7
-        with:
-          fetch-depth: 0
-      - uses: ./.github/actions/setup-bun-project
-
-      # El linter valida el CONTRATO de una migración nueva (CREATE TABLE +
-      # GRANT + RLS + POLICY en el mismo archivo). El histórico reparte esas
-      # piezas entre archivos, así que solo se linta lo que agrega el diff.
-      - name: Resolver migraciones nuevas/modificadas
-        id: files
-        env:
-          EVENT: ${{ github.event_name }}
-          BASE_REF: ${{ github.base_ref }}
-          BEFORE: ${{ github.event.before }}
-          SHA: ${{ github.sha }}
-        shell: bash
-        run: |
-          set -euo pipefail
-          if [[ "$EVENT" == "pull_request" ]]; then
-            git fetch origin "$BASE_REF" --depth=1
-            FILES=$(git diff --name-only --diff-filter=AM "origin/$BASE_REF"...HEAD -- 'supabase/migrations/*.sql' 'drizzle/migrations/*.sql' | tr '\n' ' ')
-          elif [[ "$EVENT" == "push" ]]; then
-            FILES=$(git diff --name-only --diff-filter=AM "$BEFORE" "$SHA" -- 'supabase/migrations/*.sql' 'drizzle/migrations/*.sql' 2>/dev/null | tr '\n' ' ' || true)
-          else
-            # workflow_dispatch: no hay diff confiable, se linta el carril
-            # Drizzle completo (los archivos nuevos de esquema viven ahí).
-            FILES=$(find drizzle/migrations -maxdepth 1 -name '*.sql' | sort | tr '\n' ' ')
-          fi
-          echo "list=${FILES}" >> "$GITHUB_OUTPUT"
-          echo "Archivos: ${FILES:-<ninguno>}"
-
-      - name: Validar GRANT / RLS / POLICY / search_path
-        if: steps.files.outputs.list != ''
-        run: bun scripts/lint-migrations.ts ${{ steps.files.outputs.list }}
+    # A failed/cancelled detector must never turn a required validation into a skip.
+    if: always() && (needs.changes.result != 'success' || needs.changes.outputs.migrations == 'true' || github.event_name == 'workflow_dispatch')
+    uses: ./.github/workflows/pr357-catalog-validation.yml
+    with:
+      expected_sha: ${{ github.event.pull_request.head.sha || github.sha }}
+      changes_result: ${{ needs.changes.result }}
 
   dependency-contracts:
     name: Contratos de dependencias instaladas

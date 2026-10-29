@@ -1,16 +1,14 @@
-# Diagnostic only: no production credentials, migration changes or SQL exceptions.
+# Composite validation: current static evidence + fresh replay + negative controls + cleanup.
 name: PR357 catalog validation
 'on':
-  pull_request:
-    paths:
-    - scripts/tests/pr357-*
-    - .github/workflows/pr357-catalog-validation.yml
-    - .github/workflows/rls-db-tests.yml
-    - scripts/ci_database.py
-    - scripts/patch_legacy_migrations.py
-    - scripts/ci-drizzle-*.mjs
-    - supabase/migrations/**
-    - drizzle/migrations/**
+  workflow_call:
+    inputs:
+      expected_sha:
+        required: true
+        type: string
+      changes_result:
+        required: true
+        type: string
   workflow_dispatch:
     inputs:
       expected_sha:
@@ -24,17 +22,25 @@ concurrency:
   cancel-in-progress: true
 env:
   CI: 'true'
-  PR357_EXPECTED_SHA: ${{ github.event.pull_request.head.sha || inputs.expected_sha }}
+  PR357_EXPECTED_SHA: ${{ inputs.expected_sha }}
 jobs:
   contracts:
     name: Harness contracts and workflow lint
     runs-on: ubuntu-24.04
     timeout-minutes: 15
+    outputs:
+      artifact_id: ${{ steps.evidence.outputs.artifact-id }}
+      digest: ${{ steps.seal.outputs.digest }}
+      started_at: ${{ steps.static.outputs.started_at }}
     if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
     steps:
+    - name: Require successful change detection or explicit manual validation
+      env:
+        DETECTION: ${{ inputs.changes_result || (github.event_name == 'workflow_dispatch' && 'success') || 'missing' }}
+      run: test "$DETECTION" = success
     - uses: actions/checkout@v7
       with:
-        ref: ${{ github.event.pull_request.head.sha || github.sha }}
+        ref: ${{ inputs.expected_sha }}
         fetch-depth: 0
     - name: Bind validation to the requested commit
       run: |
@@ -49,6 +55,9 @@ jobs:
         JS
     - uses: ./.github/actions/setup-bun-project
       id: deps
+    - name: Preserve original lint and assess bounded contracts
+      id: static
+      run: node scripts/ci-pr357-composite.mjs static
     - name: Unit contracts (not database execution)
       run: |
         node --test scripts/tests/pr357-*.test.mjs
@@ -59,6 +68,16 @@ jobs:
         fail_level: error
         filter_mode: nofilter
         reporter: local
+    - name: Seal current static evidence
+      id: seal
+      run: node scripts/ci-pr357-composite.mjs seal contracts
+    - uses: actions/upload-artifact@v7
+      id: evidence
+      with:
+        name: pr357-composite-contracts-${{ github.run_id }}-${{ github.run_attempt }}
+        path: reports/composite-contracts.json
+        retention-days: 14
+        if-no-files-found: error
   gitleaks:
     name: Gitleaks complete history (redacted)
     runs-on: ubuntu-24.04
@@ -67,7 +86,7 @@ jobs:
     steps:
     - uses: actions/checkout@v7
       with:
-        ref: ${{ github.event.pull_request.head.sha || github.sha }}
+        ref: ${{ inputs.expected_sha }}
         fetch-depth: 0
     - name: Bind validation to the requested commit
       run: |
@@ -117,6 +136,9 @@ jobs:
     name: Native PostgreSQL 17 catalog and negative controls
     runs-on: ubuntu-24.04
     timeout-minutes: 20
+    outputs:
+      artifact_id: ${{ steps.evidence.outputs.artifact-id }}
+      digest: ${{ steps.seal.outputs.digest }}
     needs: contracts
     if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
     env:
@@ -125,7 +147,7 @@ jobs:
     steps:
     - uses: actions/checkout@v7
       with:
-        ref: ${{ github.event.pull_request.head.sha || github.sha }}
+        ref: ${{ inputs.expected_sha }}
         fetch-depth: 0
     - name: Bind validation to the requested commit
       run: |
@@ -170,10 +192,23 @@ jobs:
         path: reports/pr357-native-catalog*.json
         retention-days: 14
         if-no-files-found: warn
+    - name: Seal current negative controls and cleanup
+      id: seal
+      run: node scripts/ci-pr357-composite.mjs seal native
+    - uses: actions/upload-artifact@v7
+      id: evidence
+      with:
+        name: pr357-composite-native-${{ github.run_id }}-${{ github.run_attempt }}
+        path: reports/composite-native.json
+        retention-days: 14
+        if-no-files-found: error
   supabase-replay:
     name: Full Supabase replay and effective catalog
     runs-on: ubuntu-24.04
     timeout-minutes: 40
+    outputs:
+      artifact_id: ${{ steps.evidence.outputs.artifact-id }}
+      digest: ${{ steps.seal.outputs.digest }}
     needs: native-catalog
     if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
     env:
@@ -182,7 +217,7 @@ jobs:
     steps:
     - uses: actions/checkout@v7
       with:
-        ref: ${{ github.event.pull_request.head.sha || github.sha }}
+        ref: ${{ inputs.expected_sha }}
         fetch-depth: 0
     - name: Bind validation to the requested commit
       run: |
@@ -210,6 +245,8 @@ jobs:
       run: python3 scripts/patch_legacy_migrations.py
     - name: Exigir base vacía y deshabilitar seed local
       run: python3 scripts/ci_database.py prepare
+    - name: Verify bound canonical baseline before database start
+      run: node scripts/tests/pr357-supabase-catalog.mjs verify-baseline
     - name: Start Supabase (DB + auth, sin gateway ni PostgREST)
       continue-on-error: false
       timeout-minutes: 15
@@ -359,3 +396,58 @@ jobs:
         path: reports/
         retention-days: 14
         if-no-files-found: warn
+
+    - name: Seal replay catalog and completed cleanup
+      id: seal
+      run: node scripts/ci-pr357-composite.mjs seal supabase
+    - uses: actions/upload-artifact@v7
+      id: evidence
+      with:
+        name: pr357-composite-supabase-${{ github.run_id }}-${{ github.run_attempt }}
+        path: reports/composite-supabase.json
+        retention-days: 14
+        if-no-files-found: error
+
+  composite-gate:
+    name: Required current migration evidence
+    if: always()
+    needs: [contracts, gitleaks, native-catalog, supabase-replay]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    env:
+      PR357_STARTED_AT: ${{ needs.contracts.outputs.started_at }}
+      PR357_JOBS: '{"changes":"${{ inputs.changes_result || (github.event_name == ''workflow_dispatch'' && ''success'') || ''missing'' }}","contracts":"${{ needs.contracts.result }}","gitleaks":"${{ needs.gitleaks.result }}","native-catalog":"${{ needs.native-catalog.result }}","supabase-replay":"${{ needs.supabase-replay.result }}"}'
+      PR357_ARTIFACT_IDS: '{"contracts":"${{ needs.contracts.outputs.artifact_id }}","native":"${{ needs.native-catalog.outputs.artifact_id }}","supabase":"${{ needs.supabase-replay.outputs.artifact_id }}"}'
+      PR357_DIGESTS: '{"contracts":"${{ needs.contracts.outputs.digest }}","native":"${{ needs.native-catalog.outputs.digest }}","supabase":"${{ needs.supabase-replay.outputs.digest }}"}'
+    steps:
+    - name: Reject missing, cancelled, skipped or failed prerequisites
+      run: |
+        node - <<'JS'
+        const assert = require('node:assert/strict');
+        for (const [name,result] of Object.entries(JSON.parse(process.env.PR357_JOBS))) assert.equal(result,'success',name+' must succeed');
+        for (const value of Object.values(JSON.parse(process.env.PR357_DIGESTS))) assert.match(value,/^[0-9a-f]{64}$/);
+        for (const value of Object.values(JSON.parse(process.env.PR357_ARTIFACT_IDS))) assert.match(value,/^[1-9][0-9]*$/);
+        assert.match(process.env.PR357_STARTED_AT ?? '',/^[0-9]+$/);
+        JS
+    - uses: actions/checkout@v7
+      with:
+        ref: ${{ inputs.expected_sha }}
+        fetch-depth: 0
+    - uses: ./.github/actions/setup-bun-project
+    - uses: actions/download-artifact@v8
+      with:
+        artifact-ids: ${{ needs.contracts.outputs.artifact_id }}
+        path: evidence/contracts
+        merge-multiple: true
+    - uses: actions/download-artifact@v8
+      with:
+        artifact-ids: ${{ needs.native-catalog.outputs.artifact_id }}
+        path: evidence/native
+        merge-multiple: true
+    - uses: actions/download-artifact@v8
+      with:
+        artifact-ids: ${{ needs.supabase-replay.outputs.artifact_id }}
+        path: evidence/supabase
+        merge-multiple: true
+    - name: Recompute contracts, provenance, effective catalog and cleanup
+      run: node scripts/ci-pr357-composite.mjs gate

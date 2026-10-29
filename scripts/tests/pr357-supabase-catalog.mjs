@@ -1,10 +1,10 @@
 import { execFileSync } from "node:child_process";
 import { createHash, randomUUID } from "node:crypto";
-import { copyFileSync, lstatSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, realpathSync, rmSync, writeFileSync } from "node:fs";
+import { copyFileSync, lstatSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, realpathSync, renameSync, rmSync, writeFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 import { isDeepStrictEqual } from "node:util";
-import { CATALOG_IDENTITY_SQL, CATALOG_QUERIES, evaluateCatalog } from "./pr357-catalog-audit.mjs";
+import { CATALOG_IDENTITY_SQL, CATALOG_QUERIES, evaluateCatalog, validateCatalogSnapshot } from "./pr357-catalog-audit.mjs";
 import { assertReplayLedger, validateReplay } from "../ci-drizzle-replay.mjs";
 
 const PURPOSE = "pr357-owned-supabase-replay";
@@ -39,7 +39,8 @@ export function requireCiContext({ env = process.env, root = process.cwd(), run 
   if (env.CI !== "true" || env.GITHUB_ACTIONS !== "true" || env.RUNNER_ENVIRONMENT !== "github-hosted"
       || env.GITHUB_REPOSITORY !== "hlopezb83/liftgo" || !/^\d+$/.test(env.GITHUB_RUN_ID ?? "")
       || !/^\d+$/.test(env.GITHUB_RUN_ATTEMPT ?? "") || !/^[0-9a-f]{40}$/.test(env.PR357_EXPECTED_SHA ?? "")
-      || !["pull_request", "workflow_dispatch"].includes(env.GITHUB_EVENT_NAME)) {
+      || !["pull_request", "push", "workflow_dispatch"].includes(env.GITHUB_EVENT_NAME)
+      || !/^[A-Za-z0-9_-]+$/.test(env.GITHUB_JOB ?? "")) {
     throw new Error("Explicit GitHub-hosted CI run and exact expected checkout SHA required");
   }
   if ((env.DOCKER_HOST && env.DOCKER_HOST !== "unix:///var/run/docker.sock")
@@ -59,7 +60,13 @@ export function requireCiContext({ env = process.env, root = process.cwd(), run 
     throw new Error("Runner temp directory must be local and owned by this runner");
   }
   return { workspace, runnerTemp, sha: actualSha, runId: env.GITHUB_RUN_ID,
-    attempt: env.GITHUB_RUN_ATTEMPT, projectId: projectId(workspace) };
+    attempt: env.GITHUB_RUN_ATTEMPT, job: env.GITHUB_JOB, projectId: projectId(workspace) };
+}
+
+export function supabaseEvidenceBinding(context, state) {
+  return { schema_version: 2, producer: "pr357-supabase-catalog", checkout_sha: context.sha,
+    run_id: context.runId, run_attempt: context.attempt, job: context.job, nonce: state.nonce,
+    prepared_at: state.preparedAt };
 }
 
 const lines = (value) => value.split(/\r?\n/).map((line) => line.trim()).filter(Boolean);
@@ -97,6 +104,37 @@ function expectedLegacyPatch(root, stateDirectory, source, run) {
   }
 }
 
+export function expectedBaselineConfig(root, run = command) {
+  const source = regularFile(join(root, "supabase/config.toml"));
+  const expected = run("python3", ["-B", "-c", `import importlib.util,pathlib,sys,tomllib
+p=pathlib.Path(sys.argv[1]);s=importlib.util.spec_from_file_location('pr357_ci_database',p)
+m=importlib.util.module_from_spec(s);s.loader.exec_module(m)
+text=sys.stdin.read();v=tomllib.loads(text)
+if not set(v)<= {'project_id','functions','db'}: raise ValueError('Unsupported baseline configuration')
+db=v.get('db',{})
+if not isinstance(db,dict) or not set(db)<= {'seed'}: raise ValueError('Database baseline overrides are unsupported')
+seed=db.get('seed',{})
+if not isinstance(seed,dict) or not set(seed)<= {'enabled'}: raise ValueError('Seed baseline overrides are unsupported')
+sys.stdout.write(m.disable_seed(text))`, join(root, "scripts/ci_database.py")], { cwd: root, input: source.toString("utf8") });
+  return { sourceSha256: sha256(source), replaySha256: sha256(expected) };
+}
+
+export function verifyBaselineFiles(context, state) {
+  if (sha256(regularFile(join(context.workspace, "supabase/config.toml"))) !== state.configReplaySha256) {
+    throw new Error("Supabase configuration differs from the canonical seed-disabled baseline");
+  }
+  if (!isDeepStrictEqual(sqlManifest(context.workspace, "supabase/migrations"), state.expectedPatchedSupabase)
+      || !isDeepStrictEqual(sqlManifest(context.workspace, "drizzle/migrations"), state.drizzleSource)
+      || sha256(regularFile(join(context.workspace, "scripts/patch_legacy_migrations.py"))) !== state.patcherSha256
+      || sha256(regularFile(join(context.workspace, "scripts/ci-drizzle-replay.mjs"))) !== state.replayGuardSha256
+      || sha256(regularFile(join(context.workspace, "scripts/ci_database.py"))) !== state.databaseGuardSha256
+      || sha256(regularFile(join(context.workspace, "scripts/tests/pr357-catalog-audit.mjs"))) !== state.auditGuardSha256
+      || sha256(regularFile(join(context.workspace, "scripts/tests/pr357-supabase-catalog.mjs"))) !== state.collectorSha256
+      || sha256(regularFile(join(context.workspace, "drizzle/migrations/meta/_journal.json"))) !== state.drizzleJournalSha256) {
+    throw new Error("Replay sources differ from the recorded existing CI transformation and canonical history");
+  }
+}
+
 function stateDirectory(context) {
   return join(context.runnerTemp, `liftgo-pr357-supabase-${context.runId}-${context.attempt}`);
 }
@@ -112,8 +150,9 @@ function readState(context) {
   }
   const state = JSON.parse(regularFile(file).toString("utf8"));
   if (state.purpose !== PURPOSE || state.workspace !== context.workspace || state.sha !== context.sha
-      || state.runId !== context.runId || state.attempt !== context.attempt || state.projectId !== context.projectId
-      || !/^[0-9a-f-]{36}$/.test(state.nonce ?? "") || !Number.isFinite(state.preparedAt)) {
+      || state.runId !== context.runId || state.attempt !== context.attempt || state.job !== context.job || state.projectId !== context.projectId
+      || !/^[0-9a-f-]{36}$/.test(state.nonce ?? "") || !Number.isFinite(state.preparedAt) || state.preparedAt <= 0
+      || !isDeepStrictEqual(state.baseline, { project_resources_absent: true, tracked_sources_clean: true, exact_sql_inventory: true, one_use_marker: true })) {
     throw new Error("Ownership marker does not match this exact CI checkout and attempt");
   }
   return state;
@@ -125,7 +164,9 @@ export function prepareSupabase({ env = process.env, root = process.cwd(), run =
   assertPristine(context.projectId, observed.volumes, observed.containers, observed.networks);
   const labelled = lines(run("docker", ["ps", "-a", "--filter", `label=com.supabase.cli.project=${context.projectId}`, "--format", "{{.ID}}"], { cwd: context.workspace }));
   if (labelled.length) throw new Error("Supabase project label already exists on this runner");
-  run("git", ["diff", "--quiet", "HEAD", "--", "supabase/migrations", "drizzle/migrations", "supabase/config.toml", "scripts/patch_legacy_migrations.py", "scripts/ci-drizzle-replay.mjs"], { cwd: context.workspace });
+  run("git", ["diff", "--quiet", "HEAD", "--", "supabase/migrations", "drizzle/migrations", "supabase/config.toml",
+    "scripts/patch_legacy_migrations.py", "scripts/ci-drizzle-replay.mjs", "scripts/ci_database.py",
+    "scripts/tests/pr357-catalog-audit.mjs", "scripts/tests/pr357-supabase-catalog.mjs"], { cwd: context.workspace });
   const supabaseSource = sqlManifest(context.workspace, "supabase/migrations");
   const drizzleSource = sqlManifest(context.workspace, "drizzle/migrations");
   const trackedSql = lines(run("git", ["ls-tree", "-r", "--name-only", "HEAD", "--", "supabase/migrations", "drizzle/migrations"], { cwd: context.workspace }))
@@ -134,15 +175,34 @@ export function prepareSupabase({ env = process.env, root = process.cwd(), run =
   if (!isDeepStrictEqual(actualSql, trackedSql)) throw new Error("Migration SQL file inventory differs from the exact checkout tree");
   const directory = stateDirectory(context);
   mkdirSync(directory, { mode: 0o700 }); // Existing marker is never reused.
+  const config = expectedBaselineConfig(context.workspace, run);
   const state = { ...context, purpose: PURPOSE, nonce: randomUUID(), preparedAt: Date.now(),
+    baseline: { project_resources_absent: true, tracked_sources_clean: true, exact_sql_inventory: true, one_use_marker: true },
+    configSourceSha256: config.sourceSha256, configReplaySha256: config.replaySha256,
     supabaseSource, expectedPatchedSupabase: expectedLegacyPatch(context.workspace, directory, supabaseSource, run),
     drizzleSource,
     patcherSha256: sha256(regularFile(join(context.workspace, "scripts/patch_legacy_migrations.py"))),
     replayGuardSha256: sha256(regularFile(join(context.workspace, "scripts/ci-drizzle-replay.mjs"))),
+    databaseGuardSha256: sha256(regularFile(join(context.workspace, "scripts/ci_database.py"))),
+    auditGuardSha256: sha256(regularFile(join(context.workspace, "scripts/tests/pr357-catalog-audit.mjs"))),
+    collectorSha256: sha256(regularFile(join(context.workspace, "scripts/tests/pr357-supabase-catalog.mjs"))),
     drizzleJournalSha256: sha256(regularFile(join(context.workspace, "drizzle/migrations/meta/_journal.json"))) };
   writeFileSync(join(directory, "ownership.json"), `${JSON.stringify(state, null, 2)}\n`, { mode: 0o600, flag: "wx" });
-  return { status: "PREPARED", checkout_sha: context.sha, source_counts: {
+  return { ...supabaseEvidenceBinding(context, state), status: "PREPARED", source_counts: {
     supabase: state.supabaseSource.length, drizzle: state.drizzleSource.length } };
+}
+
+export function verifySupabaseBaseline({ env = process.env, root = process.cwd(), run = command } = {}) {
+  const context = requireCiContext({ env, root, run });
+  const state = readState(context);
+  verifyBaselineFiles(context, state);
+  const observed = inventory(run, context.workspace);
+  assertPristine(context.projectId, observed.volumes, observed.containers, observed.networks);
+  const report = { ...supabaseEvidenceBinding(context, state), status: "PASS", verified_at: Date.now(),
+    baseline: { ...state.baseline, config_original_bound: true, config_seed_disabled: true },
+    config_source_sha256: state.configSourceSha256, config_replay_sha256: state.configReplaySha256 };
+  writeReport(context.workspace, "pr357-supabase-baseline.json", report);
+  return report;
 }
 
 export function validateDockerIdentity(state, container, volume) {
@@ -162,6 +222,12 @@ export function validateDockerIdentity(state, container, volume) {
       || volume.Name !== expectedName || !Number.isFinite(volumeCreated)
       || volumeCreated < Math.floor(state.preparedAt / 1000) * 1000) {
     throw new Error("Database data volume is not the fresh writable volume prepared for this attempt");
+  }
+  const dataMount = mounts[0].Destination.replace(/\/$/, "");
+  if (container.Mounts.some((mount) => mount !== mounts[0] && typeof mount.Destination === "string"
+      && (mount.Destination === dataMount || mount.Destination.startsWith(`${dataMount}/`)
+        || dataMount.startsWith(`${mount.Destination.replace(/\/$/, "")}/`)))) {
+    throw new Error("Additional mounts overlap the owned PostgreSQL data volume");
   }
   return { id: container.Id, name: expectedName, image: IMAGE, created_at: container.Created,
     started_at: container.State.StartedAt, data_mount: mounts[0].Destination, volume: volume.Name,
@@ -199,8 +265,14 @@ export function verifySnapshotIdentity(identity, owned) {
 }
 
 function writeReport(root, name, report) {
-  mkdirSync(join(root, "reports"), { recursive: true });
-  writeFileSync(join(root, "reports", name), `${JSON.stringify(report, null, 2)}\n`, { mode: 0o600 });
+  const directory = join(root, "reports");
+  mkdirSync(directory, { recursive: true });
+  if (realpathSync(directory) !== directory || !lstatSync(directory).isDirectory() || lstatSync(directory).uid !== process.getuid()) {
+    throw new Error("Evidence directory must be real and owned by this runner");
+  }
+  const temporary = join(directory, `${name}.${randomUUID()}.tmp`);
+  writeFileSync(temporary, `${JSON.stringify(report, null, 2)}\n`, { mode: 0o600, flag: "wx" });
+  renameSync(temporary, join(directory, name));
 }
 
 export function verifyCleanupOwnership(state, observed, run, cwd) {
@@ -241,12 +313,13 @@ export function verifyCleanupOwnership(state, observed, run, cwd) {
 export function collectSupabase({ env = process.env, root = process.cwd(), run = command } = {}) {
   const context = requireCiContext({ env, root, run });
   const state = readState(context);
-  if (!isDeepStrictEqual(sqlManifest(context.workspace, "supabase/migrations"), state.expectedPatchedSupabase)
-      || !isDeepStrictEqual(sqlManifest(context.workspace, "drizzle/migrations"), state.drizzleSource)
-      || sha256(regularFile(join(context.workspace, "scripts/patch_legacy_migrations.py"))) !== state.patcherSha256
-      || sha256(regularFile(join(context.workspace, "scripts/ci-drizzle-replay.mjs"))) !== state.replayGuardSha256
-      || sha256(regularFile(join(context.workspace, "drizzle/migrations/meta/_journal.json"))) !== state.drizzleJournalSha256) {
-    throw new Error("Replay sources differ from the recorded existing CI transformation and canonical history");
+  verifyBaselineFiles(context, state);
+  const baseline = JSON.parse(regularFile(join(context.workspace, "reports/pr357-supabase-baseline.json")).toString("utf8"));
+  if (!isDeepStrictEqual(supabaseEvidenceBinding(context, state), Object.fromEntries(Object.keys(supabaseEvidenceBinding(context, state)).map((key) => [key, baseline[key]])))
+      || baseline.status !== "PASS" || !Number.isFinite(baseline.verified_at) || baseline.verified_at < state.preparedAt
+      || baseline.config_source_sha256 !== state.configSourceSha256 || baseline.config_replay_sha256 !== state.configReplaySha256
+      || !isDeepStrictEqual(baseline.baseline, { ...state.baseline, config_original_bound: true, config_seed_disabled: true })) {
+    throw new Error("Fresh pre-start canonical baseline evidence is missing or differs from this invocation");
   }
   const replay = validateReplay({ env, rootDir: context.workspace });
   const name = `supabase_db_${context.projectId}`;
@@ -260,13 +333,20 @@ export function collectSupabase({ env = process.env, root = process.cwd(), run =
     "--host", "/var/run/postgresql", "--port", "5432", "--username", "postgres", "--dbname", "postgres", "--set", "ON_ERROR_STOP=1"], {
     cwd: context.workspace, input: buildSnapshotSql() });
   const snapshot = JSON.parse(raw.trim());
+  validateCatalogSnapshot(snapshot);
   verifySnapshotIdentity(snapshot.identity, owned);
   if (snapshot.auth_schema?.users_present !== true || snapshot.auth_schema?.uid_present !== true) throw new Error("Supabase auth schema is incomplete");
   const supabaseCount = verifySupabaseVersions(state.supabaseSource, snapshot.supabase_versions);
   const drizzleCount = assertReplayLedger(snapshot.drizzle_ledger, replay.entries);
   const result = evaluateCatalog(snapshot);
-  const report = { ...result, evidence_scope: "Real read-only catalog after complete existing Supabase/Drizzle CI replay; no business rows queried",
-    checkout_sha: context.sha, run_id: context.runId, run_attempt: context.attempt, owned,
+  const report = { ...supabaseEvidenceBinding(context, state), ...result,
+    collected_at: Date.now(), baseline: baseline.baseline, baseline_verified_at: baseline.verified_at,
+    source_binding: { drizzle_source: state.drizzleSource, patcher_sha256: state.patcherSha256,
+      replay_guard_sha256: state.replayGuardSha256, database_guard_sha256: state.databaseGuardSha256,
+      audit_guard_sha256: state.auditGuardSha256, collector_sha256: state.collectorSha256,
+      config_source_sha256: state.configSourceSha256, config_replay_sha256: state.configReplaySha256,
+      drizzle_journal_sha256: state.drizzleJournalSha256 },
+    evidence_scope: "Real read-only catalog after complete existing Supabase/Drizzle CI replay; no business rows queried", owned,
     replay: { supabase_count: supabaseCount, drizzle_count: drizzleCount, supabase_source: state.supabaseSource,
       supabase_runner_transformation: state.expectedPatchedSupabase, manifest: replay.manifest }, snapshot };
   writeReport(context.workspace, "pr357-supabase-catalog.json", report);
@@ -280,8 +360,8 @@ export function cleanupSupabase({ env = process.env, root = process.cwd(), run =
   let owned;
   try { owned = verifyCleanupOwnership(state, before, run, context.workspace); }
   catch (error) {
-    writeReport(context.workspace, "pr357-supabase-cleanup.json", { status: "FAIL", checkout_sha: context.sha,
-      run_id: context.runId, run_attempt: context.attempt, ownership_verified: false,
+    writeReport(context.workspace, "pr357-supabase-cleanup.json", { ...supabaseEvidenceBinding(context, state), status: "FAIL",
+      verified_at: Date.now(), ownership_verified: false,
       stop_attempted: false, project_resources_remaining: true });
     throw error;
   }
@@ -294,8 +374,8 @@ export function cleanupSupabase({ env = process.env, root = process.cwd(), run =
   let resourcesRemaining = false;
   try { assertPristine(context.projectId, observed.volumes, observed.containers, observed.networks); }
   catch { resourcesRemaining = true; }
-  const report = { status: stopFailed ? "FAIL" : "PASS", checkout_sha: context.sha,
-    run_id: context.runId, run_attempt: context.attempt, project_resources_remaining: resourcesRemaining,
+  const report = { ...supabaseEvidenceBinding(context, state), status: stopFailed ? "FAIL" : "PASS",
+    verified_at: Date.now(), project_resources_remaining: resourcesRemaining,
     ownership_verified: true, verified_owned_resources: owned,
     stop_attempted: stop, stop_command_failed: stopFailed };
   if (resourcesRemaining) report.status = "FAIL";
@@ -308,6 +388,8 @@ export function cleanupSupabase({ env = process.env, root = process.cwd(), run =
 async function main(operation) {
   if (operation === "prepare") {
     console.info(JSON.stringify(prepareSupabase()));
+  } else if (operation === "verify-baseline") {
+    console.info(JSON.stringify(verifySupabaseBaseline()));
   } else if (operation === "collect") {
     const result = collectSupabase();
     console.info(JSON.stringify({ status: result.status, findings: result.findings.length,
@@ -316,7 +398,7 @@ async function main(operation) {
   } else if (operation === "cleanup" || operation === "cleanup-check") {
     console.info(JSON.stringify(cleanupSupabase({ stop: operation === "cleanup" })));
   } else {
-    throw new Error("Usage: node scripts/tests/pr357-supabase-catalog.mjs prepare|collect|cleanup|cleanup-check");
+    throw new Error("Usage: node scripts/tests/pr357-supabase-catalog.mjs prepare|verify-baseline|collect|cleanup|cleanup-check");
   }
 }
 

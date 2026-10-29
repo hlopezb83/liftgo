@@ -152,6 +152,12 @@ function loadCanonical(rootDir) {
   return { root, sourceDirectory, included, entries, journal: replayJournal, replayJournalBytes, manifest };
 }
 
+/** Read-only expected manifest for the same canonical CI replay. This uses the
+ * existing receipt rules; it neither prepares a database nor skips more SQL. */
+export function canonicalReplayManifest(rootDir = process.cwd()) {
+  return loadCanonical(rootDir).manifest;
+}
+
 function requireExactNames(directory, expected) {
   const actual = readdirSync(directory).sort();
   if (!isDeepStrictEqual(actual, [...expected].sort())) {
