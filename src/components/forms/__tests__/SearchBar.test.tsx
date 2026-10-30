@@ -46,4 +46,17 @@ describe("SearchBar (V26-04)", () => {
     expect(input).toHaveValue("");
     expect(input).toHaveFocus();
   });
+
+  it("limpia el texto y mantiene el foco al presionar la tecla Escape", () => {
+    const onChange = vi.fn();
+    render(<SearchBar value="test" onChange={onChange} placeholder="Buscar…" debounceMs={0} />);
+
+    const input = screen.getByRole("searchbox");
+    expect(input).toHaveValue("test");
+
+    fireEvent.keyDown(input, { key: "Escape" });
+
+    expect(input).toHaveValue("");
+    expect(input).toHaveFocus();
+  });
 });
