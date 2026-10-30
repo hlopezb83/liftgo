@@ -6,7 +6,7 @@ if (process.env.RUN_LOCAL_RECURRING_TESTS !== "1") {
   process.exit(0);
 }
 // Use the repository's frozen postgres dependency, not an untracked pg install.
-const postgres = require("postgres");
+const postgres = require("../lib/postgres-factory.cjs")(require("postgres"));
 const fs = require("fs"),
   assert = require("assert/strict");
 const path = require("path"),

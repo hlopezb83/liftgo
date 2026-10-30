@@ -5,7 +5,7 @@ const os = require('node:os');
 const net = require('node:net');
 const assert = require('node:assert/strict');
 const { execFileSync } = require('node:child_process');
-const postgres = require('postgres');
+const postgres = require('../../lib/postgres-factory.cjs')(require('postgres'));
 const root = path.resolve(__dirname, '../../..');
 const bin = process.env.PG_BIN;
 if (!bin || !path.isAbsolute(bin)) throw new Error('Set PG_BIN to installed trusted PostgreSQL binaries');
