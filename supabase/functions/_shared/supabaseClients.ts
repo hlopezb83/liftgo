@@ -5,7 +5,7 @@
 import {
   createClient,
   type SupabaseClient,
-} from "https://esm.sh/@supabase/supabase-js@2";
+} from "https://esm.sh/@supabase/supabase-js@2.118.0";
 
 export function getSupabaseEnv(): {
   url: string;

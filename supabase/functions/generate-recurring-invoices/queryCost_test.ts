@@ -1,6 +1,6 @@
 // Characterization only: exercise buildPlan with synthetic I/O, never a database.
 import { deepStrictEqual as assertEquals } from "node:assert/strict";
-import type { SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2";
+import type { SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2.118.0";
 import { buildSupabaseMock } from "../_shared/test/supabaseClientMock.ts";
 import { buildPlan } from "./handler.ts";
 import { dateOnlyToMty } from "./periods.ts";

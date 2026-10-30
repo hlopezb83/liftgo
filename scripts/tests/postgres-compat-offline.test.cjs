@@ -20,8 +20,8 @@ before(() => {
   mock.method(net.Socket.prototype, 'connect', () => { throw new Error('Network forbidden in offline Postgres contracts'); });
   assert.equal(JSON.parse(fs.readFileSync(path.join(path.dirname(sessionFile), '../package.json'))).version, '0.45.4');
   const lock = JSON.parse(fs.readFileSync(path.join(root, 'bun.lock'), 'utf8').replace(/,(\s*[}\]])/g, '$1'));
-  assert.equal(lock.packages.postgres[0], 'postgres@3.4.9');
-  assert.equal(JSON.parse(fs.readFileSync(path.join(root, 'package.json'))).devDependencies.postgres, '^3.4.9');
+  assert.equal(lock.packages.postgres[0], 'postgres@4.0.0');
+  assert.equal(JSON.parse(fs.readFileSync(path.join(root, 'package.json'))).devDependencies.postgres, '4.0.0');
   ({ PostgresJsSession } = installedRequire('drizzle-orm/postgres-js/session'));
   ({ PgDialect } = installedRequire('drizzle-orm/pg-core/dialect'));
   ({ sql } = installedRequire('drizzle-orm/sql'));
@@ -55,7 +55,7 @@ function driver(postgresImport) {
 }
 
 test('v3 factory identity and attached helpers survive without eager client creation', t => {
-  t.diagnostic(`process.version=${process.version}; postgres.lock=3.4.9; drizzle=0.45.4; postgresRuntime=NOT_LOADED; postgres4=NOT_LOADED; DB=NOT_RUN`);
+  t.diagnostic(`process.version=${process.version}; postgres.lock=4.0.0; drizzle=0.45.4; postgresRuntime=NOT_LOADED; postgres4=NOT_LOADED; DB=NOT_RUN`);
   let calls = 0;
   const result = Object.freeze({ synthetic: true });
   const factory = () => { calls++; return result; };

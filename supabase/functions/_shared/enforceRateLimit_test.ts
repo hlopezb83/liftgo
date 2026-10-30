@@ -3,7 +3,7 @@
 import { assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
 import { enforceRateLimit } from "./auth.ts";
 import { buildSupabaseMock } from "./test/supabaseClientMock.ts";
-import type { SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2";
+import type { SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2.118.0";
 
 function req() {
   return new Request("http://localhost/fn", { method: "POST" });

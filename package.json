@@ -36,11 +36,11 @@
     "knip": "knip",
     "knip:deep": "knip --files --dependencies --exports --include-entry-exports",
     "format": "prettier --write .",
-    "test:dependencies": "node --test scripts/tests/dependency-security.test.mjs scripts/tests/happy-dom-security.test.mjs scripts/tests/supabase-sdk-contracts.test.mjs"
+    "test:dependencies": "node --test scripts/tests/dependency-security.test.mjs scripts/tests/happy-dom-security.test.mjs scripts/tests/supabase-sdk-contracts.test.mjs scripts/tests/postgres-compat-offline.test.cjs scripts/tests/postgres-import-guard.test.mjs"
   },
   "overrides": {
     "zod-validation-error": "^4.0.2",
-    "rolldown": "1.2.15",
+    "rolldown": "1.2.16",
     "vite": "8.3.5",
     "esbuild": "0.28.2",
     "postcss-selector-parser": "7.1.7"
@@ -89,7 +89,7 @@
     "@tanstack/react-router": "1.170.46",
     "@tanstack/react-start": "1.169.4",
     "@tanstack/react-table": "9.3.1",
-    "@tanstack/react-virtual": "^3.14.23",
+    "@tanstack/react-virtual": "^3.14.24",
     "@use-gesture/react": "^10.3.1",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
@@ -102,7 +102,7 @@
     "fflate": "0.8.3",
     "html-to-image": "^1.11.13",
     "input-otp": "^1.4.2",
-    "lucide-react": "^1.63.0",
+    "lucide-react": "^1.64.0",
     "marked": "^18.1.2",
     "match-sorter": "^8.3.0",
     "next-themes": "^0.4.6",
@@ -115,8 +115,8 @@
     "react-hotkeys-hook": "^5.3.3",
     "react-resizable-panels": "^4.15.1",
     "recharts": "^3.10.1",
-    "seroval": "1.7.3",
-    "seroval-plugins": "1.7.3",
+    "seroval": "1.7.5",
+    "seroval-plugins": "1.7.6",
     "sonner": "^2.0.7",
     "tailwind-merge": "^3.7.0",
     "tailwindcss": "^4.2.1",
@@ -128,7 +128,7 @@
   },
   "devDependencies": {
     "@tanstack/start-storage-context": "1.167.41",
-    "@babel/core": "^8.0.9",
+    "@babel/core": "^8.0.10",
     "@eslint/js": "^10.0.1",
     "@lovable.dev/vite-tanstack-config": "2.27.0",
     "@playwright/test": "^1.64.1",
@@ -159,9 +159,9 @@
     "globals": "^17.13.0",
     "happy-dom": "^21.0.4",
     "jsdom": "30.1.3",
-    "knip": "^6.43.0",
+    "knip": "^6.44.0",
     "nitro": "3.0.260603-beta",
-    "postgres": "^3.4.9",
+    "postgres": "4.0.0",
     "prettier": "^3.9.10",
     "rollup-plugin-visualizer": "^7.1.1",
     "typescript": "6.0.3",
@@ -169,7 +169,7 @@
     "vite": "8.3.5",
     "vitest": "5.0.5",
     "@sentry/bundler-plugins": "11.10.0",
-    "wrangler": "4.155.0"
+    "wrangler": "4.156.0"
   },
   "version": "7.420.0",
   "engines": {
