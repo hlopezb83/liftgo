@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { createHash } from "node:crypto";
 import http from "node:http";
 import net from "node:net";
 import test from "node:test";
@@ -54,6 +55,185 @@ function rawProxy(proxy, wire) {
     socket.on("error", reject);
   });
 }
+
+test("CONNECT normal close delivers every byte under backpressure", { timeout: 5000 }, async (t) => {
+  const payload = Buffer.alloc(8 * 1024 * 1024 + 123, 97);
+  payload.write("synthetic-final-bytes", payload.length - 21);
+  let releaseReader;
+  const producerBlocked = new Promise(resolve => { releaseReader = resolve; });
+  let producerBackpressure = false;
+  const app = await serve((_request, response) => {
+    response.writeHead(200, { "content-length": payload.length, connection: "close" });
+    producerBackpressure = !response.write(payload);
+    response.end();
+    releaseReader();
+  });
+  t.after(app.close);
+  const proxy = await startBrowserProxy(app.origin);
+  t.after(proxy.close);
+  const proxyPort = Number(new URL(proxy.url).port);
+  const appPort = Number(new URL(app.origin).port);
+  let proxyBackpressure = false;
+  let upstreamEnded = false;
+  let upstreamErrors = 0;
+  const normalDestroySnapshots = [];
+  let heldFirstWrite = false;
+  const socketWrite = net.Socket.prototype._write;
+  t.mock.method(net.Socket.prototype, "_write", function (chunk, encoding, callback) {
+    if (this.localPort === proxyPort && !heldFirstWrite
+      && chunk.toString("ascii").startsWith("HTTP/1.1 200 OK")) {
+      heldFirstWrite = true;
+      // Keep one owned write pending through write()'s return so the bounded
+      // queue actually applies backpressure even on fast loopback interfaces.
+      setImmediate(() => socketWrite.call(this, chunk, encoding, callback));
+    } else socketWrite.call(this, chunk, encoding, callback);
+  });
+  const write = net.Socket.prototype.write;
+  t.mock.method(net.Socket.prototype, "write", function (...args) {
+    // Bound the owned downstream queue instead of relying on OS buffer sizes.
+    if (this.localPort === proxyPort) this._writableState.highWaterMark = 1024;
+    const accepted = write.apply(this, args);
+    if (this.localPort === proxyPort && !accepted) proxyBackpressure = true;
+    return accepted;
+  });
+  const emit = net.Socket.prototype.emit;
+  t.mock.method(net.Socket.prototype, "emit", function (event, ...args) {
+    if (this.remotePort === appPort) {
+      if (event === "end") upstreamEnded = true;
+      if (event === "error") upstreamErrors++;
+    }
+    return emit.call(this, event, ...args);
+  });
+  const destroy = net.Socket.prototype.destroy;
+  t.mock.method(net.Socket.prototype, "destroy", function (error) {
+    if (this.localPort === proxyPort && upstreamEnded && !error) {
+      normalDestroySnapshots.push({ pendingBytes: this.writableLength, writableFinished: this.writableFinished });
+    }
+    return destroy.call(this, error);
+  });
+  const socket = net.connect({ host: "127.0.0.1", port: proxyPort, highWaterMark: 1024 });
+  t.after(() => socket.destroy());
+  socket.setTimeout(5000, () => socket.destroy(new Error("Local CONNECT contract timeout")));
+  const host = new URL(app.origin).host;
+  socket.on("connect", () => socket.write(`CONNECT ${host} HTTP/1.1\r\nHost: ${host}\r\n\r\nGET /synthetic-large HTTP/1.1\r\nHost: ${host}\r\nConnection: close\r\n\r\n`));
+  // Keep the receiver paused until the owned producer has queued its response.
+  await Promise.race([producerBlocked, new Promise((_, reject) => socket.once("error", reject))]);
+  const chunks = [];
+  let readError;
+  try {
+    for await (const chunk of socket) {
+      chunks.push(chunk);
+      await new Promise(resolve => setImmediate(resolve));
+    }
+  } catch (error) { readError = error; }
+  const wire = Buffer.concat(chunks);
+  const connectEnd = wire.indexOf("\r\n\r\n") + 4;
+  assert.match(wire.subarray(0, connectEnd).toString("ascii"), /^HTTP\/1\.1 200 Connection Established\r\n/);
+  const bodyStart = wire.indexOf("\r\n\r\n", connectEnd) + 4;
+  assert.match(wire.subarray(connectEnd, bodyStart).toString("ascii"), /^HTTP\/1\.1 200 OK\r\n/);
+  const body = wire.subarray(bodyStart);
+  t.diagnostic(JSON.stringify({ expectedBytes: payload.length, receivedBytes: body.length, producerBackpressure, proxyBackpressure, upstreamEnded, upstreamErrors, normalDestroySnapshots, readError: readError?.code ?? null }));
+  assert.equal(producerBackpressure, true);
+  assert.equal(heldFirstWrite, true);
+  assert.equal(proxyBackpressure, true);
+  assert.equal(upstreamEnded, true);
+  assert.equal(upstreamErrors, 0);
+  assert.equal(body.length, payload.length, "normal upstream FIN must preserve queued response bytes");
+  assert.equal(createHash("sha256").update(body).digest("hex"), createHash("sha256").update(payload).digest("hex"));
+  assert.equal(readError, undefined);
+});
+
+test("CONNECT normal FIN drains a pending downstream write before closing", { timeout: 5000 }, async (t) => {
+  const payload = Buffer.alloc(1024, 97);
+  const app = await serve((_request, response) => {
+    response.writeHead(200, { "content-length": payload.length, connection: "close" });
+    response.end(payload);
+  });
+  t.after(app.close);
+  const proxy = await startBrowserProxy(app.origin);
+  t.after(proxy.close);
+  const proxyPort = Number(new URL(proxy.url).port);
+  const appPort = Number(new URL(app.origin).port);
+  let releaseWrite;
+  let heldSocket;
+  let pendingAtFin = 0;
+  let normalFin = false;
+  let destroyedBeforeRelease;
+  let released;
+  const writeReleased = new Promise(resolve => { released = resolve; });
+  const write = net.Socket.prototype._write;
+  t.mock.method(net.Socket.prototype, "_write", function (chunk, encoding, callback) {
+    if (this.localPort === proxyPort && chunk.toString("ascii").startsWith("HTTP/1.1 200 OK")) {
+      heldSocket = this;
+      // Model a slow writable without depending on kernel buffer capacity.
+      // This response fits below the high-water mark, so upstream FIN can
+      // arrive while the downstream write is still pending.
+      releaseWrite = () => {
+        destroyedBeforeRelease = this.destroyed;
+        write.call(this, chunk, encoding, callback);
+        released();
+      };
+    } else write.call(this, chunk, encoding, callback);
+  });
+  const emit = net.Socket.prototype.emit;
+  t.mock.method(net.Socket.prototype, "emit", function (event, ...args) {
+    if (event === "end" && this.remotePort === appPort) {
+      normalFin = true;
+      pendingAtFin = heldSocket?.writableLength ?? 0;
+      // Run after all upstream close handlers, precisely the old destroy race.
+      this.once("close", () => setImmediate(() => releaseWrite?.()));
+    }
+    return emit.call(this, event, ...args);
+  });
+  const socket = net.connect({ host: "127.0.0.1", port: proxyPort });
+  t.after(() => socket.destroy());
+  socket.setTimeout(5000, () => socket.destroy(new Error("Local CONNECT contract timeout")));
+  const host = new URL(app.origin).host;
+  socket.on("connect", () => socket.write(`CONNECT ${host} HTTP/1.1\r\nHost: ${host}\r\n\r\nGET /pending-write HTTP/1.1\r\nHost: ${host}\r\nConnection: close\r\n\r\n`));
+  const chunks = [];
+  let readError;
+  try { for await (const chunk of socket) chunks.push(chunk); }
+  catch (error) { readError = error; }
+  await writeReleased;
+  const wire = Buffer.concat(chunks);
+  const connectEnd = wire.indexOf("\r\n\r\n") + 4;
+  const bodyStart = wire.indexOf("\r\n\r\n", connectEnd) + 4;
+  const body = wire.subarray(bodyStart);
+  assert.equal(normalFin, true);
+  assert.ok(pendingAtFin > 0, "fixture must exercise queued bytes at normal FIN");
+  assert.equal(destroyedBeforeRelease, false, "normal upstream close must not discard the pending write");
+  assert.match(wire.subarray(0, connectEnd).toString("ascii"), /^HTTP\/1\.1 200 Connection Established\r\n/);
+  assert.match(wire.subarray(connectEnd, bodyStart).toString("ascii"), /^HTTP\/1\.1 200 OK\r\n/);
+  assert.equal(body.length, payload.length);
+  assert.equal(createHash("sha256").update(body).digest("hex"), createHash("sha256").update(payload).digest("hex"));
+  assert.equal(readError, undefined);
+});
+
+test("CONNECT abnormal upstream close and explicit proxy shutdown release active tunnels", { timeout: 5000 }, async (t) => {
+  for (const mode of ["upstream-reset", "proxy-close"]) {
+    await t.test(mode, async (t) => {
+      let received;
+      const requestReceived = new Promise(resolve => { received = resolve; });
+      const app = await serve((_request, response) => {
+        received();
+        if (mode === "upstream-reset") response.socket.resetAndDestroy();
+        // Otherwise deliberately leave this owned request active for shutdown.
+      });
+      t.after(app.close);
+      const proxy = await startBrowserProxy(app.origin);
+      t.after(proxy.close);
+      const host = new URL(app.origin).host;
+      const response = rawProxy(proxy, `CONNECT ${host} HTTP/1.1\r\nHost: ${host}\r\n\r\nGET /active HTTP/1.1\r\nHost: ${host}\r\n\r\n`);
+      await requestReceived;
+      if (mode === "proxy-close") await proxy.close();
+      const wire = await response;
+      assert.match(wire, /^HTTP\/1\.1 200 Connection Established\r\n/);
+      assert.doesNotMatch(wire, /HTTP\/1\.1 200 OK/);
+      await proxy.close();
+      await proxy.close();
+    });
+  }
+});
 
 test("browser proxy allows only the app origin; all canaries remain untouched", async (t) => {
   let canaryRequests = 0;
@@ -158,3 +338,4 @@ test("proxy rejects nonliteral/nonloopback app origins before listening", async 
   }
   await assert.rejects(startBrowserProxy("http://127.0.0.1:4173", -1), /proxy port/);
 });
+
