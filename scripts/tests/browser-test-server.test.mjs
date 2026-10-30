@@ -1,9 +1,12 @@
 import assert from "node:assert/strict";
+import childProcess from "node:child_process";
+import { EventEmitter } from "node:events";
+import { syncBuiltinESMExports } from "node:module";
 import path from "node:path";
 import test from "node:test";
 import { fileURLToPath } from "node:url";
 import { FAKE_BACKEND, assertEffectiveBindings } from "../browser-test-config.mjs";
-import { buildEnvironment, sanitizedBuildConfig } from "../browser-test-server.mjs";
+import { buildEnvironment, buildSyntheticApp, sanitizedBuildConfig } from "../browser-test-server.mjs";
 
 const root = fileURLToPath(new URL("../../", import.meta.url));
 const directory = path.join(root, "dist", "server");
@@ -17,6 +20,36 @@ const generated = () => ({
   no_bundle: true,
   rules: [{ type: "ESModule", globs: ["**/*.mjs", "**/*.js"] }],
 });
+
+for (const [failAt, signal] of [[1, null], [2, null], [1, "SIGTERM"]]) {
+  test(`synthetic build uses Node in order and stops at failed phase ${failAt} (${signal ?? "exit code"})`, async (context) => {
+    const calls = [];
+    const mocked = context.mock.method(childProcess, "spawn", (executable, args, options) => {
+      calls.push({ executable, args, options });
+      const child = new EventEmitter();
+      queueMicrotask(() => child.emit("exit", calls.length === failAt ? (signal ? null : 1) : 0, signal));
+      return child;
+    });
+    syncBuiltinESMExports();
+    try {
+      await assert.rejects(buildSyntheticApp(), /Synthetic build failed:/);
+      assert.equal(calls.length, failAt);
+      assert.deepEqual(calls.map(call => call.args), [
+        ["scripts/gen-version.mjs"], ["node_modules/vite/bin/vite.js", "build"],
+      ].slice(0, failAt));
+      for (const call of calls) {
+        assert.equal(call.executable, process.execPath);
+        assert.equal(path.resolve(call.options.cwd), path.resolve(root));
+        assert.deepEqual(call.options.env, buildEnvironment());
+        assert.equal(call.options.env, calls[0].options.env);
+        assert.equal(call.options.stdio, "inherit");
+      }
+    } finally {
+      mocked.mock.restore();
+      syncBuiltinESMExports();
+    }
+  });
+}
 
 test("build environment replaces backend and monitoring values, drops remote credentials", () => {
   const env = buildEnvironment({

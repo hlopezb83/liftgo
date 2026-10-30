@@ -47,7 +47,7 @@ al terminar cada escenario, también si la aserción de UI falla.
 
 ## Ejecución
 
-Con Node >=24 y Bun según `.github/actions/setup-bun-project/action.yml`:
+Con Node 26.13.0 y Bun 1.4.4 según `.github/actions/setup-bun-project/action.yml`:
 
     bun install --frozen-lockfile
     bunx playwright install --with-deps chromium

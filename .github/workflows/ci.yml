@@ -271,7 +271,7 @@ jobs:
           # Acotado a este step: activa reporter blob y desactiva umbrales
           # parciales (cada runner ve solo su porción del código).
           VITEST_SHARD_BLOB: "1"
-        run: bunx vitest run --shard=${{ matrix.shard }}/6 --coverage
+        run: node node_modules/vitest/vitest.mjs run --shard=${{ matrix.shard }}/6 --coverage
 
       - name: Sellar procedencia del shard
         if: always()
@@ -352,7 +352,7 @@ jobs:
       - name: Merge de reportes + umbrales de cobertura
         env:
           NODE_OPTIONS: --max-old-space-size=6144
-        run: bunx vitest --merge-reports="$VITEST_MERGE_DIR" --coverage
+        run: node node_modules/vitest/vitest.mjs --merge-reports="$VITEST_MERGE_DIR" --coverage
 
       - name: Subir reportes
         if: always()

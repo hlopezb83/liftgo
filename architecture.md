@@ -40,7 +40,7 @@ LiftGo es un ERP interno para la operación de una empresa de renta y venta de m
 | Integraciones externas | Facturapi (CFDI 4.0), Lovable AI Gateway |
 | Observabilidad | Sentry (`@sentry/react` + `@sentry/vite-plugin`) |
 
-Requisitos de entorno: Node `>=24` (ver `engines` en `package.json`, `.nvmrc` y `.node-version`); el gestor de paquetes y runner de scripts es **Bun**.
+Desarrollo y CI fijan Node `26.13.0` y Bun `1.4.4` (ver `.nvmrc`, `.node-version` y `package.json`). El rango de `engines.node` conserva Node 22/24 para el preview Lovable observado en 22.23.4; el build de publicación sigue sin verificar. El Worker desplegado y Deno no cambian de runtime.
 
 ---
 

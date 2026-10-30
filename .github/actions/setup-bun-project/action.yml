@@ -9,7 +9,7 @@ inputs:
   node-version:
     description: Versión de Node.js a instalar en el runner.
     required: false
-    default: "24.22.1"
+    default: "26.13.0"
   save-cache:
     description: Guardar la caché si falta; activar en un único productor (quality).
     required: false
@@ -19,7 +19,7 @@ runs:
   using: composite
   steps:
     - name: Setup Node.js
-      # v7.226.1 · setup-node@v5 corre en Node 24 nativo (v4 = Node 20 deprecado sept-2025).
+      # El runtime interno de la action es independiente del Node del proyecto.
       uses: actions/setup-node@v7
       with:
         node-version: ${{ inputs.node-version }}
@@ -36,7 +36,7 @@ runs:
         EXPECTED_NODE: ${{ inputs.node-version }}
         EXPECTED_BUN: ${{ inputs.bun-version }}
       run: |
-        node -e 'const fs = require("node:fs"); const assert = require("node:assert/strict"); const p = JSON.parse(fs.readFileSync("package.json", "utf8")); const n = process.env.EXPECTED_NODE; const b = process.env.EXPECTED_BUN; assert.equal(process.versions.node, n); assert.equal(p.engines.node, n); assert.equal(p.engines.bun, b); assert.equal(p.packageManager, `bun@${b}`); for (const f of [".nvmrc", ".node-version"]) assert.equal(fs.readFileSync(f, "utf8").trim(), n); assert.equal(fs.readFileSync(".bun-version", "utf8").trim(), b);'
+        node -e 'const fs = require("node:fs"); const assert = require("node:assert/strict"); const p = JSON.parse(fs.readFileSync("package.json", "utf8")); const n = process.env.EXPECTED_NODE; const b = process.env.EXPECTED_BUN; assert.equal(process.versions.node, n); assert.equal(p.engines.node, "^22.23.4 || ^24.22.1 || ^26.13.0"); assert.equal(p.engines.bun, b); assert.equal(p.packageManager, `bun@${b}`); for (const f of [".nvmrc", ".node-version"]) assert.equal(fs.readFileSync(f, "utf8").trim(), n); assert.equal(fs.readFileSync(".bun-version", "utf8").trim(), b);'
         test "$(bun --version)" = "$EXPECTED_BUN"
         node --version
         bun --version

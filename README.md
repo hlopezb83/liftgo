@@ -18,7 +18,7 @@ Consulta las versiones y scripts exactos en `package.json`.
 
 ## Requisitos y comandos
 
-Se requieren Node.js **24.22.1** y Bun **1.4.4**. Los pines están en
+Desarrollo y CI usan Node.js **26.13.0 LTS** y Bun **1.4.4**. Los pines están en
 `.node-version`, `.nvmrc`, `.bun-version` y `package.json`; CI usa esas mismas
 versiones. Instala los runtimes oficiales o selecciónalos con tu gestor local
 de versiones y comprueba `node --version` y `bun --version` antes de instalar.
@@ -31,8 +31,18 @@ bun run dev
 La raíz usa exclusivamente `bun.lock`: no ejecutar `npm install` ni generar
 `package-lock.json`. Para cambiar dependencias, actualiza intencionalmente el
 manifiesto y el lock con Bun 1.4.4 y revisa el diff; las instalaciones normales
-y CI deben conservar el hash del lock. `@types/node` se fija en 24.19.2,
-compatible con Node 24, los peers de Vite/Vitest y TypeScript 6.0.3.
+y CI deben conservar el hash del lock. `@types/node` se fija en **26.6.6**,
+alineado con Node 26 y los peers de Vite/Vitest; TypeScript sigue en 6.0.3.
+CI registra la versión efectiva y ejecuta prebuild, Vite y Vitest con Node
+explícitamente. Bun sigue siendo el gestor de dependencias.
+
+El preview de Lovable observado el 30-oct-2026 usa Node **22.23.4** e ignora
+los pins del repositorio; el runtime del build de publicación no es observable.
+`engines.node` admite `^22.23.4 || ^24.22.1 || ^26.13.0` para conservar ese
+preview, mientras desarrollo/CI seleccionan 26.13.0. No se introducen APIs
+exclusivas de Node 26: la migración del host sigue sin verificar. El SSR
+desplegado es un Worker de Cloudflare, no un proceso Node 26; las funciones
+Edge conservan Deno **2.9.8**.
 
 Comprobaciones habituales:
 

@@ -66,12 +66,13 @@ function assertHeaders(request) {
   assert.equal(request.headers.get("authorization"), `Bearer ${token}`);
 }
 
-test("Supabase and its five installed consumers stay aligned with stable 2.118.0 and Node 24", () => {
+test("Supabase and its five installed consumers stay aligned with stable 2.118.0 and Node 26", () => {
   const sdk = installedManifest(require, "@supabase/supabase-js");
   assert.equal(sdk.version, "2.118.0");
   const sdkRequire = createRequire(require.resolve("@supabase/supabase-js"));
   const pinnedNode = readFileSync(path.join(root, ".node-version"), "utf8").trim();
-  assert.match(pinnedNode, /^24\.\d+\.\d+$/);
+  assert.match(pinnedNode, /^26\.\d+\.\d+$/);
+  assert.equal(process.versions.node, pinnedNode);
   assert.ok(Number(process.versions.node.split(".")[0]) >= 22);
   for (const name of ["auth-js", "functions-js", "postgrest-js", "realtime-js", "storage-js"]) {
     const dependency = `@supabase/${name}`;
