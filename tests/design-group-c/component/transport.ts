@@ -1,5 +1,5 @@
 import type { BrowserContext, Page } from "@playwright/test";
-import { componentOrigin } from "../paths";
+import { componentOrigin } from "../paths.ts";
 
 /** Supplemental comparison only: data hooks, permissions and navigation are
  * synthetic. Only the enumerated local Vite assets may reach a server. */
@@ -32,13 +32,24 @@ export async function installComponentTransport(context: BrowserContext) {
       unexpected.push(description);
       return route.abort();
     }
-    const response = await route.fetch({ maxRedirects: 0 });
-    if (response.status() >= 300 && response.status() < 400) {
-      unexpected.push(`Redirect ${description}`);
-      return route.abort();
+    try {
+      const response = await route.fetch({ maxRedirects: 0 });
+      if (response.status() >= 300 && response.status() < 400) {
+        unexpected.push(`Redirect ${description}`);
+        return await route.abort();
+      }
+      await route.fulfill({ response });
+      observed.push(description);
+    } catch {
+      // A rejected handler leaves the intercepted request unresolved. Record
+      // the failure for the existing gate and finish the route before teardown.
+      errors.push(`Transport failed: ${description}`);
+      try {
+        await route.abort();
+      } catch {
+        errors.push(`Transport abort failed: ${description}`);
+      }
     }
-    observed.push(description);
-    return route.fulfill({ response });
   });
   const ledger = { unexpected, externalBlocked, observed, errors };
   const ledgers = contextLedgers.get(context) ?? [];

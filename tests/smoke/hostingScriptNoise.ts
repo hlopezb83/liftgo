@@ -7,6 +7,7 @@ const HOSTING_SCRIPT_URLS = new Set([
   `${PUBLISHED_APP_ORIGIN}/__l5e/events.js`,
   `${PUBLISHED_APP_ORIGIN}/__l5e/events.4d3abd1f6b7321c2.js`,
   `${PUBLISHED_APP_ORIGIN}/__l5e/events.b21a279f52bb8621.js`,
+  `${PUBLISHED_APP_ORIGIN}/__l5e/events.59f10ad6d72ea62d.js`,
 ]);
 
 /** Exact URLs only; fragments never travel to the server. No other rewriting. */
