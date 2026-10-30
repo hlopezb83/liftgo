@@ -27,7 +27,7 @@ test("flat overrides resolve patched copies without downgrading Wrangler or tsx"
     const parentRequire = createRequire(path.join(root, `node_modules/${parent}/package.json`));
     assert.equal(parentRequire("esbuild/package.json").version, "0.28.2", parent);
   }
-  assert.equal(typographyRequire("postcss-selector-parser/package.json").version, "7.1.6");
+  assert.equal(typographyRequire("postcss-selector-parser/package.json").version, "7.1.7");
 });
 
 // Resolve through the consumer (including legacy minimatch) so hoisted safe
