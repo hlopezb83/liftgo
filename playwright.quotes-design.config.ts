@@ -1,6 +1,6 @@
 import { defineConfig } from "@playwright/test";
-import { FAKE_BACKEND, browserLaunchOptions } from "./scripts/browser-test-config.mjs";
 import smoke from "./playwright.smoke.config";
+import { FAKE_BACKEND, browserLaunchOptions } from "./scripts/browser-test-config.mjs";
 
 // Importing smoke preserves its local-only origin and fake-build validation.
 // This suite never builds automatically: the coordinated build must finish first.
