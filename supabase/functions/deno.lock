@@ -3,7 +3,7 @@
   "specifiers": {
     "jsr:@std/assert@1.0.19": "1.0.19",
     "jsr:@std/internal@^1.0.12": "1.0.14",
-    "npm:@sentry/deno@10.76.2": "10.76.2",
+    "npm:@sentry/deno@11.10.0": "11.10.0",
     "npm:@types/node@*": "22.5.4",
     "npm:facturapi@5.2.0": "5.2.0"
   },
@@ -19,29 +19,39 @@
     }
   },
   "npm": {
-    "@opentelemetry/api@1.9.1": {
-      "integrity": "sha512-gLyJlPHPZYdAk1JENA9LeHejZe1Ti77/pTeFm/nMXmQH/HFZlcS/O2XJB+L8fkbrNSqhdtlvjBVjxwUYanNH5Q=="
+    "@opentelemetry/api@1.10.0": {
+      "integrity": "sha512-lMkyes8iHrG+mk6WH7X70MdCLI2RS0FwNBY1PyQ8UemaijE2m5mv5A0Niy3HtbYTFrgkUEQjFMXmSAk2hQDuPQ=="
     },
-    "@sentry/conventions@0.16.0": {
-      "integrity": "sha512-fO9PLmHdVURcSPUpWCItWAtgKiMwGdJHbovoSEyLplX5sxs2ugvI4CBPTrkkgqhObnZOD0CnWBKDzSVQYBKEyQ=="
+    "@sentry/conventions@0.29.0": {
+      "integrity": "sha512-kYq9/HJ/l6MYP/srIc20dy1W4mWyJfCF0OWFF+RhBGZwyr/wCmtabRFKyw7kqM+DTwZXQOjSTSZUcJhDowcInQ=="
     },
-    "@sentry/core@10.76.2": {
-      "integrity": "sha512-vndrQalRiwYatTkjlLWvyf69KocXIb9TKJ4A9oiyWguL8PJYtqIRTlRe4OpkpjLrxS18fvRdV0jEm29c/9p3hQ==",
+    "@sentry/core@11.10.0": {
+      "integrity": "sha512-l/OtTo1v+TQgZtHG2Q5N4IX+gFdAE1tZ27K/P21UCzJglWk54TPEm+d9T2lulPqMK06kZcLwDgRAhE2GO4YS5w==",
       "dependencies": [
         "@sentry/conventions"
       ]
     },
-    "@sentry/deno@10.76.2": {
-      "integrity": "sha512-xN+6Y9LS2uXgQNvHKKyHKoqs24neB4eToYvdtdD15mkGj5SAHA4N49Ko9lDf0xXO5/A3iWnQhRitnq7p9fXoCA==",
+    "@sentry/deno@11.10.0": {
+      "integrity": "sha512-dY7gwFSLS9euiKRQXV5n9QSJPXCeNYch5W3Z/53o13Grptc4TJ+6X/ZDGgdfiIf+pH7iAsYOR64bBvVWbPgtCA==",
       "dependencies": [
         "@opentelemetry/api",
+        "@sentry/conventions",
+        "@sentry/core",
+        "@sentry/server-runtime-injection",
+        "@sentry/server-utils"
+      ]
+    },
+    "@sentry/server-runtime-injection@11.10.0": {
+      "integrity": "sha512-1nc+HNPldrPEov16sL5m2cOLVgNJ+FsR7QtaWGOOv8qYFJkSp95lyc2qzLnaG2L72UzSMOv10peGRioAKrrZQQ==",
+      "dependencies": [
         "@sentry/core",
         "@sentry/server-utils"
       ]
     },
-    "@sentry/server-utils@10.76.2": {
-      "integrity": "sha512-wogj6Trj8fAu+aD7HbpvHEBlyANMOvvO9MP5NFJaiQbprLKugtCdE6rFTxDhofXvRo4nswL9m4Cvysg3k5KcvQ==",
+    "@sentry/server-utils@11.10.0": {
+      "integrity": "sha512-m/MVCvPzQJJZZCTFlVPCrTuoncT7SR80+QKg1K7ul25AsL0byABr5KsHCbXVpOYXLVz04Omk+pOOR5Cv2IAlrA==",
       "dependencies": [
+        "@opentelemetry/api",
         "@sentry/conventions",
         "@sentry/core"
       ]
@@ -172,7 +182,7 @@
   "workspace": {
     "dependencies": [
       "jsr:@std/assert@1.0.19",
-      "npm:@sentry/deno@10.76.2",
+      "npm:@sentry/deno@11.10.0",
       "npm:facturapi@5.2.0"
     ]
   }
