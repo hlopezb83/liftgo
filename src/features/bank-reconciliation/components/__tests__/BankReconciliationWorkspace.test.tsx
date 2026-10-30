@@ -56,6 +56,11 @@ beforeEach(() => {
     return this.tagName === 'TBODY' ? 600 : 44;
   });
   vi.spyOn(HTMLElement.prototype, 'offsetWidth', 'get').mockReturnValue(1000);
+  // TanStack Virtual mide el viewport con client*, y las filas con offset*.
+  vi.spyOn(HTMLElement.prototype, 'clientHeight', 'get').mockImplementation(function (this: HTMLElement) {
+    return this.tagName === 'TBODY' ? 600 : 44;
+  });
+  vi.spyOn(HTMLElement.prototype, 'clientWidth', 'get').mockReturnValue(1000);
 });
 afterEach(() => { cleanup(); vi.restoreAllMocks(); expect(mocks.mutate).not.toHaveBeenCalled(); });
 describe('V06 inspector con tabla real y Radix, datos aislados', () => {
