@@ -1,23 +1,35 @@
 import { describe, expect, it } from "vitest";
 import { redactPII, scrubEvent, scrubUrl } from "./scrubPII";
 
+// A JWT-shaped value for redaction only. The unsupported algorithm and dummy
+// signature make it unusable for authentication; no published token is copied.
+function makeJwtShapedFixture(): string {
+  const encode = (value: Record<string, string>) => btoa(JSON.stringify(value))
+    .replace(/=/g, "").replace(/\+/g, "-").replace(/\//g, "_");
+  return `${encode({ alg: "fixture-only", typ: "JWT" })}.${encode({ sub: "redaction-fixture" })}.intentionally_invalid_signature`;
+}
+
 describe("redactPII", () => {
   it("redacta email, RFC, CURP y JWT en un solo mensaje", () => {
-    // JWT de ejemplo (jwt.io) partido para no disparar escaneos de secretos.
-    const jwt =
-      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9" +
-      "." +
-      "eyJzdWIiOiIxMjM0NTY3ODkwIn0" +
-      "." +
-      "SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c";
+    const jwt = makeJwtShapedFixture();
     const raw =
       `Falla al facturar juan.perez@acme.mx (RFC XAXX010101000, CURP HEGG560427MVZRRL04) token ${jwt}`;
     const out = redactPII(raw);
     expect(out).not.toMatch(/juan\.perez/);
     expect(out).not.toMatch(/XAXX010101000/);
     expect(out).not.toMatch(/HEGG560427/);
-    expect(out).not.toMatch(/eyJhbGciOi/);
+    expect(out).not.toContain(jwt);
     expect(out).toContain("[REDACTED]");
+  });
+
+  it("redacta completamente un JWT sintético aunque su firma no sea válida", () => {
+    const jwt = makeJwtShapedFixture();
+    expect(redactPII(`before ${jwt} after`)).toBe("before [REDACTED] after");
+  });
+
+  it("preserva texto con puntos que no tiene forma de JWT", () => {
+    const raw = "release build.2026.10 completed";
+    expect(redactPII(raw)).toBe(raw);
   });
 
   it("preserva el mensaje operativo (código de error, folio no-PII)", () => {
@@ -64,7 +76,7 @@ describe("scrubEvent", () => {
         url: "https://app.liftgo.mx/api?token=xxx.yyy.zzz",
         query_string: "token=xxx.yyy.zzz",
         cookies: "sb-access-token=abc",
-        headers: { Authorization: "Bearer eyJhbGciOi.aa.bb", "x-trace-id": "t_1" },
+        headers: { Authorization: "Bearer synthetic-header-marker", "x-trace-id": "t_1" },
       },
       exception: { values: [{ value: "no se pudo cotizar para ana@x.mx" }] },
       breadcrumbs: [
