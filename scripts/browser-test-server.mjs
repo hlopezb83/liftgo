@@ -21,11 +21,17 @@ export function buildEnvironment(input = process.env) {
 }
 
 export async function buildSyntheticApp() {
-  await new Promise((resolve, reject) => {
-    const child = spawn('bun', ['run', 'build'], { cwd: root, env: buildEnvironment(), stdio: 'inherit', windowsHide: true });
-    child.once('error', reject);
-    child.once('exit', code => code === 0 ? resolve() : reject(new Error(`Synthetic build failed (${code})`)));
-  });
+  console.log(`[browser tests] Build runtime: ${process.version}`);
+  const env = buildEnvironment();
+  // Preserve package.json prebuild + build, using the verified Node executable
+  // directly so a successful Bun invocation cannot stand in for Node coverage.
+  for (const args of [['scripts/gen-version.mjs'], ['node_modules/vite/bin/vite.js', 'build']]) {
+    await new Promise((resolve, reject) => {
+      const child = spawn(process.execPath, args, { cwd: root, env, stdio: 'inherit', windowsHide: true });
+      child.once('error', reject);
+      child.once('exit', (code, signal) => code === 0 ? resolve() : reject(new Error(`Synthetic build failed: ${args[0]} (${signal ?? code})`)));
+    });
+  }
   assertBuildUsesFakeBackend(root);
 }
 

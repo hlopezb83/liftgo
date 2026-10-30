@@ -445,14 +445,24 @@ los artefactos de release de la aplicación.
 
 ## Herramienta de CI (nota de mantenimiento)
 
-GitHub Actions instala Bun 1.4.4 y Node 24.22.1 vía `.github/actions/setup-bun-project`
+GitHub Actions instala Bun 1.4.4 y Node 26.13.0 vía `.github/actions/setup-bun-project`
 con `bun install --frozen-lockfile`. Antes valida el runtime efectivo contra
-`engines`, `packageManager`, `.node-version`, `.nvmrc` y `.bun-version`; después
+el rango `engines.node` de transición (`^22.23.4 || ^24.22.1 || ^26.13.0`), `packageManager`,
+`.node-version`, `.nvmrc` y `.bun-version`; después
 comprueba que la instalación conserva el SHA-256 de `bun.lock`. La misma action
 se usa en los workflows manuales y programados que instalan el proyecto.
 El pin exacto de Bun se actualiza mediante un
 lote validado en CI (no Dependabot). Las suites completas, cobertura, build real y
 smoke se ejecutan únicamente en GitHub Actions.
+
+El prebuild y Vite se invocan con `process.execPath` desde el harness, que
+registra `process.version`; los seis shards y el merge de Vitest usan `node`
+explícitamente. Esto valida Node 26 en CI sin atribuirle una ejecución de Bun.
+La versión interna de Node de las actions es independiente del runtime instalado.
+El preview de Lovable observado usa Node 22.23.4 e ignora los pins; el runtime
+de publicación sigue sin verificar. Engines conserva Node 22/24 para ese entorno,
+sin atribuirle el resultado Node 26 de CI. Workers y Deno 2.9.8
+mantienen sus runtimes y configuración actuales; RLS/A-B siguen sólo opt-in manual.
 
 
 ## Optimización medida · 2026-10-01
