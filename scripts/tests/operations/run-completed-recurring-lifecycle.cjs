@@ -7,7 +7,7 @@ const fs = require('node:fs');
 const net = require('node:net');
 const os = require('node:os');
 const path = require('node:path');
-const postgres = require('postgres');
+const postgres = require('../../lib/postgres-factory.cjs')(require('postgres'));
 if (process.env.RUN_LOCAL_RECURRING_LIFECYCLE_TESTS !== '1') {
   throw Error('Explicit RUN_LOCAL_RECURRING_LIFECYCLE_TESTS=1 opt-in required.');
 }

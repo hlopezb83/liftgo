@@ -152,11 +152,12 @@ jobs:
     if: github.event_name == 'workflow_dispatch' && inputs.run_supabase == true
 
     env:
+      # Match the exact image identity required by the shared ownership guard.
+      SUPABASE_INTERNAL_IMAGE_REGISTRY: public.ecr.aws
       DB_URL: postgresql://postgres:postgres@127.0.0.1:54322/postgres
       # Marca explícita de backend aislado que exige el guard.
       E2E_ISOLATED_BACKEND: "1"
       VITE_SUPABASE_PROJECT_ID: local-ab-ephemeral
-      SUPABASE_PROJECT_ID: local-ab-ephemeral
 
     steps:
       - uses: actions/checkout@v7
@@ -304,6 +305,10 @@ jobs:
         uses: ./.github/actions/setup-playwright
 
       - name: Ejecutar gate A/B (datos + Storage + portal)
+        # CLI start/status/stop must keep the TOML project id for ownership checks.
+        # Only browser/API fixtures use this synthetic application marker.
+        env:
+          SUPABASE_PROJECT_ID: local-ab-ephemeral
         # Incluye transiciones de empleados, roles y layout en tres anchos.
         run: bun run test:multitenant-ab
 

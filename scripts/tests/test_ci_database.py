@@ -487,6 +487,63 @@ class GuardedBootstrapTests(unittest.TestCase):
 
 
 class SourceAndWorkflowTests(unittest.TestCase):
+    def assert_cli_image_registry_scope(self, text):
+        # setup-cli otherwise exports GHCR for CLI 2.34; ownership requires ECR.
+        job_env = text.split("\n    env:\n", 1)[1].split("\n    steps:\n", 1)[0]
+        expected = "      SUPABASE_INTERNAL_IMAGE_REGISTRY: public.ecr.aws"
+        self.assertIn(expected, job_env.splitlines())
+        self.assertEqual(text.count("SUPABASE_INTERNAL_IMAGE_REGISTRY:"), 1)
+        self.assertTrue(ci.DB_IMAGE.startswith("public.ecr.aws/supabase/postgres:"))
+        self.assertLess(text.index(expected), text.index("      - name: Setup Supabase CLI"))
+
+    def test_workflows_pin_cli_registry_to_exact_owned_database_image(self):
+        root = Path(__file__).parents[2]
+        for filename in ("rls-db-tests.yml", "multi-tenant-ab.yml"):
+            text = (root / ".github/workflows" / filename).read_text(encoding="utf-8")
+            with self.subTest(workflow=filename):
+                self.assert_cli_image_registry_scope(text)
+                for invalid in (
+                    text.replace("      SUPABASE_INTERNAL_IMAGE_REGISTRY: public.ecr.aws\n", ""),
+                    text.replace("SUPABASE_INTERNAL_IMAGE_REGISTRY: public.ecr.aws", "SUPABASE_INTERNAL_IMAGE_REGISTRY: ghcr.io"),
+                ):
+                    with self.assertRaises(AssertionError):
+                        self.assert_cli_image_registry_scope(invalid)
+
+    def assert_ab_project_marker_scope(self, text):
+        # Source contract: the CLI reads SUPABASE_PROJECT_ID as a TOML override.
+        # Keep it only in the Playwright step, never in job/global/GITHUB_ENV.
+        marker = "SUPABASE_PROJECT_ID: local-ab-ephemeral"
+        self.assertEqual(text.count("\n          " + marker + "\n"), 1)
+        import re
+        assignments = re.findall(r"(?m)^\s*SUPABASE_PROJECT_ID:\s*.*$", text)
+        self.assertEqual(len(assignments), 1)
+        steps = text.split("\n      - name: ")
+        gate = next(step for step in steps if step.startswith("Ejecutar gate A/B (datos + Storage + portal)\n"))
+        self.assertIn("        env:\n          " + marker + "\n", gate)
+        self.assertIn("        run: bun run test:multitenant-ab", gate)
+        for step in steps:
+            if step is not gate:
+                self.assertNotRegex(step, r"(?m)^\s*SUPABASE_PROJECT_ID:")
+        export = next(step for step in steps if step.startswith("Exportar credenciales locales efímeras\n"))
+        self.assertNotIn("SUPABASE_PROJECT_ID=", export)
+        self.assertIn("      VITE_SUPABASE_PROJECT_ID: local-ab-ephemeral", text)
+        dev_vars = next(step for step in steps if step.startswith("Crear .dev.vars efímero para Wrangler\n"))
+        self.assertIn('echo "SUPABASE_PROJECT_ID=local-ab-ephemeral"', dev_vars)
+
+    def test_ab_application_project_marker_cannot_override_cli_container_identity(self):
+        root = Path(__file__).parents[2]
+        text = (root / ".github/workflows/multi-tenant-ab.yml").read_text(encoding="utf-8")
+        self.assert_ab_project_marker_scope(text)
+        # Prove the old global setting and a future GITHUB_ENV leak are rejected.
+        old_global = text.replace("          SUPABASE_PROJECT_ID: local-ab-ephemeral\n", "")
+        old_global = old_global.replace("      VITE_SUPABASE_PROJECT_ID: local-ab-ephemeral\n",
+                                        "      VITE_SUPABASE_PROJECT_ID: local-ab-ephemeral\n      SUPABASE_PROJECT_ID: local-ab-ephemeral\n")
+        leaked = text.replace('            echo "SUPABASE_URL=$API_URL"',
+                              '            echo "SUPABASE_PROJECT_ID=local-ab-ephemeral"\n            echo "SUPABASE_URL=$API_URL"')
+        for invalid in (old_global, leaked):
+            with self.subTest(global_override=invalid is old_global), self.assertRaises(AssertionError):
+                self.assert_ab_project_marker_scope(invalid)
+
     def test_real_reviewed_http_files_are_only_stored_commands(self):
         # Reads source bytes only; no SQL, services or subprocess are executed.
         root = Path(__file__).parents[2]

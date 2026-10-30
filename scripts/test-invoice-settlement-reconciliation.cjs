@@ -9,7 +9,7 @@ const net = require('node:net');
 const assert = require('node:assert/strict');
 const { randomUUID } = require('node:crypto');
 const { execFileSync } = require('node:child_process');
-const postgres = require('postgres');
+const postgres = require('./lib/postgres-factory.cjs')(require('postgres'));
 
 const bin = process.env.PG_BIN;
 if (!bin || !path.isAbsolute(bin)) throw new Error('Set PG_BIN to installed PostgreSQL binaries');

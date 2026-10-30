@@ -36,7 +36,7 @@
     "knip": "knip",
     "knip:deep": "knip --files --dependencies --exports --include-entry-exports",
     "format": "prettier --write .",
-    "test:dependencies": "node --test scripts/tests/dependency-security.test.mjs scripts/tests/happy-dom-security.test.mjs scripts/tests/supabase-sdk-contracts.test.mjs"
+    "test:dependencies": "node --test scripts/tests/dependency-security.test.mjs scripts/tests/happy-dom-security.test.mjs scripts/tests/supabase-sdk-contracts.test.mjs scripts/tests/postgres-compat-offline.test.cjs scripts/tests/postgres-import-guard.test.mjs"
   },
   "overrides": {
     "zod-validation-error": "^4.0.2",
@@ -161,7 +161,7 @@
     "jsdom": "30.1.3",
     "knip": "^6.44.0",
     "nitro": "3.0.260603-beta",
-    "postgres": "^3.4.9",
+    "postgres": "4.0.0",
     "prettier": "^3.9.10",
     "rollup-plugin-visualizer": "^7.1.1",
     "typescript": "6.0.3",
