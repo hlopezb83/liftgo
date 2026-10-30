@@ -115,11 +115,25 @@ test('checkout ignores generated blobs and retains no tracked report', () => {
   const ignored = spawnSync('git', ['check-ignore', '.vitest-reports/blob-1-6.json'], { encoding: 'utf8' });
   assert.equal(ignored.status, 0);
 });
+const verifyCommand = 'node scripts/vitest-blob-provenance.mjs merge "$VITEST_DOWNLOAD_DIR" "$VITEST_MERGE_DIR"';
+const mergeCommand = 'node node_modules/vitest/vitest.mjs --merge-reports="$VITEST_MERGE_DIR" --coverage';
+function assertWorkflowMergeOrder(workflow) {
+  const verification = workflow.indexOf(verifyCommand);
+  const merge = workflow.indexOf(mergeCommand);
+  assert.ok(verification >= 0, 'Missing provenance verification command');
+  assert.ok(merge >= 0, 'Missing Node Vitest merge command');
+  assert.ok(verification < merge, 'Provenance verification must run before the Node Vitest merge');
+}
 test('workflow uses fresh directories, exact artifacts and verification before merge', () => {
   const workflow = fs.readFileSync('.github/workflows/ci.yml', 'utf8');
   assert.match(workflow, /mktemp -d "\$RUNNER_TEMP\/vitest-\$GITHUB_RUN_ID-\$GITHUB_RUN_ATTEMPT-shard-/);
   for (let shard = 1; shard <= 6; shard++) assert.ok(workflow.includes(`name: vitest-blob-\${{ github.run_id }}-\${{ github.run_attempt }}-${shard}\n`));
-  assert.ok(workflow.indexOf('vitest-blob-provenance.mjs merge') < workflow.indexOf('bunx vitest --merge-reports='));
+  assertWorkflowMergeOrder(workflow);
   assert.match(workflow, /--merge-reports="\$VITEST_MERGE_DIR" --coverage/);
   assert.doesNotMatch(workflow, /path: \.vitest-reports/);
+});
+test('workflow merge contract rejects missing commands and reversed verification order', () => {
+  assert.throws(() => assertWorkflowMergeOrder(mergeCommand), /Missing provenance/);
+  assert.throws(() => assertWorkflowMergeOrder(verifyCommand), /Missing Node Vitest/);
+  assert.throws(() => assertWorkflowMergeOrder(`${mergeCommand}\n${verifyCommand}`), /must run before/);
 });
