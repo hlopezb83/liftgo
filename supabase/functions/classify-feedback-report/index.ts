@@ -3,7 +3,7 @@
 import { aiChatCompletion } from "../_shared/ai.ts";
 import { enforceRateLimit, requireRole } from "../_shared/auth.ts";
 import type { SupabaseLike } from "../_shared/types.ts";
-import type { SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2";
+import type { SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2.118.0";
 import { handleClassifyFeedbackReport } from "./handler.ts";
 
 Deno.serve((req) =>

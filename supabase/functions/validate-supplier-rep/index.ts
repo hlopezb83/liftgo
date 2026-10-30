@@ -2,7 +2,7 @@
 // Se conserva endurecido (alcance por empresa) para consumidores antiguos.
 import { enforceRateLimit, requireRole } from "../_shared/auth.ts";
 import type { SupabaseLike } from "../_shared/types.ts";
-import type { SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2";
+import type { SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2.118.0";
 import { handleValidateSupplierRep } from "./handler.ts";
 
 // Reexportados para las pruebas y consumidores existentes.
