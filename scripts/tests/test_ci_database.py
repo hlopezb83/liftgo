@@ -487,6 +487,28 @@ class GuardedBootstrapTests(unittest.TestCase):
 
 
 class SourceAndWorkflowTests(unittest.TestCase):
+    def assert_cli_image_registry_scope(self, text):
+        # setup-cli otherwise exports GHCR for CLI 2.34; ownership requires ECR.
+        job_env = text.split("\n    env:\n", 1)[1].split("\n    steps:\n", 1)[0]
+        expected = "      SUPABASE_INTERNAL_IMAGE_REGISTRY: public.ecr.aws"
+        self.assertIn(expected, job_env.splitlines())
+        self.assertEqual(text.count("SUPABASE_INTERNAL_IMAGE_REGISTRY:"), 1)
+        self.assertTrue(ci.DB_IMAGE.startswith("public.ecr.aws/supabase/postgres:"))
+        self.assertLess(text.index(expected), text.index("      - name: Setup Supabase CLI"))
+
+    def test_workflows_pin_cli_registry_to_exact_owned_database_image(self):
+        root = Path(__file__).parents[2]
+        for filename in ("rls-db-tests.yml", "multi-tenant-ab.yml"):
+            text = (root / ".github/workflows" / filename).read_text(encoding="utf-8")
+            with self.subTest(workflow=filename):
+                self.assert_cli_image_registry_scope(text)
+                for invalid in (
+                    text.replace("      SUPABASE_INTERNAL_IMAGE_REGISTRY: public.ecr.aws\n", ""),
+                    text.replace("SUPABASE_INTERNAL_IMAGE_REGISTRY: public.ecr.aws", "SUPABASE_INTERNAL_IMAGE_REGISTRY: ghcr.io"),
+                ):
+                    with self.assertRaises(AssertionError):
+                        self.assert_cli_image_registry_scope(invalid)
+
     def assert_ab_project_marker_scope(self, text):
         # Source contract: the CLI reads SUPABASE_PROJECT_ID as a TOML override.
         # Keep it only in the Playwright step, never in job/global/GITHUB_ENV.
