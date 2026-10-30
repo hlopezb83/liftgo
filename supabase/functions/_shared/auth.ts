@@ -1,6 +1,6 @@
 // Helpers compartidos de autenticación / autorización para Edge Functions admin.
 // Centralizan validación de JWT, lookup de rol y generación de contraseñas seguras.
-import { type SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { type SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2.118.0";
 import { getCorsHeaders } from "./cors.ts";
 import { jsonError } from "./http.ts";
 import { getAdminClient, getCallerClient } from "./supabaseClients.ts";

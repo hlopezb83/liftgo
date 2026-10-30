@@ -1,5 +1,5 @@
 // In-memory boundary fixtures only. No duplicate period, selection or money logic.
-import type { SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2";
+import type { SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2.118.0";
 import { buildSupabaseMock } from "../_shared/test/supabaseClientMock.ts";
 import type { HistoricalInvoice } from "./invoiceHistory.ts";
 

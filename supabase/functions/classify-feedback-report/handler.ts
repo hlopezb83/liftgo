@@ -9,7 +9,7 @@
 //
 // Ruta preferida de la aplicación: src/lib/feedbackAi.functions.ts. Este
 // endpoint se mantiene sólo por compatibilidad con consumidores antiguos.
-import { z } from "https://esm.sh/zod@4.4.3";
+import { z } from "https://esm.sh/zod@4.6.7";
 import { handleCors } from "../_shared/cors.ts";
 import { jsonError, jsonResponse } from "../_shared/http.ts";
 import type { SupabaseLike } from "../_shared/types.ts";

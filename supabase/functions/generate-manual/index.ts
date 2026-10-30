@@ -1,4 +1,3 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { enforceRateLimit, requireAdmin } from "../_shared/auth.ts";
 import { jsonError, jsonResponse } from "../_shared/http.ts";
 import { handleCors } from "../_shared/cors.ts";
@@ -66,7 +65,7 @@ SECCIONES:
 (c) **Flujo de daños**: Inspección de retorno detecta daño → Registro de daño → Orden de mantenimiento → Reparación → Factura al cliente
 (d) **Flujo de mantenimiento preventivo**: Registro de servicio con próxima fecha → Alerta en dashboard → Equipo pasa a mantenimiento → Se completa → Vuelve a disponible`;
 
-serve(async (req) => {
+Deno.serve(async (req) => {
   const corsRes = handleCors(req);
   if (corsRes) return corsRes;
 
