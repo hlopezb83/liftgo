@@ -6,6 +6,7 @@ import { BookingActions } from "../BookingActions";
 
 const state = vi.hoisted(() => ({
   isAdmin: true,
+  financial: true,
   level: "full" as "full" | "read" | "none",
   returnBlock: null as unknown,
   isEarly: false,
@@ -21,6 +22,7 @@ vi.mock("@/features/users", () => ({
   useUserRole: () => ({ data: state.isAdmin ? "admin" : "ventas" }),
   useRolePermissions: () => ({ data: [] }),
   getAccessLevel: () => state.level,
+  useHasFinancialAccess: () => state.financial,
 }));
 vi.mock("../../../hooks/bookingActions/returnActionAvailability", () => ({
   returnActionAvailability: () => ({ block: state.returnBlock, isEarly: state.isEarly }),
@@ -32,9 +34,11 @@ vi.mock("../../../hooks/bookingActions/useBookingActionsLogic", async (orig) => 
     ...actual,
     useBookingActionsLogic: () => {
       const [statusOpen, setStatusOpen] = useState(false);
+      const [extendOpen, setExtendOpenState] = useState(false);
       return {
         isAdmin: state.isAdmin, navigate,
-        extendOpen: false, setExtendOpen,
+        extendOpen,
+        setExtendOpen: (v: boolean) => { setExtendOpen(v); setExtendOpenState(v); },
         statusDialogOpen: statusOpen,
         setStatusDialogOpen: (v: boolean) => { setStatusDialogOpen(v); setStatusOpen(v); },
         newStatus: "", setNewStatus: vi.fn(),
@@ -63,7 +67,7 @@ async function openMenu() {
 }
 
 beforeEach(() => {
-  Object.assign(state, { isAdmin: true, level: "full", returnBlock: null, isEarly: false, deletePending: false, cancelPending: false });
+  Object.assign(state, { isAdmin: true, financial: true, level: "full", returnBlock: null, isEarly: false, deletePending: false, cancelPending: false });
   vi.clearAllMocks();
 });
 
@@ -79,6 +83,16 @@ describe("V09 · acciones de reserva", () => {
       expect(within(menu).getByRole("menuitem", { name })).toBeInTheDocument();
     }
     expect(within(menu).getByText("En reserva confirmada sólo permite cancelar")).toBeInTheDocument();
+  });
+
+  it("Reservas full sin acceso financiero conserva Extender y su captura operativa", async () => {
+    Object.assign(state, { isAdmin: false, financial: false, level: "full" });
+    setup();
+    fireEvent.click(await screen.findByRole("button", { name: "Extender" }));
+    const dialog = await screen.findByRole("dialog", { name: "Extender Reserva" });
+    expect(within(dialog).getByRole("textbox", { name: "Nueva Fecha de Fin" })).toBeEnabled();
+    expect(within(dialog).getByRole("button", { name: "Extender" })).toBeDisabled();
+    expect(dialog).not.toHaveTextContent(/desglose|IVA|MXN|USD|tarifa|costo estimado/i);
   });
 
   it("devolución navega con early=1 cuando aplica", async () => {
@@ -173,6 +187,18 @@ describe("V09 · acciones de reserva", () => {
     fireEvent.keyDown(dialog, { key: "Escape" });
     await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull());
     await waitFor(() => expect(screen.getByRole("button", { name: "Más acciones" })).toHaveFocus());
+  });
+
+  it("Extender abre su diálogo y Cancelar devuelve foco al disparador persistente", async () => {
+    setup();
+    const trigger = await screen.findByRole("button", { name: "Extender" });
+    vi.spyOn(trigger, "getClientRects").mockReturnValue([new DOMRect()] as unknown as DOMRectList);
+    trigger.focus();
+    fireEvent.click(trigger);
+    const dialog = await screen.findByRole("dialog", { name: "Extender Reserva" });
+    fireEvent.click(within(dialog).getByRole("button", { name: "Cancelar" }));
+    await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull());
+    await waitFor(() => expect(trigger).toHaveFocus());
   });
 
   it("completada/cancelada sin admin: ninguna acción", () => {

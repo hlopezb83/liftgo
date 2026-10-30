@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { TestRouter } from "@/test/router";
 import { useLocation } from "@/lib/router-compat";
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";
@@ -72,6 +72,42 @@ beforeEach(() => {
 });
 
 describe("BookingDetail (FE4-02)", () => {
+  it.each([
+    ["confirmed", "Confirmado", "2026-10-31", "2026-11-07", "8 días"],
+    ["completed", "Completado", "2026-11-07", "2026-11-07", "1 día"],
+    ["cancelled", "Cancelado", "2026-11-01", "2026-11-30", "30 días"],
+  ])("keeps equipment, inclusive period and %s status together before contact details", async (status, statusLabel, startDate, endDate, duration) => {
+    const equipment = "Montacargas de prueba con nombre operativo completo y largo";
+    const model = "Modelo de prueba con capacidad y especificaciones completas";
+    useBookingMock.mockReturnValue({
+      data: {
+        id: "bk-1", booking_number: "RSV-0001", status,
+        forklifts: { name: equipment, model },
+        customer_name: "Cliente de prueba con nombre largo",
+        customer_contact: "Contacto administrativo de prueba",
+        site_contact_name: "Contacto operativo de prueba",
+        site_contact_phone: "555 010 0101",
+        start_date: startDate, end_date: endDate,
+      },
+      isLoading: false, isError: false, refetch: vi.fn(),
+    });
+    renderPage();
+
+    const summary = await screen.findByRole("region", { name: "Resumen de la reserva" });
+    expect(within(summary).getByText(equipment)).toBeInTheDocument();
+    expect(within(summary).getByText(model)).toBeInTheDocument();
+    expect(within(summary).getByText(statusLabel)).toBeInTheDocument();
+    expect(within(summary).getByText(duration)).toBeInTheDocument();
+    expect(summary.querySelectorAll("time")).toHaveLength(2);
+    expect(summary.querySelectorAll("time")[0]).toHaveAttribute("datetime", startDate);
+    expect(summary.querySelectorAll("time")[1]).toHaveAttribute("datetime", endDate);
+    const customer = screen.getByText("Cliente de prueba con nombre largo");
+    expect(summary.compareDocumentPosition(customer) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(screen.getByText("Contacto administrativo de prueba")).toBeInTheDocument();
+    expect(screen.getByText("Contacto operativo de prueba")).toBeInTheDocument();
+    expect(screen.getByText("555 010 0101")).toBeInTheDocument();
+  });
+
   it("N5: Volver returns to the exact calendar date, view and range", async () => {
     useBookingMock.mockReturnValue({
       data: { id: "bk-1", booking_number: "RSV-0001", status: "confirmed", customer_name: "Cliente", start_date: "2026-11-05", end_date: "2026-11-07" },

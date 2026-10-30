@@ -16,7 +16,7 @@ function config() {
 function walk(directory) {
   return fs.readdirSync(directory, { withFileTypes: true }).flatMap(entry => {
     const filename = path.join(directory, entry.name);
-    return entry.isDirectory() ? walk(filename) : filename.endsWith('.ts') ? [filename] : [];
+    return entry.isDirectory() ? walk(filename) : /\.tsx?$/.test(filename) ? [filename] : [];
   });
 }
 test('browser typecheck includes every E2E spec, setup, teardown and fixture', () => {
@@ -25,6 +25,31 @@ test('browser typecheck includes every E2E spec, setup, teardown and fixture', (
   assert.ok(e2eFiles.filter(file => file.endsWith('.spec.ts')).length >= 17);
   assert.deepEqual(e2eFiles.filter(file => !roots.has(file)), []);
 });
+test('browser typecheck includes quote design specs, fixtures and config', () => {
+  const roots = new Set(config().fileNames);
+  const quoteFiles = walk(path.join(root, 'tests/quotes-design'));
+  assert.ok(quoteFiles.some(file => file.endsWith('.spec.ts')), 'quote design must contain a spec');
+  const expected = [...quoteFiles, path.join(root, 'playwright.quotes-design.config.ts')];
+  assert.deepEqual(expected.filter(file => !roots.has(file)), []);
+});
+test('browser typecheck includes booking specs, fixtures and config', () => {
+  const roots = new Set(config().fileNames);
+  const bookingFiles = walk(path.join(root, 'tests/bookings'));
+  assert.ok(bookingFiles.some(file => file.endsWith('.spec.ts')), 'booking acceptance must contain a spec');
+  const expected = [...bookingFiles, path.join(root, 'tests/bookings/playwright.config.ts')];
+  assert.deepEqual(expected.filter(file => !roots.has(file)), []);
+});
+test('browser typecheck includes all group C harness sources and shared teardown', () => {
+  const roots = new Set(config().fileNames);
+  const files = walk(path.join(root, 'tests/design-group-c'));
+  assert.ok(files.some(file => file.endsWith('.tsx')), 'component fixtures must be included');
+  const expected = [...files, ...[
+    'playwright.group-c-design.config.ts', 'playwright.group-c-component.config.ts',
+    'vite.group-c-fixture.config.ts', 'tests/offlineTeardown.ts',
+  ].map(file => path.join(root, file))];
+  assert.deepEqual(expected.filter(file => !roots.has(file)), []);
+});
+
 test('an incompatible type in a formerly excluded spec fails without executing it', () => {
   const parsed = config();
   const target = path.join(root, 'tests/e2e/customer-create.spec.ts');

@@ -17,9 +17,10 @@ interface SaleLineItemsProps {
   onChange: (lines: SaleLine[]) => void;
   models: EquipmentModel[];
   modelsLoading?: boolean;
+  currency?: string;
 }
 
-export function SaleLineItems({ lines, onChange, models, modelsLoading }: SaleLineItemsProps) {
+export function SaleLineItems({ lines, onChange, models, modelsLoading, currency }: SaleLineItemsProps) {
   const updateLine = (index: number, field: keyof SaleLine, value: string | number) => {
     onChange(lines.map((line, i) => (i === index ? { ...line, [field]: value } : line)));
   };
@@ -51,6 +52,7 @@ export function SaleLineItems({ lines, onChange, models, modelsLoading }: SaleLi
             index={index}
             models={models}
             disableRemove={lines.length <= 1}
+            currency={currency}
             onUpdate={updateLine}
             onRemove={removeLine}
           />

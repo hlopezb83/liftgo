@@ -96,6 +96,10 @@ jobs:
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@v7
+      # Eliminar sin leer antes de que Bun/Vite puedan cargar archivos locales.
+      # El build mantiene exclusivamente las variables ficticias del step Build.
+      - name: Excluir archivos de entorno locales del build
+        run: rm -f -- .env .env.*
       - uses: ./.github/actions/setup-bun-project
         with:
           save-cache: "true"
@@ -111,8 +115,14 @@ jobs:
           node --test scripts/tests/feature-imports.test.mjs scripts/tests/vitest-blob-provenance.test.mjs scripts/tests/browser-typecheck.test.mjs
           node --test scripts/tests/lint-migrations.test.mjs
 
+      - name: Offline harness lifecycle and artifact guards
+        run: node --test tests/offlineTeardown.test.mjs tests/design-group-c/artifactGuard.test.mjs
+
       - name: ESLint
         run: bun run lint --max-warnings=0
+
+      - name: Group C and shared harness ESLint
+        run: node node_modules/eslint/bin/eslint.js --config eslint.group-c-design.config.mjs --max-warnings=0 tests/design-group-c tests/offlineTeardown.ts tests/offlineTeardown.test.mjs playwright.group-c-design.config.ts playwright.group-c-component.config.ts vite.group-c-fixture.config.ts
 
       - name: Typecheck
         run: bun run typecheck
@@ -150,6 +160,62 @@ jobs:
         env:
           SMOKE_REUSE_BUILD: "1"
         run: bunx playwright test --config playwright.invoice-ui.config.ts
+
+      - name: Quote acceptance 360/390/1440 (real build, fake data)
+        env:
+          SMOKE_REUSE_BUILD: "1"
+        run: bunx playwright test --config playwright.quotes-design.config.ts
+
+      - name: Booking acceptance 360/390/1440 (real build, fake data)
+        env:
+          SMOKE_REUSE_BUILD: "1"
+          BOOKINGS_EVIDENCE_DIR: test-results/bookings/evidence
+        run: bunx playwright test --config tests/bookings/playwright.config.ts
+
+      - name: Group C acceptance (real build, fake data)
+        env:
+          GROUP_C_BUILD_DIR: "."
+          GROUP_C_EVIDENCE_DIR: test-results/group-c
+        run: node node_modules/@playwright/test/cli.js test --config playwright.group-c-design.config.ts
+
+      - name: Group C supplemental component comparisons
+        env:
+          GROUP_C_BUILD_DIR: "."
+          GROUP_C_EVIDENCE_DIR: test-results/group-c
+        run: node node_modules/@playwright/test/cli.js test --config playwright.group-c-component.config.ts
+
+      - name: Upload group C evidence
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: group-c-design-artifacts
+          path: |
+            test-results/group-c/app-results/
+            test-results/group-c/component-results/
+            test-results/group-c/*.png
+            test-results/group-c/*.json
+          retention-days: 7
+          if-no-files-found: ignore
+
+      - name: Upload booking acceptance evidence
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: bookings-design-artifacts
+          path: test-results/bookings/
+          retention-days: 7
+          if-no-files-found: ignore
+
+      - name: Upload quote acceptance evidence
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: quotes-design-artifacts
+          path: |
+            playwright-report/quotes-design/
+            test-results/quotes-design/
+          retention-days: 7
+          if-no-files-found: ignore
 
       - name: Subir evidencia móvil
         if: always()

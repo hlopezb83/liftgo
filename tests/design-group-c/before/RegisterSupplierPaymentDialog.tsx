@@ -1,0 +1,202 @@
+import { useRef, useState } from "react";
+import { useForm } from "react-hook-form";
+import { BlockedActionNotice } from "@/components/feedback/BlockedActionNotice";
+import {
+  CurrencyField, DateField, SelectField, TextField, TextareaField, type SelectOption,
+} from "@/components/forms/fields";
+import { FormActions } from "@/components/forms/FormActions";
+import { FormDialog, FormDialogFooter } from "@/components/forms/FormDialog";
+import { UploadIcon, X } from "@/components/icons";
+import { Button } from "@/components/ui/button";
+import { Form } from "@/components/ui/form";
+import { Label } from "@/components/ui/label";
+import { toYMD } from "@/lib/date/toYMD";
+import { formatCurrencyWithCode } from "@/lib/format/formatCurrency";
+import { zodResolver } from "@/lib/forms/zodResolver";
+import type { BusinessBlock } from "@/lib/rules/businessBlocks";
+import { notifyWarning } from "@/lib/ui/appFeedback";
+import { nowMty } from "@/lib/utils";
+import { useRegisterSupplierPayment } from "@/features/accounts-payable/hooks/useRegisterSupplierPayment";
+import { removeSupplierReceipt, useUploadSupplierReceipt } from "@/features/accounts-payable/hooks/useUploadSupplierReceipt";
+import { PAYMENT_METHODS } from "@/features/accounts-payable/lib/supplierBillConstants";
+import { supplierPaymentSchema, type SupplierPaymentFormData } from "@/features/accounts-payable/lib/supplierPaymentSchema";
+
+interface Props {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  billId: string;
+  billNumber: string;
+  balance: number;
+  /** G-B1: la factura puede estar en USD; sin esto el saldo se veía en MXN. */
+  currency?: string;
+}
+
+const METHOD_OPTIONS: SelectOption[] = PAYMENT_METHODS.map((m) => ({ value: m.value, label: m.label }));
+
+const buildDefaults = (balance: number): SupplierPaymentFormData => ({
+  amount: balance,
+  payment_date: nowMty(),
+  payment_method: "transferencia",
+  bank_account: "",
+  reference: "",
+  receipt_url: "",
+  notes: "",
+});
+
+interface ReceiptFieldProps {
+  file: File | null;
+  onChange: (f: File | null) => void;
+  disabled: boolean;
+}
+
+function ReceiptField({ file, onChange, disabled }: ReceiptFieldProps) {
+  const ref = useRef<HTMLInputElement>(null);
+  if (file) {
+    return (
+      <div className="flex items-center justify-between rounded-md border p-2 text-sm">
+        <span className="truncate">{file.name}</span>
+        <Button type="button" variant="ghost" size="sm" onClick={() => onChange(null)} disabled={disabled}>
+          <X className="h-4 w-4" />
+        </Button>
+      </div>
+    );
+  }
+  return (
+    <div>
+      <input
+        ref={ref}
+        type="file"
+        accept="application/pdf,image/png,image/jpeg,image/webp"
+        className="hidden"
+        onChange={(e) => {
+          const f = e.target.files?.[0];
+          if (f) onChange(f);
+        }}
+      />
+      <Button type="button" variant="outline" size="sm" onClick={() => ref.current?.click()} disabled={disabled}>
+        <UploadIcon className="h-4 w-4 mr-1" />Adjuntar archivo
+      </Button>
+    </div>
+  );
+}
+
+export function RegisterSupplierPaymentDialog(props: Props) {
+  return <SupplierPaymentSession key={`${props.billId}:${props.open}`} {...props} />;
+}
+
+function SupplierPaymentSession({
+  open, onOpenChange, billId, billNumber, balance, currency = "MXN",
+}: Props) {
+  const [serverBlock, setServerBlock] = useState<BusinessBlock | null>(null);
+  const register = useRegisterSupplierPayment({
+    onBusinessBlock: (block) => {
+      setServerBlock({
+        ...block,
+        reason: "El saldo pendiente cambió antes de que se guardara el pago.",
+        nextStep: "Revisa el saldo actualizado que aparece arriba y confirma el monto antes de volver a intentar.",
+      });
+    },
+  });
+  const uploader = useUploadSupplierReceipt();
+  const [receiptFile, setReceiptFile] = useState<File | null>(null);
+
+  const form = useForm<SupplierPaymentFormData>({
+    resolver: zodResolver(
+      supplierPaymentSchema.refine((d) => d.amount <= balance + 0.0001, {
+        message: "El monto no puede ser mayor al saldo",
+        path: ["amount"],
+      }),
+    ),
+    defaultValues: buildDefaults(balance),
+  });
+
+  const onSubmit = async (data: SupplierPaymentFormData) => {
+    setServerBlock(null);
+    let receipt_url = data.receipt_url || undefined;
+    let uploadedPath: string | undefined;
+    if (receiptFile) {
+      const uploaded = await uploader.mutateAsync({ file: receiptFile, billId });
+      // N-9: persistimos el path, no una signed URL de 5 años.
+      receipt_url = uploaded.path;
+      uploadedPath = uploaded.path;
+    }
+    try {
+      await register.mutateAsync({
+        bill_id: billId,
+        amount: data.amount,
+        payment_date: toYMD(data.payment_date) ?? "",
+        payment_method: data.payment_method || undefined,
+        bank_account: data.bank_account || undefined,
+        reference: data.reference || undefined,
+        receipt_url,
+        notes: data.notes || undefined,
+      });
+      onOpenChange(false);
+    } catch {
+      // A failed payment must not leave an unreferenced receipt in Storage.
+      if (uploadedPath) {
+        const { error } = await removeSupplierReceipt(uploadedPath);
+        if (error) notifyWarning("No se pudo limpiar el comprobante", {
+          error,
+          description: "El pago no se registró. Contacta a soporte para revisar el archivo subido.",
+        });
+      }
+    }
+  };
+
+  const isPending = register.isPending || uploader.isPending;
+
+  return (
+    <FormDialog
+      isPending={register.isPending || uploader.isPending}
+      isDirty={form.formState.isDirty || receiptFile !== null}
+      open={open} onOpenChange={onOpenChange} title={`Registrar pago — ${billNumber}`}>
+      <div className="rounded-md bg-muted/50 p-3 mb-2 flex items-center justify-between text-sm">
+        <span className="text-muted-foreground">Saldo actual</span>
+        <span className="tabular-nums font-bold">{formatCurrencyWithCode(balance, currency)}</span>
+      </div>
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-3">
+          {serverBlock && <BlockedActionNotice block={serverBlock} />}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <CurrencyField control={form.control} name="amount" label="Monto" required />
+            <DateField control={form.control} name="payment_date" label="Fecha" required disabledMatcher={{ after: nowMty() }} />
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <SelectField
+              control={form.control}
+              name="payment_method"
+              label="Método"
+              options={METHOD_OPTIONS}
+            />
+            <TextField
+              control={form.control}
+              name="bank_account"
+              label="Cuenta bancaria"
+              placeholder="Banco / últimos 4"
+            />
+          </div>
+          <TextField
+            control={form.control}
+            name="reference"
+            label="Referencia"
+            placeholder="Folio de transferencia, cheque…"
+          />
+          <div className="space-y-1.5">
+            <Label>Comprobante (PDF/JPG/PNG, máx 5 MB)</Label>
+            <ReceiptField file={receiptFile} onChange={setReceiptFile} disabled={isPending} />
+          </div>
+
+          <TextareaField control={form.control} name="notes" label="Notas" rows={2} />
+          <FormDialogFooter>
+            <FormActions
+              submitLabel={uploader.isPending ? "Subiendo…" : "Registrar pago"}
+              isPending={isPending}
+              onCancel={() => onOpenChange(false)}
+            />
+          </FormDialogFooter>
+        </form>
+      </Form>
+    </FormDialog>
+  );
+}

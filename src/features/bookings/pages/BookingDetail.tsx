@@ -1,7 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { EmptyState } from "@/components/feedback/EmptyState";
 import { QueryErrorState } from "@/components/feedback/QueryErrorState";
-import { StatusBadge } from "@/components/feedback/StatusBadge";
 import { DetailPageHeader } from "@/components/layout/DetailPageHeader";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -12,10 +11,9 @@ import { isValidUuid } from "@/lib/isValidUuid";
 import { useLocation, useParams } from "@/lib/router-compat";
 import { BookingBillingCard } from "../components/booking-detail/BookingBillingCard";
 import { BookingCustomerCard } from "../components/booking-detail/BookingCustomerCard";
-import { BookingEquipmentCard } from "../components/booking-detail/BookingEquipmentCard";
 import { BookingExtensionsCard } from "../components/booking-detail/BookingExtensionsCard";
 import { BookingHourometerCard } from "../components/booking-detail/BookingHourometerCard";
-import { BookingPeriodCard } from "../components/booking-detail/BookingPeriodCard";
+import { BookingSummaryCard } from "../components/booking-detail/BookingSummaryCard";
 import { BookingTransportsCard } from "../components/booking-detail/BookingTransportsCard";
 import { BookingActions } from "../components/bookings/BookingActions";
 import { BookingStatusHistory } from "../components/bookings/BookingStatusHistory";
@@ -82,17 +80,12 @@ export default function BookingDetail() {
 
   const forkliftName = booking.forklifts?.name ?? "";
   const forkliftModel = booking.forklifts?.model ?? "";
-  const subtitleName = forkliftName || "Equipo";
-  const subtitleCustomer = booking.customer_name ?? "Sin cliente";
-  const subtitle = `${subtitleName} · ${subtitleCustomer}`;
   const extensionsList = extensions ?? [];
 
   return (
     <PageContainer maxWidth="wide">
       <DetailPageHeader
         title={booking.booking_number}
-        subtitle={subtitle}
-        badges={<StatusBadge status={booking.status} />}
         backTo={backTo}
         actions={<BookingActions
           booking={booking}
@@ -101,17 +94,20 @@ export default function BookingDetail() {
           transportsError={transportsError}
         />}
       />
-
-
+      <BookingSummaryCard
+        name={forkliftName}
+        model={forkliftModel}
+        startDate={booking.start_date}
+        endDate={booking.end_date}
+        status={booking.status}
+      />
       <div className="grid gap-4 sm:gap-6 sm:grid-cols-2">
-        <BookingEquipmentCard name={forkliftName} model={forkliftModel} />
         <BookingCustomerCard
           customerName={booking.customer_name}
           customerContact={booking.customer_contact}
           siteContactName={booking.site_contact_name}
           siteContactPhone={booking.site_contact_phone}
         />
-        <BookingPeriodCard startDate={booking.start_date} endDate={booking.end_date} />
         <BookingBillingCard booking={booking} />
       </div>
 

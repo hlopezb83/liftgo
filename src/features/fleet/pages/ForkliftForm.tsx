@@ -5,7 +5,7 @@ import { PageContainer } from "@/components/layout/PageContainer";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Form, FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Textarea } from "@/components/ui/textarea";
 import { EquipmentDetailsSection } from "../components/forklift-form/EquipmentDetailsSection";
 import { InsuranceSection } from "../components/forklift-form/InsuranceSection";
@@ -43,7 +43,13 @@ export default function ForkliftForm() {
       <FormPageHeader title={isEdit ? "Editar montacargas" : "Agregar montacargas"} />
 
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 [&_input]:scroll-mt-20 [&_textarea]:scroll-mt-20 [&_input]:scroll-mb-28 [&_textarea]:scroll-mb-28" onFocusCapture={(event) => {
+          const field = event.target;
+          if (!field.matches('input, textarea, [role="combobox"]')) return;
+          requestAnimationFrame(() => {
+            if (document.activeElement === field) field.scrollIntoView?.({ block: "nearest", inline: "nearest" });
+          });
+        }}>
           <EquipmentDetailsSection
             isEdit={isEdit}
             manufacturers={manufacturers}
@@ -61,6 +67,7 @@ export default function ForkliftForm() {
             <CardContent>
               <FormField control={form.control} name="notes" render={({ field }) => (
                 <FormItem>
+                  <FormLabel className="sr-only">Notas</FormLabel>
                   <FormControl>
                     <Textarea placeholder="Notas internas sobre este montacargas…" rows={3} {...field} />
                   </FormControl>
@@ -70,11 +77,13 @@ export default function ForkliftForm() {
             </CardContent>
           </Card>
 
-          <FormActions
-            submitLabel={isEdit ? "Guardar cambios" : "Agregar montacargas"}
-            isPending={isPending}
-            onCancel={() => navigate(-1)}
-          />
+          <div className="sticky bottom-0 z-10 border-t bg-background py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]" role="region" aria-label="Acciones del equipo">
+            <FormActions
+              submitLabel={isEdit ? "Guardar cambios" : "Agregar montacargas"}
+              isPending={isPending}
+              onCancel={() => navigate(-1)}
+            />
+          </div>
         </form>
       </Form>
     </PageContainer>

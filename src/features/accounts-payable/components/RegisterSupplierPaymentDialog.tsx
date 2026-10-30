@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useRef, useState, type ComponentProps } from "react";
 import { useForm } from "react-hook-form";
 import { BlockedActionNotice } from "@/components/feedback/BlockedActionNotice";
 import {
@@ -29,6 +29,7 @@ interface Props {
   balance: number;
   /** G-B1: la factura puede estar en USD; sin esto el saldo se veía en MXN. */
   currency?: string;
+  onCloseAutoFocus?: ComponentProps<typeof FormDialog>["onCloseAutoFocus"];
 }
 
 const METHOD_OPTIONS: SelectOption[] = PAYMENT_METHODS.map((m) => ({ value: m.value, label: m.label }));
@@ -85,7 +86,7 @@ export function RegisterSupplierPaymentDialog(props: Props) {
 }
 
 function SupplierPaymentSession({
-  open, onOpenChange, billId, billNumber, balance, currency = "MXN",
+  open, onOpenChange, billId, billNumber, balance, currency = "MXN", onCloseAutoFocus,
 }: Props) {
   const [serverBlock, setServerBlock] = useState<BusinessBlock | null>(null);
   const register = useRegisterSupplierPayment({
@@ -148,18 +149,20 @@ function SupplierPaymentSession({
 
   return (
     <FormDialog
+      onCloseAutoFocus={onCloseAutoFocus}
+      className="[&_input]:scroll-mt-32 [&_textarea]:scroll-mt-32 [&_input]:scroll-mb-24 [&_textarea]:scroll-mb-24"
       isPending={register.isPending || uploader.isPending}
       isDirty={form.formState.isDirty || receiptFile !== null}
       open={open} onOpenChange={onOpenChange} title={`Registrar pago — ${billNumber}`}>
       <div className="rounded-md bg-muted/50 p-3 mb-2 flex items-center justify-between text-sm">
-        <span className="text-muted-foreground">Saldo actual</span>
+        <span className="text-muted-foreground">Saldo actual · {currency}</span>
         <span className="tabular-nums font-bold">{formatCurrencyWithCode(balance, currency)}</span>
       </div>
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-3">
           {serverBlock && <BlockedActionNotice block={serverBlock} />}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <CurrencyField control={form.control} name="amount" label="Monto" required />
+            <CurrencyField control={form.control} name="amount" label="Monto" currency={currency as "MXN" | "USD"} required />
             <DateField control={form.control} name="payment_date" label="Fecha" required disabledMatcher={{ after: nowMty() }} />
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">

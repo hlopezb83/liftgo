@@ -13,7 +13,7 @@ export function ContactSection() {
         label="Persona de Contacto"
         placeholder="María García"
       />
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
         {/* autoComplete="off": el autorrelleno del navegador no debe pisar el prellenado. */}
         <TextField
           control={control}

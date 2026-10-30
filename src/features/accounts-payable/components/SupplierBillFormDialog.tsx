@@ -25,6 +25,20 @@ interface Props {
 
 const CURRENCY_OPTIONS: SelectOption[] = CURRENCIES.map((c) => ({ value: c, label: c }));
 
+function revealSupplierBillControl(field: HTMLElement) {
+  const dialog = field.closest<HTMLElement>('[role="dialog"]');
+  if (!dialog || document.activeElement !== field) return;
+  const bounds = dialog.getBoundingClientRect();
+  const header = dialog.querySelector<HTMLElement>(":scope > .sticky");
+  const footer = dialog.querySelector<HTMLElement>(".supplier-bill-form-footer");
+  const visibleTop = (header?.getBoundingClientRect().bottom ?? bounds.top) + 8;
+  const visibleBottom = (footer?.getBoundingClientRect().top ?? bounds.bottom) - 8;
+  const control = field.getBoundingClientRect();
+  if (control.bottom > visibleBottom) dialog.scrollTop += control.bottom - visibleBottom;
+  const currentTop = field.getBoundingClientRect().top;
+  if (currentTop < visibleTop) dialog.scrollTop -= visibleTop - currentTop;
+}
+
 
 export function SupplierBillFormDialog({ open, onOpenChange, bill, overrides, titleOverride }: Props) {
   const isEdit = !!bill;
@@ -99,7 +113,11 @@ export function SupplierBillFormDialog({ open, onOpenChange, bill, overrides, ti
       title={titleOverride ?? (isEdit && bill ? `Editar factura ${bill.bill_number}` : "Nueva factura de proveedor")}
     >
       <Form {...form}>
-        <form onSubmit={onSubmit} className="space-y-4">
+        <form onSubmit={onSubmit} className="space-y-4" onFocusCapture={(event) => {
+          const field = event.target;
+          if (!field.matches('input, textarea, [role="combobox"]')) return;
+          requestAnimationFrame(() => revealSupplierBillControl(field));
+        }}>
           {allowImport && (
             <FormSection title="Comprobante fiscal (XML)" first>
               <SupplierBillCfdiDropzone
@@ -126,20 +144,20 @@ export function SupplierBillFormDialog({ open, onOpenChange, bill, overrides, ti
             selectedSupplier={selectedSupplier}
             suggestedDueDate={suggestedDueDate}
           />
-          <SupplierBillTotalPanel
-            total={total}
-            currency={currency}
-            totalMxn={totalMxn}
-            threshold={threshold}
-          />
-
-
-          <FormDialogFooter>
+          <FormDialogFooter className="supplier-bill-form-footer">
+            <div className="w-full space-y-3">
+            <SupplierBillTotalPanel
+              total={total}
+              currency={currency}
+              totalMxn={totalMxn}
+              threshold={threshold}
+            />
             <FormActions
               submitLabel={isEdit ? "Guardar cambios" : "Registrar"}
               isPending={isPending}
               onCancel={() => onOpenChange(false)}
             />
+            </div>
           </FormDialogFooter>
         </form>
       </Form>

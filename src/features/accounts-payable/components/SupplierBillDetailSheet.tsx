@@ -30,10 +30,10 @@ export function SupplierBillDetailSheet({ billId, open, onOpenChange, onCloseAut
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent className="sm:max-w-lg overflow-y-auto" onCloseAutoFocus={onCloseAutoFocus}>
-        <SheetHeader>
-          <SheetTitle className="flex items-center gap-2">
-            <DocumentIcon className="h-5 w-5" />
+      <SheetContent className="sm:max-w-lg flex flex-col gap-0 overflow-hidden p-0" onCloseAutoFocus={onCloseAutoFocus}>
+        <SheetHeader className="shrink-0 border-b px-6 py-5 pr-12 text-left">
+          <SheetTitle className="flex items-start gap-2 [overflow-wrap:anywhere]">
+            <DocumentIcon className="mt-0.5 h-5 w-5 shrink-0" />
             {bill?.bill_number ?? (isError ? "Error" : "Cargando…")}
           </SheetTitle>
         </SheetHeader>
@@ -41,13 +41,17 @@ export function SupplierBillDetailSheet({ billId, open, onOpenChange, onCloseAut
         <Activity mode={open ? "visible" : "hidden"}>
         {/* A4-06: sin esta rama la query fallida dejaba el spinner infinito. */}
         {isError ? (
-          <QueryErrorState bare entity="el detalle de la factura de proveedor" onRetry={() => { void refetch(); }} />
+          <div className="min-h-0 flex-1 overflow-y-auto px-6 py-4">
+            <QueryErrorState bare entity="el detalle de la factura de proveedor" onRetry={() => { void refetch(); }} />
+          </div>
         ) : isLoading ? (
-          <div className="flex items-center justify-center py-12 text-muted-foreground">
+          <div className="min-h-0 flex-1 overflow-y-auto px-6 py-12 text-muted-foreground">
+            <div className="flex justify-center">
             <SpinnerIcon className="h-5 w-5 animate-spin" />
+            </div>
           </div>
         ) : !bill ? (
-          <p className="py-12 text-center text-sm text-muted-foreground">Factura no encontrada</p>
+          <p className="min-h-0 flex-1 overflow-y-auto px-6 py-12 text-center text-sm text-muted-foreground">Factura no encontrada</p>
         ) : (
           <SupplierBillDetailContent
             bill={bill as Parameters<typeof SupplierBillDetailContent>[0]["bill"]}

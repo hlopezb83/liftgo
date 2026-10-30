@@ -26,9 +26,10 @@ interface RentalLineItemsProps {
   modelsLoading?: boolean;
   startDate?: Date;
   endDate?: Date;
+  currency?: string;
 }
 
-export function RentalLineItems({ lines, onChange, models, modelsLoading, startDate, endDate }: RentalLineItemsProps) {
+export function RentalLineItems({ lines, onChange, models, modelsLoading, startDate, endDate, currency }: RentalLineItemsProps) {
   // Track only values filled during this editing session. Existing/historical
   // prices are never inferred to be automatic just because they match a catalog.
   const updateLine = (index: number, field: keyof RentalLine, value: string | number) => {
@@ -88,6 +89,7 @@ export function RentalLineItems({ lines, onChange, models, modelsLoading, startD
             disableRemove={lines.length <= 1}
             startDate={startDate}
             endDate={endDate}
+            currency={currency}
             onUpdate={updateLine}
             onModelChange={handleModelChange}
             onRemove={removeLine}

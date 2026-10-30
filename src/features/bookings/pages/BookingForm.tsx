@@ -12,9 +12,15 @@ import { ForkliftAvailabilityHelp, ForkliftSelector } from "@/features/fleet";
 import { toYMD } from "@/lib/date/toYMD";
 import { todayKeyMty } from "@/lib/format/dateFormats";
 import { BookingDraftNotice } from "../components/bookings/BookingDraftNotice";
+import { BookingFormSummary } from "../components/bookings/BookingFormSummary";
 import { BookingPostDialogs } from "../components/bookings/BookingPostDialogs";
 import { useBookingFormLogic } from "../hooks/bookingForm/useBookingFormLogic";
 import { allowsRecurringBilling } from "../lib/recurringBillingEligibility";
+
+function summaryCustomerName(customerId: string, freeName: string, customers: ReadonlyArray<{ id: string; name: string }> | undefined) {
+  if (!customerId) return freeName;
+  return customers?.find((customer) => customer.id === customerId)?.name || freeName || "Cliente seleccionado";
+}
 
 export default function BookingForm() {
   const {
@@ -31,9 +37,9 @@ export default function BookingForm() {
   } = useBookingFormLogic();
 
   // Suscripciones aisladas: cambian sin re-renderizar el árbol de la reserva.
-  const [customerId, customerName, customerContact] = useWatch({
+  const [customerId, customerName, customerContact, recurringBilling] = useWatch({
     control: form.control,
-    name: ["customer_id", "customer_name", "customer_contact"],
+    name: ["customer_id", "customer_name", "customer_contact", "recurring_billing"],
   });
 
   const startDate = dateRange?.from;
@@ -49,6 +55,7 @@ export default function BookingForm() {
     }
   }, [form, showRecurring]);
   const forkliftName = selectedForklift?.name ?? "";
+  const busy = isSubmitting || createBooking.isPending;
   // GUI-FE-11b (G-ADM-06): advertencia no bloqueante para fechas pasadas.
   const startYmd = toYMD(startDate);
   const startInPast = startYmd !== undefined && startYmd < todayKeyMty();
@@ -58,12 +65,12 @@ export default function BookingForm() {
   };
 
   return (
-    <PageContainer maxWidth="form">
+    <PageContainer maxWidth="wide">
       <FormPageHeader title="Nueva reserva" />
-      <BookingDraftNotice draft={draft} busy={isSubmitting || createBooking.isPending} />
+      <BookingDraftNotice draft={draft} busy={busy} />
       <Form {...form}>
-        <form onSubmit={form.handleSubmit((data) => onSubmit(data, forkliftName))} className="space-y-6">
-          <fieldset className="space-y-6 min-w-0" disabled={draft.submitBlocked || isSubmitting || createBooking.isPending}>
+        <form onSubmit={form.handleSubmit((data) => onSubmit(data, forkliftName))} className="group/booking-form grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_18rem]">
+          <fieldset className="space-y-6 min-w-0" disabled={draft.submitBlocked || busy}>
             <Card>
               <CardHeader><CardTitle className="text-base">Detalles de la reserva</CardTitle></CardHeader>
               <CardContent className="space-y-4">
@@ -113,8 +120,17 @@ export default function BookingForm() {
               onCustomerContactChange={(v) => form.setValue("customer_contact", v, { shouldDirty: true })}
             />
           </fieldset>
-          {submitError && <p role="alert" className="text-sm text-destructive">{submitError}</p>}
-          <FormActions submitLabel="Crear reserva" submitDisabled={draft.submitBlocked} isPending={isSubmitting || createBooking.isPending} onCancel={() => navigate(-1)} />
+          <aside className="sticky bottom-0 z-20 min-w-0 space-y-3 rounded-lg border bg-background/95 p-3 shadow-sm backdrop-blur max-lg:group-has-[input:focus]/booking-form:static max-lg:group-has-[textarea:focus]/booking-form:static lg:bottom-auto lg:top-16 lg:p-4 [@media(max-height:500px)]:static" aria-label="Revisar y crear reserva">
+            <BookingFormSummary
+              customerName={summaryCustomerName(customerId, customerName, customers)}
+              forkliftName={forkliftName}
+              startDate={startDate}
+              endDate={endDate}
+              recurringBilling={Boolean(showRecurring && recurringBilling)}
+            />
+            {submitError && <p role="alert" className="text-sm text-destructive">{submitError}</p>}
+            <FormActions submitLabel="Crear reserva" submitDisabled={draft.submitBlocked} isPending={busy} onCancel={() => navigate(-1)} />
+          </aside>
         </form>
       </Form>
       <BookingPostDialogs
