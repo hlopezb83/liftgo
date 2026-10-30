@@ -112,7 +112,13 @@ export async function startBrowserProxy(appOrigin, port = 0) {
       if (established) socket.destroy();
       else socket.end("HTTP/1.1 502 Bad Gateway\r\nConnection: close\r\nContent-Length: 0\r\n\r\n");
     });
-    tunnel.once("close", () => { upstreams.delete(tunnel); socket.destroy(); });
+    tunnel.once("close", () => {
+      upstreams.delete(tunnel);
+      // pipe() propagates a normal upstream FIN with socket.end(), which must
+      // drain queued response bytes. destroy() here would truncate that tail.
+      // Abnormal closure still tears down the downstream immediately.
+      if (!tunnel.readableEnded) socket.destroy();
+    });
     socket.once("error", () => tunnel.destroy());
     socket.once("close", () => tunnel.destroy());
   });
@@ -142,3 +148,4 @@ export async function startBrowserProxy(appOrigin, port = 0) {
     },
   };
 }
+
