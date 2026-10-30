@@ -29,4 +29,21 @@ describe("SearchBar (V26-04)", () => {
     fireEvent.change(input, { target: { value: "abc" } });
     expect(input).toHaveValue("abc");
   });
+
+  it("muestra el botón de limpiar cuando hay texto y lo limpia al hacer clic", () => {
+    const onChange = vi.fn();
+    render(<SearchBar value="test" onChange={onChange} placeholder="Buscar…" debounceMs={0} />);
+
+    // El botón de limpiar debe existir
+    const clearButton = screen.getByRole("button", { name: "Limpiar búsqueda" });
+    expect(clearButton).toBeInTheDocument();
+
+    // Hacer clic en limpiar
+    fireEvent.click(clearButton);
+
+    // El input debe quedar vacío y enfocado
+    const input = screen.getByRole("searchbox");
+    expect(input).toHaveValue("");
+    expect(input).toHaveFocus();
+  });
 });

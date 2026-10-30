@@ -7,8 +7,8 @@ const request = () => new Request("https://example.invalid/fiscal");
 Deno.test("edge SDK: un fallo de contexto antes o después de iniciar no repite la operación", async () => {
   for (const afterStart of [false, true]) {
     const observer = memoryObserver({
-      isolate: (work) => {
-        if (afterStart) Sentry.withIsolationScope(work);
+      isolate: (scope, work) => {
+        if (afterStart) Sentry.withIsolationScope(scope, work);
         throw new Error("telemetry-context-failure");
       },
     });
@@ -78,9 +78,9 @@ Deno.test("edge SDK: captura fallida permite reintentar el mismo error en su pro
 Deno.test("edge SDK: fallo al abrir un trabajo no atribuye el error a la empresa del padre", async () => {
   let scopes = 0;
   const observer = memoryObserver({
-    isolate: (work) => {
+    isolate: (scope, work) => {
       if (++scopes === 2) throw new Error("job-scope-failure");
-      return Sentry.withIsolationScope(work);
+      return Sentry.withIsolationScope(scope, work);
     },
   });
   const businessError = new Error("job-business-failure");
@@ -107,9 +107,9 @@ Deno.test("edge SDK: fallo al abrir un trabajo no atribuye el error a la empresa
 Deno.test("edge SDK: trabajo sin contexto conserva 500 sin generar un evento de otra empresa", async () => {
   let scopes = 0;
   const observer = memoryObserver({
-    isolate: (work) => {
+    isolate: (scope, work) => {
       if (++scopes === 2) throw new Error("job-scope-failure");
-      return Sentry.withIsolationScope(work);
+      return Sentry.withIsolationScope(scope, work);
     },
   });
   try {

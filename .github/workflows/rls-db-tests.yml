@@ -1,7 +1,7 @@
 name: RLS DB tests
 
 # Fase 2 de supabase/tests/rls/README.md (TESTS-RLS-PHASE2).
-# Levanta una base local vacía sin seed: start aplica el historial una vez.
+# Bootstrap sin historial ni seed, cron OFF verificado y migration up una vez.
 # Verifica cada versión aplicada y corre todas las suites RLS y smoke SQL.
 #
 # Disparadores acotados (ver docs/ci.md): normalmente los cambios de funciones
@@ -66,6 +66,12 @@ on:
       - "scripts/check-drizzle-journal.ts"
       - ".github/workflows/rls-db-tests.yml"
   workflow_dispatch:
+    inputs:
+      run_supabase:
+        description: "Descargar y arrancar Supabase efímero para este gate"
+        type: boolean
+        required: false
+        default: false
 
 permissions:
   contents: read
@@ -79,10 +85,9 @@ jobs:
     name: RLS DB tests (Supabase local)
     runs-on: ubuntu-24.04
     timeout-minutes: 25
-    # Mismo criterio que los jobs e2e/edge-functions de ci.yml: los PRs desde
-    # forks no tienen acceso al entorno con secrets, y este job depende del
-    # runner con Docker del repo. "Skipped" cuenta como success en el gate.
-    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+    # PR/push y manual sin opt-in quedan skipped; no acreditan pruebas DB.
+    # La descarga y el arranque requieren la opción manual explícita.
+    if: github.event_name == 'workflow_dispatch' && inputs.run_supabase == true
     permissions:
       contents: read
       checks: write
@@ -96,8 +101,11 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
-      - name: Probar ejecutor SQL antes de arrancar la BD
-        run: python3 -m unittest discover -s scripts/tests -p test_run_sql_suites.py
+      - name: Probar ejecutor SQL y guard de base antes de arrancar la BD
+        run: |
+          set -euo pipefail
+          python3 -m unittest discover -s scripts/tests -p test_run_sql_suites.py
+          python3 -m unittest discover -s scripts/tests -p test_ci_database.py
 
       - name: Setup Supabase CLI
         uses: supabase/setup-cli@45a513f8c64c0bc8e0e3dfe572b5c95be85f6359 # v3.0.1
@@ -120,6 +128,9 @@ jobs:
       # la tabla referenciada ya existía por otro camino. Desde cero fallan con
       # 42P01 y tumban el job antes de correr un test. Este script envuelve esas
       # sentencias en un guard `to_regclass(...)` SOLO en el checkout del runner.
+      - name: Verificar historial canonico antes de parches locales
+        run: python3 scripts/ci_database.py preflight
+
       - name: Parchar migraciones fuera de orden (solo en el runner)
         run: python3 scripts/patch_legacy_migrations.py
 
@@ -131,11 +142,13 @@ jobs:
         timeout-minutes: 15
         run: |
           set -euxo pipefail
+          trap 'cron_bootstrap_status=$?; trap - EXIT; python3 scripts/ci_database.py restore-config || cron_bootstrap_status=1; exit "$cron_bootstrap_status"' EXIT
+          trap 'exit 130' INT
+          trap 'exit 143' TERM
           docker version
           supabase --version
           START_TS=$(date +%s)
-          supabase start \
-            -x studio,imgproxy,logflare,vector,edge-runtime,realtime,storage-api,mailpit,postgres-meta,supavisor,kong,postgrest
+          python3 scripts/ci_database.py start-guarded --profile rls
           ELAPSED=$(( $(date +%s) - START_TS ))
           echo "Start Supabase: ${ELAPSED}s (referencia run 35543605857: ~200s)"
           echo "### Start Supabase: ${ELAPSED}s (referencia previa ~200s)" >> "$GITHUB_STEP_SUMMARY"
@@ -178,8 +191,8 @@ jobs:
 
 
 
-      # start ya aplicó el historial sobre el volumen nuevo. Comparamos las
-      # versiones exactas; un reset adicional repetiría todo el arranque SQL.
+      # start-guarded hizo bootstrap sin historial, verifico cron OFF y aplico
+      # migration up sin seed. Comparamos versiones exactas sin otro reset.
       - name: Verificar migraciones aplicadas
         id: database-verified
         run: python3 scripts/ci_database.py verify
@@ -206,6 +219,7 @@ jobs:
           set -euo pipefail
           bunx drizzle-kit migrate --config=drizzle.ci.config.ts
           bun scripts/ci-drizzle-replay.mjs verify
+          python3 scripts/ci_database.py check-cron-off
 
       - name: Diagnóstico PostgreSQL de Drizzle (sólo rollback en fallo)
         if: failure() && steps.drizzle.outcome == 'failure'
@@ -358,4 +372,9 @@ jobs:
 
       - name: Stop Supabase
         if: always()
-        run: supabase stop --no-backup || true
+        run: |
+          set +e
+          python3 scripts/ci_database.py restore-config
+          RESTORE_CONFIG_STATUS=$?
+          supabase stop --no-backup || true
+          exit "$RESTORE_CONFIG_STATUS"
