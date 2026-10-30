@@ -5,11 +5,11 @@ inputs:
   bun-version:
     description: Versión exacta de Bun (pineada para reproducibilidad; el pin se actualiza mediante un lote validado en CI).
     required: false
-    default: "1.4.2"
+    default: "1.4.4"
   node-version:
     description: Versión de Node.js a instalar en el runner.
     required: false
-    default: "24"
+    default: "24.22.1"
   save-cache:
     description: Guardar la caché si falta; activar en un único productor (quality).
     required: false
@@ -30,6 +30,17 @@ runs:
       with:
         bun-version: ${{ inputs.bun-version }}
 
+    - name: Verify runtime pins
+      shell: bash
+      env:
+        EXPECTED_NODE: ${{ inputs.node-version }}
+        EXPECTED_BUN: ${{ inputs.bun-version }}
+      run: |
+        node -e 'const fs = require("node:fs"); const assert = require("node:assert/strict"); const p = JSON.parse(fs.readFileSync("package.json", "utf8")); const n = process.env.EXPECTED_NODE; const b = process.env.EXPECTED_BUN; assert.equal(process.versions.node, n); assert.equal(p.engines.node, n); assert.equal(p.engines.bun, b); assert.equal(p.packageManager, `bun@${b}`); for (const f of [".nvmrc", ".node-version"]) assert.equal(fs.readFileSync(f, "utf8").trim(), n); assert.equal(fs.readFileSync(".bun-version", "utf8").trim(), b);'
+        test "$(bun --version)" = "$EXPECTED_BUN"
+        node --version
+        bun --version
+
     - name: Restore bun dependencies
       id: bun-cache
       uses: actions/cache/restore@v6
@@ -41,7 +52,10 @@ runs:
 
     - name: Install dependencies
       shell: bash
-      run: bun install --frozen-lockfile
+      run: |
+        lock_before=$(sha256sum bun.lock)
+        bun install --frozen-lockfile
+        test "$lock_before" = "$(sha256sum bun.lock)"
 
     # Guardar inmediatamente después de instalar evita post-steps de caché
     # en cada consumidor. El job quality mantiene la caché caliente.

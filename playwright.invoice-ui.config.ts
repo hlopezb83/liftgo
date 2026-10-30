@@ -13,11 +13,5 @@ export default defineConfig({
       name: `mobile-${width}`,
       use: { browserName: "chromium" as const, viewport: { width, height: 800 }, isMobile: true, hasTouch: true, deviceScaleFactor: 1 },
     })),
-  ].map((project) => ({
-    ...project,
-    use: {
-      ...project.use,
-      launchOptions: process.env.SMOKE_CHROMIUM_PATH ? { executablePath: process.env.SMOKE_CHROMIUM_PATH } : {},
-    },
-  })),
+  ],
 });

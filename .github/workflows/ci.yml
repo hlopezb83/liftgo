@@ -68,7 +68,12 @@ jobs:
             dependencies:
               - 'package.json'
               - 'bun.lock'
+              - '.node-version'
+              - '.nvmrc'
+              - '.bun-version'
               - 'scripts/tests/dependency-security.test.mjs'
+              - 'scripts/tests/happy-dom-security.test.mjs'
+              - 'scripts/tests/supabase-sdk-contracts.test.mjs'
               - '.github/actions/setup-bun-project/**'
               - '.github/workflows/ci.yml'
             workflows:
@@ -106,7 +111,9 @@ jobs:
         run: node --test scripts/tests/eslint-guardrails.test.mjs
 
       - name: Contratos de guardrails (AST, blobs y alcance de tipos)
-        run: node --test scripts/tests/feature-imports.test.mjs scripts/tests/vitest-blob-provenance.test.mjs scripts/tests/browser-typecheck.test.mjs
+        run: |
+          node --test scripts/tests/feature-imports.test.mjs scripts/tests/vitest-blob-provenance.test.mjs scripts/tests/browser-typecheck.test.mjs
+          node --test scripts/tests/lint-migrations.test.mjs
 
       - name: Offline harness lifecycle and artifact guards
         run: node --test tests/offlineTeardown.test.mjs tests/design-group-c/artifactGuard.test.mjs
@@ -129,18 +136,15 @@ jobs:
       # Build con destino DELIBERADAMENTE inexistente: smoke y móvil usan sólo
       # respuestas ficticias, nunca datos reales. Así el CI no necesita secretos.
       - name: Build
-        env:
-          SUPABASE_URL: http://127.0.0.1:54321
-          SENTRY_DSN: http://public@127.0.0.1:54321/1
-          VITE_SUPABASE_URL: http://127.0.0.1:54321
-          VITE_SUPABASE_PUBLISHABLE_KEY: smoke-placeholder-key
-          VITE_SUPABASE_PROJECT_ID: smoke-placeholder
-        run: bun run build
+        run: node scripts/browser-test-server.mjs --build-only
 
       - name: Preparar Chromium
         uses: ./.github/actions/setup-playwright
         with:
           save-cache: "true"
+
+      - name: Verificar aislamiento de navegador y Worker con destinos locales
+        run: node --test scripts/tests/browser-test-*.test.mjs
 
       - name: Smoke de arranque (build real)
         env:
@@ -368,14 +372,14 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 10
     needs: changes
-    if: needs.changes.outputs.functions == 'true'
+    if: needs.changes.outputs.functions == 'true' || github.event_name == 'workflow_dispatch'
     steps:
       - uses: actions/checkout@v7
 
       - name: Setup Deno
         uses: denoland/setup-deno@22d081ff2d3a40755e97629de92e3bcbfa7cf2ed # v2.0.5 (Node 24)
         with:
-          deno-version: v2.x
+          deno-version: v2.9.8
 
       - name: Cache de dependencias Deno
         uses: actions/cache@v6
@@ -502,7 +506,7 @@ jobs:
       - uses: ./.github/actions/setup-bun-project
       - name: Probar restricciones del diagnóstico PostgreSQL
         run: bun run test:ci-tools
-      - uses: reviewdog/action-actionlint@3cbf14efd750961dba35fccbf00f9e14028cb1f5 # v1.80.2
+      - uses: reviewdog/action-actionlint@48e36f54d8da326b83ab061aee2cc5e01b5ca46f # v1.80.6
         with:
           fail_level: error
           filter_mode: nofilter

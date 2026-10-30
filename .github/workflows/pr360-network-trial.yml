@@ -1,0 +1,32 @@
+name: PR360 isolated network trial
+
+# Registration only. This definition never executes the trial or its payload.
+# In the UI select investigate/pr360-network-trial-manual-20261029 at the SHA below.
+on:
+  workflow_dispatch:
+    inputs:
+      expected_sha:
+        description: Exact reviewed commit SHA for this infrastructure-only trial
+        required: true
+        type: string
+      authorization:
+        description: Approved disposable-runner local network trial; no ERP SQL
+        required: true
+        type: choice
+        options:
+          - local-network-only-v1
+
+permissions: {}
+
+jobs:
+  registration:
+    name: Registration only; trial execution refused
+    runs-on: ubuntu-24.04
+    timeout-minutes: 1
+    steps:
+      - name: Refuse execution from this registration definition
+        timeout-minutes: 1
+        shell: bash
+        run: |
+          printf '%s\n' '::error::Registration only. Select investigate/pr360-network-trial-manual-20261029 at SHA 3de0f1cee480044ba05a68e379851bf4ee36f738 in the workflow UI. This definition never executes the trial.'
+          exit 1

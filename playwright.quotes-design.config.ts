@@ -1,4 +1,5 @@
 import { defineConfig } from "@playwright/test";
+import { FAKE_BACKEND, browserLaunchOptions } from "./scripts/browser-test-config.mjs";
 import smoke from "./playwright.smoke.config";
 
 // Importing smoke preserves its local-only origin and fake-build validation.
@@ -8,6 +9,7 @@ if (process.env.SMOKE_REUSE_BUILD !== "1") {
 }
 
 const baseURL = "http://127.0.0.1:4187";
+const proxyURL = "http://127.0.0.1:4188";
 
 export default defineConfig({
   ...smoke,
@@ -23,17 +25,17 @@ export default defineConfig({
   ],
   webServer: {
     ...smoke.webServer as object,
-    command: "node node_modules/wrangler/bin/wrangler.js dev --ip 127.0.0.1 --port 4187 --inspector-port 9237 --var SENTRY_DSN:http://public@127.0.0.1:54321/1",
+    command: "node scripts/browser-test-server.mjs",
+    env: { ...FAKE_BACKEND, SMOKE_REUSE_BUILD: "1", SMOKE_BASE_URL: baseURL, SMOKE_PROXY_URL: proxyURL },
     url: baseURL,
     reuseExistingServer: false,
   },
   use: {
     ...smoke.use,
     baseURL,
+    proxy: { server: proxyURL, bypass: "<-loopback>" },
     actionTimeout: 10_000,
-    launchOptions: process.env.SMOKE_CHROMIUM_PATH
-      ? { executablePath: process.env.SMOKE_CHROMIUM_PATH }
-      : {},
+    launchOptions: browserLaunchOptions(proxyURL, process.env.SMOKE_CHROMIUM_PATH),
   },
   projects: [
     { name: "desktop-1440", use: { viewport: { width: 1440, height: 1000 } } },

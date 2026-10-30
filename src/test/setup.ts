@@ -1,5 +1,7 @@
-import "@testing-library/jest-dom";
-import { afterEach } from "vitest";
+import * as matchers from "@testing-library/jest-dom/matchers";
+import { afterEach, expect } from "vitest";
+
+expect.extend(matchers);
 
 /**
  * Barrera de red: la suite de Vitest es OFFLINE.

@@ -17,7 +17,13 @@ const request = () =>
   });
 
 Deno.test("edge SDK real: privacidad, error original, actor verificado y un evento por fallo", async () => {
-  const observer = memoryObserver();
+  let initializedOptions: Sentry.DenoOptions | undefined;
+  const observer = memoryObserver({
+    initialize: (options) => {
+      initializedOptions = options;
+      return Sentry.init(options);
+    },
+  });
   const error = new Error(
     "PDF-PRIVATE-CONTENT sk_test_synthetic_only AI-PRIVATE-PROMPT",
   );
@@ -38,7 +44,28 @@ Deno.test("edge SDK real: privacidad, error original, actor verificado y un even
     return new Response("private-response", { status: 500 });
   });
   try {
-    assert.equal((await handler(request())).status, 500);
+    const response = await Sentry.withScope((inheritedScope) => {
+      inheritedScope.setUser({ id: ACTOR_B });
+      inheritedScope.setTag("organization_id", ORG_B);
+      return handler(request());
+    });
+    assert.equal(response.status, 500);
+    assert.equal(initializedOptions?.enableOpenTelemetrySetup, false);
+    assert.equal(initializedOptions?.enableRuntimeChannelInjection, false);
+    assert.deepEqual(initializedOptions?.dataCollection, {
+      userInfo: false,
+      cookies: false,
+      httpHeaders: false,
+      httpBodies: [],
+      urlQueryParams: false,
+      graphQL: { document: false, variables: false },
+      genAI: { inputs: false, outputs: false },
+      mcp: { inputs: false, outputs: false },
+      databaseQueryData: false,
+      queues: false,
+      stackFrameVariables: false,
+      frameContextLines: 0,
+    });
     assert.equal(observer.events.length, 1);
     const event = observer.events[0];
     assert.equal(event.user?.id, ACTOR_A);

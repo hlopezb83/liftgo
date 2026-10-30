@@ -26,13 +26,42 @@
  * Sin args: analiza todos los archivos en supabase/migrations/*.sql.
  */
 
+import { createHash } from "node:crypto";
 import { readFileSync, readdirSync } from "node:fs";
-import { join } from "node:path";
+import { join, relative, resolve, sep } from "node:path";
+import { fileURLToPath } from "node:url";
 
 const MIGRATIONS_DIR = "supabase/migrations";
 
 /** Migraciones con timestamp >= a este valor deben cumplir las reglas nuevas. */
 const NEW_RULES_SINCE = "20260812";
+const REPO_ROOT = fileURLToPath(new URL("../", import.meta.url));
+
+// Sólo tres diagnósticos agregados, nunca archivos exentos. La huella exige
+// revisión del texto histórico; no acredita seguridad. Ver docs/migration-lint-baseline.md.
+export const HISTORICAL_BASELINE = [
+  {
+    file: "drizzle/migrations/0016_multi_org_phase6_numbering_fiscal_scope.sql",
+    sha256: "ae3463c6e1da9c0691fdbf26c407ab46015946f285f495992a98d14a9a0fa1a2",
+    table: "organization_document_counters",
+    rule: "table-requirements",
+    missing: ["rls", "policy"],
+  },
+  {
+    file: "drizzle/migrations/0020_multi_org_phase7_storage_migration_ledger.sql",
+    sha256: "4deaed042e6b5dc9cd4677f76ca35f7e7e17547dd548addaa24c951f7983b4f8",
+    table: "storage_object_migrations",
+    rule: "table-requirements",
+    missing: ["grant"],
+  },
+  {
+    file: "drizzle/migrations/0020_multi_org_phase7_storage_migration_ledger.sql",
+    sha256: "4deaed042e6b5dc9cd4677f76ca35f7e7e17547dd548addaa24c951f7983b4f8",
+    table: "storage_reference_migrations",
+    rule: "table-requirements",
+    missing: ["grant"],
+  },
+] as const;
 
 function isLegacy(path: string): boolean {
   const base = path.split("/").pop() ?? path;
@@ -69,11 +98,13 @@ function unquote(name: string): string {
 
 interface Finding {
   file: string;
+  rule: string;
+  table?: string;
+  missing?: string[];
   message: string;
 }
 
-function lintFile(path: string): Finding[] {
-  const raw = readFileSync(path, "utf8");
+export function lintSql(path: string, raw: string): Finding[] {
   const sql = stripSqlComments(raw);
   const findings: Finding[] = [];
 
@@ -91,12 +122,16 @@ function lintFile(path: string): Finding[] {
 
   for (const table of createdTables) {
     const missing: string[] = [];
+    const missingRules: string[] = [];
 
     const grantRegex = new RegExp(
       `grant\\s+[^;]+\\s+on\\s+(?:table\\s+)?(?:"?public"?\\.)?"?${table}"?`,
       "i",
     );
-    if (!grantRegex.test(sql)) missing.push(`GRANT ON public.${table}`);
+    if (!grantRegex.test(sql)) {
+      missing.push(`GRANT ON public.${table}`);
+      missingRules.push("grant");
+    }
 
     const rlsRegex = new RegExp(
       `alter\\s+table\\s+(?:"?public"?\\.)?"?${table}"?\\s+enable\\s+row\\s+level\\s+security`,
@@ -104,17 +139,24 @@ function lintFile(path: string): Finding[] {
     );
     if (!rlsRegex.test(sql)) {
       missing.push(`ALTER TABLE public.${table} ENABLE ROW LEVEL SECURITY`);
+      missingRules.push("rls");
     }
 
     const policyRegex = new RegExp(
       `create\\s+policy\\s+[^;]+\\s+on\\s+(?:"?public"?\\.)?"?${table}"?`,
       "i",
     );
-    if (!policyRegex.test(sql)) missing.push(`CREATE POLICY ON public.${table}`);
+    if (!policyRegex.test(sql)) {
+      missing.push(`CREATE POLICY ON public.${table}`);
+      missingRules.push("policy");
+    }
 
     if (missing.length > 0) {
       findings.push({
         file: path,
+        rule: "table-requirements",
+        table,
+        missing: missingRules,
         message: `public.${table} creada pero faltan: ${missing.join(", ")}`,
       });
     }
@@ -129,6 +171,7 @@ function lintFile(path: string): Finding[] {
     if (/security\s+definer/i.test(sql) && !/set\s+search_path\s*(=|to)\s+/i.test(sql)) {
       findings.push({
         file: path,
+        rule: "security-definer-search-path",
         message: "Función SECURITY DEFINER sin `SET search_path = public` explícito",
       });
     }
@@ -142,6 +185,7 @@ function lintFile(path: string): Finding[] {
     if (!/set\s+search_path\s*(=|to)\s+/i.test(fn.header)) {
       findings.push({
         file: path,
+        rule: "security-definer-search-path",
         message: `Función SECURITY DEFINER \`${fn.name}\` sin \`SET search_path = public\` en su encabezado`,
       });
     }
@@ -159,11 +203,43 @@ function lintFile(path: string): Finding[] {
     const name = /create\s+policy\s+("[^"]+"|[\w]+)/i.exec(stmt)?.[1] ?? "(sin nombre)";
     findings.push({
       file: path,
+      rule: "permissive-policy",
       message: `Policy ${name}: prohibido \`FOR ALL ... USING (true)\`. Usa has_role()/propiedad y separa por comando.`,
     });
   }
 
   return findings;
+}
+
+export function reviewBaseline(path: string, raw: string, findings = lintSql(path, raw)) {
+  const file = relative(REPO_ROOT, resolve(path)).split(sep).join("/");
+  const entries = HISTORICAL_BASELINE.filter((entry) => entry.file === file);
+  // Git puede convertir LF a CRLF en el checkout; no se normaliza nada más.
+  const sha256 = createHash("sha256").update(raw.replaceAll("\r\n", "\n")).digest("hex");
+  const changed = entries.some((entry) => entry.sha256 !== sha256);
+  const warnings: Finding[] = [];
+  const errors: Finding[] = [];
+
+  if (changed) {
+    errors.push({
+      file: path,
+      rule: "baseline-review",
+      message: "Cambió el contenido histórico: revisar el baseline en docs/migration-lint-baseline.md; no actualizar la huella automáticamente.",
+    });
+  }
+  for (const finding of findings) {
+    const index = entries.findIndex((entry) =>
+      entry.file === relative(REPO_ROOT, resolve(finding.file)).split(sep).join("/") &&
+      entry.rule === finding.rule && entry.table === finding.table &&
+      JSON.stringify(entry.missing) === JSON.stringify(finding.missing));
+    if (!changed && index >= 0) {
+      warnings.push(finding);
+      entries.splice(index, 1); // Una entrada sólo admite un diagnóstico.
+    } else {
+      errors.push(finding);
+    }
+  }
+  return { warnings, errors };
 }
 
 function resolveFiles(argv: string[]): string[] {
@@ -184,21 +260,23 @@ function main(): void {
     return;
   }
 
-  const findings: Finding[] = [];
+  const warnings: Finding[] = [];
+  const errors: Finding[] = [];
   for (const f of files) {
-    findings.push(...lintFile(f));
+    const report = reviewBaseline(f, readFileSync(f, "utf8"));
+    warnings.push(...report.warnings);
+    errors.push(...report.errors);
   }
 
-  if (findings.length === 0) {
-    console.log(`OK: ${files.length} archivo(s) validado(s), sin hallazgos.`);
-    return;
+  for (const f of warnings) {
+    console.warn(`::warning file=${f.file}::WARN baseline histórico (${f.rule}): ${f.message}`);
   }
-
-  for (const f of findings) {
+  for (const f of errors) {
     // Formato GitHub Actions annotations.
     console.error(`::error file=${f.file}::${f.message}`);
   }
-  process.exit(1);
+  console.log(`${errors.length === 0 ? "OK" : "FAIL"}: ${files.length} archivo(s) validado(s), ${warnings.length} WARN, ${errors.length} error(es).`);
+  process.exitCode = errors.length > 0 ? 1 : 0;
 }
 
-main();
+if (import.meta.main) main();

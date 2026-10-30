@@ -30,11 +30,11 @@ El carril suplementario sólo admite assets GET locales enumerados de Vite; usa 
 
 Los controles de envío sólo se pulsan con formularios inválidos para comprobar validaciones. Los tests unitarios de pago utilizan hooks sintéticos para comprobar errores y limpieza de comprobantes; no suben archivos a Storage.
 
-La integracion usa por defecto el build dist/ de este checkout aislado (GROUP_C_BUILD_DIR=.) y guarda evidencia en test-results/group-c. Ambos destinos admiten overrides locales. Mantener el prebuild con backend ficticio; sus metadatos generados locales se respaldan/restauran segun el protocolo y no se incluyen en commits UI.
+La integracion sirve el build dist/ de este checkout aislado (GROUP_C_BUILD_DIR=.) con el harness Worker de main y guarda evidencia en test-results/group-c. El destino de evidencia admite override local. Los navegadores usan proxies propios (4196 app, 4197 componentes); el carril Vite conserva envDir:false. Mantener el prebuild con backend ficticio; sus metadatos generados locales se respaldan/restauran segun el protocolo y no se incluyen en commits UI.
 
 ## Ejecución
 
-Usar dependencias ya preparadas y un solo worker. Configurar `SMOKE_CHROMIUM_PATH` si se necesita un Chrome instalado; sin esa variable Playwright utiliza su navegador administrado. `GROUP_C_BUILD_DIR` selecciona la copia de build y `GROUP_C_EVIDENCE_DIR` el destino local de evidencia.
+Usar dependencias ya preparadas y un solo worker. Configurar `SMOKE_CHROMIUM_PATH` si se necesita un Chrome instalado; sin esa variable Playwright utiliza su navegador administrado. `GROUP_C_BUILD_DIR` debe identificar este checkout y `GROUP_C_EVIDENCE_DIR` selecciona el destino local de evidencia.
 
 Primero compilar el checkout aislado con valores ficticios explicitos y prebuild habilitado. La generacion local actualiza public/version.json y public/changelog-recent.json: respaldarlos y restaurarlos segun el protocolo, sin bump ni incluirlos en commits UI. Despues ejecutar:
 

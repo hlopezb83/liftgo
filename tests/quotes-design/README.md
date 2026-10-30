@@ -10,7 +10,7 @@ node node_modules/@playwright/test/cli.js test --config playwright.quotes-design
 ```
 
 The suite uses one worker and a fresh isolated preview at
-`http://127.0.0.1:4187`, with inspector port 9237. It covers 21 cases: seven
+`http://127.0.0.1:4187`, through the isolated browser proxy on port 4188. It covers 21 cases: seven
 scenarios at 1440×1000, 360×800 and 390×800. No submit, status, conversion,
 deletion or other application write action is clicked.
 
