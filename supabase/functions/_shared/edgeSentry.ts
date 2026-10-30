@@ -18,7 +18,7 @@ type Client = ReturnType<typeof Sentry.init>;
 type Options = {
   options: () => Sentry.DenoOptions | undefined;
   initialize?: typeof Sentry.init;
-  isolate?: <T>(work: (scope: Sentry.Scope) => T) => T;
+  isolate?: <T>(scope: Sentry.Scope, work: (scope: Sentry.Scope) => T) => T;
   captureException?: typeof Sentry.captureException;
   waitUntil?: (promise: Promise<unknown>) => void;
   reportInitialization?: (active: boolean) => void;
@@ -55,7 +55,7 @@ async function settleWithinBudget(
   }
 }
 
-/** SDK 10.x instala ALS mediante la integración pública DenoServe, sin APIs internas. */
+/** El SDK instala ALS; conservamos la integración pública DenoServe, sin APIs internas. */
 export function createEdgeObserver(config: Options) {
   const state = new AsyncLocalStorage<RequestState>();
   let attempted = false;
@@ -70,13 +70,25 @@ export function createEdgeObserver(config: Options) {
           ...options,
           serverName: "liftgo-cloud",
           defaultIntegrations: [Sentry.denoServeIntegration()],
-          skipOpenTelemetrySetup: true,
-          sendDefaultPii: false,
+          enableOpenTelemetrySetup: false,
+          enableRuntimeChannelInjection: false,
+          dataCollection: {
+            userInfo: false,
+            cookies: false,
+            httpHeaders: false,
+            httpBodies: [],
+            urlQueryParams: false,
+            graphQL: { document: false, variables: false },
+            genAI: { inputs: false, outputs: false },
+            mcp: { inputs: false, outputs: false },
+            databaseQueryData: false,
+            queues: false,
+            stackFrameVariables: false,
+            frameContextLines: 0,
+          },
           maxBreadcrumbs: 0,
           tracesSampleRate: 0,
           tracePropagationTargets: [],
-          enableLogs: false,
-          enableMetrics: false,
           beforeSendLog: () => null,
           beforeSendMetric: () => null,
           beforeSend: scrubEdgeEvent,
@@ -152,18 +164,22 @@ export function createEdgeObserver(config: Options) {
     return state.run(
       requestState,
       () =>
-        (config.isolate ?? Sentry.withIsolationScope)((scope) => {
-          scope.clear();
-          Sentry.getCurrentScope().setClient(client);
-          scope.setTags({
-            app: "liftgo-erp",
-            runtime: "deno",
-            edge_function: requestState.functionName,
-            workspace: "organization",
-          });
-          setIdentity(requestState.identity);
-          return work();
-        }),
+        (config.isolate ?? Sentry.withIsolationScope)(
+          new Sentry.Scope(),
+          (scope) =>
+            Sentry.withScope(new Sentry.Scope(), (currentScope) => {
+              scope.setClient(client);
+              currentScope.setClient(client);
+              scope.setTags({
+                app: "liftgo-erp",
+                runtime: "deno",
+                edge_function: requestState.functionName,
+                workspace: "organization",
+              });
+              setIdentity(requestState.identity);
+              return work();
+            }),
+        ),
     );
   }
   function wrap(
