@@ -9,7 +9,7 @@ import {
 } from "./quoteCharges.ts";
 import { getAdminClient } from "../_shared/supabaseClients.ts";
 import { resolveCallerOrganization } from "../_shared/orgContext.ts";
-import type { SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2";
+import type { SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2.118.0";
 import { computeProrate } from "./prorate.ts";
 import {
   dateOnlyToMty,
