@@ -46,8 +46,9 @@ export function createRepXmlParser(parseXml: (xml: string) => XmlNode) {
       xml.length > REP_MAX_FILE_BYTES ||
       new TextEncoder().encode(xml).byteLength > REP_MAX_FILE_BYTES ||
       /<!\s*(?:DOCTYPE|ENTITY)\b/i.test(xml)
-    )
+    ) {
       return null;
+    }
     // Bound allocation before DOM construction (conservatively counts markup
     // inside comments/CDATA too). This is a resource guard, not an XML lexer.
     let markup = 0;
@@ -58,10 +59,9 @@ export function createRepXmlParser(parseXml: (xml: string) => XmlNode) {
     // xmldom does not reject every XML 1.0 character-reference violation.
     for (const match of xml.matchAll(/&#(x[0-9a-f]+|[0-9]+);/gi)) {
       const value = match[1];
-      const code =
-        value[0].toLowerCase() === "x"
-          ? Number.parseInt(value.slice(1), 16)
-          : Number(value);
+      const code = value[0].toLowerCase() === "x"
+        ? Number.parseInt(value.slice(1), 16)
+        : Number(value);
       if (!isXmlCharacter(code)) return null;
     }
     try {
@@ -73,15 +73,17 @@ export function createRepXmlParser(parseXml: (xml: string) => XmlNode) {
         if (
           ![1, 3, 7, 8].includes(node.nodeType) ||
           (node.nodeType === 3 && node.nodeValue?.trim())
-        )
+        ) {
           return null;
+        }
       }
       const pending = [{ node: document, depth: 0 }];
       let count = 0;
       while (pending.length) {
         const current = pending.pop()!;
-        if (++count > REP_MAX_XML_NODES || current.depth > REP_MAX_XML_DEPTH)
+        if (++count > REP_MAX_XML_NODES || current.depth > REP_MAX_XML_DEPTH) {
           return null;
+        }
         for (const node of Array.from(current.node.childNodes)) {
           pending.push({ node, depth: current.depth + 1 });
         }
@@ -99,29 +101,32 @@ export function createRepXmlParser(parseXml: (xml: string) => XmlNode) {
       !root ||
       root.localName !== "Comprobante" ||
       !CFDI.has(root.namespaceURI ?? "")
-    )
+    ) {
       return [];
+    }
     if (tag === "Comprobante") return [root];
     const direct = children(root);
-    if (tag === "Emisor")
+    if (tag === "Emisor") {
       return direct.filter(
         (n) => n.localName === tag && n.namespaceURI === root.namespaceURI,
       );
+    }
     const complements = direct.filter(
       (n) =>
         n.localName === "Complemento" && n.namespaceURI === root.namespaceURI,
     );
     const extensions = complements.flatMap(children);
-    if (tag === "TimbreFiscalDigital")
+    if (tag === "TimbreFiscalDigital") {
       return extensions.filter(
         (n) => n.localName === tag && n.namespaceURI === TIMBRE,
       );
+    }
     const payments = extensions
       .filter((n) => n.localName === "Pagos" && PAGOS.has(n.namespaceURI ?? ""))
       .flatMap((n) =>
         children(n).filter(
           (p) => p.localName === "Pago" && p.namespaceURI === n.namespaceURI,
-        ),
+        )
       );
     if (tag === "Pago") return payments;
     if (tag === "DoctoRelacionado") return payments.flatMap((p) => related(p));

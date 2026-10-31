@@ -22,9 +22,15 @@ const MAX_FILE_BYTES = 5 * 1024 * 1024; // 5 MB (mismo cap que parse-csf)
 // Same parser and namespace/path policy as the TanStack server function.
 import { DOMParser, onWarningStopParsing } from "npm:@xmldom/xmldom@0.9.12";
 import { createRepXmlParser } from "../_shared/supplierRepXmlCore.ts";
-export const { extractAttr, extractAllAttr, extractPagoNodes, isWellFormedXml } =
-  createRepXmlParser((xml) => new DOMParser({ onError: onWarningStopParsing })
-    .parseFromString(xml, "application/xml"));
+export const {
+  extractAttr,
+  extractAllAttr,
+  extractPagoNodes,
+  isWellFormedXml,
+} = createRepXmlParser((xml) =>
+  new DOMParser({ onError: onWarningStopParsing })
+    .parseFromString(xml, "application/xml")
+);
 
 interface RepAuthOk {
   ok: true;
