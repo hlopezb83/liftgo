@@ -8,11 +8,13 @@ import { CustomerBookingsHistory as BeforeBookings } from "../before/CustomerBoo
 import { CustomerBookingsHistory as AfterBookings } from "../../../src/features/customers/components/customer-detail/CustomerBookingsHistory";
 import { CustomerContactCard as BeforeContact } from "../before/CustomerContactCard";
 import { CustomerContactCard as AfterContact } from "../../../src/features/customers/components/customer-detail/CustomerContactCard";
+import { SignatureFixture } from "./signatureFixture";
 import "../../../src/styles.css";
 
 function Fixture() {
   const [open, setOpen] = useState(true);
   const params = new URLSearchParams(location.search);
+  if (params.get("view") === "signature") return <SignatureFixture />;
   const Payment = params.get("state") === "before" ? Before : After;
   const currency = params.get("currency") === "MXN" ? "MXN" : "USD";
   if (params.get("view") === "customer-detail") {

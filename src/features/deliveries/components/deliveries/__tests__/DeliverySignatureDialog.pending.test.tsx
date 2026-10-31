@@ -1,25 +1,12 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { drawSignature, mockSignatureCanvas } from "@/test/signatureCanvas";
 import { DeliverySignatureDialog } from "../DeliverySignatureDialog";
 
 vi.mock("@/features/contracts", () => import("@/features/contracts/components/contracts/SignaturePad"));
 
-const ctx = {
-  fillRect: vi.fn(), beginPath: vi.fn(), moveTo: vi.fn(),
-  lineTo: vi.fn(), stroke: vi.fn(), getImageData: vi.fn(() => ({})), putImageData: vi.fn(),
-};
-const originalCapture = HTMLCanvasElement.prototype.setPointerCapture;
-beforeEach(() => {
-  vi.clearAllMocks();
-  vi.spyOn(HTMLCanvasElement.prototype, "getContext").mockReturnValue(ctx as unknown as CanvasRenderingContext2D);
-  vi.spyOn(HTMLCanvasElement.prototype, "toDataURL").mockReturnValue("data:image/png;base64,c2ln");
-  HTMLCanvasElement.prototype.setPointerCapture = vi.fn();
-});
-afterEach(() => {
-  vi.restoreAllMocks();
-  if (originalCapture) HTMLCanvasElement.prototype.setPointerCapture = originalCapture;
-  else Reflect.deleteProperty(HTMLCanvasElement.prototype, "setPointerCapture");
-});
+beforeEach(() => { mockSignatureCanvas(); });
+afterEach(() => { vi.restoreAllMocks(); vi.unstubAllGlobals(); });
 
 function setup() {
   const props = {
@@ -47,9 +34,7 @@ describe("DeliverySignatureDialog durante el guardado", () => {
     const { props, rerender, container } = setup();
     const canvas = container.ownerDocument.querySelector("canvas");
     if (!canvas) throw new Error("Lienzo ausente");
-    fireEvent.pointerDown(canvas, { clientX: 10, clientY: 10, pointerId: 1 });
-    fireEvent.pointerMove(canvas, { clientX: 20, clientY: 20, pointerId: 1 });
-    fireEvent.pointerUp(canvas, { pointerId: 1 });
+    drawSignature(canvas);
     expect(screen.getByRole("button", { name: "Confirmar Firma" })).toBeEnabled();
     rerender(<DeliverySignatureDialog {...props} isPending />);
     for (const name of ["Confirmar Firma", "Limpiar", "Deshacer"]) {
