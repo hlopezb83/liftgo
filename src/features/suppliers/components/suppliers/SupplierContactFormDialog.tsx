@@ -12,7 +12,7 @@ import { FormActions } from "@/components/forms/FormActions";
 import { FormDialog, FormDialogFooter } from "@/components/forms/FormDialog";
 import { FormSection } from "@/components/forms/FormSection";
 import { Form } from "@/components/ui/form";
-import { zodResolver } from "@/lib/forms/zodResolver";
+import { typedZodResolver } from "@/lib/forms/zodResolver";
 import { optionalEmail } from "@/lib/schemas";
 import {
   SUPPLIER_CONTACT_ROLES,
@@ -50,8 +50,8 @@ export function SupplierContactFormDialog({ open, onOpenChange, supplierId, cont
   const create = useCreateSupplierContact();
   const update = useUpdateSupplierContact();
 
-  const form = useForm<FormValues>({
-    resolver: zodResolver(schema),
+  const form = useForm<FormValues, unknown, z.output<typeof schema>>({
+    resolver: typedZodResolver(schema),
     defaultValues: empty,
   });
 

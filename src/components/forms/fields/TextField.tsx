@@ -3,8 +3,8 @@ import { RequiredMark } from "@/components/forms/RequiredMark";
 import { FormField, FormItem, FormLabel, FormControl, FormMessage, FormDescription } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 
-interface TextFieldProps<TFieldValues extends FieldValues> {
-  control: Control<TFieldValues>;
+interface TextFieldProps<TFieldValues extends FieldValues, TContext = unknown, TTransformedValues = TFieldValues> {
+  control: Control<TFieldValues, TContext, TTransformedValues>;
   name: FieldPath<TFieldValues>;
   label: string;
   description?: string;
@@ -20,7 +20,7 @@ interface TextFieldProps<TFieldValues extends FieldValues> {
  * Text input estándar. Envuelve FormField + FormItem + FormLabel + FormControl + FormMessage.
  * Estado de error, focus y label vienen incluidos por defecto.
  */
-export function TextField<TFieldValues extends FieldValues>({
+export function TextField<TFieldValues extends FieldValues, TContext = unknown, TTransformedValues = TFieldValues>({
   control,
   name,
   label,
@@ -31,7 +31,7 @@ export function TextField<TFieldValues extends FieldValues>({
   type = "text",
   autoComplete,
   className,
-}: TextFieldProps<TFieldValues>) {
+}: TextFieldProps<TFieldValues, TContext, TTransformedValues>) {
   return (
     <FormField
       control={control}

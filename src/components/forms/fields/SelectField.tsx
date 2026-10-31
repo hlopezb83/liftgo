@@ -9,8 +9,8 @@ export interface SelectOption {
   disabled?: boolean;
 }
 
-interface SelectFieldProps<TFieldValues extends FieldValues> {
-  control: Control<TFieldValues>;
+interface SelectFieldProps<TFieldValues extends FieldValues, TContext = unknown, TTransformedValues = TFieldValues> {
+  control: Control<TFieldValues, TContext, TTransformedValues>;
   name: FieldPath<TFieldValues>;
   label: string;
   options: SelectOption[];
@@ -23,7 +23,7 @@ interface SelectFieldProps<TFieldValues extends FieldValues> {
   onValueChange?: (value: string) => void;
 }
 
-export function SelectField<TFieldValues extends FieldValues>({
+export function SelectField<TFieldValues extends FieldValues, TContext = unknown, TTransformedValues = TFieldValues>({
   control,
   name,
   label,
@@ -34,7 +34,7 @@ export function SelectField<TFieldValues extends FieldValues>({
   disabled,
   className,
   onValueChange,
-}: SelectFieldProps<TFieldValues>) {
+}: SelectFieldProps<TFieldValues, TContext, TTransformedValues>) {
   return (
     <FormField
       control={control}
