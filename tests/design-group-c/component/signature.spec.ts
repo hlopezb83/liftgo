@@ -39,7 +39,9 @@ test("signature real pixels survive DPR resize and export PNG; undo and disabled
   await page.mouse.up();
   await expect.poll(() => inkPixels(canvas)).toBeGreaterThan(20);
   await page.getByRole("button", { name: "Cambiar ancho" }).click();
-  await expect.poll(() => canvas.evaluate(c => (c as HTMLCanvasElement).width)).toBe(480);
+  await expect.poll(() => canvas.evaluate(c => c.getBoundingClientRect().width)).toBeLessThan(rect.width);
+  const expectedPixels = await canvas.evaluate(c => Math.round(c.getBoundingClientRect().width * devicePixelRatio));
+  await expect.poll(() => canvas.evaluate(c => (c as HTMLCanvasElement).width)).toBe(expectedPixels);
   await expect.poll(() => inkPixels(canvas)).toBeGreaterThan(10);
   await page.getByRole("button", { name: "Alternar bloqueo" }).click();
   for (const name of ["Deshacer", "Limpiar", "Confirmar Firma"]) await expect(page.getByRole("button", { name })).toBeDisabled();
@@ -47,7 +49,7 @@ test("signature real pixels survive DPR resize and export PNG; undo and disabled
   await page.getByRole("button", { name: "Confirmar Firma" }).click();
   const png = page.getByAltText("Firma PNG confirmada");
   await expect(png).toHaveAttribute("src", /^data:image\/png;base64,/);
-  await expect.poll(() => png.evaluate(i => (i as HTMLImageElement).naturalWidth)).toBe(480);
+  await expect.poll(() => png.evaluate(i => (i as HTMLImageElement).naturalWidth)).toBe(expectedPixels);
   await page.getByRole("button", { name: "Deshacer" }).click();
   await expect.poll(() => inkPixels(canvas)).toBe(0);
   await expect(page.getByRole("button", { name: "Confirmar Firma" })).toBeDisabled();
