@@ -1,3 +1,4 @@
+import Papa from "papaparse";
 import {
   buildLine,
   BankStatementLineLimitError,
@@ -12,18 +13,75 @@ import type { StatementProfile } from "./bankReconciliationConstants";
 
 export type { ParsedBankLine, ParseResult };
 
-const SEP_RE = /[,;]\s*(?=(?:[^"]*"[^"]*")*[^"]*$)/;
+function openingQuoteAfterPadding(content: string, index: number): number {
+  let next = index;
+  while (next < content.length && content[next] !== "\n" && /\s/.test(content[next])) next += 1;
+  return content[next] === '"' ? next : index;
+}
 
-function splitCsv(content: string): string[][] {
-  const rows: string[][] = [];
-  const lines = content.replace(/\r\n?/g, "\n").split("\n");
-  for (const raw of lines) {
-    const trimmed = raw.trim();
-    if (!trimmed) continue;
-    const fields = trimmed.split(SEP_RE).map((f) => f.replace(/^"|"$/g, "").trim());
-    rows.push(fields);
+/** Preserve the legacy acceptance of padding before an opening CSV quote.
+ * Only field-boundary padding is removed; quoted content (including doubled
+ * quotes and newlines) is copied unchanged. Papa still owns CSV parsing.
+ */
+function normalizeQuotedFieldPadding(content: string, delimiter: string): string {
+  let output = "";
+  let quoted = false;
+  let fieldStart = true;
+  for (let i = 0; i < content.length; i += 1) {
+    if (!quoted && fieldStart) {
+      i = openingQuoteAfterPadding(content, i);
+      fieldStart = false;
+      if (content[i] === '"') quoted = true;
+      output += content[i];
+      if (!quoted && (content[i] === delimiter || content[i] === "\n")) fieldStart = true;
+      continue;
+    }
+    const char = content[i];
+    output += char;
+    if (quoted && char === '"') {
+      if (content[i + 1] === '"') output += content[++i];
+      else quoted = false;
+    } else if (!quoted && (char === delimiter || char === "\n")) {
+      fieldStart = true;
+    }
   }
-  return rows;
+  return output;
+}
+
+function parseCsvRecords(content: string, map: ColumnMap) {
+  // Logical records, not physical lines. Keep references/amounts as strings:
+  // bank-specific coercion and validation remain below, not in PapaParse.
+  const normalized = content.replace(/\r\n?/g, "\n");
+  const config = {
+    header: false,
+    dynamicTyping: false,
+    skipEmptyLines: "greedy" as const,
+    delimitersToGuess: [",", ";"],
+    transform: (value: string) => value.trim(),
+  };
+  const parsed = Papa.parse<string[]>(normalized, config);
+  // Padding can confuse delimiter auto-detection (e.g. a semicolon file with
+  // many commas inside a padded quoted description). Evaluate both supported
+  // dialects with Papa, using the existing profile/date contract to disambiguate.
+  const candidates = [",", ";"].map((delimiter) => {
+    const compatible = normalizeQuotedFieldPadding(normalized, delimiter);
+    return { compatible, delimiter };
+  });
+  const plausible = candidates
+    .map(({ compatible, delimiter }) => Papa.parse<string[]>(compatible, { ...config, delimiter }))
+    .filter((candidate) => candidate.errors.length === 0 && candidate.data.some((row) =>
+      row.length >= requiredColumns(map) && row.length <= maxColumns(map)
+        // parseDateFlexible intentionally accepts date/time suffixes. A dialect
+        // candidate must not pass merely because a merged field starts in a date.
+        && !/[,;"]/.test(row[map.date] ?? "")
+        && parseDateFlexible(row[map.date] ?? "") !== null,
+    ));
+  if (plausible.length === 1) return plausible[0];
+  if (plausible.length > 1) {
+    return { ...parsed, errors: [{ type: "Delimiter", code: "UndetectableDelimiter", message: "Ambiguous delimiter", row: undefined }] };
+  }
+  const compatible = normalizeQuotedFieldPadding(normalized, parsed.meta.delimiter);
+  return Papa.parse<string[]>(compatible, { ...config, delimiter: parsed.meta.delimiter });
 }
 
 interface ColumnMap {
@@ -84,7 +142,8 @@ async function parseRow(
   if (r.length < minCols || r.length > maxCols) {
     return `Línea ${idx + 1}: se esperaban ${expectedColumnsMessage(minCols, maxCols)} columnas y llegaron ${r.length}. Revisa que los importes con coma vengan entre comillas.`;
   }
-  const postedDate = parseDateFlexible(r[map.date] ?? "");
+  const dateText = r[map.date] ?? "";
+  const postedDate = /[,;"]/.test(dateText) ? null : parseDateFlexible(dateText);
   if (!postedDate) return `Línea ${idx + 1}: fecha inválida ("${r[map.date] ?? ""}")`;
   const description = (r[map.description] ?? "").trim();
   const signed = computeSigned(map, r);
@@ -99,16 +158,30 @@ export async function parseBankCsv(
   profile: StatementProfile,
   maxLines = Number.POSITIVE_INFINITY,
 ): Promise<ParseResult> {
-  const rows = splitCsv(content);
+  const map = PROFILE_HEADERS[profile] ?? PROFILE_HEADERS.generico;
+  if (!map) return { lines: [], errors: ["Perfil no soportado"], periodStart: null, periodEnd: null };
+  const parsed = parseCsvRecords(content, map);
+  const rows = parsed.data;
   const errors: string[] = [];
   const lines: ParsedBankLine[] = [];
 
   if (rows.length === 0) {
     return { lines, errors: ["El archivo está vacío"], periodStart: null, periodEnd: null };
   }
-  const map = PROFILE_HEADERS[profile] ?? PROFILE_HEADERS.generico;
-  if (!map) return { lines, errors: ["Perfil no soportado"], periodStart: null, periodEnd: null };
-
+  // Syntax errors can merge multiple movements into a single quoted record.
+  // Reject the file before hashing/import rather than accept ambiguous rows.
+  if (parsed.errors.length > 0) {
+    return {
+      lines,
+      errors: parsed.errors.map((error) =>
+        error.type === "Delimiter"
+          ? "No se pudo identificar el separador CSV. Usa coma o punto y coma de forma consistente."
+          : `Registro ${typeof error.row === "number" ? error.row + 1 : "?"}: CSV inválido (${error.code}). Revisa las comillas y los separadores.`,
+      ),
+      periodStart: null,
+      periodEnd: null,
+    };
+  }
 
   const minCols = requiredColumns(map);
   // R24-F: el perfil define el máximo de columnas (incluyendo la referencia
