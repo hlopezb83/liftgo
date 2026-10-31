@@ -5,6 +5,7 @@
     "jsr:@std/internal@^1.0.12": "1.0.14",
     "npm:@sentry/deno@11.10.0": "11.10.0",
     "npm:@types/node@*": "22.5.4",
+    "npm:@xmldom/xmldom@0.9.12": "0.9.12",
     "npm:facturapi@5.2.0": "5.2.0"
   },
   "jsr": {
@@ -61,6 +62,9 @@
       "dependencies": [
         "undici-types"
       ]
+    },
+    "@xmldom/xmldom@0.9.12": {
+      "integrity": "sha512-5AXjrcMClTryPe9LgZrygpB1lj7s0S9E0+W+AHaVKAVyHanafK86iPSvG5xHVSp/jC+VH1UXu0TAEmY279xH7A=="
     },
     "facturapi@5.2.0": {
       "integrity": "sha512-v9hZFpjXkIVxqDjaDAmp+KYwMJZ/G6XUyE1eRXMvXbMmKPi+rf8I1ycoQLAPy26KeiIG7DTZOtcQtwhs+srwMQ=="

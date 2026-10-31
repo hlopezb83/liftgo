@@ -62,11 +62,14 @@ using the already downloaded package. Its diff contains only the new dependency.
 The local full frozen install was blocked by proxy 403 responses for existing
 lockfile tarballs; no registry mirrors or lock URL rewrites were used.
 
-**Not ready to merge:** regenerate and verify `supabase/functions/deno.lock`
-with the repository's Deno 2.9.8 in an authorized dependency environment. Local
-Deno 2.9.6 `--node-modules-dir=manual` can check and execute the already installed
-package, but does not prove the new explicit npm import is reproducible under
-CI/deployment auto-install. Do not hand-fabricate a lock entry.
+The missing Deno lock entries were obtained from the **unmodified normal CI
+frozen-check diagnostic** produced by Deno 2.9.8, not fabricated or guessed:
+[run 41158337805, job 124410280175](https://github.com/hlopezb83/liftgo/actions/runs/41158337805/job/124410280175).
+Its exact diff adds one npm specifier and one package integrity entry for 0.9.12;
+the integrity independently matches Bun's existing entry. This diff is applied
+to `supabase/functions/deno.lock` without changing any other dependency.
+The frozen gate remains enabled. **Keep draft until the next exact-head CI
+validates the updated lock and all required tests.**
 
 Existing Edge organization-isolation tests still require the supported dependency
 cache (the old remote std assertion module was unavailable locally). Remaining
