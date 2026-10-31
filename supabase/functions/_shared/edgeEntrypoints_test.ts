@@ -135,7 +135,7 @@ Deno.test("entrypoints: registro Deno.serve y contratos sin sockets ni backend",
   const originalServe = Object.getOwnPropertyDescriptor(Deno, "serve")!;
   const originalFetch = globalThis.fetch;
   const originalError = console.error;
-  const originalEnvironment = new Map<string, string | undefined>();
+  const originalEnvGet = Deno.env.get;
   const environment: Record<string, string> = {
     SENTRY_ENABLED: "0",
     SUPABASE_URL: DATABASE,
@@ -152,10 +152,11 @@ Deno.test("entrypoints: registro Deno.serve y contratos sin sockets ni backend",
     globalThis.fetch = syntheticFetch(scenario, calls, unexpected);
   };
   try {
-    for (const [key, value] of Object.entries(environment)) {
-      originalEnvironment.set(key, Deno.env.get(key));
-      Deno.env.set(key, value);
-    }
+    // Deno.env.set mutates process-wide state shared by parallel test workers.
+    // Stub only this worker's getter so other suites cannot overwrite these
+    // synthetic destinations, and this suite never changes their environment.
+    Deno.env.get = (key: string) =>
+      Object.hasOwn(environment, key) ? environment[key] : originalEnvGet(key);
     Object.defineProperty(Deno, "serve", {
       configurable: originalServe.configurable,
       enumerable: originalServe.enumerable,
@@ -418,9 +419,6 @@ Deno.test("entrypoints: registro Deno.serve y contratos sin sockets ni backend",
     Object.defineProperty(Deno, "serve", originalServe);
     globalThis.fetch = originalFetch;
     console.error = originalError;
-    for (const [key, value] of originalEnvironment) {
-      if (value === undefined) Deno.env.delete(key);
-      else Deno.env.set(key, value);
-    }
+    Deno.env.get = originalEnvGet;
   }
 });
