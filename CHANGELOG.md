@@ -1,3 +1,7 @@
+## [8.46.1] - 2026-10-31
+
+- La prueba de humo pública reconoce sólo la URL exacta verificada del script de eventos del hosting (`/__l5e/events.270c78a44fc53e7b.js`), idéntico a la identidad anterior; sigue abortado y sin cambios en los controles de red.
+
 ## [8.46.0] - 2026-10-27
 
 - Nueva factura muestra partidas en tarjetas sin scroll horizontal móvil, campos agrupados y códigos SAT con su nombre completo, además de un resumen lateral de importes en escritorio. Conserva cálculos, descuentos, impuestos, moneda, cancelación y acciones fijas en móvil.

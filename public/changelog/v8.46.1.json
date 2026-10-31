@@ -1,0 +1,12 @@
+{
+  "version": "8.46.1",
+  "date": "2026-10-31",
+  "type": "patch",
+  "category": "fix",
+  "title": "Prueba de humo reconoce el script de eventos actual del hosting",
+  "description": "La prueba pública reconoce sólo la URL exacta verificada /__l5e/events.270c78a44fc53e7b.js como ruido del hosting; el script sigue abortado y los demás controles de red no cambian.",
+  "changes": [
+    "Se verificó que el archivo es idéntico byte a byte a la identidad anterior 59f10ad6d72ea62d (SHA256 9005204863a3d003…1238).",
+    "Variantes de hash, mayúsculas, query, mapa, ruta u origen siguen fallando."
+  ]
+}
