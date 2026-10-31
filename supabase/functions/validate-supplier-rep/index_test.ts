@@ -49,7 +49,7 @@ Deno.test("validate-supplier-rep: rechaza Authorization inválido (401)", async 
 
 Deno.test("isWellFormedXml: acepta XML válido con declaración y namespaces", () => {
   const xml =
-    `<?xml version="1.0" encoding="UTF-8"?><cfdi:Comprobante TipoDeComprobante="P"><cfdi:Emisor Rfc="AAA010101AAA"/><cfdi:Complemento><pago20:Pagos><pago20:Pago Monto="100.00"/></pago20:Pagos></cfdi:Complemento></cfdi:Comprobante>`;
+    `<?xml version="1.0" encoding="UTF-8"?><cfdi:Comprobante xmlns:cfdi="http://www.sat.gob.mx/cfd/4" xmlns:pago20="http://www.sat.gob.mx/Pagos20" xmlns:tfd="http://www.sat.gob.mx/TimbreFiscalDigital" TipoDeComprobante="P"><cfdi:Emisor Rfc="AAA010101AAA"/><cfdi:Complemento><pago20:Pagos><pago20:Pago Monto="100.00"/></pago20:Pagos></cfdi:Complemento></cfdi:Comprobante>`;
   assertEquals(isWellFormedXml(xml), true);
 });
 

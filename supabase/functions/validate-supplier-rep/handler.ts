@@ -19,83 +19,18 @@ const BUCKET = "cfdi-files";
 const TOLERANCE = 0.01;
 const MAX_FILE_BYTES = 5 * 1024 * 1024; // 5 MB (mismo cap que parse-csf)
 
-// ---------- Helpers (XML parsing sin DOM) ----------
-
-export function extractAttr(
-  xml: string,
-  tag: string,
-  attr: string,
-): string | null {
-  const re = new RegExp(
-    `<(?:[a-zA-Z0-9]+:)?${tag}\\b[^>]*\\b${attr}\\s*=\\s*"([^"]*)"`,
-    "i",
-  );
-  const m = xml.match(re);
-  return m ? m[1] : null;
-}
-
-export function extractAllAttr(
-  xml: string,
-  tag: string,
-  attr: string,
-): string[] {
-  const re = new RegExp(
-    `<(?:[a-zA-Z0-9]+:)?${tag}\\b[^>]*\\b${attr}\\s*=\\s*"([^"]*)"`,
-    "ig",
-  );
-  const out: string[] = [];
-  let m: RegExpExecArray | null;
-  while ((m = re.exec(xml)) !== null) out.push(m[1]);
-  return out;
-}
-
-// L-8: chequeo estructural mínimo de XML bien formado (balance de tags) antes
-// de cualquier parseo por regex: evita extraer datos de un XML truncado o
-// corrupto que el regex aceptaría silenciosamente.
-export function isWellFormedXml(xml: string): boolean {
-  if (!/^\s*</.test(xml)) return false;
-  const stack: string[] = [];
-  const re =
-    /<(\/?)([a-zA-Z_][\w.-]*(?::[\w.-]+)?)((?:"[^"]*"|'[^']*'|[^"'<>])*?)(\/?)>/g;
-  let m: RegExpExecArray | null;
-  let sawRoot = false;
-  while ((m = re.exec(xml)) !== null) {
-    const closing = m[1];
-    const name = m[2];
-    const selfClose = m[4];
-    if (closing) {
-      if (stack.pop() !== name) return false;
-    } else if (!selfClose) {
-      stack.push(name);
-      sawRoot = true;
-    } else {
-      sawRoot = true;
-    }
-  }
-  return sawRoot && stack.length === 0;
-}
-
-// Encuentra TODOS los nodos cfdi/pago Pago para extraer Monto y sus DoctoRelacionado
-export function extractPagoNodes(
-  xml: string,
-): Array<{ monto: number; doctos: string[] }> {
-  const reOpen = /<(?:[a-zA-Z0-9]+:)?Pago\b[^>]*>/g;
-  const out: Array<{ monto: number; doctos: string[] }> = [];
-  let m: RegExpExecArray | null;
-  while ((m = reOpen.exec(xml)) !== null) {
-    const openTag = m[0];
-    const montoMatch = openTag.match(/\bMonto\s*=\s*"([^"]*)"/i);
-    const monto = montoMatch ? Number(montoMatch[1]) : NaN;
-    const start = m.index + openTag.length;
-    const closeIdx = xml.toLowerCase().indexOf("</pago", start);
-    const inner = closeIdx === -1
-      ? xml.slice(start)
-      : xml.slice(start, closeIdx);
-    const doctos = extractAllAttr(inner, "DoctoRelacionado", "IdDocumento");
-    out.push({ monto, doctos });
-  }
-  return out;
-}
+// Same parser and namespace/path policy as the TanStack server function.
+import { DOMParser, onWarningStopParsing } from "npm:@xmldom/xmldom@0.9.12";
+import { createRepXmlParser } from "../_shared/supplierRepXmlCore.ts";
+export const {
+  extractAttr,
+  extractAllAttr,
+  extractPagoNodes,
+  isWellFormedXml,
+} = createRepXmlParser((xml) =>
+  new DOMParser({ onError: onWarningStopParsing })
+    .parseFromString(xml, "application/xml")
+);
 
 interface RepAuthOk {
   ok: true;
