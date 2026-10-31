@@ -2,8 +2,8 @@ import { type FieldPath, type FieldValues, type Control } from "react-hook-form"
 import { FormField, FormItem, FormControl, FormLabel, FormMessage, FormDescription } from "@/components/ui/form";
 import { Switch } from "@/components/ui/switch";
 
-interface SwitchFieldProps<TFieldValues extends FieldValues> {
-  control: Control<TFieldValues>;
+interface SwitchFieldProps<TFieldValues extends FieldValues, TContext = unknown, TTransformedValues = TFieldValues> {
+  control: Control<TFieldValues, TContext, TTransformedValues>;
   name: FieldPath<TFieldValues>;
   label: string;
   description?: string;
@@ -11,14 +11,14 @@ interface SwitchFieldProps<TFieldValues extends FieldValues> {
   className?: string;
 }
 
-export function SwitchField<TFieldValues extends FieldValues>({
+export function SwitchField<TFieldValues extends FieldValues, TContext = unknown, TTransformedValues = TFieldValues>({
   control,
   name,
   label,
   description,
   disabled,
   className,
-}: SwitchFieldProps<TFieldValues>) {
+}: SwitchFieldProps<TFieldValues, TContext, TTransformedValues>) {
   return (
     <FormField
       control={control}

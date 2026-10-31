@@ -30,3 +30,7 @@ type AnySchema = any;
 export function zodResolver<Values extends FieldValues>(schema: AnySchema): Resolver<Values> {
   return hookformZodResolver(schema) as unknown as Resolver<Values>;
 }
+
+/** Strict opt-in for migrated forms. Preserve z.input/z.output through RHF;
+ * the legacy wrapper above remains until each caller has migrated. */
+export { zodResolver as typedZodResolver } from "@hookform/resolvers/zod";

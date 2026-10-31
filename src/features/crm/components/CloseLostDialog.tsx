@@ -8,7 +8,7 @@ import { ErrorIcon } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import { Form } from "@/components/ui/form";
 import { todayKeyMty } from "@/lib/format/dateFormats";
-import { zodResolver } from "@/lib/forms/zodResolver";
+import { typedZodResolver } from "@/lib/forms/zodResolver";
 import { LOST_REASONS } from "../lib/constants";
 import type { Prospect } from "../hooks/useProspects";
 
@@ -32,11 +32,11 @@ const schema = z
     path: ["extraNote"],
   });
 
-type FormValues = z.infer<typeof schema>;
+type FormValues = z.input<typeof schema>;
 
 export function CloseLostDialog({ prospect, open, onOpenChange, onConfirm, isPending }: Props) {
-  const form = useForm<FormValues>({
-    resolver: zodResolver(schema),
+  const form = useForm<FormValues, unknown, z.output<typeof schema>>({
+    resolver: typedZodResolver(schema),
     defaultValues: { reason: "", extraNote: "" },
   });
 

@@ -3,8 +3,8 @@ import { RequiredMark } from "@/components/forms/RequiredMark";
 import { FormField, FormItem, FormLabel, FormControl, FormMessage, FormDescription } from "@/components/ui/form";
 import { Textarea } from "@/components/ui/textarea";
 
-interface TextareaFieldProps<TFieldValues extends FieldValues> {
-  control: Control<TFieldValues>;
+interface TextareaFieldProps<TFieldValues extends FieldValues, TContext = unknown, TTransformedValues = TFieldValues> {
+  control: Control<TFieldValues, TContext, TTransformedValues>;
   name: FieldPath<TFieldValues>;
   label: string;
   description?: string;
@@ -17,7 +17,7 @@ interface TextareaFieldProps<TFieldValues extends FieldValues> {
   className?: string;
 }
 
-export function TextareaField<TFieldValues extends FieldValues>({
+export function TextareaField<TFieldValues extends FieldValues, TContext = unknown, TTransformedValues = TFieldValues>({
   control,
   name,
   label,
@@ -29,7 +29,7 @@ export function TextareaField<TFieldValues extends FieldValues>({
   maxLength,
   showCount,
   className,
-}: TextareaFieldProps<TFieldValues>) {
+}: TextareaFieldProps<TFieldValues, TContext, TTransformedValues>) {
   return (
     <FormField
       control={control}
