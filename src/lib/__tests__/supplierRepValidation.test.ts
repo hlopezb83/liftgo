@@ -10,7 +10,10 @@ import {
 } from "../supplierRep.validation";
 
 class TestHttpError extends Error {
-  constructor(public status: number, message: string) {
+  constructor(
+    public status: number,
+    message: string,
+  ) {
     super(message);
   }
 }
@@ -29,7 +32,7 @@ const REP_UUID = "33333333-3333-3333-3333-333333333333";
 const toB64 = (s: string) => Buffer.from(s, "utf-8").toString("base64");
 
 const REP_XML =
-  `<?xml version="1.0" encoding="UTF-8"?><cfdi:Comprobante TipoDeComprobante="P">` +
+  `<?xml version="1.0" encoding="UTF-8"?><cfdi:Comprobante xmlns:cfdi="http://www.sat.gob.mx/cfd/4" xmlns:pago20="http://www.sat.gob.mx/Pagos20" xmlns:tfd="http://www.sat.gob.mx/TimbreFiscalDigital" TipoDeComprobante="P">` +
   `<cfdi:Emisor Rfc="AAA010101AAA"/>` +
   `<cfdi:Complemento><tfd:TimbreFiscalDigital UUID="${REP_UUID}"/>` +
   `<pago20:Pagos><pago20:Pago Monto="1160.00">` +
@@ -50,7 +53,10 @@ const expectStatus = (fn: () => void, status: number, message?: RegExp) => {
 describe("validateRepInput", () => {
   it("acepta una entrada válida", () => {
     expect(() =>
-      validateRepInput(g, { payment_id: PAYMENT_ID, xml_base64: toB64(REP_XML) })
+      validateRepInput(g, {
+        payment_id: PAYMENT_ID,
+        xml_base64: toB64(REP_XML),
+      }),
     ).not.toThrow();
   });
 
@@ -92,7 +98,7 @@ describe("validateRepInput", () => {
 
 describe("decodeRepXml", () => {
   it("devuelve el XML del complemento de pago", () => {
-    expect(decodeRepXml(g, toB64(REP_XML))).toContain("TipoDeComprobante=\"P\"");
+    expect(decodeRepXml(g, toB64(REP_XML))).toContain('TipoDeComprobante="P"');
   });
 
   it("rechaza XML malformado", () => {
@@ -105,7 +111,13 @@ describe("decodeRepXml", () => {
 
   it("rechaza comprobantes que no son de tipo P", () => {
     expectStatus(
-      () => decodeRepXml(g, toB64(REP_XML.replace('TipoDeComprobante="P"', 'TipoDeComprobante="I"'))),
+      () =>
+        decodeRepXml(
+          g,
+          toB64(
+            REP_XML.replace('TipoDeComprobante="P"', 'TipoDeComprobante="I"'),
+          ),
+        ),
       400,
       /no es un Complemento de Pago/,
     );
@@ -115,7 +127,7 @@ describe("decodeRepXml", () => {
 describe("assertEmisorMatchesSupplier", () => {
   it("acepta el RFC del proveedor sin importar mayúsculas ni espacios", () => {
     expect(() =>
-      assertEmisorMatchesSupplier(g, REP_XML, { rfc: " aaa010101aaa " })
+      assertEmisorMatchesSupplier(g, REP_XML, { rfc: " aaa010101aaa " }),
     ).not.toThrow();
   });
 
@@ -138,7 +150,9 @@ describe("assertEmisorMatchesSupplier", () => {
 
 describe("assertPagoMatchesInvoice", () => {
   it("acepta el pago que referencia la factura por el monto esperado", () => {
-    expect(() => assertPagoMatchesInvoice(g, REP_XML, BILL_UUID, 1160)).not.toThrow();
+    expect(() =>
+      assertPagoMatchesInvoice(g, REP_XML, BILL_UUID, 1160),
+    ).not.toThrow();
   });
 
   it("detecta monto distinto", () => {
@@ -175,5 +189,58 @@ describe("extractRepUuid", () => {
       400,
       /TimbreFiscalDigital/,
     );
+  });
+});
+
+describe("REP parser trust boundary", () => {
+  it("does not let a commented issuer override the real issuer", () => {
+    const xml = REP_XML.replace(
+      '<cfdi:Emisor Rfc="AAA010101AAA"/>',
+      '<!-- <cfdi:Emisor Rfc="AAA010101AAA"/> --><cfdi:Emisor Rfc="BBB010101BBB"/>',
+    );
+    expectStatus(
+      () => assertEmisorMatchesSupplier(g, xml, { rfc: "AAA010101AAA" }),
+      400,
+      /no coincide/,
+    );
+  });
+
+  it("does not combine the amount of one Pago with a document from another", () => {
+    const xml = REP_XML.replace(
+      `<pago20:DoctoRelacionado IdDocumento="${BILL_UUID}"/>`,
+      `<pago20:DoctoRelacionado IdDocumento="${REP_UUID}"/>`,
+    ).replace(
+      "</pago20:Pagos>",
+      `<pago20:Pago Monto="999"><pago20:DoctoRelacionado IdDocumento="${BILL_UUID}"/></pago20:Pago></pago20:Pagos>`,
+    );
+    expectStatus(
+      () => assertPagoMatchesInvoice(g, xml, BILL_UUID, 1160),
+      400,
+      /monto no coincide/,
+    );
+  });
+
+  it("rejects spoofed CFDI namespaces before business validation", () => {
+    expectStatus(
+      () =>
+        decodeRepXml(
+          g,
+          toB64(REP_XML.replace("http://www.sat.gob.mx/cfd/4", "urn:attacker")),
+        ),
+      400,
+      /no es un Complemento/,
+    );
+  });
+
+  it("accepts equivalent valid single-quoted XML without changing fiscal matching", () => {
+    const xml = REP_XML.replaceAll('"', "'");
+    expect(decodeRepXml(g, toB64(xml))).toBe(xml);
+    expect(() =>
+      assertEmisorMatchesSupplier(g, xml, { rfc: "AAA010101AAA" }),
+    ).not.toThrow();
+    expect(() =>
+      assertPagoMatchesInvoice(g, xml, BILL_UUID, 1160),
+    ).not.toThrow();
+    expect(extractRepUuid(g, xml)).toBe(REP_UUID);
   });
 });

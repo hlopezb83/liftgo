@@ -15,7 +15,7 @@ const REP_UUID = "44444444-4444-4444-4444-444444444444";
 const USER = "55555555-5555-5555-5555-555555555555";
 
 const XML =
-  `<?xml version="1.0" encoding="UTF-8"?><cfdi:Comprobante TipoDeComprobante="P"><cfdi:Emisor Rfc="AAA010101AAA"/><cfdi:Complemento><tfd:TimbreFiscalDigital UUID="${REP_UUID}"/><pago20:Pagos><pago20:Pago Monto="100.00"><pago20:DoctoRelacionado IdDocumento="${BILL_UUID}"/></pago20:Pago></pago20:Pagos></cfdi:Complemento></cfdi:Comprobante>`;
+  `<?xml version="1.0" encoding="UTF-8"?><cfdi:Comprobante xmlns:cfdi="http://www.sat.gob.mx/cfd/4" xmlns:pago20="http://www.sat.gob.mx/Pagos20" xmlns:tfd="http://www.sat.gob.mx/TimbreFiscalDigital" TipoDeComprobante="P"><cfdi:Emisor Rfc="AAA010101AAA"/><cfdi:Complemento><tfd:TimbreFiscalDigital UUID="${REP_UUID}"/><pago20:Pagos><pago20:Pago Monto="100.00"><pago20:DoctoRelacionado IdDocumento="${BILL_UUID}"/></pago20:Pago></pago20:Pagos></cfdi:Complemento></cfdi:Comprobante>`;
 
 function b64(s: string): string {
   return btoa(unescape(encodeURIComponent(s)));
