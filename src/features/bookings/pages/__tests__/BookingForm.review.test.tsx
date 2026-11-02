@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { useForm } from "react-hook-form";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { TestRouter } from "@/test/router";
@@ -8,6 +8,12 @@ import BookingForm from "../BookingForm";
 const mocks = vi.hoisted(() => ({
   onSubmit: vi.fn(), navigate: vi.fn(), busy: false, blocked: false, error: null as string | null,
   customerName: "Cliente sintético",
+  today: "2026-10-31",
+}));
+// Freeze the business day, not timers: router/render async work must stay real.
+vi.mock("@/lib/format/dateFormats", async (importOriginal) => ({
+  ...await importOriginal<typeof import("@/lib/format/dateFormats")>(),
+  todayKeyMty: () => mocks.today,
 }));
 vi.mock("@/features/customers", () => ({ CustomerSelector: () => <div>Selector de cliente</div> }));
 vi.mock("@/features/fleet", () => ({ ForkliftSelector: () => <div>Selector de equipo</div>, ForkliftAvailabilityHelp: () => null }));
@@ -38,6 +44,7 @@ beforeEach(() => {
   mocks.blocked = false;
   mocks.error = null;
   mocks.customerName = "Cliente sintético";
+  mocks.today = "2026-10-31";
 });
 
 describe("BookingForm review and actions", () => {
@@ -70,10 +77,28 @@ describe("BookingForm review and actions", () => {
     expect(mocks.onSubmit).not.toHaveBeenCalled();
   });
 
-  it("mantiene el error visible y Cancelar usa el retorno existente", async () => {
+  it.each([
+    ["2026-10-31", false],
+    ["2026-11-01", false],
+    ["2026-11-02", true],
+    ["2030-01-01", true],
+  ] as const)("mantiene el error visible y Cancelar con fecha de negocio %s", async (today, startInPast) => {
+    mocks.today = today;
     mocks.error = "No pudimos verificar la disponibilidad. Intenta de nuevo.";
     renderPage();
-    expect(await screen.findByRole("alert")).toHaveTextContent(mocks.error);
+    const review = await screen.findByRole("complementary", { name: "Revisar y crear reserva" });
+    const submitAlert = within(review).getByRole("alert");
+    expect(submitAlert).toBeVisible();
+    expect(submitAlert).toHaveTextContent(mocks.error);
+    // A valid past-date warning must coexist with (not hide) the submit error.
+    const pastWarning = screen.queryByText(/La fecha de inicio está en el pasado/);
+    if (startInPast) {
+      expect(pastWarning).toBeVisible();
+      expect(pastWarning).toHaveAttribute("role", "alert");
+    } else {
+      expect(pastWarning).not.toBeInTheDocument();
+    }
+    expect(screen.getAllByRole("alert")).toHaveLength(startInPast ? 2 : 1);
     fireEvent.click(screen.getByRole("button", { name: "Cancelar" }));
     expect(mocks.navigate).toHaveBeenCalledWith(-1);
   });
