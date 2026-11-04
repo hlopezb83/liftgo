@@ -119,7 +119,7 @@ async function reset(c, histories = [history()]) {
     INSERT INTO organization_memberships VALUES('${ORG}','${ADMIN}','internal'),('${OTHER_ORG}','${OTHER_ADMIN}','internal'),('${ORG}','${FINANCE}','internal'),('${ORG}','${AUDITOR}','internal'),('${ORG}','${SALES}','internal'),('${ORG}','${PORTAL}','portal');
     INSERT INTO user_roles VALUES('${ADMIN}','admin'),('${OTHER_ADMIN}','admin'),('${FINANCE}','administrativo'),('${AUDITOR}','auditor'),('${SALES}','ventas'),('${PORTAL}','customer');`);
   for (const [id, line, org, customer] of [[Q, charge(), ORG, CUSTOMER], [Q2, charge(L2), ORG, CUSTOMER], [RENT, rental, ORG, CUSTOMER], [FOREIGN, charge(uid(112)), OTHER_ORG, OTHER_CUSTOMER]]) {
-    await q(c, "INSERT INTO quotes(id,organization_id,customer_id,quote_number,start_date,end_date,line_items,currency) VALUES($1,$2,$3,$4,current_date,current_date+30,$5::jsonb,'MXN')", [id, org, customer, `QUOTE-${id}`, JSON.stringify([line])]);
+    await q(c, "INSERT INTO quotes(id,organization_id,customer_id,quote_number,start_date,end_date,line_items,currency) VALUES($1,$2,$3,$4,current_date,current_date+30,$5::jsonb,'MXN')", [id, org, customer, `QUOTE-${id}`, c.sql.json([line])]);
   }
   for (const [id, quote] of [[200, Q], [201, Q2], [202, RENT]]) {
     await q(c, "INSERT INTO bookings(id,organization_id,customer_id,quote_id,booking_number,status,recurring_billing,start_date,end_date) VALUES($1,$2,$3,$4,$5,'confirmed',true,current_date,current_date+30)", [uid(id), ORG, CUSTOMER, quote, `BOOK-${id}`]);
@@ -127,7 +127,7 @@ async function reset(c, histories = [history()]) {
   for (const invoice of histories) {
     const { pivots = [], ...row } = invoice;
     await q(c, "INSERT INTO invoices(id,organization_id,customer_id,invoice_number,quote_id,booking_id,line_items,subtotal,total,status,moneda,cfdi_status,cfdi_uuid,cancellation_status) VALUES($1,$2,$3,$4,$5,$6,$7::jsonb,$8,$8,$9,$10,$11,$12,$13)",
-      [row.id, row.organization_id, row.customer_id, row.invoice_number, row.quote_id, row.booking_id, JSON.stringify(row.line_items), row.subtotal, row.status, row.moneda, row.cfdi_status ?? null, row.cfdi_uuid ?? null, row.cancellation_status ?? null]);
+      [row.id, row.organization_id, row.customer_id, row.invoice_number, row.quote_id, row.booking_id, c.sql.json(row.line_items), row.subtotal, row.status, row.moneda, row.cfdi_status ?? null, row.cfdi_uuid ?? null, row.cancellation_status ?? null]);
     for (const bid of pivots) await q(c, "INSERT INTO invoice_bookings(invoice_id,booking_id,organization_id) VALUES($1,$2,$3)", [row.id, uid(bid), ORG]);
   }
   await q(c, fs.readFileSync(path.join(root, "drizzle/migrations/0107_quote_charge_tracking.sql"), "utf8"));
@@ -160,7 +160,7 @@ const reverseSql = "SELECT public.reverse_quote_charge_history($1,$2,$3,$4) AS v
 async function reconcile(c, options = {}) { return (await as(c, ADMIN, reconcileSql, await args(c, options)))[0].value; }
 async function invoice(c, quantity, id = 400, quote = Q, line = L) {
   return q(c, "INSERT INTO invoices(id,organization_id,customer_id,invoice_number,quote_id,line_items,subtotal,total,moneda) VALUES($1,$2,$3,$4,$5,$6::jsonb,$7,$7,'MXN')",
-    [uid(id), ORG, CUSTOMER, `NEW-${id}`, quote, JSON.stringify([native(quantity, quote, line)]), quantity * 100]);
+    [uid(id), ORG, CUSTOMER, `NEW-${id}`, quote, c.sql.json([native(quantity, quote, line)]), quantity * 100]);
 }
 async function expectCode(promise, code = "23514") { await assert.rejects(promise, (error) => error.code === code); }
 async function race(observer, a, b, first, second) {
@@ -264,8 +264,8 @@ async function run() {
 
   await reset(c, [history(300, [ambiguous()], { quote_id: RENT, booking_id: uid(202) })]);
   assert.equal((await available(c, RENT)).legacy_review_required, false);
-  await q(c, "INSERT INTO invoices(id,organization_id,customer_id,invoice_number,quote_id,line_items,subtotal,total) VALUES($1,$2,$3,'RENT-ONLY',$4,$5::jsonb,100,100)", [uid(401), ORG, CUSTOMER, RENT, JSON.stringify([rental])]);
-  await q(c, "UPDATE quotes SET line_items=line_items||$1::jsonb WHERE id=$2", [JSON.stringify([charge(uid(114))]), RENT]);
+  await q(c, "INSERT INTO invoices(id,organization_id,customer_id,invoice_number,quote_id,line_items,subtotal,total) VALUES($1,$2,$3,'RENT-ONLY',$4,$5::jsonb,100,100)", [uid(401), ORG, CUSTOMER, RENT, c.sql.json([rental])]);
+  await q(c, "UPDATE quotes SET line_items=line_items||$1::jsonb WHERE id=$2", [c.sql.json([charge(uid(114))]), RENT]);
   assert.equal((await available(c, RENT)).legacy_review_required, true);
   console.log("PASS quote without extras allows rental; adding an extra restores unresolved history review");
 
