@@ -17,24 +17,26 @@ import { useCashFlowSettings } from "../hooks/useCashFlowSettings";
 import type { CashFlowBucket } from "../lib/cashFlowUtils";
 
 /** F4: aviso de documentos excluidos de la proyección. */
-function ExcludedNotice({ noDueDate, outOfHorizon }: { noDueDate: number; outOfHorizon: number }) {
-  if (noDueDate === 0 && outOfHorizon === 0) return null;
+function ExcludedNotice({ noDueDate, outOfHorizon, recurringCoverage }: { noDueDate: number; outOfHorizon: number; recurringCoverage: number }) {
+  if (noDueDate === 0 && outOfHorizon === 0 && recurringCoverage === 0) return null;
   return (
     <p className="text-xs text-muted-foreground" data-testid="cash-flow-excluded-notice">
       {noDueDate > 0 && `${noDueDate} documento(s) sin fecha de vencimiento excluidos de la proyección. `}
       {outOfHorizon > 0 && `${outOfHorizon} documento(s) vencen fuera del horizonte seleccionado.`}
+      {recurringCoverage > 0 && ` ${recurringCoverage} reserva(s) tienen períodos omitidos de la proyección porque su cobertura facturada no se pudo verificar. Revisa su historial de facturas.`}
     </p>
   );
 }
 
 function CashFlowBody({
-  buckets, loading, initialBalance, noDueDate, outOfHorizon, onSelect,
+  buckets, loading, initialBalance, noDueDate, outOfHorizon, recurringCoverage, onSelect,
 }: {
   buckets?: CashFlowBucket[];
   loading: boolean;
   initialBalance: number;
   noDueDate: number;
   outOfHorizon: number;
+  recurringCoverage: number;
   onSelect: (bucket: CashFlowBucket) => void;
 }) {
   if (loading || !buckets) {
@@ -47,7 +49,7 @@ function CashFlowBody({
   }
 
   return <>
-    <ExcludedNotice noDueDate={noDueDate} outOfHorizon={outOfHorizon} />
+    <ExcludedNotice noDueDate={noDueDate} outOfHorizon={outOfHorizon} recurringCoverage={recurringCoverage} />
     <CashFlowSummaryCards buckets={buckets} initialBalance={initialBalance} />
     <Card>
       <CardContent className="p-0 overflow-x-auto">
@@ -82,9 +84,12 @@ export default function CashFlowPage() {
     safetyBuffer,
     enabled: !!settings && !settingsError,
   });
-  const buckets = projection?.buckets;
-  const excludedNoDueDate = projection?.excludedNoDueDate ?? 0;
-  const excludedOutOfHorizon = projection?.excludedOutOfHorizon ?? 0;
+  const {
+    buckets,
+    excludedNoDueDate = 0,
+    excludedOutOfHorizon = 0,
+    excludedRecurringCoverage = 0,
+  } = projection ?? {};
 
   return (
     <RoleGuard module="Flujo de Caja" minAccess="read">
@@ -107,6 +112,7 @@ export default function CashFlowPage() {
               initialBalance={initialBalance}
               noDueDate={excludedNoDueDate}
               outOfHorizon={excludedOutOfHorizon}
+              recurringCoverage={excludedRecurringCoverage}
               onSelect={setSelected}
             />
           )}

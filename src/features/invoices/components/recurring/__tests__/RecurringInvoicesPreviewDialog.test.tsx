@@ -187,7 +187,7 @@ describe("RecurringInvoicesPreviewDialog — selección por reserva + periodo", 
     ]);
     fireEvent.click(screen.getByLabelText(/Seleccionar todas de Acme/));
 
-    const summary = screen.getByText("Renta estimada:").parentElement;
+    const summary = screen.getByText("Renta + IVA:").parentElement;
     expect(summary).toHaveTextContent("MXN");
     expect(summary).toHaveTextContent("USD");
     expect(summary).toHaveTextContent("extras pactados pueden sumarse");
@@ -219,11 +219,13 @@ describe("RecurringInvoicesPreviewDialog — selección por reserva + periodo", 
     expect(screen.getByText("Sin cliente asignado")).toBeInTheDocument();
   });
 
-  it("sí explica un mes facturado cuando sólo queda el siguiente periodo futuro", () => {
+  it("oculta facturados y futuros fuera del alcance", () => {
     setup([
       line({ bookingId: "a", eligible: false, reason: "already_invoiced" }),
       line({ bookingId: "b", eligible: false, reason: "period_in_future" }),
     ]);
-    expect(screen.getByText("El periodo en curso ya está facturado")).toBeInTheDocument();
+    expect(screen.queryByText("El periodo en curso ya está facturado")).not.toBeInTheDocument();
+    expect(screen.getByText("Sin períodos disponibles")).toBeInTheDocument();
+    expect(screen.queryByLabelText(/Incluir la reserva/)).not.toBeInTheDocument();
   });
 });

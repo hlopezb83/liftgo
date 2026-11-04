@@ -26,7 +26,12 @@ async function plan(
       }),
     ],
     direct: lastBilled
-      ? [invoiceFixture({ billing_period_end: lastBilled })]
+      ? [
+        invoiceFixture({
+          billing_period_start: startDate,
+          billing_period_end: lastBilled,
+        }),
+      ]
       : [],
   });
   return await buildPlan(mock.client, "org-A", dateOnlyToMty(today));
@@ -61,7 +66,7 @@ Deno.test("catch-up: current booking only generates current month", async () => 
   ]]);
 });
 
-Deno.test("catch-up: paid current month emits existing/future preview but no item", async () => {
+Deno.test("catch-up: paid current month is omitted from the preview", async () => {
   const mock = planningFixture({
     direct: [
       invoiceFixture({
@@ -76,11 +81,7 @@ Deno.test("catch-up: paid current month emits existing/future preview but no ite
     dateOnlyToMty("2026-07-21"),
   );
   assertEquals(result.items, []);
-  assertEquals(result.lines.map((line) => line.reason), [
-    "already_invoiced",
-    "period_in_future",
-  ]);
-  assertEquals(result.lines[0].existingInvoiceId, "invoice-1");
+  assertEquals(result.lines, []);
 });
 
 Deno.test("catch-up: month-end contract boundary stops before July", async () => {
@@ -196,7 +197,7 @@ Deno.test("catch-up: ended before first computed period is ineligible", async ()
     "2026-07-21",
   );
   assertEquals(result.items, []);
-  assertEquals(result.lines[0].reason, "booking_ended");
+  assertEquals(result.lines, []);
 });
 
 Deno.test("history: direct + pivot merge overrides stale cursor, cancelled rows do not advance", async () => {
@@ -218,7 +219,11 @@ Deno.test("history: direct + pivot merge overrides stale cursor, cancelled rows 
     }],
     direct: [
       june,
-      invoiceFixture({ id: "may", billing_period_end: "2026-05-31" }),
+      invoiceFixture({
+        id: "may",
+        billing_period_start: "2026-05-01",
+        billing_period_end: "2026-05-31",
+      }),
     ],
   });
   const result = await buildPlan(
@@ -259,7 +264,7 @@ Deno.test("history: pending fiscal cancellation still occupies a direct-link per
   );
 });
 
-Deno.test("history: no live history clears cached cursor; legacy without period retains it", async () => {
+Deno.test("history: no live history clears cached cursor; legacy without period requires review", async () => {
   const booking = bookingFixture({
     last_billed_date: "2026-06-30",
     start_date: "2026-05-01",
@@ -279,7 +284,12 @@ Deno.test("history: no live history clears cached cursor; legacy without period 
   assertEquals(
     (await buildPlan(legacy.client, "org-A", dateOnlyToMty("2026-07-21"))).items
       .map((item) => item.startStr),
-    ["2026-07-01"],
+    [],
+  );
+  assertEquals(
+    (await buildPlan(legacy.client, "org-A", dateOnlyToMty("2026-07-21")))
+      .lines[0].reason,
+    "legacy_period_review",
   );
 });
 

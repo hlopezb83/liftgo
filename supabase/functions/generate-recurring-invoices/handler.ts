@@ -12,16 +12,18 @@ import { resolveCallerOrganization } from "../_shared/orgContext.ts";
 import type { SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2.118.0";
 import { computeProrate } from "./prorate.ts";
 import {
-  dateOnlyToMty,
-  firstOfMonth,
   fmtMx,
   isBookingEnded,
   lastOfMonth,
-  MAX_CATCHUP_ITERATIONS,
   nextBillingPeriod,
-  pendingPeriodsAfter,
   toIsoDate,
 } from "./periods.ts";
+import {
+  futurePeriodLimit,
+  type FuturePeriodOptions,
+} from "./futurePeriods.ts";
+import { periodCoverage } from "./invoiceHistory.ts";
+import { pendingCanonicalPeriods } from "./coverage.ts";
 import { groupPlanItems } from "./grouping.ts";
 import { selectTargetItems } from "./selection.ts";
 import { recurringQuoteIssue } from "./quoteDiscountGuard.ts";
@@ -93,7 +95,11 @@ type PreviewLine = {
   isProrated: boolean;
   proratedDays?: number;
   eligible: boolean;
+  isFuture?: boolean;
+  previewFingerprint?: string;
   reason?:
+    | "period_overlap_review"
+    | "legacy_period_review"
     | "already_invoiced"
     | "no_customer"
     | "no_monthly_rate"
@@ -114,6 +120,8 @@ type PreviewLine = {
 };
 
 export type PlanItem = {
+  fiscalFingerprint?: string;
+  isFuture?: boolean;
   bookingId: string;
   // Fase 1 multiempresa: organización de la reserva de origen; se hereda
   // explícitamente en la agrupación y en la factura resultante.
@@ -143,6 +151,7 @@ export async function buildPlan(
   supabase: SupabaseClient,
   organizationId?: string | null,
   planningDate?: Date,
+  futureOptions: FuturePeriodOptions = {},
 ): Promise<{
   lines: PreviewLine[];
   items: PlanItem[];
@@ -179,10 +188,13 @@ export async function buildPlan(
   // La clave del mapa incluye la organización para no mezclar tasas de dos
   // empresas que comparten el mismo cliente.
   const taxRateByCustomer = new Map<string, number | null>();
+  const fiscalByCustomer = new Map<string, unknown>();
   if (customerIds.length > 0) {
     const { data: custRows, error: custErr } = await supabase
       .from("organization_customers")
-      .select("organization_id, customer_id, tax_rate")
+      .select(
+        "organization_id, customer_id, tax_rate, rfc, razon_social, regimen_fiscal, domicilio_fiscal_cp, uso_cfdi",
+      )
       .in("customer_id", customerIds);
     if (custErr) throw custErr;
     for (
@@ -194,6 +206,7 @@ export async function buildPlan(
         }
       >
     ) {
+      fiscalByCustomer.set(`${c.organization_id}|${c.customer_id}`, c);
       taxRateByCustomer.set(
         `${c.organization_id}|${c.customer_id}`,
         c.tax_rate,
@@ -202,12 +215,14 @@ export async function buildPlan(
   }
 
   const nowMty = planningDate ?? nowInMonterrey();
+  const planningLimit = futurePeriodLimit(futureOptions, nowMty);
   const lines: PreviewLine[] = [];
   const items: PlanItem[] = [];
   let truncated = false;
   let pendingCount = 0;
 
   const chargeReview = new Map<string, boolean>();
+  const chargeSnapshot = new Map<string, unknown>();
   for (const booking of bookings || []) {
     const forklift = (booking.forklifts as Forklift | null) ?? null;
     let quoteIssue: PreviewLine["reason"] | null = recurringQuoteIssue(
@@ -225,6 +240,7 @@ export async function buildPlan(
           },
         );
         if (error) throw error;
+        chargeSnapshot.set(booking.quote_id, data);
         try {
           recurringQuoteCharges(data, [booking.quote_id]);
           chargeReview.set(booking.quote_id, false);
@@ -253,10 +269,6 @@ export async function buildPlan(
       ? new Date(booking.updated_at as string)
       : null;
 
-    // Derivar last_billed_date desde el historial REAL de facturas vinculadas
-    // (source of truth). Ignora bookings.last_billed_date cuando el historial lo
-    // contradice — es la columna que se desincroniza (v6.110.0).
-    let effectiveLastBilled: string | null = booking.last_billed_date ?? null;
     // Period history includes pivot and legacy direct links. Charge availability
     // is independently read from the authoritative source-identity RPC.
     const invoiceFields =
@@ -283,29 +295,19 @@ export async function buildPlan(
       >,
       (direct ?? []) as HistoricalInvoice[],
     );
-    if (invoices.length === 0) {
-      effectiveLastBilled = null;
-    } else {
-      const periodEnds = invoices
-        .map((invoice) => invoice.billing_period_end)
-        .filter((value): value is string => !!value)
-        .sort();
-      if (periodEnds.length > 0) {
-        effectiveLastBilled = periodEnds[periodEnds.length - 1];
-      }
-      // Facturas legacy sin periodo: conservar booking.last_billed_date.
-    }
-
-    // Catch-up loop (v7.138.0): iterar mes por mes desde el siguiente periodo
-    // no facturado hasta alcanzar el mes actual. Antes sólo se generaba el
-    // primer periodo faltante y, si quedaba >1 mes atrasado, la guarda
-    // period_too_old lo silenciaba para siempre. Ahora recuperamos meses
-    // omitidos (cron caído, reserva pausada, migración) hasta MAX iteraciones.
-    let virtualLastBilled: string | null = effectiveLastBilled;
-    let firstIteration = true;
-
-    let exitedNaturally = false;
-    for (let iter = 0; iter < MAX_CATCHUP_ITERATIONS; iter++) {
+    const pending = pendingCanonicalPeriods(
+      booking.start_date,
+      booking.end_date,
+      planningLimit,
+      invoices,
+    );
+    const coverageSnapshot = invoices.map((invoice) => ({
+      id: invoice.id,
+      start: invoice.billing_period_start,
+      end: invoice.billing_period_end,
+    })).sort((a, b) => a.id.localeCompare(b.id));
+    let emitted = 0;
+    for (const candidateStart of pending.starts) {
       // B5-01: la tarifa se recalcula EN CADA iteración del catch-up (antes se
       // calculaba una sola vez fuera del loop y todos los periodos atrasados
       // se facturaban a la tarifa vigente al momento de correr el cron).
@@ -322,10 +324,16 @@ export async function buildPlan(
       const monthlyRate = configuredRate ?? 0;
       const { billingStart, billingEnd, isProrated: proratedPeriod } =
         nextBillingPeriod(
-          virtualLastBilled,
-          booking.start_date,
+          null,
+          candidateStart,
           booking.end_date,
         );
+      if (
+        !Number.isFinite(billingStart.getTime()) ||
+        !Number.isFinite(billingEnd.getTime())
+      ) {
+        throw new Error("La reserva contiene fechas de facturación inválidas");
+      }
       const startStr = toIsoDate(billingStart);
       const endStr = toIsoDate(billingEnd);
       const periodLabel = `${fmtMx(billingStart)} al ${fmtMx(billingEnd)}`;
@@ -374,67 +382,25 @@ export async function buildPlan(
         proratedDays: proratedPeriod ? proratedDays : undefined,
 
         eligible: true,
+        isFuture: billingStart > nowMty,
       };
 
-      // Guarda booking_ended (BL-13): reserva devuelta antes del periodo.
-      if (isBookingEnded(booking.end_date, billingStart)) {
-        // Sólo reportamos booking_ended en la primera iteración; en catch-up,
-        // llegar al fin del contrato es la terminación natural del loop.
-        if (firstIteration) {
-          lines.push({ ...baseLine, eligible: false, reason: "booking_ended" });
-        }
-        exitedNaturally = true;
-        break;
+      if (
+        isBookingEnded(booking.end_date, billingStart) ||
+        billingStart > planningLimit
+      ) break;
+      const coverage = periodCoverage(invoices, startStr, endStr);
+      emitted++;
+      if (coverage === "covered") continue;
+      if (coverage !== "uncovered") {
+        lines.push({ ...baseLine, eligible: false, reason: coverage });
+        // Undated history makes every period ambiguous. A dated partial
+        // overlap only blocks this month; disjoint months can still proceed.
+        if (coverage === "legacy_period_review") break;
+        continue;
       }
-      // Periodo aún no llega → detener catch-up. Sólo reportamos la línea si
-      // es la primera iteración (para que el operador vea la reserva en el
-      // preview y sepa cuándo tocará facturar).
-      if (nowMty < billingStart) {
-        if (firstIteration) {
-          // BUG-SEP1: cuando el mes EN CURSO ya quedó facturado, el cursor
-          // salta al mes siguiente y el operador sólo veía "Período futuro"
-          // (octubre) sin explicación. Reportamos también el periodo del mes
-          // en curso como `already_invoiced`, con su factura, para que quede
-          // claro que ya existe y no falta nada por generar.
-          const currentMonthStart = firstOfMonth(nowMty);
-          if (
-            virtualLastBilled &&
-            dateOnlyToMty(virtualLastBilled) >= currentMonthStart
-          ) {
-            const prevEndStr = virtualLastBilled;
-            const prevStartStr = toIsoDate(currentMonthStart);
-            const prevInvoice = invoices.find((invoice) =>
-              invoice.billing_period_start === prevStartStr &&
-              invoice.billing_period_end === prevEndStr
-            );
-            if (prevInvoice) {
-              lines.push({
-                ...baseLine,
-                periodStart: prevStartStr,
-                periodEnd: prevEndStr,
-                periodLabel: `${fmtMx(currentMonthStart)} al ${
-                  fmtMx(dateOnlyToMty(prevEndStr))
-                }`,
-                eligible: false,
-                reason: "already_invoiced",
-                existingInvoiceId: prevInvoice.id,
-                existingInvoiceNumber: prevInvoice.invoice_number ?? undefined,
-              });
-            }
-          }
-          lines.push({
-            ...baseLine,
-            eligible: false,
-            reason: "period_in_future",
-          });
-        }
-        exitedNaturally = true;
-        break;
-      }
-
       if (!booking.customer_id) {
         lines.push({ ...baseLine, eligible: false, reason: "no_customer" });
-        exitedNaturally = true;
         break;
       }
       // A1-1: reserva en moneda distinta a MXN sin tipo de cambio válido → no
@@ -443,7 +409,6 @@ export async function buildPlan(
       // en vez de facturar en MXN con TC=1 por default (bug crítico).
       if (quoteIssue) {
         lines.push({ ...baseLine, eligible: false, reason: quoteIssue });
-        exitedNaturally = true;
         break;
       }
       if (!hasValidExchangeRate) {
@@ -452,40 +417,51 @@ export async function buildPlan(
           eligible: false,
           reason: "no_exchange_rate",
         });
-        exitedNaturally = true;
         break;
       }
       // R4-32: sólo se omite cuando NO hay tarifa configurada (null en la
       // reserva y en la maestra). Una tarifa 0 pactada se factura por $0.
       if (configuredRate == null) {
         lines.push({ ...baseLine, eligible: false, reason: "no_monthly_rate" });
-        exitedNaturally = true;
         break;
       }
 
-      // Ya facturado en BD → registrar línea informativa y avanzar el cursor
-      // virtual para intentar el siguiente periodo en la próxima iteración.
-      const existing = invoices.find((invoice) =>
-        invoice.billing_period_start === startStr &&
-        invoice.billing_period_end === endStr
-      );
-
-      if (existing) {
-        lines.push({
-          ...baseLine,
-          eligible: false,
-          reason: "already_invoiced",
-          existingInvoiceId: existing.id,
-          existingInvoiceNumber: existing.invoice_number ?? undefined,
-        });
-        virtualLastBilled = endStr;
-        firstIteration = false;
-        continue;
-      }
-
+      baseLine.previewFingerprint = await previewFingerprint({
+        bookingId: booking.id,
+        organizationId: booking.organization_id,
+        customerId: booking.customer_id,
+        customerName: booking.customer_name,
+        forklift,
+        coverage: coverageSnapshot,
+        startStr,
+        endStr,
+        monthlyRate,
+        billedAmount,
+        currency: bookingCurrency,
+        tipoCambio: bookingTipoCambio,
+        fiscal: fiscalByCustomer.get(
+          `${booking.organization_id}|${booking.customer_id}`,
+        ) ?? null,
+        quoteId: booking.quote_id ?? null,
+        quote: booking.quotes ?? null,
+        charges: chargeSnapshot.get(booking.quote_id) ?? null,
+        rateWarning,
+      });
       lines.push(baseLine);
       items.push({
+        ...(futureOptions.includeFuturePeriods
+          ? {
+            fiscalFingerprint: await previewFingerprint(
+              fiscalSnapshot(
+                fiscalByCustomer.get(
+                  `${booking.organization_id}|${booking.customer_id}`,
+                ),
+              ),
+            ),
+          }
+          : {}),
         bookingId: booking.id,
+        isFuture: billingStart > nowMty,
         organizationId: booking.organization_id as string,
         customerId: booking.customer_id as string,
         customerName: booking.customer_name ?? null,
@@ -510,29 +486,42 @@ export async function buildPlan(
         // FIX-6
         quoteId: (booking.quote_id as string | null) ?? null,
       });
-      virtualLastBilled = endStr;
-      firstIteration = false;
     }
-    if (!exitedNaturally && virtualLastBilled) {
-      const remaining = pendingPeriodsAfter(
-        virtualLastBilled,
-        booking.end_date,
-        nowMty,
-      );
-      if (remaining > 0) {
-        truncated = true;
-        pendingCount += remaining;
-        console.warn(JSON.stringify({
-          event: "recurring_catchup_truncated",
-          truncated: true,
-          bookingId: booking.id,
-          pendingCount: remaining,
-        }));
-      }
+    if (emitted === pending.starts.length && pending.pendingCount > 0) {
+      truncated = true;
+      pendingCount += pending.pendingCount;
     }
   }
 
   return { lines, items, truncated, pendingCount };
+}
+
+function fiscalSnapshot(value: unknown) {
+  const row = (value ?? {}) as Record<string, unknown>;
+  return {
+    tax_rate: resolveVatRatePercent(
+      typeof row.tax_rate === "number" || typeof row.tax_rate === "string"
+        ? row.tax_rate
+        : null,
+    ),
+    rfc: row.rfc ?? null,
+    razon_social: row.razon_social ?? null,
+    regimen_fiscal: row.regimen_fiscal ?? null,
+    domicilio_fiscal_cp: row.domicilio_fiscal_cp ?? null,
+    uso_cfdi: row.uso_cfdi ?? null,
+  };
+}
+
+/** Hash server-owned commercial data. No customer fiscal data is exposed. */
+async function previewFingerprint(snapshot: unknown): Promise<string> {
+  const digest = await crypto.subtle.digest(
+    "SHA-256",
+    new TextEncoder().encode(JSON.stringify(snapshot)),
+  );
+  return Array.from(
+    new Uint8Array(digest),
+    (byte) => byte.toString(16).padStart(2, "0"),
+  ).join("");
 }
 
 function errorMessage(error: unknown): string {
@@ -581,9 +570,14 @@ export async function executePlan(
     { bookingIds: string[]; periodStart: string; periodEnd: string }
   > = [];
 
+  const blockedBefore = new Map<string, string>();
   if (!allowStaleRate) {
     const stale = items.filter((i) => i.rateWarning);
     for (const i of stale) {
+      const earliest = blockedBefore.get(i.bookingId);
+      if (!earliest || i.startStr < earliest) {
+        blockedBefore.set(i.bookingId, i.startStr);
+      }
       skippedStaleRate.push({
         bookingIds: [i.bookingId],
         periodStart: i.startStr,
@@ -595,15 +589,29 @@ export async function executePlan(
 
   const groups = groupPlanItems(items);
 
-  for (const group of groups.values()) {
+  for (
+    const group of [...groups.values()].sort((a, b) =>
+      a[0].startStr.localeCompare(b[0].startStr)
+    )
+  ) {
     const first = group[0];
     const bookingIds = group.map((i) => i.bookingId);
 
     try {
+      if (
+        group.some((item) =>
+          item.isFuture && blockedBefore.has(item.bookingId) &&
+          blockedBefore.get(item.bookingId)! < item.startStr
+        )
+      ) {
+        throw new Error(
+          "No se anticipó el período porque uno anterior no pudo generarse",
+        );
+      }
       // Multiempresa: los datos comerciales/fiscales de facturación viven en
       // organization_customers (organización + cliente); `customers` es sólo
       // la identidad global y ya no se usa aquí para el receptor del CFDI.
-      const { data: customer } = await supabase
+      const { data: customer, error: customerError } = await supabase
         .from("organization_customers")
         .select(
           "rfc, razon_social, regimen_fiscal, domicilio_fiscal_cp, uso_cfdi, tax_rate",
@@ -611,6 +619,22 @@ export async function executePlan(
         .eq("customer_id", first.customerId)
         .eq("organization_id", first.organizationId)
         .maybeSingle();
+      if (customerError) throw customerError;
+      if (group.some((item) => item.fiscalFingerprint)) {
+        const currentFiscalFingerprint = await previewFingerprint(
+          fiscalSnapshot(customer),
+        );
+        if (
+          group.some((item) =>
+            item.fiscalFingerprint &&
+            item.fiscalFingerprint !== currentFiscalFingerprint
+          )
+        ) {
+          throw new Error(
+            "Los datos fiscales cambiaron; actualiza la vista previa",
+          );
+        }
+      }
 
       // Re-read before every group/catch-up period. The SQL guard atomically
       // reserves these exact source quantities, including sibling bookings.
@@ -734,6 +758,12 @@ export async function executePlan(
         message,
       });
       failed.push({ bookingIds, error: message });
+      for (const item of group) {
+        const earliest = blockedBefore.get(item.bookingId);
+        if (!earliest || item.startStr < earliest) {
+          blockedBefore.set(item.bookingId, item.startStr);
+        }
+      }
     }
   }
 
@@ -795,13 +825,77 @@ export async function handleRequest(
       preview?: boolean;
       bookingIds?: string[];
       // R9-18: selección explícita reserva + periodo desde el asistente.
-      selections?: Array<{ bookingId?: string; periodStart?: string }>;
+      selections?: Array<
+        {
+          bookingId?: string;
+          periodStart?: string;
+          expectedFingerprint?: string;
+        }
+      >;
       allowStaleRate?: boolean;
+      includeFuturePeriods?: boolean;
+      futureThroughMonth?: string;
     } = {};
     try {
       const text = await req.text();
       if (text) body = JSON.parse(text);
-    } catch { /* legacy no-body call */ }
+    } catch {
+      return jsonError(req, 400, "JSON inválido");
+    }
+    if (!body || typeof body !== "object" || Array.isArray(body)) {
+      return jsonError(req, 400, "Se requiere un objeto JSON");
+    }
+    for (const key of ["preview", "allowStaleRate"] as const) {
+      if (body[key] !== undefined && typeof body[key] !== "boolean") {
+        return jsonError(req, 400, `${key} debe ser booleano`);
+      }
+    }
+    try {
+      futurePeriodLimit(body, dependencies.planningDate ?? nowInMonterrey());
+    } catch (error) {
+      return jsonError(req, 400, errorMessage(error));
+    }
+    if (
+      body.selections !== undefined &&
+      (!Array.isArray(body.selections) ||
+        body.selections.some((selection) =>
+          !selection || typeof selection !== "object" ||
+          typeof selection.bookingId !== "string" || !selection.bookingId ||
+          typeof selection.periodStart !== "string" ||
+          !/^\d{4}-\d{2}-\d{2}$/.test(selection.periodStart) ||
+          !Number.isFinite(Date.parse(`${selection.periodStart}T00:00:00Z`)) ||
+          new Date(`${selection.periodStart}T00:00:00Z`).toISOString().slice(
+              0,
+              10,
+            ) !== selection.periodStart
+        ))
+    ) return jsonError(req, 400, "Selección de períodos inválida");
+    if (
+      body.bookingIds !== undefined &&
+      (!Array.isArray(body.bookingIds) ||
+        body.bookingIds.some((id) => typeof id !== "string" || !id))
+    ) {
+      return jsonError(req, 400, "Selección de reservas inválida");
+    }
+    if (body.includeFuturePeriods === true) {
+      if (!scopeOrganizationId) {
+        return jsonError(
+          req,
+          403,
+          "Anticipar períodos requiere un operador autenticado",
+        );
+      }
+      if (
+        body.bookingIds !== undefined ||
+        (!body.preview && !Array.isArray(body.selections))
+      ) {
+        return jsonError(
+          req,
+          400,
+          "Anticipar períodos requiere selección exacta de reserva y período",
+        );
+      }
+    }
 
     // POLÍTICA (v7.412.0): la facturación recurrente NUNCA se genera sola.
     // Armar los borradores es una decisión del operador (puede juntar o
@@ -828,6 +922,7 @@ export async function handleRequest(
       supabase,
       scopeOrganizationId,
       dependencies.planningDate,
+      body,
     );
 
     const eligibleLines = lines.filter((l) => l.eligible);
@@ -855,9 +950,61 @@ export async function handleRequest(
       }, { status: 400 });
     }
 
+    if (
+      body.includeFuturePeriods &&
+      body.selections?.some((selection) =>
+        !targetItems.some((item) =>
+          item.bookingId === selection.bookingId &&
+          item.startStr === selection.periodStart
+        ) ||
+        typeof selection.expectedFingerprint !== "string" ||
+        !lines.some((line) =>
+          line.eligible && line.bookingId === selection.bookingId &&
+          line.periodStart === selection.periodStart &&
+          line.previewFingerprint === selection.expectedFingerprint
+        )
+      )
+    ) {
+      return jsonError(
+        req,
+        409,
+        "La selección cambió o ya no está disponible; actualiza la vista previa",
+      );
+    }
+
+    // An advance must include every still-unbilled earlier period for that
+    // booking. This is checked for the entire batch before any write; SQL
+    // repeats the invariant under booking locks to cover concurrent changes.
+    const selectedKeys = new Set(
+      targetItems.map((item) => `${item.bookingId}|${item.startStr}`),
+    );
+    for (const item of targetItems) {
+      if (
+        !lines.some((line) =>
+          line.bookingId === item.bookingId &&
+          line.periodStart === item.startStr && line.isFuture
+        )
+      ) continue;
+      if (
+        lines.some((line) =>
+          line.bookingId === item.bookingId &&
+          line.periodStart < item.startStr &&
+          (!line.eligible ||
+            !selectedKeys.has(`${line.bookingId}|${line.periodStart}`))
+        )
+      ) {
+        return jsonError(
+          req,
+          409,
+          "Para anticipar un período debes seleccionar todos los períodos pendientes anteriores de la reserva",
+        );
+      }
+    }
+
     // R6-F5: sólo un operador autenticado (no el cron) puede confirmar
     // facturar periodos cuya tarifa pudo cambiar después del periodo.
-    const allowStaleRate = !cronAuth.ok && body.allowStaleRate === true;
+    const allowStaleRate = !!scopeOrganizationId &&
+      body.allowStaleRate === true;
 
     const { created, alreadyExisting, failed, rateWarnings, skippedStaleRate } =
       await executePlan(

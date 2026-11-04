@@ -7,6 +7,7 @@ import {
   invoiceToItem,
   billToItem,
   recurringBookingItems,
+  recurringCoverageReviewCount,
   type BillRow,
   type InvoiceRow,
   type RecurringBookingRow,
@@ -52,6 +53,8 @@ export interface CashFlowProjectionResult {
   excludedNoDueDate: number;
   /** Documentos cuyo vencimiento cae fuera del horizonte seleccionado. */
   excludedOutOfHorizon: number;
+  /** Recurring projections omitted due to missing or ambiguous invoice coverage. */
+  excludedRecurringCoverage: number;
 }
 
 /** F4: conteo HEAD de facturas activas sin fecha de vencimiento. */
@@ -124,6 +127,7 @@ export const cashFlowProjectionQueries = defineEntityQueries("cash_flow_projecti
       buckets,
       excludedNoDueDate: noDueInvoices + noDueBills,
       excludedOutOfHorizon: countOutOfHorizon(items, buildWeekBuckets(today, weeks), todayYmd),
+      excludedRecurringCoverage: recurringCoverageReviewCount(bookingRes ?? []),
     };
   },
   staleTime: 60_000,

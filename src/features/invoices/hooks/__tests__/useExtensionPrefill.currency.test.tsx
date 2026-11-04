@@ -105,7 +105,11 @@ function renderPrefill(loaded = true, edit = false) {
 }
 
 async function waitUntilPrefilled(result: ReturnType<typeof renderPrefill>["result"]) {
-  await waitFor(() => expect(result.current.form.getValues("lineItems")).toHaveLength(1));
+  await waitFor(() => {
+    expect(result.current.form.getValues("lineItems")).toHaveLength(1);
+    // RHF updates its store before the subscribed useWatch render updates totals.
+    expect(result.current.totals).toMatchObject({ subtotal: 200, total: 200 });
+  });
 }
 
 beforeEach(() => {

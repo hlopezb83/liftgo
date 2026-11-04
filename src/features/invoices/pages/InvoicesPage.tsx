@@ -14,53 +14,17 @@ import { formatDateMty } from "@/lib/format/dateFormats";
 import { formatCurrency } from "@/lib/format/formatCurrency";
 import { useLocation } from "@/lib/router-compat";
 // hasReachedListLimit ya no es necesario: paginación real vía useInvoicesInfinite.
-import { notifySuccess } from "@/lib/ui/appFeedback";
 import { InvoiceMobileCard } from "../components/list/InvoiceMobileCard";
 import { InvoicesActionsBar, InvoicesFiltersBar } from "../components/list/InvoicesToolbar";
 import { RecurringInvoicesPreviewDialog } from "../components/recurring/RecurringInvoicesPreviewDialog";
 import { RecurringInvoicesResultDialog } from "../components/recurring/RecurringInvoicesResultDialog";
-import { useGenerateRecurringInvoices } from "../hooks/invoices/recurring/useGenerateRecurringInvoices";
-import { usePreviewRecurringInvoices } from "../hooks/invoices/recurring/usePreviewRecurringInvoices";
+import { useRecurringInvoiceWorkflow } from "../hooks/invoices/recurring/useRecurringInvoiceWorkflow";
 import { useInvoiceCsvExport } from "../hooks/invoices/useInvoiceCsvExport";
 import { invoiceQueries, useInvoicesInfinite, type InvoiceListItem } from "../hooks/invoices/useInvoices";
 import { useInvoicesFilters } from "../hooks/invoices/useInvoicesFilters";
 
 type Invoice = InvoiceListItem;
 
-function useRecurringHandlers(setPreviewOpen: (o: boolean) => void, setResultOpen: (o: boolean) => void) {
-  const generateRecurring = useGenerateRecurringInvoices({ onShowDetails: () => setResultOpen(true) });
-  const previewRecurring = usePreviewRecurringInvoices();
-
-  const openPreview = () => {
-    setPreviewOpen(true);
-    previewRecurring.mutate();
-  };
-
-  const handleConfirm = (
-    selections: Array<{ bookingId: string; periodStart: string }>,
-    allowStaleRate = false,
-  ) => {
-    generateRecurring.mutate({ selections, allowStaleRate }, {
-      onSuccess: (data) => {
-        setPreviewOpen(false);
-        setResultOpen(true);
-        const count = data?.invoicesCreated ?? 0;
-        const failedCount = data?.failed?.length ?? 0;
-        if (count > 0) {
-          notifySuccess(`${count} factura${count === 1 ? "" : "s"} generada${count === 1 ? "" : "s"}`, {
-            description: failedCount > 0 ? `${failedCount} fallida${failedCount === 1 ? "" : "s"}.` : "Borradores creados.",
-          });
-        }
-      },
-    });
-  };
-
-  const handleRetry = (bookingIds: string[]) => {
-    generateRecurring.mutate({ bookingIds });
-  };
-
-  return { generateRecurring, previewRecurring, openPreview, handleConfirm, handleRetry };
-}
 
 function useInvoiceColumns(): ColumnDef<Invoice>[] {
   return [
@@ -114,7 +78,7 @@ export default function InvoicesPage() {
   usePageActions({ onNew: canCreate ? () => navigate("/invoices/new") : undefined, newLabel: "Nueva factura" });
 
   const { generateRecurring, previewRecurring, openPreview, handleConfirm, handleRetry } =
-    useRecurringHandlers(setPreviewOpen, setResultOpen);
+    useRecurringInvoiceWorkflow(setPreviewOpen, setResultOpen);
 
   const columns = useInvoiceColumns();
   const table = useLiftgoTable<Invoice>({
@@ -210,6 +174,8 @@ export default function InvoicesPage() {
         onOpenChange={setPreviewOpen}
         data={previewRecurring.data}
         isLoading={previewRecurring.isPending}
+        isError={previewRecurring.isError}
+        onScopeChange={previewRecurring.mutate}
         isGenerating={generateRecurring.isPending}
         onConfirm={handleConfirm}
       />
@@ -218,6 +184,7 @@ export default function InvoicesPage() {
         onOpenChange={setResultOpen}
         result={generateRecurring.data}
         onRetry={handleRetry}
+        retryRequiresReview
         isRetrying={generateRecurring.isPending}
       />
     </>

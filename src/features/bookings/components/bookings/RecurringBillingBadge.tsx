@@ -1,4 +1,3 @@
-import { addMonths, startOfMonth } from "date-fns";
 import { Repeat } from "@/components/icons";
 import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
 import { formatDateMty } from "@/lib/format/dateFormats";
@@ -22,8 +21,6 @@ export function RecurringBillingBadge({ booking }: RecurringBillingBadgeProps) {
   // (Monterrey UTC-6) retrocede al día anterior. `parseDateLocal` preserva
   // el calendario local, evitando desfases al calcular el próximo cargo.
   const lastBilled = parseDateLocal(booking.last_billed_date);
-  const anchor = lastBilled ?? parseDateLocal(booking.start_date);
-  const nextBilling = anchor ? startOfMonth(addMonths(anchor, 1)) : null;
 
   return (
     <Tooltip>
@@ -35,12 +32,11 @@ export function RecurringBillingBadge({ booking }: RecurringBillingBadgeProps) {
       </TooltipTrigger>
       <TooltipContent side="top" className="text-xs space-y-1">
         <p>
-          <span className="text-muted-foreground">Últ. factura:</span>{" "}
+          <span className="text-muted-foreground">Últ. período facturado:</span>{" "}
            {lastBilled ? formatDateMty(lastBilled) : "Sin facturar aún"}
         </p>
         <p>
-          <span className="text-muted-foreground">Próx. factura:</span>{" "}
-          {nextBilling ? formatDateMty(nextBilling) : "—"}
+          Consulta los períodos pendientes en Facturas. Puede haber meses anteriores sin facturar.
         </p>
       </TooltipContent>
     </Tooltip>

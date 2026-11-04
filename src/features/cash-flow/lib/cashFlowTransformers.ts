@@ -137,6 +137,8 @@ export interface RecurringBookingRow {
   start_date: string;
   end_date: string;
   last_billed_date: string | null;
+  /** Authoritative active invoice periods, including direct and pivot links. */
+  billing_coverage?: Array<{ periodStart: string | null; periodEnd: string | null }>;
   monthly_rate: number | string | null;
   currency: string | null;
   tipo_cambio: number | string | null;
@@ -198,9 +200,14 @@ function recurringBookingItemsFor(
   horizonEndYmd: string,
 ): CashFlowItem[] {
   const items: CashFlowItem[] = [];
-  let periodStart = b.last_billed_date
-    ? firstOfNextMonthYmd(b.last_billed_date)
-    : b.start_date;
+  // A future invoice does not prove that the preceding months were billed.
+  // Do not fall back to last_billed_date when the upgraded RPC is unavailable.
+  const coverage = b.billing_coverage?.filter(isValidCoveragePeriod);
+  if (!coverage || coverage.length !== b.billing_coverage?.length) return items;
+  // The projection only needs the current month onward. Jumping to that
+  // month keeps old bookings from exhausting the bounded horizon loop.
+  const currentMonthStart = `${todayYmd.slice(0, 7)}-01`;
+  let periodStart = b.start_date > currentMonthStart ? b.start_date : currentMonthStart;
 
   for (let i = 0; i < 24; i++) {
     if (periodStart > b.end_date) break;
@@ -213,7 +220,11 @@ function recurringBookingItemsFor(
     const billedDays = Number(dueDate.slice(8, 10)) - Number(periodStart.slice(8, 10)) + 1;
     const amountMxn = recurringGrossMxn(b, billedDays, daysInMonth);
     if (amountMxn === null) return [];
-    if (dueDate >= todayYmd) {
+    // Never double-count a period occupied by an active draft or invoice.
+    // Partial/unknown coverage is not guessed; the page reports its exclusion.
+    const occupied = coverage.some((period) =>
+      period.periodStart <= dueDate && period.periodEnd >= periodStart);
+    if (dueDate >= todayYmd && !occupied) {
       items.push({
         id: `recurring:${b.id}:${dueDate}`,
         number: b.booking_number,
@@ -230,6 +241,49 @@ function recurringBookingItemsFor(
     periodStart = firstOfNextMonthYmd(periodStart);
   }
   return items;
+}
+
+function validCalendarDate(value: string | null): value is string {
+  if (!value || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
+  const date = new Date(`${value}T00:00:00Z`);
+  return Number.isFinite(date.getTime()) && date.toISOString().slice(0, 10) === value;
+}
+
+function isValidCoveragePeriod(period: { periodStart: string | null; periodEnd: string | null }): period is { periodStart: string; periodEnd: string } {
+  return validCalendarDate(period.periodStart) && validCalendarDate(period.periodEnd)
+    && period.periodStart <= period.periodEnd;
+}
+
+function mergeCoveragePeriods(periods: Array<{ periodStart: string; periodEnd: string }>): Array<{ periodStart: string; periodEnd: string }> {
+  const merged: Array<{ periodStart: string; periodEnd: string }> = [];
+  for (const period of [...periods].sort((a, b) => a.periodStart.localeCompare(b.periodStart))) {
+    const previous = merged.at(-1);
+    const adjacentEnd = previous && toYmdUtc(new Date(Date.parse(`${previous.periodEnd}T00:00:00Z`) + 86_400_000));
+    if (previous && adjacentEnd && period.periodStart <= adjacentEnd) {
+      if (period.periodEnd > previous.periodEnd) previous.periodEnd = period.periodEnd;
+    } else merged.push({ ...period });
+  }
+  return merged;
+}
+
+/** Reservations excluded or partially omitted because their coverage is unclear. */
+export function recurringCoverageReviewCount(bookings: ReadonlyArray<RecurringBookingRow>): number {
+  return bookings.filter((booking) => {
+    const coverage = booking.billing_coverage;
+    if (!coverage) return true;
+    const validCoverage = coverage.filter(isValidCoveragePeriod);
+    if (validCoverage.length !== coverage.length) return true;
+    return mergeCoveragePeriods(validCoverage).some((period) => {
+      const start = period.periodStart;
+      const end = period.periodEnd;
+      const expectedStart = booking.start_date.slice(0, 7) === start.slice(0, 7)
+        ? booking.start_date : `${start.slice(0, 7)}-01`;
+      const monthEnd = lastOfMonthYmd(end);
+      const expectedEnd = monthEnd < booking.end_date ? monthEnd : booking.end_date;
+      return start < booking.start_date || end > booking.end_date
+        || start !== expectedStart || end !== expectedEnd;
+    });
+  }).length;
 }
 
 export function recurringBookingItems(

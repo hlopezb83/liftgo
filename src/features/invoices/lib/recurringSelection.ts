@@ -89,6 +89,8 @@ function lineSignature(line: RecurringPreviewLine): string {
     String(line.taxRate ?? ""),
     line.isProrated ? "p" : "-",
     line.proratedDays ?? null,
+    line.isFuture === true,
+    line.previewFingerprint ?? null,
   ]);
 }
 
@@ -231,3 +233,31 @@ export function toggleRecurringGroup(
   return { ...state, selected, deselected, intentSelected };
 }
 
+
+/** Future periods require explicit selection of every earlier visible pending period. */
+export function hasUnselectedEarlierPeriod(
+  line: RecurringPreviewLine,
+  lines: readonly RecurringPreviewLine[],
+  selected: ReadonlySet<string>,
+): boolean {
+  return line.isFuture === true && lines.some((earlier) => earlier.bookingId === line.bookingId
+    && earlier.periodStart < line.periodStart && !selected.has(recurringLineKey(earlier)));
+}
+
+/** Forget future consent when an earlier period is removed or materially changes. */
+export function enforceConsecutiveFutureSelection(
+  state: RecurringSelectionState,
+  lines: readonly RecurringPreviewLine[],
+): RecurringSelectionState {
+  const selected = new Set(state.selected);
+  const intentSelected = new Set(state.intentSelected);
+  const deselected = new Set(state.deselected);
+  for (const line of [...lines].sort((a, b) => a.periodStart.localeCompare(b.periodStart))) {
+    if (!hasUnselectedEarlierPeriod(line, lines, selected)) continue;
+    const key = recurringLineKey(line);
+    selected.delete(key);
+    intentSelected.delete(key);
+    deselected.add(key);
+  }
+  return { ...state, selected, intentSelected, deselected };
+}
