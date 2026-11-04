@@ -30,10 +30,30 @@ test("legacy charge review Auth: tenant isolation, existing roles and denied dir
 
     const owned = await owner.rpc("get_quote_charge_legacy_review", { p_quote_id: quoteId });
     expect(owned.error).toBeNull();
-    expect(owned.data).toMatchObject({ complete: true, quote_id: quoteId, can_reconcile: true, charges: [], invoices: [] });
+    expect(owned.data).toMatchObject({ complete: true, quote_id: quoteId, can_reconcile: false, charges: [], invoices: [] });
     const readOnly = await administrative.rpc("get_quote_charge_legacy_review", { p_quote_id: quoteId });
     expect(readOnly.error).toBeNull();
     expect(readOnly.data).toMatchObject({ complete: true, quote_id: quoteId, can_reconcile: false });
+
+    const chargeId = randomUUID();
+    const updated = await owner.from("quotes").update({
+      line_items: [{ quote_line_id: chargeId, line_kind: "charge", description: "Synthetic boundary charge", quantity: 1, unit_price: 100, total: 100 }],
+      subtotal: 100, total: 100,
+    }).eq("id", quoteId).eq("organization_id", A.organizationId).select("id").single();
+    expect(updated.error).toBeNull();
+    expect(updated.data?.id).toBe(quoteId);
+    const charged = await owner.rpc("get_quote_charge_legacy_review", { p_quote_id: quoteId });
+    expect(charged.error).toBeNull();
+    expect(charged.data).toMatchObject({
+      complete: true, quote_id: quoteId, can_reconcile: true, invoices: [],
+      charges: [{ quote_line_id: chargeId, quoted_quantity: 1, consumed_quantity: 0, remaining_quantity: 1 }],
+    });
+    const chargedReadOnly = await administrative.rpc("get_quote_charge_legacy_review", { p_quote_id: quoteId });
+    expect(chargedReadOnly.error).toBeNull();
+    expect(chargedReadOnly.data).toMatchObject({
+      complete: true, quote_id: quoteId, can_reconcile: false, invoices: [],
+      charges: [{ quote_line_id: chargeId, quoted_quantity: 1, consumed_quantity: 0, remaining_quantity: 1 }],
+    });
 
     for (const client of [other, sales, portal]) {
       const denied = await client.rpc("get_quote_charge_legacy_review", { p_quote_id: quoteId });
@@ -67,7 +87,7 @@ test("legacy charge review Auth: tenant isolation, existing roles and denied dir
     }
     const unchanged = await owner.rpc("get_quote_charge_legacy_review", { p_quote_id: quoteId });
     expect(unchanged.error).toBeNull();
-    expect(unchanged.data).toEqual(owned.data);
+    expect(unchanged.data).toEqual(charged.data);
   } finally {
     const cleanup = await owner.from("quotes").delete().eq("id", quoteId)
       .eq("organization_id", A.organizationId).select("id");

@@ -215,7 +215,13 @@ async function run() {
   console.log("PASS reviewed source identity and audit foreign keys resist deletion");
 
   await reset(c, [history(300, [native(), ambiguous()])]);
-  await expectCode(reconcile(c, { index: 0 }));
+  // Native lines are intentionally absent from the review list. Send this
+  // negative case directly so the RPC, rather than args(), rejects the source.
+  const nativeHash = (await q(c, "SELECT public.quote_charge_line_hash(i.line_items->0) AS hash FROM public.invoices i WHERE i.id=$1", [uid(300)]))[0].hash;
+  const nativePayload = [Q,uid(300),0,nativeHash,"charge",L,1,
+    "Synthetic manual evidence review","Synthetic immutable test fixture",uid(900)];
+  await assert.rejects(as(c, ADMIN, reconcileSql, nativePayload),
+    (error) => error.code === "23514" && error.constraint_name === "quote_charge_review_snapshot");
   await reconcile(c, { index: 1 });
   assert.equal((await available(c)).lines[0].consumed_quantity, 2);
   await q(c, "UPDATE invoices SET status='cancelled' WHERE id=$1", [uid(300)]);
