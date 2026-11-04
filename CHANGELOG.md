@@ -1,3 +1,7 @@
+## [8.46.2] - 2026-11-04
+
+- La revisión de cargos históricos de una cotización usa un contrato tipado propio para sus funciones del servidor, por lo que la vista previa compila aunque la base aún no las tenga. Sin migraciones, permisos ni cambios de datos.
+
 ## [8.46.1] - 2026-10-31
 
 - La prueba de humo pública reconoce sólo la URL exacta verificada del script de eventos del hosting (`/__l5e/events.270c78a44fc53e7b.js`), idéntico a la identidad anterior; sigue abortado y sin cambios en los controles de red.

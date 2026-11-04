@@ -1,8 +1,8 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { z } from "zod";
-import { supabase } from "@/integrations/supabase/client";
 import { invoiceKeys } from "../../lib/queryKeys";
 import { parseLegacyChargeReview, type LegacyClassification } from "../../lib/quoteChargeLegacyReview";
+import { callLegacyReviewRpc } from "../../lib/quoteChargeLegacyRpc";
 
 export type LegacyReviewInput = {
   invoiceId: string;
@@ -33,7 +33,7 @@ export function useQuoteChargeLegacyReview(quoteId: string, enabled: boolean) {
     enabled,
     staleTime: 0,
     queryFn: async () => {
-      const { data, error } = await supabase.rpc("get_quote_charge_legacy_review", { p_quote_id: quoteId });
+      const { data, error } = await callLegacyReviewRpc("get_quote_charge_legacy_review", { p_quote_id: quoteId });
       if (error) throw error;
       return parseLegacyChargeReview(data, quoteId);
     },
@@ -45,7 +45,7 @@ export function useQuoteChargeLegacyReview(quoteId: string, enabled: boolean) {
   const reconcile = useMutation({
     retry: false,
     mutationFn: async (input: LegacyReviewInput) => {
-      const { data, error } = await supabase.rpc("reconcile_quote_charge_history", {
+      const { data, error } = await callLegacyReviewRpc("reconcile_quote_charge_history", {
         p_quote_id: quoteId, p_invoice_id: input.invoiceId,
         p_line_index: input.lineIndex, p_expected_hash: input.expectedHash,
         p_classification: input.classification, p_quote_line_id: input.quoteLineId,
@@ -60,7 +60,7 @@ export function useQuoteChargeLegacyReview(quoteId: string, enabled: boolean) {
   const reverse = useMutation({
     retry: false,
     mutationFn: async (input: LegacyReverseInput) => {
-      const { data, error } = await supabase.rpc("reverse_quote_charge_history", {
+      const { data, error } = await callLegacyReviewRpc("reverse_quote_charge_history", {
         p_review_id: input.reviewId, p_reason: input.reason,
         p_evidence: input.evidence, p_request_key: input.requestKey,
       });

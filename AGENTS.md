@@ -8,3 +8,4 @@
 - Stale-chunk failures go through `recoverFromStaleChunk`; recovered reloads are not sent to Sentry, but exhausted reload guards are, so post-deploy tabs make no noise without hiding persistent breakage.
 - Network failures are not sent to Sentry while the browser reports the device offline; online network failures stay reported because they may be platform outages.
 - Invoice-form legacy quote-charge review blocks only invoices carrying traced charges of that quote, mirroring the database guard; rent-only invoices (extensions) must not be blocked by unrelated history.
+- RPCs added by a not-yet-applied migration are called through a local typed contract (e.g. `quoteChargeLegacyRpc.ts`), never by editing generated Supabase types, so the preview compiles before the database catches up.
