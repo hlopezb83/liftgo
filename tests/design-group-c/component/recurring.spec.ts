@@ -17,7 +17,24 @@ test("recurring modal fits, uses one scroll area and keeps actions visible", asy
   await installComponentTransport(context);
   await page.goto("/tests/design-group-c/component/index.html?view=recurring");
   const dialog = page.getByRole("dialog");
-  await expect(dialog.getByRole("heading", { name: "Generar borradores recurrentes" })).toBeVisible();
+  await expect(dialog.getByRole("heading", { name: "Borradores recurrentes" })).toBeVisible();
+  await expect(async () => {
+    const close = await dialog.getByRole("button", { name: "Cerrar", exact: true }).boundingBox();
+    if (!close) throw new Error("The dialog close button has no layout");
+    // The heading block spans the dialog. Measure its actual text lines instead
+    // of treating unused block width as a visual overlap.
+    const titleLines = await dialog.getByRole("heading", { name: "Borradores recurrentes" }).evaluate(element => {
+      const range = document.createRange();
+      range.selectNodeContents(element);
+      return Array.from(range.getClientRects(), rect => ({ left: rect.left, right: rect.right, top: rect.top, bottom: rect.bottom }));
+    });
+    expect(titleLines.length).toBeGreaterThan(0);
+    for (const line of titleLines) {
+      expect(line.right <= close.x || line.left >= close.x + close.width
+        || line.bottom <= close.y || line.top >= close.y + close.height,
+      "The recurring title must not overlap the close button").toBe(true);
+    }
+  }).toPass();
   await expect(dialog.getByText("Cliente facturado oculto")).toHaveCount(0);
   await expect(dialog.getByText("Cliente terminado oculto")).toHaveCount(0);
   await expect(dialog.getByText(/reserva terminada.*completa la devolución/i)).toHaveCount(0);

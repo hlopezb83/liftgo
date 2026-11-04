@@ -39,7 +39,7 @@ export function RecurringInvoicesPreviewDialog({
       open={open}
       onOpenChange={onOpenChange}
       width="2xl"
-      title="Generar borradores recurrentes"
+      title="Borradores recurrentes"
       description="Selecciona los períodos de renta. Se crearán borradores sin timbrar."
     >
       <RecurringScopeControls model={model} isGenerating={isGenerating} isLoading={isLoading}
