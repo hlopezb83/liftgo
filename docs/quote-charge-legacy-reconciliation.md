@@ -30,8 +30,15 @@ outside that quote's charges, with a reason. Reversal creates another audit even
   audit roles retain read access. Portal and sales roles gain no access.
 - Both ledger tables use RLS, the canonical restrictive `org_scope_isolation`
   policy and `trg_organization_write_context`. The trigger also runs inside the
-  SECURITY DEFINER RPCs. Direct DML and history deletion remain denied; there is
-  no new service-role grant or audit cascade deletion.
+  SECURITY DEFINER RPCs. Direct DML is denied to the tested application roles
+  anon, authenticated and service_role; there is no new service-role grant or
+  audit cascade deletion.
+
+These guarantees do not establish isolation against privileged platform roles.
+The existing defaults also grant SELECT/INSERT to sandbox_exec and
+sandbox_exec_zxefrzfaynnfwazqhwxp, which have LOGIN and BYPASSRLS according to
+the coordinator's target inspection. Those roles and defaults are outside the
+application-role tests and are not changed by this migration or CI work.
 
 The quote detail review UI shows causing invoice folios, fiscal/consumption
 states, evidence and reversal history. It handles repeated requests, pending

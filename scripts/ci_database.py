@@ -27,11 +27,12 @@ START_EXCLUDES = {
     "rls": "studio,imgproxy,logflare,vector,edge-runtime,realtime,storage-api,mailpit,postgres-meta,supavisor,kong,postgrest",
     "ab": "studio,imgproxy,logflare,vector,edge-runtime,realtime,mailpit,postgres-meta,supavisor",
 }
-# Reviewed canonical trees: 0123 + journal and ledger organization guards.
+# Reviewed canonical trees: 0123 and the official generated 0124 receipt,
+# snapshot and journal at bbc0eb75. The portable receipt executes in CI.
 # Any subsequent history change requires explicit source review.
 SOURCE_TREES = {
     "supabase/migrations": "3e3575f5ff6d509ecdd624ae7fc1772508b5dce6",
-    "drizzle/migrations": "ce34b4f277849699be541ee74a1c9a2b72eefe45",
+    "drizzle/migrations": "799956d08ec0161c5560f8d3d9505fdf66dc4861",
 }
 HTTP_SOURCES = {
     "20260721000000_retry_queue_cron.sql": "2aecccd0758961f41769d9fed522d03df14937650b9dde80fce47646a1fa6887",

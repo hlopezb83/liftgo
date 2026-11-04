@@ -37,8 +37,8 @@ def acls():
             for index, signature in enumerate(sorted(runner.FUNCTIONS))]
 
 
-def output(*, ledger_post=None, acl_post=None):
-    rows = ledger()
+def output(*, ledger_pre=None, ledger_post=None, acl_post=None):
+    rows = ledger() if ledger_pre is None else ledger_pre
     functions = acls()
     lines = [runner.PREFIX + "LEDGER_PRE=" + json.dumps(rows),
              runner.PREFIX + "ACL_PRE=" + json.dumps(functions),
@@ -67,6 +67,20 @@ class ReceiptRunnerTests(unittest.TestCase):
         self.assertEqual(runner.RECEIPT_BYTES, 10649)
         self.assertNotIn(b"\r", data)
         self.assertTrue(data.endswith(b"\n"))
+        canonical = runner.ROOT / "drizzle/migrations/0124_control0123_verified_release.sql"
+        self.assertEqual(canonical.read_bytes(), data, "Canonical 0124 must retain the exact reviewed receipt bytes")
+
+    def test_already_registered_0124_ledger_is_preserved_without_another_record(self):
+        rows = [
+            {"id": 123, "hash": "8303a6bcbf0846555a77ec00e8f7fe1dd7656462181c72fdac7f23373b96c681",
+             "created_at": 1793746800000},
+            {"id": 124, "hash": PIN, "created_at": 1793809897588},
+        ]
+        observed = runner.checked_output(*output(ledger_pre=rows))
+        self.assertEqual(observed["ledger_pre"], rows)
+        self.assertEqual(observed["ledger_post"], rows)
+        self.assertEqual(len(observed["ledger_post"]), 2)
+        self.assertEqual(sum(row["hash"] == PIN for row in observed["ledger_post"]), 1)
 
     def test_rejects_non_ci_or_other_database_before_process(self):
         for env in ({}, {"DB_URL": runner.ci.LOCAL_DB_URL},
