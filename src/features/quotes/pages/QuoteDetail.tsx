@@ -7,6 +7,7 @@ import { DocumentIcon } from "@/components/icons";
 import { DetailPageHeader } from "@/components/layout/DetailPageHeader";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { Skeleton } from "@/components/ui/skeleton";
+import { QuoteChargeLegacyReview } from "@/features/invoices";
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import { useParams } from "@/lib/router-compat";
 import { AssignForkliftsCard } from "../components/quotes/AssignForkliftsCard";
@@ -127,6 +128,8 @@ export default function QuoteDetail() {
           />
         </aside>
       </div>
+
+      <QuoteChargeLegacyReview quoteId={quote.id} quoteNumber={quote.quote_number} />
 
       {quote.notes && <NotesCard value={quote.notes} title="Notas para el cliente" readOnly />}
 

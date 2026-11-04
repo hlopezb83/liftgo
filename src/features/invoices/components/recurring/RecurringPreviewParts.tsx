@@ -60,6 +60,10 @@ function IneligibleBadge({ line }: { line: RecurringPreviewLine }) {
         >
           {line.existingInvoiceNumber ?? "Ya facturada"}
         </Link>
+      ) : line.reason === "quote_charge_review" && line.quoteId ? (
+        <Link to={`/quotes/${line.quoteId}`} className="underline" onClick={(event) => event.stopPropagation()}>
+          Revisar historial de cargos en cotización
+        </Link>
       ) : (
         REASON_LABEL[line.reason ?? "no_customer"]
       )}

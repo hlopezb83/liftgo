@@ -21,6 +21,7 @@ vi.mock("../../components/quotes/QuoteDetailActions", () => ({
 }));
 vi.mock("../../components/quotes/QuoteConversionDialogs", () => ({ QuoteConversionDialogs: () => null }));
 vi.mock("../../components/quotes/AssignForkliftsCard", () => ({ AssignForkliftsCard: () => <div>Asignación de equipos</div> }));
+vi.mock("@/features/invoices", () => ({ QuoteChargeLegacyReview: () => null }));
 
 const lineItems: LineItem[] = [
   { description: "Equipo ficticio con modelo y descripción largos", quantity: 2, unit_price: 125000, total: 250000, discount: 10, discount_type: "%" },

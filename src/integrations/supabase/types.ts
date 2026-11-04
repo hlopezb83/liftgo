@@ -7047,6 +7047,29 @@ export type Database = {
         Args: { p_exclude_invoice_id?: string; p_quote_ids: string[] }
         Returns: Json
       }
+      get_quote_charge_legacy_review: {
+        Args: { p_quote_id: string }
+        Returns: Json
+      }
+      reconcile_quote_charge_history: {
+        Args: {
+          p_quote_id: string
+          p_invoice_id: string
+          p_line_index: number
+          p_expected_hash: string
+          p_classification: string
+          p_quote_line_id: string | null
+          p_quantity: number | null
+          p_reason: string
+          p_evidence: string
+          p_request_key: string
+        }
+        Returns: Json
+      }
+      reverse_quote_charge_history: {
+        Args: { p_review_id: string; p_reason: string; p_evidence: string; p_request_key: string }
+        Returns: Json
+      }
       get_sale_available_forklifts: {
         Args: { p_limit?: number; p_offset?: number }
         Returns: {

@@ -252,6 +252,34 @@ jobs:
             exit 1
           }
 
+      # Fresh cluster owned by this harness; never reuses the Supabase DB.
+      # RLS must actually be active and all nine observed two-session races must
+      # finish. A zero-test, skipped, truncated or failed run cannot pass.
+      - name: Historical quote charge reconciliation (RLS and 9 real races)
+        timeout-minutes: 5
+        env:
+          RUN_LOCAL_QUOTE_CHARGE_TESTS: "1"
+          PG_BIN: /usr/lib/postgresql/16/bin
+        run: |
+          set -euo pipefail
+          for binary in initdb pg_ctl postgres; do
+            test -x "$PG_BIN/$binary" || { echo "::error::Missing trusted PostgreSQL binary: $binary"; exit 1; }
+          done
+          "$PG_BIN/postgres" --version
+          node scripts/tests/quote-charge-legacy-reconciliation.test.cjs 2>&1 | tee reports/quote-charge-legacy-reconciliation.log
+          test "$(grep -c '^PASS quote-charge-race ' reports/quote-charge-legacy-reconciliation.log)" -eq 9 || {
+            echo "::error::Expected all 9 quote charge races; skipped or partial runs are not accepted"
+            exit 1
+          }
+          grep -Fxq 'PASS quote-charge-rls ACTIVE' reports/quote-charge-legacy-reconciliation.log || {
+            echo "::error::Real role RLS was not verified"
+            exit 1
+          }
+          grep -Fxq 'PASS quote-charge-suite COMPLETE races=9 rls=1' reports/quote-charge-legacy-reconciliation.log || {
+            echo "::error::Quote charge reconciliation suite did not complete"
+            exit 1
+          }
+
       - name: REP recovery persistence (real isolated PostgreSQL, synthetic PAC)
         env:
           RUN_LOCAL_FISCAL_TESTS: "1"

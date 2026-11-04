@@ -41,6 +41,7 @@ export interface RecurringPreviewLine {
   reason?: PreviewReason;
   existingInvoiceId?: string;
   existingInvoiceNumber?: string;
+  quoteId?: string;
 }
 
 export interface RecurringPreviewResponse {

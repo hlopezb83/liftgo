@@ -13,3 +13,4 @@ export {
 } from "./hooks/paymentIntents";
 
 export { DemoTour } from "./components/demo/DemoTour";
+export { QuoteChargeLegacyReview } from "./components/quote-charge-review/QuoteChargeLegacyReview";

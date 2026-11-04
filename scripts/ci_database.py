@@ -27,10 +27,11 @@ START_EXCLUDES = {
     "rls": "studio,imgproxy,logflare,vector,edge-runtime,realtime,storage-api,mailpit,postgres-meta,supavisor,kong,postgrest",
     "ab": "studio,imgproxy,logflare,vector,edge-runtime,realtime,mailpit,postgres-meta,supavisor",
 }
-# Reviewed canonical trees at b7620439; new history requires explicit review.
+# Reviewed canonical trees: 0123 + journal and ledger organization guards.
+# Any subsequent history change requires explicit source review.
 SOURCE_TREES = {
     "supabase/migrations": "3e3575f5ff6d509ecdd624ae7fc1772508b5dce6",
-    "drizzle/migrations": "b7423e31d5fe6b6c3602a815440ba275f6086edc",
+    "drizzle/migrations": "ce34b4f277849699be541ee74a1c9a2b72eefe45",
 }
 HTTP_SOURCES = {
     "20260721000000_retry_queue_cron.sql": "2aecccd0758961f41769d9fed522d03df14937650b9dde80fce47646a1fa6887",
