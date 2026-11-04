@@ -22,6 +22,7 @@ on:
       - "supabase/tests/**"
       - "supabase/config.toml"
       - "drizzle/migrations/**"
+      - "docs/audits/2026-11-04/release-0123/control0123-receipt.sql"
       - "scripts/run_sql_suites.py"
       - "scripts/ci_database.py"
       - "scripts/tests/**"
@@ -49,6 +50,7 @@ on:
       - "supabase/tests/**"
       - "supabase/config.toml"
       - "drizzle/migrations/**"
+      - "docs/audits/2026-11-04/release-0123/control0123-receipt.sql"
       - "scripts/run_sql_suites.py"
       - "scripts/ci_database.py"
       - "scripts/tests/**"
@@ -106,6 +108,7 @@ jobs:
           set -euo pipefail
           python3 -m unittest discover -s scripts/tests -p test_run_sql_suites.py
           python3 -m unittest discover -s scripts/tests -p test_ci_database.py
+          python3 -m unittest discover -s scripts/tests -p test_control0123_receipt.py
 
       - name: Setup Supabase CLI
         uses: supabase/setup-cli@d239d1052f6f024a8d746d7e5aeddead63b9cb53 # v3.1.0
@@ -220,6 +223,20 @@ jobs:
           bunx drizzle-kit migrate --config=drizzle.ci.config.ts
           bun scripts/ci-drizzle-replay.mjs verify
           python3 scripts/ci_database.py check-cron-off
+
+      # Run the exact reviewed bytes before any fixture can populate the audit
+      # tables. This read-only check never applies/registers migration 0124.
+      - name: Verify exact control0123 receipt on full replayed schema
+        if: success() && steps.drizzle.outcome == 'success'
+        timeout-minutes: 2
+        run: |
+          set -euo pipefail
+          mkdir -p reports
+          python3 scripts/tests/run_control0123_receipt.py 2>&1 | tee reports/control0123-receipt.log
+          test "$(grep -Fxc 'PASS control0123-receipt COMPLETE ledger=unchanged acl=unchanged functions=6' reports/control0123-receipt.log)" -eq 1 || {
+            echo "::error::The exact receipt, ledger and six inherited ACL snapshots did not complete"
+            exit 1
+          }
 
       - name: Diagnóstico PostgreSQL de Drizzle (sólo rollback en fallo)
         if: failure() && steps.drizzle.outcome == 'failure'
