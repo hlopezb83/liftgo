@@ -1,0 +1,12 @@
+{
+  "version": "8.46.2",
+  "date": "2026-11-04",
+  "type": "patch",
+  "category": "fix",
+  "title": "Vista previa compila mientras se aplica la conciliación de cargos históricos",
+  "description": "La revisión de cargos históricos de una cotización usa un contrato tipado propio para sus tres funciones del servidor, así la vista previa compila aunque la base todavía no las tenga. Sin migraciones, permisos ni cambios de datos.",
+  "changes": [
+    "Las llamadas usan la misma sesión y conservan los errores reales del servidor.",
+    "No se editaron los tipos autogenerados."
+  ]
+}
