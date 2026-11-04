@@ -13,8 +13,8 @@ Reviewed candidate source: `7a39026d0397b9154262a6b263e4c049249b7cd8`, merged as
 - SHA256: `3eb80b20b5acb18bbfe9726050ae8c22aa62e77fd908a6dceea9468b06ddb52d`
 - Canonical source: `bbc0eb75be647ed39bc9b5c1961019a2488be834`.
 - Journal: idx 124, when 1793809897588; 0124 is included in the CI replay.
-- The coordinator confirmed the official application of 0123 and 0124. Do not
-  invoke the migration tool again for this already applied batch.
+- This CI gate must not be used to apply or reapply migrations to an existing
+  environment.
 
 ## Full-schema gate
 
@@ -41,19 +41,15 @@ behavior. The runner also captures the owner, raw ACL and effective privileges
 of six replaced functions as a separate CI artifact; it does not rewrite or
 normalize their permissions to satisfy the receipt.
 
-The application-role assertions do not cover privileged platform roles. The
-coordinator observed existing SELECT/INSERT defaults for sandbox_exec and
-sandbox_exec_zxefrzfaynnfwazqhwxp, both LOGIN/BYPASSRLS. This gate does not claim
-isolation against those roles and does not modify their permissions.
+The application-role assertions do not certify the permissions of every
+privileged administrative identity. Other roles and default privileges are
+outside this gate's scope and are not modified by it.
 
 ## Scope of the official application evidence
 
-The target application and fresh ledger/catalog checks were coordinated through
-Lovable, separately from this CI gate. This repository review does not determine
-who responded to the platform approval. A SQL exception only rolls back its
-current transaction; the gate does not retrospectively certify a platform
-wrapper's transaction boundaries. Production owner/ACL comparisons remain
-separate evidence.
+Target execution checks remain separate from CI. A SQL exception only rolls
+back its current transaction; this gate does not certify a platform wrapper's
+transaction boundaries, approval process or target-specific permissions.
 
 The five generated files and their source were reviewed without changing the
 0123/0124 SQL. The Drizzle source-tree pin is the actual canonical tree

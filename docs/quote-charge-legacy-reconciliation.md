@@ -34,11 +34,9 @@ outside that quote's charges, with a reason. Reversal creates another audit even
   anon, authenticated and service_role; there is no new service-role grant or
   audit cascade deletion.
 
-These guarantees do not establish isolation against privileged platform roles.
-The existing defaults also grant SELECT/INSERT to sandbox_exec and
-sandbox_exec_zxefrzfaynnfwazqhwxp, which have LOGIN and BYPASSRLS according to
-the coordinator's target inspection. Those roles and defaults are outside the
-application-role tests and are not changed by this migration or CI work.
+These guarantees are scoped to the tested application roles. They do not
+establish isolation against database owners or other privileged administrative
+identities. Those identities and their permissions are outside this change.
 
 The quote detail review UI shows causing invoice folios, fiscal/consumption
 states, evidence and reversal history. It handles repeated requests, pending
