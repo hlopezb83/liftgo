@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { recurringBookingItems, type RecurringBookingRow } from "../cashFlowTransformers";
+import { recurringBookingItems, recurringCoverageReviewCount, type RecurringBookingRow } from "../cashFlowTransformers";
 
 const base: RecurringBookingRow = {
   id: "b1",
@@ -8,6 +8,7 @@ const base: RecurringBookingRow = {
   start_date: "2026-01-15",
   end_date: "2026-12-31",
   last_billed_date: null,
+  billing_coverage: [],
   monthly_rate: 10000,
   currency: "MXN",
   tipo_cambio: 1,
@@ -26,9 +27,9 @@ describe("recurringBookingItems (2A-9)", () => {
     expect(items.every((i) => i.isProjected && i.kind === "in")).toBe(true);
   });
 
-  it("arranca después del último periodo facturado", () => {
+  it("excluye la cobertura real, sin confiar en el cursor", () => {
     const items = recurringBookingItems(
-      [{ ...base, last_billed_date: "2026-03-15" }],
+      [{ ...base, last_billed_date: "2026-03-31", billing_coverage: [{ periodStart: "2026-03-01", periodEnd: "2026-03-31" }] }],
       "2026-03-20",
       "2026-05-31",
     );
@@ -68,7 +69,7 @@ describe("recurringBookingItems (2A-9)", () => {
 
   it("convierte a MXN con el tipo de cambio de la reserva", () => {
     const items = recurringBookingItems(
-      [{ ...base, last_billed_date: "2026-01-31", currency: "USD", tipo_cambio: 18 }],
+      [{ ...base, last_billed_date: "2026-01-31", billing_coverage: [{ periodStart: "2026-01-15", periodEnd: "2026-01-31" }], currency: "USD", tipo_cambio: 18 }],
       "2026-01-20",
       "2026-02-28",
     );
@@ -77,10 +78,74 @@ describe("recurringBookingItems (2A-9)", () => {
 
   it("FIX-4: respeta una tasa de IVA 0 del cliente", () => {
     const items = recurringBookingItems(
-      [{ ...base, last_billed_date: "2026-01-31", customer_tax_rate: 0 }],
+      [{ ...base, last_billed_date: "2026-01-31", billing_coverage: [{ periodStart: "2026-01-15", periodEnd: "2026-01-31" }], customer_tax_rate: 0 }],
       "2026-01-20",
       "2026-02-28",
     );
     expect(items[0]?.amountMxn).toBe(10000);
+  });
+
+  it("anticipar abril no oculta los meses intermedios ni duplica abril", () => {
+    const items = recurringBookingItems([{
+      ...base,
+      last_billed_date: "2026-04-30",
+      billing_coverage: [{ periodStart: "2026-04-01", periodEnd: "2026-04-30" }],
+    }], "2026-02-02", "2026-05-31");
+    expect(items.map((item) => item.dueDate)).toEqual(["2026-02-28", "2026-03-31", "2026-05-31"]);
+  });
+
+  it("un período liberado por cancelación vuelve aunque el cursor quede adelantado", () => {
+    const items = recurringBookingItems([{
+      ...base, last_billed_date: "2026-04-30", billing_coverage: [],
+    }], "2026-03-01", "2026-04-30");
+    expect(items.map((item) => item.dueDate)).toEqual(["2026-03-31", "2026-04-30"]);
+  });
+
+  it("una reserva antigua conserva los períodos actuales dentro del límite", () => {
+    const items = recurringBookingItems([{
+      ...base, start_date: "2020-01-15", last_billed_date: "2026-04-30",
+    }], "2026-03-01", "2026-04-30");
+    expect(items.map((item) => item.dueDate)).toEqual(["2026-03-31", "2026-04-30"]);
+  });
+
+  it("omite solapes parciales y avisa sin inventar renta remanente", () => {
+    const booking = {
+      ...base, billing_coverage: [{ periodStart: "2026-03-05", periodEnd: "2026-03-20" }],
+    };
+    expect(recurringBookingItems([booking], "2026-03-01", "2026-04-30").map((item) => item.dueDate))
+      .toEqual(["2026-04-30"]);
+    expect(recurringCoverageReviewCount([booking])).toBe(1);
+  });
+
+  it("cobertura completa multimes no se proyecta ni requiere adivinar huecos", () => {
+    const booking = {
+      ...base, billing_coverage: [{ periodStart: "2026-03-01", periodEnd: "2026-04-30" }],
+    };
+    expect(recurringBookingItems([booking], "2026-03-01", "2026-05-31").map((item) => item.dueDate))
+      .toEqual(["2026-05-31"]);
+    expect(recurringCoverageReviewCount([booking])).toBe(0);
+  });
+
+  it("la unión de rangos contiguos cubre el mes sin inventar pendientes", () => {
+    const booking = { ...base, billing_coverage: [
+      { periodStart: "2026-03-16", periodEnd: "2026-03-31" },
+      { periodStart: "2026-03-01", periodEnd: "2026-03-15" },
+    ] };
+    expect(recurringBookingItems([booking], "2026-03-01", "2026-04-30").map((item) => item.dueDate))
+      .toEqual(["2026-04-30"]);
+    expect(recurringCoverageReviewCount([booking])).toBe(0);
+    booking.billing_coverage[0].periodStart = "2026-03-17";
+    expect(recurringCoverageReviewCount([booking])).toBe(1);
+  });
+
+  it.each([
+    undefined,
+    [{ periodStart: null, periodEnd: "2026-03-31" }],
+    [{ periodStart: "2026-02-30", periodEnd: "2026-03-31" }],
+    [{ periodStart: "2026-04-01", periodEnd: "2026-03-31" }],
+  ])("cobertura ausente o inválida falla cerrada y se avisa (%j)", (billing_coverage) => {
+    const booking = { ...base, billing_coverage };
+    expect(recurringBookingItems([booking], "2026-03-01", "2026-05-31")).toEqual([]);
+    expect(recurringCoverageReviewCount([booking])).toBe(1);
   });
 });

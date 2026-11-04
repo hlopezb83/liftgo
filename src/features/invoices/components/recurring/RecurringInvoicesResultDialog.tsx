@@ -12,6 +12,7 @@ interface Props {
   result: GenerateRecurringResponse | undefined;
   onRetry: (bookingIds: string[]) => void;
   isRetrying: boolean;
+  retryRequiresReview?: boolean;
 }
 
 function formatResultSummary(created: number, existing: number, failed: number): string {
@@ -21,7 +22,7 @@ function formatResultSummary(created: number, existing: number, failed: number):
   return `${parts.join(", ")}.`;
 }
 
-export function RecurringInvoicesResultDialog({ open, onOpenChange, result, onRetry, isRetrying }: Props) {
+export function RecurringInvoicesResultDialog({ open, onOpenChange, result, onRetry, isRetrying, retryRequiresReview = false }: Props) {
   const created = result?.created ?? [];
   const alreadyExisting = result?.alreadyExisting ?? [];
   const failed = result?.failed ?? [];
@@ -83,17 +84,20 @@ export function RecurringInvoicesResultDialog({ open, onOpenChange, result, onRe
                 <ErrorIcon className="h-4 w-4 text-destructive" />
                 Fallidas ({failed.length})
               </h4>
+              {retryRequiresReview && <p className="mb-3 text-sm text-muted-foreground">
+                Revisa una vista previa nueva y selecciona sólo los períodos pendientes. Si necesitas anticipos, vuelve a activar “Incluir períodos futuros”.
+              </p>}
               <div className="border rounded-md divide-y">
                 {failed.map((f, idx) => {
                   const message = formatRecurringFailure(f.error);
                   return (
                     <div key={idx} className="px-3 py-2 text-sm space-y-2">
                       <p className="text-sm text-foreground whitespace-pre-wrap break-words">{message}</p>
-                      <div className="flex items-center justify-between gap-2">
+                      <div className="flex flex-wrap items-center justify-between gap-2">
                         <span className="text-xs text-muted-foreground font-mono truncate">
                           Reserva(s): {f.bookingIds.map((id) => id.slice(0, 8)).join(", ")}
                         </span>
-                        <div className="flex gap-2 shrink-0">
+                        <div className="flex flex-wrap gap-2">
                           <Button
                             variant="ghost"
                             size="sm"
@@ -104,14 +108,14 @@ export function RecurringInvoicesResultDialog({ open, onOpenChange, result, onRe
                           >
                             Copiar detalle
                           </Button>
-                          {!message.startsWith("El grupo de reservas cambió:") && (
+                          {(retryRequiresReview || !message.startsWith("El grupo de reservas cambió:")) && (
                             <Button
                               variant="outline"
                               size="sm"
                               onClick={() => onRetry(f.bookingIds)}
                               disabled={isRetrying}
                             >
-                              Reintentar
+                              {retryRequiresReview ? "Revisar períodos fallidos" : "Reintentar"}
                             </Button>
                           )}
                         </div>

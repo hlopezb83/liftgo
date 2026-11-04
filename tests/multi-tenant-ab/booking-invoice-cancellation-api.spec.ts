@@ -610,6 +610,8 @@ test("R2 invoice cancellation concurrency: reverse-order recurring RPC cursor wa
     const before = await readState(s);
     const periodStart = before.booking.start_date;
     const periodEnd = dayAfter(periodStart, 1);
+    const existingPeriodEnd = before.invoice.billing_period_end;
+    expect(existingPeriodEnd).toBe(dayAfter(periodStart, 6));
     dataOrThrow(await s.owner.from("bookings").update({ recurring_billing: true,
       end_date: dayAfter(periodStart, 40) }).in("id", ids)
       .eq("organization_id", s.side.organizationId).select("id"), "enable synthetic recurring fixtures");
@@ -654,8 +656,14 @@ test("R2 invoice cancellation concurrency: reverse-order recurring RPC cursor wa
       }, "share");
       const books = dataOrThrow(await s.owner.from("bookings").select("id, last_billed_date, is_e2e")
         .in("id", ids).order("id"), "recurring cursor committed on both books");
-      expect(books).toEqual(ids.map((id) => ({ id, last_billed_date: periodEnd, is_e2e: false })));
-      expect((await readState(s)).invoice.status).toBe("sent");
+      // The cursor is the maximum active coverage, not the last RPC's period.
+      // Filling the earlier gap must not move it behind the existing invoice.
+      expect(books).toEqual(ids.map((id) => ({ id, last_billed_date: existingPeriodEnd, is_e2e: false })));
+      if (!createdId) throw new Error("Recurring RPC returned no invoice ID");
+      const createdPeriod = dataOrThrow(await s.owner.from("invoices")
+        .select("billing_period_start, billing_period_end").eq("id", createdId).single(), "new recurring period unchanged");
+      expect(createdPeriod).toEqual({ billing_period_start: periodStart, billing_period_end: periodEnd });
+      expect((await readState(s)).invoice).toMatchObject({ status: "sent", billing_period_end: existingPeriodEnd });
     } finally {
       if (createdId) dataOrThrow(await s.owner.from("invoices").delete().eq("id", createdId)
         .eq("organization_id", s.side.organizationId).select("id"), "cleanup recurring invoice");

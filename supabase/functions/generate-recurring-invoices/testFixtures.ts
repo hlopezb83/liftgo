@@ -87,11 +87,13 @@ export function planningFixture(options: {
                 organization_id: "org-A",
                 customer_id: "customer-1",
                 tax_rate: 16,
+                uso_cfdi: "G03",
               },
               {
                 organization_id: "org-B",
                 customer_id: "customer-1",
                 tax_rate: 8,
+                uso_cfdi: "G03",
               },
             ],
         ),

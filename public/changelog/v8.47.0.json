@@ -1,0 +1,16 @@
+{
+  "version": "8.47.0",
+  "date": "2026-11-04",
+  "type": "minor",
+  "category": "improvement",
+  "title": "Facturación recurrente con pendientes claros y anticipos consecutivos",
+  "description": "El modal muestra los períodos pendientes y permite incluir períodos futuros de forma explícita, sin saltar meses anteriores del contrato. Las reservas terminadas que requieren devolución se consultan desde su propio flujo.",
+  "changes": [
+    "Se ocultan los períodos ya facturados y los avisos de reserva terminada del modal recurrente.",
+    "La opción de anticipar se activa en cada apertura, permite elegir hasta qué mes revisar y no selecciona períodos automáticamente.",
+    "Los períodos futuros requieren cubrir los pendientes anteriores. Una cancelación aceptada vuelve a mostrar el período pendiente.",
+    "Las coberturas parciales o históricas ambiguas requieren revisión; se conservan las protecciones de duplicados y concurrencia.",
+    "Después de un resultado parcial se abre una vista previa nueva para revisar lo que falta, sin repetir automáticamente los borradores creados.",
+    "El flujo de caja usa la cobertura real de facturas y avisa cuando debe omitir períodos cuya cobertura no puede verificar."
+  ]
+}

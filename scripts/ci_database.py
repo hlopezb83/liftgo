@@ -27,12 +27,13 @@ START_EXCLUDES = {
     "rls": "studio,imgproxy,logflare,vector,edge-runtime,realtime,storage-api,mailpit,postgres-meta,supavisor,kong,postgrest",
     "ab": "studio,imgproxy,logflare,vector,edge-runtime,realtime,mailpit,postgres-meta,supavisor",
 }
-# Reviewed canonical trees: 0123 and the official generated 0124 receipt,
-# snapshot and journal at bbc0eb75. The portable receipt executes in CI.
+# Reviewed canonical trees: 0123, official generated 0124 receipt, and 0125
+# recurring coverage with the independently reviewed INVOKER/ACL correction
+# at 23dc85c581df94322e7c1c955d47493839e84df8. The portable receipt executes in CI.
 # Any subsequent history change requires explicit source review.
 SOURCE_TREES = {
     "supabase/migrations": "3e3575f5ff6d509ecdd624ae7fc1772508b5dce6",
-    "drizzle/migrations": "799956d08ec0161c5560f8d3d9505fdf66dc4861",
+    "drizzle/migrations": "ab92bba79ea36d98d0a9c86ced8626fb034a97ca",
 }
 HTTP_SOURCES = {
     "20260721000000_retry_queue_cron.sql": "2aecccd0758961f41769d9fed522d03df14937650b9dde80fce47646a1fa6887",
