@@ -862,6 +862,13 @@
       "when": 1792627200002,
       "tag": "0122_preserve_completed_recurring_billing",
       "breakpoints": true
+    },
+    {
+      "idx": 123,
+      "version": "7",
+      "when": 1793746800000,
+      "tag": "0123_quote_charge_legacy_reconciliation",
+      "breakpoints": true
     }
   ]
 }

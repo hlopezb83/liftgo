@@ -62,7 +62,7 @@ function resolveQuoteChargeAvailability(quoteIds: string[], availability?: Quote
 /** Adding quote charges requires verifiable history: never assign by description. */
 export function requireQuoteChargeAvailability(quoteIds: string[], availability?: QuoteChargeAvailability) {
   return resolveQuoteChargeAvailability(quoteIds, availability).map((quote) => {
-    if (quote.legacy_review_required) throw new Error(CHARGE_LEGACY_REVIEW);
+    if (quote.lines.length > 0 && quote.legacy_review_required) throw new Error(CHARGE_LEGACY_REVIEW);
     return quote;
   });
 }

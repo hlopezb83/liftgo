@@ -72,6 +72,45 @@ Deno.test("handler: cron preview remains read-only", async () => {
   assertEquals(mock.rpcCalls, []);
 });
 
+Deno.test("handler: quote without extra charges permits preview and selected rental generation despite legacy history", async () => {
+  const quoteId = "10700000-0000-4000-8000-000000000001";
+  const mock = planningFixture({ bookings: [bookingFixture({
+    quote_id: quoteId,
+    quotes: { organization_id: "org-A", line_items: [{ line_kind: "rental", description: "QA rental" }], rental_meta: [] },
+  })] });
+  const originalRpc = mock.client.rpc;
+  mock.client.rpc = ((name: string, payload: unknown) => name === "get_quote_charge_availability"
+    ? Promise.resolve({ data: { complete: true, quotes: [{ quote_id: quoteId, legacy_review_required: true, lines: [] }] }, error: null })
+    : originalRpc(name, payload as Record<string, unknown>)) as typeof mock.client.rpc;
+  const preview = await handleRequest(request({ preview: true }), dependencies(mock));
+  assertEquals(preview.status, 200);
+  assertEquals((await preview.json()).lines[0].eligible, true);
+  const generated = await handleRequest(request({ selections: [{ bookingId: "booking-1", periodStart: "2026-07-01" }] }), dependencies(mock));
+  const result = await generated.json();
+  assertEquals(result.invoicesCreated, 1);
+  assertEquals(result.failed, []);
+  const writes = mock.rpcCalls.filter((call) => call.fn === "create_recurring_invoice");
+  assertEquals(writes.length, 1);
+  assertEquals((writes[0].args?.p_line_items as Array<{ line_kind: string }>).map((line) => line.line_kind), ["rental"]);
+});
+
+Deno.test("handler: incomplete empty-charge response still blocks rental preview and generation", async () => {
+  const quoteId = "10700000-0000-4000-8000-000000000001";
+  const mock = planningFixture({ bookings: [bookingFixture({
+    quote_id: quoteId,
+    quotes: { organization_id: "org-A", line_items: [], rental_meta: [] },
+  })] });
+  const originalRpc = mock.client.rpc;
+  mock.client.rpc = ((name: string, payload: unknown) => name === "get_quote_charge_availability"
+    ? Promise.resolve({ data: { complete: false, quotes: [{ quote_id: quoteId, legacy_review_required: true, lines: [] }] }, error: null })
+    : originalRpc(name, payload as Record<string, unknown>)) as typeof mock.client.rpc;
+  const preview = await handleRequest(request({ preview: true }), dependencies(mock));
+  assertEquals((await preview.json()).lines[0].reason, "quote_charge_review");
+  const generated = await handleRequest(request({ selections: [{ bookingId: "booking-1", periodStart: "2026-07-01" }] }), dependencies(mock));
+  assertEquals((await generated.json()).invoicesCreated, 0);
+  assertEquals(mock.rpcCalls.filter((call) => call.fn === "create_recurring_invoice"), []);
+});
+
 Deno.test("handler: server membership scopes manual preview, not payload tenant", async () => {
   const mock = planningFixture({
     bookings: [

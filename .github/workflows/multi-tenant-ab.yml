@@ -304,6 +304,15 @@ jobs:
       - name: Preparar Chromium
         uses: ./.github/actions/setup-playwright
 
+      # Real browser interaction with synthetic data boundaries only. This
+      # complements the real PostgreSQL races; it does not replace them.
+      - name: Historical quote charge review browser (6 cases)
+        timeout-minutes: 5
+        run: |
+          set -euo pipefail
+          node node_modules/@playwright/test/cli.js test --config playwright.quote-charge-review.config.ts 2>&1 | tee reports/quote-charge-review-browser.log
+          node -e 'const r=JSON.parse(require("node:fs").readFileSync("reports/quote-charge-review-browser.json","utf8"));const s=r.stats;if(r.errors?.length||!s||s.expected!==6||s.skipped!==0||s.unexpected!==0||s.flaky!==0)throw new Error("Expected all six quote charge browser cases, without skips or failures");console.log("PASS quote-charge-browser COMPLETE tests=6 skipped=0");'
+
       - name: Ejecutar gate A/B (datos + Storage + portal)
         # CLI start/status/stop must keep the TOML project id for ownership checks.
         # Only browser/API fixtures use this synthetic application marker.
@@ -323,6 +332,9 @@ jobs:
             reports/multitenant-ab.json
             reports/multitenant-ab-matrix.json
             reports/multitenant-ab-matrix.md
+            reports/quote-charge-review-browser.json
+            reports/quote-charge-review-browser.log
+            test-results/quote-charge-review/
             playwright-report-multitenant/
           if-no-files-found: warn
           retention-days: 7

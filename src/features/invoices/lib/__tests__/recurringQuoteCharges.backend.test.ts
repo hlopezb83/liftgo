@@ -21,6 +21,12 @@ test('fully consumed source never repeats on later recurring periods',()=>{
 test('unknown legacy history fails closed',()=>{
   assert.throws(()=>recurringQuoteCharges(payload({}, {legacy_review_required:true}),[quote]),/históricos/);
 });
+test('complete quote without charges permits rental despite unrelated legacy history',()=>{
+  assert.deepEqual(recurringQuoteCharges(payload({}, {legacy_review_required:true,lines:[]}),[quote]),[]);
+  assert.throws(()=>recurringQuoteCharges(payload({}, {legacy_review_required:undefined,lines:[]}),[quote]));
+  // A later added charge restores the historical review requirement.
+  assert.throws(()=>recurringQuoteCharges(payload({}, {legacy_review_required:true}),[quote]));
+});
 test('incomplete, missing, duplicate and malformed responses fail closed',()=>{
   for (const value of [null,{}, {complete:false,quotes:[]},{complete:true,quotes:[]},
     payload({remaining_quantity:3}),payload({consumed_quantity:-1}),payload({quote_line_id:'bad'}),

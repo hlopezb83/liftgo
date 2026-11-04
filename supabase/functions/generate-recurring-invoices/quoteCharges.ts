@@ -55,7 +55,12 @@ export function recurringQuoteCharges(
       throw new Error("Respuesta incompleta de cargos de cotización");
     }
     seen.add(quoteId);
-    if (quote.legacy_review_required !== false) {
+    if (typeof quote.legacy_review_required !== "boolean") {
+      throw new Error("Respuesta incompleta de cargos de cotización");
+    }
+    // History cannot consume a charge that does not exist. Re-evaluate on every
+    // request: adding a charge later must require review again.
+    if (quote.lines.length > 0 && quote.legacy_review_required) {
       throw new Error(
         "Hay cargos históricos sin origen verificable; requieren revisión manual",
       );

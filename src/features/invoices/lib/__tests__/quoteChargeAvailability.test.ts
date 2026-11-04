@@ -21,6 +21,15 @@ function availability(consumed = 0): QuoteChargeAvailability {
 }
 
 describe("authoritative quote-charge availability", () => {
+  it("allows a complete quote without extras and requires review again if a charge is added", () => {
+    const data = availability();
+    data.quotes[0].legacy_review_required = true;
+    const charge = data.quotes[0].lines[0];
+    data.quotes[0].lines = [];
+    expect(buildAvailableQuoteChargeLines([quoteId], parseQuoteChargeAvailability(data, [quoteId]))).toEqual([]);
+    data.quotes[0].lines = [charge];
+    expect(() => buildAvailableQuoteChargeLines([quoteId], data)).toThrow(CHARGE_LEGACY_REVIEW);
+  });
   it("reselection preserves own partial rows, then restores a deleted origin from the refreshed balance", () => {
     const available = buildAvailableQuoteChargeLines([quoteId], availability(1));
     const current = [{ ...available[0], quantity: 0.5, total: 50 }];

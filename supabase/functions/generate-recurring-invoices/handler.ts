@@ -110,6 +110,7 @@ type PreviewLine = {
   rateWarning?: boolean;
   existingInvoiceId?: string;
   existingInvoiceNumber?: string;
+  quoteId?: string;
 };
 
 export type PlanItem = {
@@ -351,6 +352,7 @@ export async function buildPlan(
 
       const baseLine: PreviewLine = {
         bookingId: booking.id,
+        quoteId: booking.quote_id ?? undefined,
         organizationId: (booking.organization_id as string | null) ?? null,
         bookingCode: booking.booking_number ?? null,
         customerId: booking.customer_id ?? null,
