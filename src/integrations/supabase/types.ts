@@ -4693,6 +4693,147 @@ export type Database = {
           },
         ]
       }
+      quote_charge_legacy_reversals: {
+        Row: {
+          actor_id: string
+          created_at: string
+          evidence: string
+          id: string
+          organization_id: string
+          reason: string
+          request_key: string
+          review_id: string
+        }
+        Insert: {
+          actor_id: string
+          created_at?: string
+          evidence: string
+          id?: string
+          organization_id: string
+          reason: string
+          request_key: string
+          review_id: string
+        }
+        Update: {
+          actor_id?: string
+          created_at?: string
+          evidence?: string
+          id?: string
+          organization_id?: string
+          reason?: string
+          request_key?: string
+          review_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quote_charge_legacy_reversals_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "quote_charge_legacy_reversals_review_id_fkey"
+            columns: ["review_id"]
+            isOneToOne: true
+            referencedRelation: "quote_charge_legacy_reviews"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      quote_charge_legacy_reviews: {
+        Row: {
+          actor_id: string
+          classification: string
+          created_at: string
+          evidence: string
+          id: string
+          invoice_booking_ids: string[]
+          invoice_id: string
+          invoice_line_hash: string
+          invoice_line_index: number
+          invoice_line_snapshot: Json
+          organization_id: string
+          quantity: number | null
+          quote_id: string
+          quote_line_id: string | null
+          reason: string
+          request_key: string
+        }
+        Insert: {
+          actor_id: string
+          classification: string
+          created_at?: string
+          evidence: string
+          id?: string
+          invoice_booking_ids: string[]
+          invoice_id: string
+          invoice_line_hash: string
+          invoice_line_index: number
+          invoice_line_snapshot: Json
+          organization_id: string
+          quantity?: number | null
+          quote_id: string
+          quote_line_id?: string | null
+          reason: string
+          request_key: string
+        }
+        Update: {
+          actor_id?: string
+          classification?: string
+          created_at?: string
+          evidence?: string
+          id?: string
+          invoice_booking_ids?: string[]
+          invoice_id?: string
+          invoice_line_hash?: string
+          invoice_line_index?: number
+          invoice_line_snapshot?: Json
+          organization_id?: string
+          quantity?: number | null
+          quote_id?: string
+          quote_line_id?: string | null
+          reason?: string
+          request_key?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quote_charge_legacy_reviews_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "invoices"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "quote_charge_legacy_reviews_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "v_invoices_with_balance"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "quote_charge_legacy_reviews_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "v_overdue_invoices"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "quote_charge_legacy_reviews_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "quote_charge_legacy_reviews_quote_id_fkey"
+            columns: ["quote_id"]
+            isOneToOne: false
+            referencedRelation: "quotes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       quotes: {
         Row: {
           accepted_at: string | null
@@ -7047,6 +7188,10 @@ export type Database = {
         Args: { p_exclude_invoice_id?: string; p_quote_ids: string[] }
         Returns: Json
       }
+      get_quote_charge_legacy_review: {
+        Args: { p_quote_id: string }
+        Returns: Json
+      }
       get_sale_available_forklifts: {
         Args: { p_limit?: number; p_offset?: number }
         Returns: {
@@ -7920,12 +8065,47 @@ export type Database = {
       purge_e2e_data: { Args: never; Returns: Json }
       purge_expired_support_diagnostics: { Args: never; Returns: number }
       purge_old_notifications: { Args: never; Returns: number }
+      quote_charge_consumed: {
+        Args: {
+          p_exclude_invoice_id?: string
+          p_line_id: string
+          p_quote_id: string
+        }
+        Returns: number
+      }
       quote_charge_invoice_active: {
         Args: { p_invoice: Database["public"]["Tables"]["invoices"]["Row"] }
         Returns: boolean
       }
+      quote_charge_invoice_quantity: {
+        Args: {
+          p_invoice: Database["public"]["Tables"]["invoices"]["Row"]
+          p_line_id: string
+          p_quote_id: string
+        }
+        Returns: number
+      }
+      quote_charge_invoice_quote_ids: {
+        Args: { p_invoice_id: string; p_org: string }
+        Returns: string[]
+      }
       quote_charge_is_generated_equipment_line: {
         Args: { p_line: Json }
+        Returns: boolean
+      }
+      quote_charge_legacy_invoice_pending: {
+        Args: {
+          p_invoice: Database["public"]["Tables"]["invoices"]["Row"]
+          p_quote_id: string
+        }
+        Returns: boolean
+      }
+      quote_charge_line_hash: { Args: { p_line: Json }; Returns: string }
+      quote_charge_native_line_valid: {
+        Args: {
+          p_invoice: Database["public"]["Tables"]["invoices"]["Row"]
+          p_line: Json
+        }
         Returns: boolean
       }
       quote_has_legacy_charge_history: {
@@ -7955,6 +8135,21 @@ export type Database = {
       reconcile_forklift_operations: {
         Args: { p_forklift: string; p_note: string; p_org: string }
         Returns: undefined
+      }
+      reconcile_quote_charge_history: {
+        Args: {
+          p_classification: string
+          p_evidence: string
+          p_expected_hash: string
+          p_invoice_id: string
+          p_line_index: number
+          p_quantity: number
+          p_quote_id: string
+          p_quote_line_id: string
+          p_reason: string
+          p_request_key: string
+        }
+        Returns: Json
       }
       reconcile_stamping_invoice: {
         Args: {
@@ -8175,6 +8370,15 @@ export type Database = {
           p_inspected_at: string
           p_org: string
           p_recorded_at?: string
+        }
+        Returns: Json
+      }
+      reverse_quote_charge_history: {
+        Args: {
+          p_evidence: string
+          p_reason: string
+          p_request_key: string
+          p_review_id: string
         }
         Returns: Json
       }
