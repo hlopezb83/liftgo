@@ -30,8 +30,13 @@ outside that quote's charges, with a reason. Reversal creates another audit even
   audit roles retain read access. Portal and sales roles gain no access.
 - Both ledger tables use RLS, the canonical restrictive `org_scope_isolation`
   policy and `trg_organization_write_context`. The trigger also runs inside the
-  SECURITY DEFINER RPCs. Direct DML and history deletion remain denied; there is
-  no new service-role grant or audit cascade deletion.
+  SECURITY DEFINER RPCs. Direct DML is denied to the tested application roles
+  anon, authenticated and service_role; there is no new service-role grant or
+  audit cascade deletion.
+
+These guarantees are scoped to the tested application roles. They do not
+establish isolation against database owners or other privileged administrative
+identities. Those identities and their permissions are outside this change.
 
 The quote detail review UI shows causing invoice folios, fiscal/consumption
 states, evidence and reversal history. It handles repeated requests, pending
