@@ -112,8 +112,13 @@ BEGIN
       WHERE p.polrelid = v_oid AND p.polname = 'org_scope_isolation'
         AND NOT p.polpermissive AND p.polcmd = '*'
         AND p.polroles = ARRAY['authenticated'::regrole::oid]
-        AND pg_get_expr(p.polqual, p.polrelid) LIKE '%organization_scope_matches(organization_id)%'
-        AND pg_get_expr(p.polwithcheck, p.polrelid) LIKE '%organization_scope_matches(organization_id)%'
+        AND p.polqual IS NOT NULL AND p.polwithcheck IS NOT NULL
+        AND EXISTS (
+          SELECT 1 FROM pg_depend d
+          WHERE d.classid = 'pg_policy'::regclass AND d.objid = p.oid
+            AND d.refclassid = 'pg_proc'::regclass
+            AND d.refobjid = 'public.organization_scope_matches(uuid)'::regprocedure
+        )
     ) THEN
       RAISE EXCEPTION 'control0123: restrictive org_scope_isolation missing on %', r.tbl;
     END IF;
