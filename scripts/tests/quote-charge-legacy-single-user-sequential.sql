@@ -2,6 +2,8 @@
 -- SET ROLE; this file intentionally makes NO RLS/ACL/concurrency claims.
 BEGIN;
 SET LOCAL request.jwt.claims='{"sub":"12320000-0000-4000-8000-000000000005","role":"authenticated"}';
+-- Stale application context must never replace the actor's membership tenant.
+SET LOCAL app.organization_id='12320000-0000-4000-8000-000000000002';
 CREATE FUNCTION pg_temp.single_expect(p_sql text,p_code text DEFAULT '23514') RETURNS void LANGUAGE plpgsql AS $$
 DECLARE v_code text;
 BEGIN
@@ -40,10 +42,20 @@ SELECT pg_temp.single_expect($s$SELECT pg_temp.single_review(10,30,0,'charge',10
 SELECT pg_temp.single_expect($s$SELECT pg_temp.single_review(10,30,0,'charge',100,'Infinity')$s$);
 SELECT pg_temp.single_expect($s$SELECT pg_temp.single_review(10,30,0,'charge',100,'-Infinity')$s$);
 DO $$ DECLARE v jsonb; v_before text; BEGIN
+ IF public.current_organization_id() IS DISTINCT FROM '12320000-0000-4000-8000-000000000001'::uuid
+  OR public.current_internal_organization_id() IS DISTINCT FROM '12320000-0000-4000-8000-000000000001'::uuid
+  OR public.organization_scope_matches('12320000-0000-4000-8000-000000000001') IS DISTINCT FROM true
+  OR public.organization_scope_matches('12320000-0000-4000-8000-000000000002') IS DISTINCT FROM false
+ THEN RAISE EXCEPTION 'Canonical active membership context is incorrect'; END IF;
  IF pg_temp.single_available(10)->>'legacy_review_required' IS DISTINCT FROM 'true' THEN RAISE EXCEPTION 'History not pending'; END IF;
  SELECT line_items::text INTO v_before FROM invoices WHERE id='12320000-0000-4000-8000-000000000030';
  v:=pg_temp.single_review(10,30,0,'charge',100);
  PERFORM set_config('test.single_review_id',v->>'review_id',true);
+ IF NOT EXISTS (SELECT 1 FROM public.quote_charge_legacy_reviews r WHERE r.id=(v->>'review_id')::uuid
+  AND r.organization_id='12320000-0000-4000-8000-000000000001'
+  AND r.actor_id='12320000-0000-4000-8000-000000000005')
+  OR current_setting('app.organization_id',true) IS DISTINCT FROM '12320000-0000-4000-8000-000000000001'
+ THEN RAISE EXCEPTION 'Inherited app context changed the audited tenant or actor'; END IF;
  IF v->>'complete' IS DISTINCT FROM 'true' OR pg_temp.single_available(10)#>>'{lines,0,consumed_quantity}' IS DISTINCT FROM '1'
   OR pg_temp.single_available(10)->>'legacy_review_required' IS DISTINCT FROM 'false' THEN RAISE EXCEPTION 'Historical consumption failed'; END IF;
  IF (SELECT line_items::text FROM invoices WHERE id='12320000-0000-4000-8000-000000000030') IS DISTINCT FROM v_before
@@ -107,8 +119,25 @@ SELECT pg_temp.single_expect($s$UPDATE invoices SET status='draft' WHERE id='123
 SET LOCAL request.jwt.claims='{"sub":"12320000-0000-4000-8000-000000000007","role":"authenticated"}';
 SELECT pg_temp.single_expect($s$SELECT pg_temp.single_review(12,32,0,'rental',107)$s$,'42501');
 SET LOCAL request.jwt.claims='{"sub":"12320000-0000-4000-8000-000000000006","role":"authenticated"}';
+DO $$ BEGIN
+ IF public.current_internal_organization_id() IS DISTINCT FROM '12320000-0000-4000-8000-000000000002'::uuid
+  OR public.organization_scope_matches('12320000-0000-4000-8000-000000000001') IS DISTINCT FROM false
+ THEN RAISE EXCEPTION 'Canonical admin B context is incorrect'; END IF;
+END $$;
 SELECT pg_temp.single_expect($s$SELECT public.get_quote_charge_legacy_review('12320000-0000-4000-8000-000000000010')$s$,'42501');
+SELECT pg_temp.single_expect($s$SELECT pg_temp.single_review(10,30,0,'charge',100)$s$,'42501');
 SET LOCAL request.jwt.claims='{"sub":"12320000-0000-4000-8000-000000000005","role":"authenticated"}';
+-- Explicit helper/RPC actor checks only: standalone still cannot verify RLS/ACL.
+UPDATE public.organizations SET is_active=false WHERE id='12320000-0000-4000-8000-000000000001';
+DO $$ BEGIN
+ IF public.current_internal_organization_id() IS NOT NULL
+  OR public.organization_scope_matches('12320000-0000-4000-8000-000000000001') IS DISTINCT FROM false
+ THEN RAISE EXCEPTION 'Suspended organization retained canonical internal context'; END IF;
+END $$;
+SELECT pg_temp.single_expect($s$SELECT public.get_quote_charge_legacy_review('12320000-0000-4000-8000-000000000010')$s$,'42501');
+SELECT pg_temp.single_expect($s$SELECT pg_temp.single_review(10,30,0,'charge',100)$s$,'42501');
+UPDATE public.organizations SET is_active=true WHERE id='12320000-0000-4000-8000-000000000001';
+SELECT 'QUOTE_CHARGE_CANONICAL_CONTEXT_OK' AS context_result;
 SET CONSTRAINTS ALL IMMEDIATE;
 ROLLBACK;
 SELECT 'QUOTE_CHARGE_SEQUENTIAL_OK' AS sequential_result;

@@ -16,6 +16,25 @@ const { execFileSync } = require("node:child_process");
 // scripts/tests/postgres-import-guard.test.mjs on current main.
 const postgres = require('../lib/postgres-factory.cjs')(require('postgres'));
 const root = path.resolve(__dirname, "../..");
+function canonicalOrganizationFunction(file, name) {
+  const source = fs.readFileSync(path.join(root, "drizzle/migrations", file), "utf8");
+  const matches = [...source.matchAll(new RegExp("CREATE OR REPLACE FUNCTION public\\." + name + "\\([\\s\\S]*?\\n\\$\\$;", "g"))];
+  assert.equal(matches.length, 1, `Expected one canonical definition of ${name} in ${file}`);
+  return matches[0][0];
+}
+// Latest effective definitions of the guards introduced in 0004/0005. Loading
+// their real SQL also preserves suspended-organization and unique-membership checks.
+const canonicalOrganizationSql = [
+  ["0025_multi_org_phase8_admin_membership_scope.sql", "current_organization_id"],
+  ["0031_multi_org_audit_hardening.sql", "current_internal_organization_id"],
+  ["0031_multi_org_audit_hardening.sql", "organization_scope_matches"],
+  ["0030_multi_org_onboarding_and_customer_scope.sql", "enforce_organization_write_context"],
+].map(([file, name]) => canonicalOrganizationFunction(file, name)).join("\n") + `
+REVOKE ALL ON FUNCTION public.current_organization_id(),public.current_internal_organization_id(),
+  public.organization_scope_matches(uuid),public.enforce_organization_write_context() FROM PUBLIC,anon;
+GRANT EXECUTE ON FUNCTION public.current_organization_id(),public.current_internal_organization_id(),
+  public.organization_scope_matches(uuid) TO authenticated;
+`;
 const bin = process.env.PG_BIN;
 if (!bin || !path.isAbsolute(bin)) throw new Error("PG_BIN must be an absolute trusted PostgreSQL binary directory.");
 // Keep data in the task's workspace: Windows may redirect os.tmpdir() to an
@@ -92,7 +111,7 @@ async function reset(c, histories = [history()]) {
   await q(c, `DROP SCHEMA public CASCADE; DROP SCHEMA IF EXISTS auth CASCADE; CREATE SCHEMA public; CREATE SCHEMA auth;
     GRANT USAGE ON SCHEMA public,auth TO authenticated,anon,service_role;
     CREATE TABLE auth.users(id uuid PRIMARY KEY,email text);
-    CREATE TABLE public.organizations(id uuid PRIMARY KEY,name text,slug text);
+    CREATE TABLE public.organizations(id uuid PRIMARY KEY,name text,slug text,is_active boolean NOT NULL DEFAULT true);
     CREATE TABLE public.customers(id uuid PRIMARY KEY,name text,created_by_organization_id uuid);
     CREATE TABLE public.organization_customers(organization_id uuid,customer_id uuid);
     CREATE TABLE public.organization_memberships(organization_id uuid,auth_user_id uuid UNIQUE,member_type text DEFAULT 'internal');
@@ -100,7 +119,6 @@ async function reset(c, histories = [history()]) {
     CREATE FUNCTION auth.jwt() RETURNS jsonb LANGUAGE sql STABLE AS $$SELECT coalesce(nullif(current_setting('request.jwt.claims',true),''),'{}')::jsonb$$;
     CREATE FUNCTION auth.uid() RETURNS uuid LANGUAGE sql STABLE AS $$SELECT nullif(auth.jwt()->>'sub','')::uuid$$;
     CREATE FUNCTION public.has_role(p_id uuid,p_role text) RETURNS boolean LANGUAGE sql STABLE SECURITY DEFINER SET search_path=public AS $$SELECT EXISTS(SELECT 1 FROM user_roles WHERE user_id=p_id AND role=p_role)$$;
-    CREATE FUNCTION public.current_internal_organization_id() RETURNS uuid LANGUAGE sql STABLE SECURITY DEFINER SET search_path=public AS $$SELECT organization_id FROM organization_memberships WHERE auth_user_id=auth.uid() AND member_type='internal'$$;
     CREATE FUNCTION public.is_internal_member(p_id uuid) RETURNS boolean LANGUAGE sql STABLE SECURITY DEFINER SET search_path=public AS $$SELECT EXISTS(SELECT 1 FROM organization_memberships WHERE auth_user_id=p_id AND member_type='internal')$$;
     CREATE FUNCTION public.fx_is_missing(text,numeric) RETURNS boolean LANGUAGE sql AS $$SELECT false$$;
     CREATE SEQUENCE public.invoice_seq;
@@ -112,12 +130,13 @@ async function reset(c, histories = [history()]) {
     CREATE TABLE public.credit_notes(id uuid PRIMARY KEY DEFAULT gen_random_uuid(),invoice_id uuid,amount numeric);
     GRANT ALL ON ALL TABLES IN SCHEMA public TO authenticated,service_role;
     GRANT ALL ON ALL SEQUENCES IN SCHEMA public TO authenticated,service_role;
-    INSERT INTO organizations VALUES('${ORG}','Synthetic A','synthetic-a'),('${OTHER_ORG}','Synthetic B','synthetic-b');
+    INSERT INTO organizations(id,name,slug) VALUES('${ORG}','Synthetic A','synthetic-a'),('${OTHER_ORG}','Synthetic B','synthetic-b');
     INSERT INTO customers VALUES('${CUSTOMER}','Synthetic customer A','${ORG}'),('${OTHER_CUSTOMER}','Synthetic customer B','${OTHER_ORG}');
     INSERT INTO organization_customers VALUES('${ORG}','${CUSTOMER}'),('${OTHER_ORG}','${OTHER_CUSTOMER}');
     INSERT INTO auth.users VALUES('${ADMIN}','admin-a@synthetic.invalid'),('${OTHER_ADMIN}','admin-b@synthetic.invalid'),('${FINANCE}','finance@synthetic.invalid'),('${AUDITOR}','auditor@synthetic.invalid'),('${SALES}','sales@synthetic.invalid'),('${PORTAL}','portal@synthetic.invalid');
     INSERT INTO organization_memberships VALUES('${ORG}','${ADMIN}','internal'),('${OTHER_ORG}','${OTHER_ADMIN}','internal'),('${ORG}','${FINANCE}','internal'),('${ORG}','${AUDITOR}','internal'),('${ORG}','${SALES}','internal'),('${ORG}','${PORTAL}','portal');
     INSERT INTO user_roles VALUES('${ADMIN}','admin'),('${OTHER_ADMIN}','admin'),('${FINANCE}','administrativo'),('${AUDITOR}','auditor'),('${SALES}','ventas'),('${PORTAL}','customer');`);
+  await q(c, canonicalOrganizationSql);
   for (const [id, line, org, customer] of [[Q, charge(), ORG, CUSTOMER], [Q2, charge(L2), ORG, CUSTOMER], [RENT, rental, ORG, CUSTOMER], [FOREIGN, charge(uid(112)), OTHER_ORG, OTHER_CUSTOMER]]) {
     await q(c, "INSERT INTO quotes(id,organization_id,customer_id,quote_number,start_date,end_date,line_items,currency) VALUES($1,$2,$3,$4,current_date,current_date+30,$5::jsonb,'MXN')", [id, org, customer, `QUOTE-${id}`, c.sql.json([line])]);
   }
@@ -190,11 +209,39 @@ async function run() {
   console.log("PASS quote-charge-rls ACTIVE");
   assert.equal((await available(c)).legacy_review_required, true);
   const before = (await q(c, "SELECT line_items,quote_charge_tracking_version FROM invoices WHERE id=$1", [uid(300)]))[0];
-  const response = await reconcile(c);
+  const initialPayload = await args(c);
+  await begin(c);
+  let response;
+  try {
+    await q(c, "SELECT set_config('app.organization_id',$1,true)", [OTHER_ORG]);
+    response = (await q(c, reconcileSql, initialPayload))[0].value;
+    const [audit] = await q(c, "SELECT organization_id,actor_id,current_user AS db_role,current_setting('app.organization_id',true) AS context FROM quote_charge_legacy_reviews WHERE id=$1", [response.review_id]);
+    assert.deepEqual(audit, { organization_id: ORG, actor_id: ADMIN, db_role: "authenticated", context: ORG });
+    await q(c, "COMMIT");
+  } catch (error) { await q(c, "ROLLBACK"); throw error; }
   assert.equal(response.complete, true);
   assert.equal((await available(c)).legacy_review_required, false);
   assert.equal((await available(c)).lines[0].consumed_quantity, 1);
   assert.deepEqual((await q(c, "SELECT line_items,quote_charge_tracking_version FROM invoices WHERE id=$1", [uid(300)]))[0], before);
+  const auditCountSql = "SELECT count(*)::int AS count FROM quote_charge_legacy_reviews WHERE id=$1";
+  assert.equal((await as(c, ADMIN, auditCountSql, [response.review_id]))[0].count, 1);
+  assert.equal((await as(c, OTHER_ADMIN, auditCountSql, [response.review_id]))[0].count, 0);
+  await expectCode(review(c, Q, OTHER_ADMIN), "42501");
+  for (const statement of [
+    "INSERT INTO quote_charge_legacy_reviews DEFAULT VALUES",
+    "UPDATE quote_charge_legacy_reviews SET reason='Unauthorized direct edit'",
+    "DELETE FROM quote_charge_legacy_reviews",
+  ]) await expectCode(as(c, ADMIN, statement), "42501");
+  await q(c, "UPDATE organizations SET is_active=false WHERE id=$1", [ORG]);
+  try {
+    const [context] = await as(c, ADMIN, "SELECT public.current_internal_organization_id() AS internal,public.organization_scope_matches($1) AS allowed", [ORG]);
+    assert.deepEqual(context, { internal: null, allowed: false });
+    assert.equal((await as(c, ADMIN, auditCountSql, [response.review_id]))[0].count, 0);
+    await expectCode(review(c), "42501");
+    await expectCode(as(c, ADMIN, reconcileSql, initialPayload), "42501");
+  } finally { await q(c, "UPDATE organizations SET is_active=true WHERE id=$1", [ORG]); }
+  assert.equal((await as(c, ADMIN, auditCountSql, [response.review_id]))[0].count, 1);
+  console.log("PASS canonical organization context derives the audit tenant, rejects another admin and suspended RPC access, hides suspended audit rows and keeps direct DML denied");
   assert.equal((await reconcile(c)).already_existed, true);
   await expectCode(reconcile(c, { quantity: 2 }));
   console.log("PASS audited linkage consumes history without modifying invoice JSON or NULL tracking; retry is idempotent");

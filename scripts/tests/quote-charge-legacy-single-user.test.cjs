@@ -8,6 +8,25 @@ const path = require("node:path");
 const assert = require("node:assert/strict");
 const { execFileSync, spawnSync } = require("node:child_process");
 const root = path.resolve(__dirname, "../..");
+function canonicalOrganizationFunction(file, name) {
+  const source = fs.readFileSync(path.join(root, "drizzle/migrations", file), "utf8");
+  const matches = [...source.matchAll(new RegExp("CREATE OR REPLACE FUNCTION public\\." + name + "\\([\\s\\S]*?\\n\\$\\$;", "g"))];
+  assert.equal(matches.length, 1, `Expected one canonical definition of ${name} in ${file}`);
+  return matches[0][0];
+}
+// Latest effective definitions of the guards introduced in 0004/0005. Loading
+// their real SQL also preserves suspended-organization and unique-membership checks.
+const canonicalOrganizationSql = [
+  ["0025_multi_org_phase8_admin_membership_scope.sql", "current_organization_id"],
+  ["0031_multi_org_audit_hardening.sql", "current_internal_organization_id"],
+  ["0031_multi_org_audit_hardening.sql", "organization_scope_matches"],
+  ["0030_multi_org_onboarding_and_customer_scope.sql", "enforce_organization_write_context"],
+].map(([file, name]) => canonicalOrganizationFunction(file, name)).join("\n") + `
+REVOKE ALL ON FUNCTION public.current_organization_id(),public.current_internal_organization_id(),
+  public.organization_scope_matches(uuid),public.enforce_organization_write_context() FROM PUBLIC,anon;
+GRANT EXECUTE ON FUNCTION public.current_organization_id(),public.current_internal_organization_id(),
+  public.organization_scope_matches(uuid) TO authenticated;
+`;
 const bin = process.env.PG_BIN;
 if (!bin || !path.isAbsolute(bin)) throw new Error("PG_BIN must name trusted installed PostgreSQL binaries.");
 const parent = path.resolve(root, "../.quote-charge-single-user");
@@ -20,7 +39,7 @@ CREATE ROLE service_role NOLOGIN BYPASSRLS;
 CREATE SCHEMA auth;
 GRANT USAGE ON SCHEMA public,auth TO authenticated,anon,service_role;
 CREATE TABLE auth.users(id uuid PRIMARY KEY,email text);
-CREATE TABLE public.organizations(id uuid PRIMARY KEY,name text,slug text);
+CREATE TABLE public.organizations(id uuid PRIMARY KEY,name text,slug text,is_active boolean NOT NULL DEFAULT true);
 CREATE TABLE public.customers(id uuid PRIMARY KEY,name text,created_by_organization_id uuid);
 CREATE TABLE public.organization_customers(organization_id uuid,customer_id uuid);
 CREATE TABLE public.organization_memberships(organization_id uuid,auth_user_id uuid UNIQUE,member_type text DEFAULT 'internal');
@@ -28,7 +47,6 @@ CREATE TABLE public.user_roles(user_id uuid,role text);
 CREATE FUNCTION auth.jwt() RETURNS jsonb LANGUAGE sql STABLE AS $$SELECT coalesce(nullif(current_setting('request.jwt.claims',true),''),'{}')::jsonb$$;
 CREATE FUNCTION auth.uid() RETURNS uuid LANGUAGE sql STABLE AS $$SELECT nullif(auth.jwt()->>'sub','')::uuid$$;
 CREATE FUNCTION public.has_role(p_id uuid,p_role text) RETURNS boolean LANGUAGE sql STABLE SECURITY DEFINER SET search_path=public AS $$SELECT EXISTS(SELECT 1 FROM user_roles WHERE user_id=p_id AND role=p_role)$$;
-CREATE FUNCTION public.current_internal_organization_id() RETURNS uuid LANGUAGE sql STABLE SECURITY DEFINER SET search_path=public AS $$SELECT organization_id FROM organization_memberships WHERE auth_user_id=auth.uid() AND member_type='internal'$$;
 CREATE FUNCTION public.is_internal_member(p_id uuid) RETURNS boolean LANGUAGE sql STABLE SECURITY DEFINER SET search_path=public AS $$SELECT EXISTS(SELECT 1 FROM organization_memberships WHERE auth_user_id=p_id AND member_type='internal')$$;
 CREATE FUNCTION public.fx_is_missing(text,numeric) RETURNS boolean LANGUAGE sql AS $$SELECT false$$;
 CREATE SEQUENCE public.invoice_seq;
@@ -46,7 +64,7 @@ const files = [
   "drizzle/migrations/0123_quote_charge_legacy_reconciliation.sql",
   "scripts/tests/quote-charge-legacy-single-user-sequential.sql",
 ];
-const sql = [ddl, ...files.map((file) => fs.readFileSync(path.join(root, file), "utf8")),
+const sql = [ddl, canonicalOrganizationSql, ...files.map((file) => fs.readFileSync(path.join(root, file), "utf8")),
   "SELECT 'QUOTE_CHARGE_SINGLE_USER_OK' AS result;"]
   // -j disables newline command termination. Removing empty lines also avoids
   // interactive blank-line delimiters within multi-line PL/pgSQL bodies.
@@ -66,6 +84,7 @@ const errors = output.split(/\r?\n/).filter((line) => /\b(?:ERROR|FATAL|PANIC):/
 assert.equal(errors.length, 0, `Single-user SQL reported an error: ${errors.slice(0,3).join("\n")}; see ${report}`);
 assert.match(output, /QUOTE_CHARGE_SINGLE_USER_OK/, "Single-user SQL did not reach the final marker");
 assert.match(output, /QUOTE_CHARGE_SEQUENTIAL_OK/, "Sequential business checks did not reach their final marker");
+assert.match(output, /QUOTE_CHARGE_CANONICAL_CONTEXT_OK/, "Canonical context and RPC checks did not reach their final marker");
 console.log("PASS no-socket PostgreSQL: exact 0107 + 0123 SQL compiled and sequential business fixture completed on reduced synthetic schema");
 console.log("NOT EXECUTED: RLS/ACL, two-session concurrency, full Supabase schema replay and Auth/PostgREST acceptance");
 console.log(`No server was started. Diagnostics: ${directory}; SQL output: ${report}`);

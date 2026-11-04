@@ -43,6 +43,19 @@ CREATE TABLE public.quote_charge_legacy_reversals (
 );
 ALTER TABLE public.quote_charge_legacy_reviews ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.quote_charge_legacy_reversals ENABLE ROW LEVEL SECURITY;
+-- Keep the canonical tenant boundary in addition to the invoice-read role
+-- policies below. The write-context trigger also runs inside SECURITY DEFINER
+-- RPCs; it validates the organization already derived from the internal actor.
+CREATE POLICY org_scope_isolation ON public.quote_charge_legacy_reviews AS RESTRICTIVE FOR ALL TO authenticated
+  USING ((SELECT public.organization_scope_matches(organization_id)))
+  WITH CHECK ((SELECT public.organization_scope_matches(organization_id)));
+CREATE POLICY org_scope_isolation ON public.quote_charge_legacy_reversals AS RESTRICTIVE FOR ALL TO authenticated
+  USING ((SELECT public.organization_scope_matches(organization_id)))
+  WITH CHECK ((SELECT public.organization_scope_matches(organization_id)));
+CREATE TRIGGER trg_organization_write_context BEFORE INSERT OR UPDATE ON public.quote_charge_legacy_reviews
+  FOR EACH ROW EXECUTE FUNCTION public.enforce_organization_write_context();
+CREATE TRIGGER trg_organization_write_context BEFORE INSERT OR UPDATE ON public.quote_charge_legacy_reversals
+  FOR EACH ROW EXECUTE FUNCTION public.enforce_organization_write_context();
 REVOKE ALL ON public.quote_charge_legacy_reviews, public.quote_charge_legacy_reversals FROM PUBLIC, anon, authenticated, service_role;
 GRANT SELECT ON public.quote_charge_legacy_reviews TO authenticated;
 GRANT SELECT ON public.quote_charge_legacy_reversals TO authenticated;
