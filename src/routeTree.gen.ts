@@ -13,6 +13,7 @@ import { Route as MainRouteImport } from './routes/_main'
 import { Route as PortalRouteImport } from './routes/_portal'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as PlatformRouteImport } from './routes/platform'
+import { Route as ZzTmpHarnessRouteImport } from './routes/zz-tmp-harness'
 import { Route as MainIndexRouteImport } from './routes/_main/index'
 import { Route as MainSplatRouteImport } from './routes/_main/$'
 import { Route as MainAccountsPayableRouteImport } from './routes/_main/accounts-payable'
@@ -127,6 +128,11 @@ const AuthRoute = AuthRouteImport.update({
 const PlatformRoute = PlatformRouteImport.update({
   id: '/platform',
   path: '/platform',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ZzTmpHarnessRoute = ZzTmpHarnessRouteImport.update({
+  id: '/zz-tmp-harness',
+  path: '/zz-tmp-harness',
   getParentRoute: () => rootRouteImport,
 } as any)
 const MainIndexRoute = MainIndexRouteImport.update({
@@ -631,6 +637,7 @@ export interface FileRoutesByFullPath {
   '/': typeof MainIndexRoute
   '/auth': typeof AuthRoute
   '/platform': typeof PlatformRouteWithChildren
+  '/zz-tmp-harness': typeof ZzTmpHarnessRoute
   '/$': typeof MainSplatRoute
   '/accounts-payable': typeof MainAccountsPayableRoute
   '/activity': typeof MainActivityRoute
@@ -731,6 +738,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof MainIndexRoute
   '/auth': typeof AuthRoute
+  '/zz-tmp-harness': typeof ZzTmpHarnessRoute
   '/$': typeof MainSplatRoute
   '/accounts-payable': typeof MainAccountsPayableRoute
   '/activity': typeof MainActivityRoute
@@ -834,6 +842,7 @@ export interface FileRoutesById {
   '/_portal': typeof PortalRouteWithChildren
   '/auth': typeof AuthRoute
   '/platform': typeof PlatformRouteWithChildren
+  '/zz-tmp-harness': typeof ZzTmpHarnessRoute
   '/_main/$': typeof MainSplatRoute
   '/_main/accounts-payable': typeof MainAccountsPayableRoute
   '/_main/activity': typeof MainActivityRoute
@@ -938,6 +947,7 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/platform'
+    | '/zz-tmp-harness'
     | '/$'
     | '/accounts-payable'
     | '/activity'
@@ -1038,6 +1048,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/auth'
+    | '/zz-tmp-harness'
     | '/$'
     | '/accounts-payable'
     | '/activity'
@@ -1140,6 +1151,7 @@ export interface FileRouteTypes {
     | '/_portal'
     | '/auth'
     | '/platform'
+    | '/zz-tmp-harness'
     | '/_main/$'
     | '/_main/accounts-payable'
     | '/_main/activity'
@@ -1244,6 +1256,7 @@ export interface RootRouteChildren {
   PortalRoute: typeof PortalRouteWithChildren
   AuthRoute: typeof AuthRoute
   PlatformRoute: typeof PlatformRouteWithChildren
+  ZzTmpHarnessRoute: typeof ZzTmpHarnessRoute
   PlatformLoginRoute: typeof PlatformLoginRoute
   PortalLoginRoute: typeof PortalLoginRoute
 }
@@ -1276,6 +1289,13 @@ declare module '@tanstack/react-router' {
       path: '/platform'
       fullPath: '/platform'
       preLoaderRoute: typeof PlatformRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/zz-tmp-harness': {
+      id: '/zz-tmp-harness'
+      path: '/zz-tmp-harness'
+      fullPath: '/zz-tmp-harness'
+      preLoaderRoute: typeof ZzTmpHarnessRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_main/': {
@@ -2184,6 +2204,7 @@ const rootRouteChildren: RootRouteChildren = {
   PortalRoute: PortalRouteWithChildren,
   AuthRoute: AuthRoute,
   PlatformRoute: PlatformRouteWithChildren,
+  ZzTmpHarnessRoute: ZzTmpHarnessRoute,
   PlatformLoginRoute: PlatformLoginRoute,
   PortalLoginRoute: PortalLoginRoute,
 }
