@@ -1,3 +1,7 @@
+## [8.48.0] - 2026-11-05
+
+- Conciliación administrativa de entregas históricas con evidencia y fecha de referencia autorizada, sin alterar sus registros originales ni equipos, reservas, facturas o pagos. Se conserva el historial y se excluyen las conciliadas activas de pendientes operativos.
+
 ## [8.47.1] - 2026-11-05
 
 - La tarjeta «Generada desde reserva» de una factura muestra folio · equipo · fechas, abre directamente cada reserva y ajusta el texto en móvil. Sin cambios fiscales, de datos ni permisos.
