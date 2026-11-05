@@ -44,15 +44,30 @@ export function InvoiceSourceLinks({ sourceQuote, sourceBooking, sourceBookings 
                 {bookings.length === 1 ? "Generada desde reserva:" : `Generada desde ${bookings.length} reservas:`}
               </span>
             </div>
-            <div className="flex flex-wrap gap-1.5 ml-6">
-              {bookings.map((b) => (
-                <Link key={b.id} to="/bookings">
-                  <Badge variant="outline" className="cursor-pointer hover:bg-accent">
-                    {b.forklifts?.name || "Reserva"} · {formatDateRange(b.start_date, b.end_date)}
-                  </Badge>
-                </Link>
-              ))}
-            </div>
+            <ul className="flex flex-wrap gap-1.5 ml-6 min-w-0">
+              {bookings.map((b) => {
+                const parts = [
+                  b.booking_number?.trim() || "Reserva",
+                  b.forklifts?.name?.trim(),
+                  formatDateRange(b.start_date, b.end_date),
+                ].filter(Boolean);
+                return (
+                  <li key={b.id} className="min-w-0 max-w-full">
+                    <Link
+                      to={`/bookings/${b.id}`}
+                      className="block max-w-full rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                    >
+                      <Badge
+                        variant="outline"
+                        className="cursor-pointer hover:bg-accent max-w-full whitespace-normal break-words [overflow-wrap:anywhere] text-left leading-snug"
+                      >
+                        {parts.join(" · ")}
+                      </Badge>
+                    </Link>
+                  </li>
+                );
+              })}
+            </ul>
           </CardContent>
         </Card>
       )}
