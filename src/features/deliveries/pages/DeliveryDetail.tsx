@@ -19,6 +19,7 @@ import { useDeleteDelivery } from "../hooks/useDeliveries";
 import { useDeliveryCompletion } from "../hooks/useDeliveryCompletion";
 import { useDeliveryDetailData } from "../hooks/useDeliveryDetailData";
 import { buildDeliverySubtitle, canDeleteDeliveryFor, computeHoursUsed } from "../lib/deliveryDetailHelpers";
+import { canCorrectHistoricalDelivery, isHistoricallyReconciled } from "../lib/historicalReconciliation";
 
 export default function DeliveryDetail() {
   const { id } = useParams<{ id: string }>();
@@ -86,19 +87,19 @@ export default function DeliveryDetail() {
           backTo="/deliveries"
           actions={
             <div className="flex flex-wrap gap-2">
-              {role === "admin" && delivery.status === "completed" && (
+              {canCorrectHistoricalDelivery(delivery, role) && (
                 <>
                   <Button variant="outline" size="sm" onClick={() => setCorrectOpen(true)}>Corregir fecha</Button>
                   <Button variant="outline" size="sm" className="text-destructive" onClick={() => setVoidOpen(true)}>Anular</Button>
                 </>
               )}
-              <DeliveryActions
+              {!isHistoricallyReconciled(delivery) && <DeliveryActions
                 status={delivery.status}
                 canDelete={canDeleteDeliveryFor(delivery.status, role)}
                 onEdit={() => setEditOpen(true)}
                 onComplete={() => completion.setSignatureOpen(true)}
                 onDelete={handleDelete}
-              />
+              />}
             </div>
           }
         />

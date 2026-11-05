@@ -2,15 +2,17 @@ import { ListTruncationNotice } from "@/components/feedback/ListTruncationNotice
 import { QueryErrorState } from "@/components/feedback/QueryErrorState";
 import { StatusBadge } from "@/components/feedback/StatusBadge";
 import { CalendarDays, ChevronRightIcon } from "@/components/icons";
+import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+import { isHistoricallyReconciled, type HistoricalDeliveryLike } from "@/features/deliveries";
 import { useHasModuleAccess } from "@/features/users";
 import type { Tables } from "@/integrations/supabase/types";
 import { formatDateMty } from "@/lib/format/dateFormats";
 import { Link } from "@/lib/router-compat-ui";
 import { visibleListRows } from "@/lib/supabase/constants";
 
-type Transport = Pick<Tables<"deliveries">,
+type Transport = HistoricalDeliveryLike & Pick<Tables<"deliveries">,
   "id" | "delivery_number" | "type" | "status" | "scheduled_date" | "scheduled_time">;
 
 interface BookingTransportsCardProps {
@@ -63,6 +65,7 @@ export function BookingTransportsCard({
                     <div className="flex flex-wrap items-center justify-between gap-2">
                       <span className="font-mono text-sm font-semibold">{delivery.delivery_number}</span>
                       <StatusBadge status={delivery.status} />
+                      {isHistoricallyReconciled(delivery) && <Badge variant="secondary">Conciliada históricamente</Badge>}
                     </div>
                     <div className="flex items-center justify-between gap-3">
                       <div className="min-w-0 space-y-1">
