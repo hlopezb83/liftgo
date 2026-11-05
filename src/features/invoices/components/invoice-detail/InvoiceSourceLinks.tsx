@@ -59,7 +59,7 @@ export function InvoiceSourceLinks({ sourceQuote, sourceBooking, sourceBookings 
                     >
                       <Badge
                         variant="outline"
-                        className="cursor-pointer hover:bg-accent max-w-full whitespace-normal break-words [overflow-wrap:anywhere] text-left leading-snug"
+                        className="cursor-pointer hover:bg-accent max-w-full rounded-md whitespace-normal break-words [overflow-wrap:anywhere] text-left leading-snug"
                       >
                         {parts.join(" · ")}
                       </Badge>
