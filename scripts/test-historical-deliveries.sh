@@ -7,7 +7,13 @@ ROOT=$(cd "$(dirname "$0")/.." && pwd)
 PSQL=(psql -X -v ON_ERROR_STOP=1)
 "${PSQL[@]}" -c "DO \$\$ BEGIN IF current_user <> 'postgres' OR EXISTS(SELECT FROM information_schema.tables WHERE table_schema='public') THEN RAISE EXCEPTION 'Requires postgres role and empty test database'; END IF; END \$\$;"
 "${PSQL[@]}" -f "$ROOT/tests/sql/historical-delivery-fixture.sql"
-"${PSQL[@]}" -f "$ROOT/drizzle/migrations/0126_delivery_historical_reconciliation.sql"
+if [[ "${HISTORICAL_TEST_DEFAULT_ACL:-0}" == 1 ]]; then
+  "${PSQL[@]}" -f "$ROOT/tests/sql/historical-delivery-default-acl-fixture.sql"
+fi
+"${PSQL[@]}" -1 -f "$ROOT/drizzle/migrations/0126_delivery_historical_reconciliation.sql"
+if [[ "${HISTORICAL_TEST_DEFAULT_ACL:-0}" == 1 ]]; then
+  "${PSQL[@]}" -f "$ROOT/tests/sql/historical-delivery-default-acl-assertions.sql"
+fi
 "${PSQL[@]}" -c "UPDATE quotes SET quote_type='rental' WHERE id=(SELECT quote_id FROM invoices WHERE invoice_number='FAC-0026');"
 if "${PSQL[@]}" -f "$ROOT/scripts/data-fixes/20261105_herren_historical_deliveries.sql"; then
   echo 'ERROR: mismatched sale accepted' >&2; exit 1

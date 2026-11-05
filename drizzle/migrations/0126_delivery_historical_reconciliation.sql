@@ -72,6 +72,39 @@ CREATE TRIGGER audit_delivery_historical_reconciliation AFTER INSERT OR UPDATE
 COMMENT ON TABLE public.delivery_historical_reconciliations IS
   'Owner-managed, audited historical classification. Reference dates are authorized reference dates, not fabricated signatures or timestamps. No client writes.';
 
+-- Deployment environments can add application-specific grantees through default
+-- ACLs. Remove inherited grants only on the three objects created above. Keep
+-- their owners and all default privileges/pre-existing object ACLs unchanged.
+DO $$
+DECLARE grant_row record;
+BEGIN
+  FOR grant_row IN
+    SELECT DISTINCT a.grantee, pg_get_userbyid(a.grantee) AS role_name
+    FROM pg_class c CROSS JOIN LATERAL aclexplode(c.relacl) a
+    WHERE c.oid='public.delivery_historical_reconciliations'::regclass AND a.grantee<>c.relowner
+  LOOP
+    IF grant_row.grantee=0 THEN
+      REVOKE ALL PRIVILEGES ON TABLE public.delivery_historical_reconciliations FROM PUBLIC;
+    ELSE
+      EXECUTE format('REVOKE ALL PRIVILEGES ON TABLE public.delivery_historical_reconciliations FROM %I', grant_row.role_name);
+    END IF;
+  END LOOP;
+  FOR grant_row IN
+    SELECT DISTINCT p.proname, a.grantee, pg_get_userbyid(a.grantee) AS role_name
+    FROM pg_proc p CROSS JOIN LATERAL aclexplode(coalesce(p.proacl,acldefault('f',p.proowner))) a
+    WHERE p.oid IN ('public.guard_delivery_historical_reconciliation()'::regprocedure,
+                    'public.audit_delivery_historical_reconciliation()'::regprocedure)
+      AND a.grantee<>p.proowner
+  LOOP
+    IF grant_row.grantee=0 THEN
+      EXECUTE format('REVOKE ALL PRIVILEGES ON FUNCTION public.%I() FROM PUBLIC', grant_row.proname);
+    ELSE
+      EXECUTE format('REVOKE ALL PRIVILEGES ON FUNCTION public.%I() FROM %I', grant_row.proname, grant_row.role_name);
+    END IF;
+  END LOOP;
+END $$;
+GRANT SELECT ON public.delivery_historical_reconciliations TO authenticated;
+
 -- Fail closed if deployment-specific default privileges would broaden access.
 DO $$ BEGIN
   IF EXISTS (SELECT 1 FROM pg_class c CROSS JOIN LATERAL aclexplode(c.relacl) a
@@ -80,5 +113,12 @@ DO $$ BEGIN
       AND NOT (a.grantee=(SELECT oid FROM pg_roles WHERE rolname='authenticated')
                AND a.privilege_type='SELECT' AND NOT a.is_grantable)) THEN
     RAISE EXCEPTION 'Unexpected default privileges on historical reconciliation ledger';
+  END IF;
+  IF EXISTS (SELECT 1 FROM pg_proc p
+    CROSS JOIN LATERAL aclexplode(coalesce(p.proacl,acldefault('f',p.proowner))) a
+    WHERE p.oid IN ('public.guard_delivery_historical_reconciliation()'::regprocedure,
+                    'public.audit_delivery_historical_reconciliation()'::regprocedure)
+      AND a.grantee<>p.proowner) THEN
+    RAISE EXCEPTION 'Unexpected privileges on historical reconciliation trigger functions';
   END IF;
 END $$;
