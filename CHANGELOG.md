@@ -1,3 +1,7 @@
+## [8.47.1] - 2026-11-05
+
+- La tarjeta «Generada desde reserva» de una factura muestra folio · equipo · fechas, abre directamente cada reserva y ajusta el texto en móvil. Sin cambios fiscales, de datos ni permisos.
+
 ## [8.46.2] - 2026-11-04
 
 - La revisión de cargos históricos de una cotización usa un contrato tipado propio para sus funciones del servidor, por lo que la vista previa compila aunque la base aún no las tenga. Sin migraciones, permisos ni cambios de datos.

@@ -1,0 +1,12 @@
+{
+  "version": "8.47.1",
+  "date": "2026-11-05",
+  "type": "patch",
+  "category": "improvement",
+  "title": "Reserva de origen con folio y enlace directo en la factura",
+  "description": "La tarjeta «Generada desde reserva» muestra el folio, el equipo y las fechas, y abre directamente cada reserva. Sin cambios fiscales, de datos ni permisos.",
+  "changes": [
+    "Cada reserva se muestra como folio · equipo · fechas y se ajusta en varias líneas en pantallas pequeñas.",
+    "Al pulsarla se abre el detalle de esa reserva en lugar del listado."
+  ]
+}
