@@ -14,6 +14,8 @@ interface CustomerSelectorProps {
   customerId: string;
   customerName: string;
   onCustomerIdChange: (id: string) => void;
+  /** Full selection for consumers that need fields absent from the capped list. */
+  onCustomerSelect?: (customer: CustomerSelectorOption) => void;
   onCustomerNameChange: (name: string) => void;
   customerContact?: string;
   onCustomerContactChange?: (contact: string) => void;
@@ -74,6 +76,7 @@ export function CustomerSelector({
   customerId,
   customerName,
   onCustomerIdChange,
+  onCustomerSelect,
   onCustomerNameChange,
   customerContact,
   onCustomerContactChange,
@@ -88,7 +91,8 @@ export function CustomerSelector({
   const selected = useSelectedCustomer(search.initialItems, search.searchQuery, customerId);
 
   const handleSelect = (customer: CustomerSelectorOption) => {
-    onCustomerIdChange(customer.id);
+    if (onCustomerSelect) onCustomerSelect(customer);
+    else onCustomerIdChange(customer.id);
     onCustomerNameChange(customer.name);
     onCustomerContactChange?.(customer.email ?? "");
     search.setSearchTerm("");
