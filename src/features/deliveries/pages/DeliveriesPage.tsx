@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Untranslated } from "@/components/ui/Untranslated";
 import { useForkliftMap } from "@/features/fleet";
 import { useHasModuleAccess } from "@/features/users";
+import { applyFacetFilters } from "@/hooks/filters/applyFacetFilters";
 import { useTableFilters } from "@/hooks/filters/useTableFilters";
 import { useToggleDialog } from "@/hooks/useDialogState";
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";
@@ -19,7 +20,9 @@ import { DeliveryMobileCard } from "../components/deliveries/DeliveryMobileCard"
 import { useDeliveries, deliveryQueries } from "../hooks/useDeliveries";
 import { countOverdueDeliveries, deliveryOverdueDays, deliveryOverdueLabel } from "../lib/deliveryOverdue";
 import { deliveryTypeLabel } from "../lib/deliveryTypeLabel";
+import { isHistoricallyReconciled, selectDeliveryHistory } from "../lib/historicalReconciliation";
 import { resolveDeliveryForkliftName } from "../lib/resolveDeliveryForkliftName";
+
 
 type Delivery = NonNullable<ReturnType<typeof useDeliveries>["data"]>[number];
 
@@ -99,7 +102,7 @@ function buildDeliveryColumns(forkliftMap: ForkliftMap): ColumnDef<Delivery>[] {
       id: "status",
       header: "Estado",
       accessorKey: "status",
-      cell: ({ row }) => <StatusBadge status={row.original.status} />,
+      cell: ({ row }) => <div className="flex flex-wrap gap-1"><StatusBadge status={row.original.status} />{isHistoricallyReconciled(row.original) && <Badge variant="secondary">Conciliada históricamente</Badge>}</div>,
     },
   ];
 }
@@ -116,25 +119,29 @@ export default function DeliveriesPage() {
 
   // Ronda C (C2): filtros estándar por estado y tipo — antes la lista mezclaba
   // entregas, recolecciones y completadas sin manera de separarlas.
-  const { values, set, reset, hasActive, filtered } = useTableFilters<Delivery, {
+  const { values, set, reset, hasActive, facets } = useTableFilters<Delivery, {
     q: { type: "text"; fields: (keyof Delivery)[] };
     status: { type: "enum"; field: keyof Delivery; options: readonly string[] };
+    history: { type: "enum"; options: readonly string[] };
     type: { type: "enum"; field: keyof Delivery; options: readonly string[] };
   }>({
-    items: deliveries ?? [],
+    mode: "server",
     facets: {
       q: { type: "text", fields: ["delivery_number", "driver_name", "address"] as (keyof Delivery)[] },
       status: { type: "enum", field: "status", options: ["all", ...DELIVERY_STATUSES] },
+      history: { type: "enum", options: ["all", "history", "reconciled"] },
       type: { type: "enum", field: "type", options: ["all", ...DELIVERY_TYPES] },
     },
   });
 
+  const filtered = applyFacetFilters(deliveries ?? [], { q: facets.q, status: facets.status, type: facets.type }, values);
+  const visibleDeliveries = selectDeliveryHistory(filtered, values.history);
   const overdueCount = countOverdueDeliveries(deliveries);
 
   const columns = buildDeliveryColumns(forkliftMap);
 
   const table = useLiftgoTable<Delivery>({
-    data: filtered,
+    data: visibleDeliveries,
     columns,
     getRowId: (d) => d.id,
   });
@@ -143,7 +150,7 @@ export default function DeliveriesPage() {
     <ListPageLayout
       title="Entregas"
       subtitle="Programa y rastrea el transporte de equipos"
-      totalCount={filtered.length}
+      totalCount={visibleDeliveries.length}
       onRefresh={refetch}
       actions={<DeliveryFormDialog open={scheduleDialog.open} onOpenChange={scheduleDialog.setOpen} />}
       notice={
@@ -163,6 +170,12 @@ export default function DeliveriesPage() {
       }
       filters={
         <FiltersToolbar>
+          <FiltersToolbar.StatusSelect
+            value={values.history}
+            onChange={(v) => set("history", v)}
+            options={[{ value: "all", label: "Sin conciliación histórica" }, { value: "history", label: "Historial completo" }, { value: "reconciled", label: "Conciliadas históricamente" }]}
+            placeholder="Vista de entregas"
+          />
           <FiltersToolbar.Search
             value={values.q}
             onChange={(v) => set("q", v)}

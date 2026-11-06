@@ -172,12 +172,17 @@ export function useInvoiceFormHandlers({ form, customers, bookings, forklifts, q
   const [chargeSelectionError, setChargeSelectionError] = useState<string | null>(null);
   const [lastSelection, setLastSelection] = useState<string[]>([]);
 
-  const handleCustomerSelect = (selectedCustomerId: string) => {
+  const handleCustomerSelect = (selectedCustomerId: string, selectedCustomer?: Customer) => {
     form.setValue("customerId", selectedCustomerId, { shouldDirty: true });
-    const customer = customers?.find((c) => c.id === selectedCustomerId);
-    if (!customer) return;
-    form.setValue("customerName", customer.name, { shouldDirty: true });
-    applyCfdiPatch(form, customer);
+    const customer = selectedCustomer?.id === selectedCustomerId
+      ? selectedCustomer : customers?.find((c) => c.id === selectedCustomerId);
+    // Explicit selection replaces receiver-owned fields; never retain another
+    // customer's fiscal snapshot, even when the new customer has missing data.
+    const receiver = customer ?? { id: selectedCustomerId, name: "" };
+    form.setValue("customerName", receiver.name, { shouldDirty: true });
+    form.setValue("cfdi.usoCfdi", receiver.uso_cfdi || "G03", { shouldDirty: true });
+    form.setValue("taxRate", 16, { shouldDirty: true });
+    applyCfdiPatch(form, receiver);
   };
 
   const handleBookingsChange = async (selectedIds: string[]) => {

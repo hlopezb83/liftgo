@@ -327,10 +327,26 @@ retirados: una excepción que no excluye nada es solo mantenimiento.
 
 ### Disparadores acotados
 
-Los cambios de `supabase/functions/**` **no** levantan Supabase completo: las
-Edge Functions ya se validan con `deno-functions` (deno fmt/lint y tests
-unitarios offline) y el CI principal (lint/typecheck/build/smoke). El workflow
-solo se dispara cuando cambia algo que afecta SQL/RLS:
+RLS y A/B se ejecutan automáticamente en PR hacia `main` y en push a `main`
+cuando coinciden sus filtros `paths`. No hay cron ni ejecución para cambios
+exclusivamente documentales fuera de esos filtros. `workflow_dispatch` conserva
+`run_supabase: false` por defecto: una ejecución manual necesita opt-in.
+Las PR obsoletas se cancelan; los push a `main` se conservan para validar cada
+revisión sensible. Los límites siguen siendo 25 minutos (RLS) y 35 (A/B).
+Estos límites acotan duración, no garantizan un costo monetario concreto.
+
+Ambos carriles usan únicamente Supabase local efímero, sin secretos de producción,
+con cron y seed deshabilitados, guardas de destino y limpieza al terminar. No se
+reducen suites para ahorrar tiempo. A/B incluye además cambios de autenticación,
+contexto de organización, portal, Storage y las funcionalidades indicadas en su
+workflow. Un workflow no disparado por sus rutas no acredita esas pruebas; la
+protección de rama y los checks requeridos se administran por separado en GitHub.
+
+La mayoría de cambios de `supabase/functions/**` **no** levantan Supabase
+completo: se validan con `deno-functions` y el CI principal. La excepción es
+`reconcile-stamping-invoices` y sus dependencias compartidas enumeradas en el
+workflow, que también necesitan el gate PostgreSQL. El workflow se dispara
+cuando cambia algo que afecta SQL/RLS:
 
 - `supabase/migrations/**`, `supabase/tests/**`, `supabase/config.toml`
 - `drizzle/migrations/**`
@@ -462,7 +478,9 @@ La versión interna de Node de las actions es independiente del runtime instalad
 El preview de Lovable observado usa Node 22.23.4 e ignora los pins; el runtime
 de publicación sigue sin verificar. Engines conserva Node 22/24 para ese entorno,
 sin atribuirle el resultado Node 26 de CI. Workers y Deno 2.9.8
-mantienen sus runtimes y configuración actuales; RLS/A-B siguen sólo opt-in manual.
+mantienen sus runtimes y configuración actuales. RLS/A-B corren automáticamente
+en PR/push que coinciden con sus rutas sensibles; el opt-in sólo aplica al
+disparo manual.
 
 
 ## Optimización medida · 2026-10-01

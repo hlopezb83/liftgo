@@ -4,8 +4,10 @@ import {
   DeliveryStatusCard, DeliveryEquipmentCard, DeliveryLogisticsCard, DeliveryBookingCard,
 } from "./DeliveryInfoCards";
 import { DeliverySignatureCard } from "./DeliverySignatureCard";
+import { HistoricalReconciliationCard } from "./HistoricalReconciliationCard";
+import type { HistoricalDeliveryLike } from "../../lib/historicalReconciliation";
 
-type Delivery = Tables<"deliveries">;
+type Delivery = Tables<"deliveries"> & HistoricalDeliveryLike;
 
 interface LinkedBooking {
   id: string;
@@ -33,6 +35,7 @@ export function DeliveryDetailBody({
 }: DeliveryDetailBodyProps) {
   return (
     <>
+      <HistoricalReconciliationCard reconciliation={delivery.historical_reconciliation} />
       <div className="grid gap-4 sm:gap-6 sm:grid-cols-2">
         <DeliveryStatusCard
           type={delivery.type}

@@ -4,3 +4,4 @@
 export * from "./hooks/useDeliveries";
 export * from "./lib/deliveryOverdue";
 export * from "./lib/deliveryBookingDate";
+export * from "./lib/historicalReconciliation";
