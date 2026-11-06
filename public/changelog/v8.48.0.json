@@ -1,0 +1,13 @@
+{
+  "version": "8.48.0",
+  "date": "2026-11-05",
+  "type": "minor",
+  "category": "improvement",
+  "title": "Conciliación administrativa de entregas históricas",
+  "description": "Las entregas conciliadas conservan su estado y evidencia originales, se distinguen en el historial y dejan de contar como pendientes operativos.",
+  "changes": [
+    "Nuevo registro histórico auditado, visible sólo para quienes ya pueden consultar la entrega.",
+    "Fecha de referencia autorizada y explicación de evidencia sin inventar firmas ni horas de entrega.",
+    "Sin cambios a estados de equipos, reservas, facturas ni pagos."
+  ]
+}

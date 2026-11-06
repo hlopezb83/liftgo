@@ -7,9 +7,11 @@ import { formatDateMty } from "@/lib/format/dateFormats";
 import { Link } from "@/lib/router-compat-ui";
 import { deliveryOverdueDays, deliveryOverdueLabel } from "../../lib/deliveryOverdue";
 import { deliveryTypeLabel } from "../../lib/deliveryTypeLabel";
+import { isHistoricallyReconciled, type HistoricalDeliveryLike } from "../../lib/historicalReconciliation";
 import { resolveDeliveryForkliftName } from "../../lib/resolveDeliveryForkliftName";
 
-export type DeliveryCardItem = Pick<Tables<"deliveries">, "id" | "delivery_number" | "type" | "status" | "forklift_id" | "scheduled_date" | "scheduled_time" | "address" | "driver_name"> & { forklifts?: { name?: string | null } | null };
+
+export type DeliveryCardItem = HistoricalDeliveryLike & Pick<Tables<"deliveries">, "id" | "delivery_number" | "type" | "status" | "forklift_id" | "scheduled_date" | "scheduled_time" | "address" | "driver_name"> & { forklifts?: { name?: string | null } | null };
 
 
 export function DeliveryMobileCard({ d, forkliftMap }: { d: DeliveryCardItem; forkliftMap: Map<string, { name?: string | null }> }) {
@@ -33,6 +35,7 @@ export function DeliveryMobileCard({ d, forkliftMap }: { d: DeliveryCardItem; fo
               <Badge variant="destructive" className="text-3xs px-1.5 py-0">{deliveryOverdueLabel(overdue)}</Badge>
             )}
           </div>
+          {isHistoricallyReconciled(d) && <Badge variant="secondary" className="mb-2 whitespace-normal">Conciliada históricamente</Badge>}
           <p className="text-sm font-medium">{forkliftName ? <Untranslated>{forkliftName}</Untranslated> : "—"}</p>
           <p className="text-xs text-muted-foreground mt-1">{formatDateMty(d.scheduled_date)}{d.scheduled_time ? ` ${d.scheduled_time}` : ""}</p>
           {d.address && <p className="text-xs text-muted-foreground truncate">{d.address}</p>}
