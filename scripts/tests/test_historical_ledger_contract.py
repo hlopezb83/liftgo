@@ -7,6 +7,7 @@ This focused catalog regression complements, not replaces, full RLS replay.
 """
 import os
 import unittest
+import uuid
 import test_dispatcher_customer_summary as fixture
 
 
@@ -32,21 +33,32 @@ class HistoricalLedgerContractTests(unittest.TestCase):
         self.sql(self.contract)
 
     def test_inherited_owner_column_select_is_rejected(self):
-        # Owners can revoke their ordinary table privileges while retaining
-        # column privileges. Membership inherits those column grants without
-        # inheriting the owner's SUPERUSER attribute. Everything rolls back.
-        mutation = """DO $$ BEGIN
-          EXECUTE format('REVOKE ALL ON delivery_historical_reconciliations FROM %I', current_user);
-          EXECUTE format('GRANT SELECT(evidence) ON delivery_historical_reconciliations TO %I', current_user);
-          EXECUTE format('GRANT %I TO anon', current_user);
-          IF has_table_privilege('anon','delivery_historical_reconciliations','SELECT')
-             OR NOT has_any_column_privilege('anon','delivery_historical_reconciliations','SELECT') THEN
-            RAISE EXCEPTION 'Inherited-column fixture did not isolate the intended privilege';
-          END IF;
-        END $$;"""
+        # Do not grant the CI connection role (Supabase postgres has no ADMIN
+        # option on itself). Use a fresh NOLOGIN owner created by this fixture;
+        # role, memberships, ownership and grants all roll back on rejection.
+        owner = 'ledger_owner_' + uuid.uuid4().hex
+        mutation = f"""
+          CREATE ROLE {owner} NOLOGIN;
+          DO $$ BEGIN
+            EXECUTE format('GRANT {owner} TO %I WITH SET TRUE', current_user);
+          END $$;
+          GRANT USAGE, CREATE ON SCHEMA public TO {owner};
+          ALTER TABLE delivery_historical_reconciliations OWNER TO {owner};
+          ALTER FUNCTION guard_delivery_historical_reconciliation() OWNER TO {owner};
+          ALTER FUNCTION audit_delivery_historical_reconciliation() OWNER TO {owner};
+          REVOKE ALL ON delivery_historical_reconciliations FROM {owner};
+          GRANT SELECT(evidence) ON delivery_historical_reconciliations TO {owner};
+          GRANT {owner} TO anon;
+          DO $$ BEGIN
+            IF has_table_privilege('anon','delivery_historical_reconciliations','SELECT')
+               OR NOT has_any_column_privilege('anon','delivery_historical_reconciliations','SELECT') THEN
+              RAISE EXCEPTION 'Inherited-column fixture did not isolate the intended privilege';
+            END IF;
+          END $$;"""
         self.sql('BEGIN;'+mutation+self.contract+'ROLLBACK;',
                  error='historical ledger contract: effective privileges drift for anon')
         self.sql(self.contract)
+        self.assertEqual(self.sql(f"SELECT count(*) FROM pg_roles WHERE rolname='{owner}'"), '0')
 
     def test_mutations_fail_closed_and_leave_baseline_intact(self):
         table='public.delivery_historical_reconciliations'
