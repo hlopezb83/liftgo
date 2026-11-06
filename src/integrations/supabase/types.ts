@@ -1944,6 +1944,63 @@ export type Database = {
           },
         ]
       }
+      delivery_historical_reconciliations: {
+        Row: {
+          authorization_source: string
+          classification: string
+          date_basis: string
+          delivery_id: string
+          evidence: Json
+          organization_id: string
+          reason: string
+          reconciled_at: string
+          reference_date: string
+          revocation_reason: string | null
+          revoked_at: string | null
+        }
+        Insert: {
+          authorization_source: string
+          classification: string
+          date_basis: string
+          delivery_id: string
+          evidence: Json
+          organization_id: string
+          reason: string
+          reconciled_at?: string
+          reference_date: string
+          revocation_reason?: string | null
+          revoked_at?: string | null
+        }
+        Update: {
+          authorization_source?: string
+          classification?: string
+          date_basis?: string
+          delivery_id?: string
+          evidence?: Json
+          organization_id?: string
+          reason?: string
+          reconciled_at?: string
+          reference_date?: string
+          revocation_reason?: string | null
+          revoked_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "delivery_historical_reconciliations_delivery_id_fkey"
+            columns: ["delivery_id"]
+            isOneToOne: true
+            referencedRelation: "deliveries"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "delivery_historical_reconciliations_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       documents: {
         Row: {
           created_at: string
