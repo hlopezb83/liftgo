@@ -1,9 +1,8 @@
 import { differenceInCalendarDays } from "date-fns";
 import { toYMD } from "@/lib/date/toYMD";
 import { nowMty, parseDateLocal } from "@/lib/utils";
-import { isHistoricallyReconciled, type HistoricalDeliveryLike } from "./historicalReconciliation";
 
-type DeliveryLike = HistoricalDeliveryLike & {
+type DeliveryLike = {
   status?: string | null;
   scheduled_date?: string | null;
 };
@@ -16,7 +15,6 @@ type DeliveryLike = HistoricalDeliveryLike & {
  * para evitar el corrimiento UTC que marcaba un día de más o de menos.
  */
 export function deliveryOverdueDays(delivery: DeliveryLike): number {
-  if (isHistoricallyReconciled(delivery)) return 0;
   if (delivery.status !== "scheduled" && delivery.status !== "in_transit") return 0;
   const scheduled = delivery.scheduled_date ? parseDateLocal(delivery.scheduled_date) : null;
   const today = parseDateLocal(toYMD(nowMty()));

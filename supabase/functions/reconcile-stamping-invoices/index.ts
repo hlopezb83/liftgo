@@ -955,57 +955,12 @@ export async function handleRequest(req: Request): Promise<Response> {
         break;
       }
       const ncId = nc.id as string;
-      // updated_at is changed by the database trigger on every write. Keep
-      // the exact returned value (including microseconds) as our next CAS token.
-      let ncClaimTimestamp = nc.updated_at;
-      const persistNcState = async (
-        patch: Record<string, unknown>,
-        operation: string,
-        claiming = false,
-      ): Promise<boolean> => {
-        try {
-          if (typeof ncClaimTimestamp !== "string") {
-            throw new Error("NC claim timestamp is missing");
-          }
-          const { data, error } = await admin.from("credit_notes")
-            .update(patch)
-            .eq("id", ncId)
-            .eq("organization_id", organizationId)
-            .eq("cfdi_status", "stamping")
-            .eq("updated_at", ncClaimTimestamp)
-            .select("id, updated_at")
-            .maybeSingle();
-          if (!error && data && typeof data.updated_at === "string") {
-            ncClaimTimestamp = data.updated_at;
-            return true;
-          }
-          results.push({
-            invoice_id: ncId,
-            status: claiming && !error && !data
-              ? "claimed_by_other_run"
-              : "nc_persistence_error",
-            ...(claiming && !error && !data ? {} : {
-              error: error?.message ??
-                `NC ${operation} update was not confirmed`,
-            }),
-          });
-        } catch (err) {
-          results.push({
-            invoice_id: ncId,
-            status: "nc_persistence_error",
-            error: err instanceof Error ? err.message : String(err),
-          });
-        }
-        // Never announce a transition or continue recovery on an uncertain write.
-        return false;
-      };
       if (
-        !(await persistNcState(
-          { updated_at: new Date().toISOString() },
-          "claim",
-          true,
-        ))
-      ) continue;
+        !(await claimRow("credit_notes", ncId, "updated_at", nc.updated_at))
+      ) {
+        results.push({ invoice_id: ncId, status: "claimed_by_other_run" });
+        continue;
+      }
       let facturapiId = nc.facturapi_invoice_id as string | null;
       let ncUuid = nc.cfdi_uuid as string | null;
 
@@ -1026,32 +981,28 @@ export async function handleRequest(req: Request): Promise<Response> {
         if (outcome.kind === "recover") {
           facturapiId = outcome.facturapi_id;
           ncUuid = outcome.uuid;
-          if (
-            !(await persistNcState({
+          await admin.from("credit_notes")
+            .update({
               facturapi_invoice_id: facturapiId,
               cfdi_uuid: ncUuid,
               lookup_attempts: 0, // racha de misses consecutivos: reset
-            }, "recover identifiers"))
-          ) continue;
+            })
+            .eq("id", ncId);
         } else if (outcome.kind === "pending") {
-          if (
-            !(await persistNcState({
-              facturapi_invoice_id: outcome.facturapi_id,
-              cfdi_error_message:
-                "Facturapi aceptó la NC; timbrado pendiente de resolución.",
-            }, "PAC pending"))
-          ) continue;
+          await admin.from("credit_notes").update({
+            facturapi_invoice_id: outcome.facturapi_id,
+            cfdi_error_message:
+              "Facturapi aceptó la NC; timbrado pendiente de resolución.",
+          }).eq("id", ncId);
           results.push({ invoice_id: ncId, status: "nc_pac_pending" });
           continue;
         } else if (outcome.kind === "manual_review") {
-          if (
-            !(await persistNcState({
-              facturapi_invoice_id: outcome.facturapi_id,
-              cfdi_status: "error",
-              cfdi_error_message:
-                "Facturapi confirmó fallo de la NC. Revisar el comprobante antes de volver a emitir.",
-            }, "manual review"))
-          ) continue;
+          await admin.from("credit_notes").update({
+            facturapi_invoice_id: outcome.facturapi_id,
+            cfdi_status: "error",
+            cfdi_error_message:
+              "Facturapi confirmó fallo de la NC. Revisar el comprobante antes de volver a emitir.",
+          }).eq("id", ncId);
           results.push({
             invoice_id: ncId,
             status: "nc_pac_failed_manual_review",
@@ -1060,25 +1011,23 @@ export async function handleRequest(req: Request): Promise<Response> {
         } else if (outcome.kind === "defer") {
           // N9: solo un miss REAL incrementa el contador; lookup_failed no.
           if (outcome.consume_attempt) {
-            if (
-              !(await persistNcState({
-                lookup_attempts: (lookupAttempts ?? 0) + 1,
-              }, "lookup miss"))
-            ) continue;
+            await admin.from("credit_notes")
+              .update({ lookup_attempts: (lookupAttempts ?? 0) + 1 })
+              .eq("id", ncId);
           }
           results.push({ invoice_id: ncId, status: "nc_lookup_deferred" });
           continue;
         } else {
           // N5: revert SOLO tras MAX_LOOKUP_MISSES misses consecutivos con el
           // PAC respondiendo (el claim vuelve a admitir pending|error).
-          if (
-            !(await persistNcState({
+          await admin.from("credit_notes")
+            .update({
               cfdi_status: "error",
               lookup_attempts: (lookupAttempts ?? 0) + 1,
               cfdi_error_message:
                 `Timbrado de NC interrumpido; Facturapi confirmó ${MAX_LOOKUP_MISSES} veces que el CFDI no existe. Puedes reintentar el timbrado.`,
-            }, "lookup exhausted"))
-          ) continue;
+            })
+            .eq("id", ncId);
           results.push({ invoice_id: ncId, status: "nc_reverted_to_error" });
           continue;
         }
@@ -1143,8 +1092,8 @@ export async function handleRequest(req: Request): Promise<Response> {
           const exhausted = decideXmlFailure(
             nc.stamping_attempts as number | null,
           ) === "mark_error";
-          if (
-            !(await persistNcState({
+          await admin.from("credit_notes")
+            .update({
               ...(exhausted
                 ? {
                   cfdi_status: "stamped",
@@ -1158,8 +1107,8 @@ export async function handleRequest(req: Request): Promise<Response> {
                     `Reconcile: descarga de XML de la NC falló (intento ${attempts}/${MAX_STAMPING_ATTEMPTS}). Se reintentará automáticamente.`,
                 }),
               stamping_attempts: attempts,
-            }, "XML recovery"))
-          ) continue;
+            })
+            .eq("id", ncId);
           results.push({
             invoice_id: ncId,
             status: exhausted
@@ -1168,8 +1117,8 @@ export async function handleRequest(req: Request): Promise<Response> {
           });
           continue;
         }
-        if (
-          !(await persistNcState({
+        await admin.from("credit_notes")
+          .update({
             cfdi_status: "stamped",
             status: "stamped",
             cfdi_xml_url: xmlPath,
@@ -1178,8 +1127,8 @@ export async function handleRequest(req: Request): Promise<Response> {
             lookup_attempts: 0,
             stamping_attempts: 0,
             cfdi_xml_pending: false,
-          }, "finalize"))
-        ) continue;
+          })
+          .eq("id", ncId);
         results.push({ invoice_id: ncId, status: "nc_reconciled" });
       } catch (err) {
         const msg = err instanceof Error ? err.message : String(err);

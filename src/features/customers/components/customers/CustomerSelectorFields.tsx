@@ -12,12 +12,6 @@ export interface CustomerSelectorOption {
   name: string;
   company?: string | null;
   email?: string | null;
-  rfc?: string | null;
-  razon_social?: string | null;
-  regimen_fiscal?: string | null;
-  domicilio_fiscal_cp?: string | null;
-  uso_cfdi?: string | null;
-  tax_rate?: number | string | null;
 }
 
 function buildTriggerLabel(selected: CustomerSelectorOption | undefined, required?: boolean): string {

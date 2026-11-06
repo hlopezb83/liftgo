@@ -9,10 +9,10 @@ import { CustomerSelector } from "@/features/customers";
 import { useNextInvoiceNumber } from "../../hooks/invoices/useNextInvoiceNumber";
 import { formatYmdMx } from "../../lib/formatYmdMx";
 import { MultiBookingSelector } from "./MultiBookingSelector";
-import type { Customer } from "../../hooks/invoiceForm/invoiceFormBuilders";
 import type { InvoiceFormValues } from "../../lib/invoiceFormSchema";
 import type { UseFormReturn } from "react-hook-form";
 
+interface Customer { id: string; name: string; company?: string | null }
 interface Booking { id: string; [k: string]: unknown }
 
 interface Props {
@@ -20,7 +20,7 @@ interface Props {
   form: UseFormReturn<InvoiceFormValues>;
   customers: Customer[] | undefined;
   availableBookings: Booking[] | undefined;
-  handleCustomerSelect: (id: string, customer?: Customer) => void;
+  handleCustomerSelect: (id: string) => void;
   handleBookingsChange: (ids: string[]) => void;
 }
 
@@ -75,7 +75,6 @@ export function InvoiceDetailsCard({
                   customerId={field.value}
                   customerName={form.getValues("customerName")}
                   onCustomerIdChange={handleCustomerSelect}
-                  onCustomerSelect={(customer) => handleCustomerSelect(customer.id, customer)}
                   onCustomerNameChange={(name) => form.setValue("customerName", name, { shouldDirty: true })}
                   required
                   hideManualName

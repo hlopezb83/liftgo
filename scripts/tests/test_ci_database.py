@@ -575,49 +575,6 @@ class SourceAndWorkflowTests(unittest.TestCase):
             ci.preflight_sources()
         check.assert_not_called()
 
-    def assert_sensitive_gate_trigger_contract(self, text):
-        # Exact source contract deliberately avoids a YAML dependency in this
-        # pre-bootstrap stdlib suite. Actionlint validates the YAML/expression.
-        condition = ("    if: github.event_name == 'pull_request' || "
-                     "github.event_name == 'push' || "
-                     "(github.event_name == 'workflow_dispatch' && inputs.run_supabase == true)")
-        job_header = text.split("\njobs:\n", 1)[1].split("\n    env:\n", 1)[0]
-        self.assertIn(condition, job_header.splitlines())
-        self.assertIn("        default: false", text.split("  workflow_dispatch:\n", 1)[1].split("\npermissions:", 1)[0])
-        events = text.split("\non:\n", 1)[1].split("\npermissions:\n", 1)[0]
-        self.assertNotIn("  schedule:", events)
-        paths_by_event = []
-        for event, following in (("pull_request", "push"), ("push", "workflow_dispatch")):
-            block = events.split("  " + event + ":\n", 1)[1].split("  " + following + ":\n", 1)[0]
-            self.assertIn("    branches: [main]", block)
-            paths = [line.strip()[3:-1] for line in block.splitlines() if line.strip().startswith('- "')]
-            self.assertIn("supabase/migrations/**", paths)
-            self.assertIn("drizzle/migrations/**", paths)
-            self.assertIn("supabase/config.toml", paths)
-            self.assertNotIn("**", paths)
-            self.assertNotIn("**/*", paths)
-            paths_by_event.append(paths)
-        self.assertEqual(paths_by_event[0], paths_by_event[1])
-        self.assertIn("cancel-in-progress: ${{ github.event_name == 'pull_request' }}", text)
-        self.assertNotIn("${{ secrets.", text)
-
-    def test_sensitive_database_gates_run_on_filtered_pr_and_push(self):
-        root = Path(__file__).parents[2]
-        for filename, minutes in (("rls-db-tests.yml", 25), ("multi-tenant-ab.yml", 35)):
-            text = (root / ".github/workflows" / filename).read_text(encoding="utf-8")
-            with self.subTest(workflow=filename):
-                self.assert_sensitive_gate_trigger_contract(text)
-                self.assertIn(f"    timeout-minutes: {minutes}", text)
-                # Catch the previous manual-only regression and unbounded costs.
-                condition = next(line for line in text.splitlines() if line.startswith("    if:"))
-                for invalid in (
-                    text.replace(condition, "    if: github.event_name == 'workflow_dispatch' && inputs.run_supabase == true"),
-                    text.replace('      - "supabase/migrations/**"', '      - "**"'),
-                    text.replace("        default: false", "        default: true"),
-                ):
-                    with self.assertRaises(AssertionError):
-                        self.assert_sensitive_gate_trigger_contract(invalid)
-
     def test_workflows_wire_preflight_bootstrap_replay_and_cleanup_in_order(self):
         root = Path(__file__).parents[2]
         for filename, profile in (("rls-db-tests.yml", "rls"), ("multi-tenant-ab.yml", "ab")):

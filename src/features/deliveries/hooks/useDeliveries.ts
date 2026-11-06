@@ -6,9 +6,6 @@ import { defineEntityQueries } from "@/lib/query/defineEntityQueries";
 import { operationSummaryKeys } from "@/lib/query/operationSummaryKeys";
 import { callRpc } from "@/lib/rpc";
 import { LIST_FETCH_LIMIT } from "@/lib/supabase/constants";
-import type { ReconciledDelivery } from "../lib/historicalReconciliation";
-
-const DELIVERY_SELECT = "*, forklifts(name, model), historical_reconciliation:delivery_historical_reconciliations(*)";
 
 type DeliveryRow = Awaited<ReturnType<typeof fetchDeliveryDetail>>;
 type DeliveryList = Awaited<ReturnType<typeof fetchDeliveryList>>;
@@ -23,19 +20,19 @@ export type CompleteDeliveryInput = {
 async function fetchDeliveryDetail(id: string) {
   const { data, error } = await supabase
     .from("deliveries")
-    .select(DELIVERY_SELECT)
+    .select("*, forklifts(name, model)")
     .eq("id", id)
     .single();
   if (error) throw error;
-  return data as unknown as ReconciledDelivery;
+  return data;
 }
 
 async function fetchDeliveryList(bookingId?: string) {
-  let query = supabase.from("deliveries").select(DELIVERY_SELECT).order("scheduled_date").limit(LIST_FETCH_LIMIT);
+  let query = supabase.from("deliveries").select("*, forklifts(name, model)").order("scheduled_date").limit(LIST_FETCH_LIMIT);
   if (bookingId) query = query.eq("booking_id", bookingId);
   const { data, error } = await query;
   if (error) throw error;
-  return data as unknown as ReconciledDelivery[];
+  return data;
 }
 
 export const deliveryQueries = defineEntityQueries<"deliveries", DeliveryList, DeliveryRow>(

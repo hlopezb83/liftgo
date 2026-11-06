@@ -30,15 +30,10 @@ START_EXCLUDES = {
 # Reviewed canonical trees: 0123, official generated 0124 receipt, and 0125
 # recurring coverage with the independently reviewed INVOKER/ACL correction
 # at 23dc85c581df94322e7c1c955d47493839e84df8. The portable receipt executes in CI.
-# Reviewed at 19c65c6a3bcd9ae0db7fab5576f23325f013c654 (PR #395): the only
-# additions since that baseline are 0126 and its journal entry. Earlier files
-# are unchanged. 0126 creates an empty historical ledger with scoped RLS and
-# invoker triggers, closes only its new objects' inherited ACLs, and contains
-# no HTTP/cron operations or business-data writes.
 # Any subsequent history change requires explicit source review.
 SOURCE_TREES = {
     "supabase/migrations": "3e3575f5ff6d509ecdd624ae7fc1772508b5dce6",
-    "drizzle/migrations": "e5056ad079bdda42190e5601978d38e54f81a02f",
+    "drizzle/migrations": "ab92bba79ea36d98d0a9c86ced8626fb034a97ca",
 }
 HTTP_SOURCES = {
     "20260721000000_retry_queue_cron.sql": "2aecccd0758961f41769d9fed522d03df14937650b9dde80fce47646a1fa6887",

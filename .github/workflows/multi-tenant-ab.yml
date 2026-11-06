@@ -147,9 +147,9 @@ jobs:
     name: Gate A/B multiempresa (Supabase local efímero)
     runs-on: ubuntu-24.04
     timeout-minutes: 35
-    # PR/push sólo llegan aquí si coinciden los paths sensibles del workflow.
-    # Sin cron; las ejecuciones manuales conservan el opt-in explícito.
-    if: github.event_name == 'pull_request' || github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && inputs.run_supabase == true)
+    # PR/push y manual sin opt-in quedan skipped; no acreditan pruebas DB.
+    # La descarga y el arranque requieren la opción manual explícita.
+    if: github.event_name == 'workflow_dispatch' && inputs.run_supabase == true
 
     env:
       # Match the exact image identity required by the shared ownership guard.

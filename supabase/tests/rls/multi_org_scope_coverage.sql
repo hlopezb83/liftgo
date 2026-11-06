@@ -23,75 +23,6 @@
 -- global). No se admiten comodines.
 BEGIN;
 
--- BEGIN historical ledger contract (also exercised by isolated negative tests).
--- Exact exception to the business write trigger: 0126 is owner-written and
--- authenticated-readable only. Fail closed on ACL, policy or trigger drift.
-DO $ledger_contract$
-DECLARE
-  ledger oid := 'public.delivery_historical_reconciliations'::regclass;
-  reader oid := 'authenticated'::regrole;
-  app_role text;
-BEGIN
-  IF NOT EXISTS (SELECT FROM pg_class WHERE oid=ledger AND relrowsecurity)
-     OR (SELECT count(*) FROM pg_attribute WHERE attrelid=ledger
-         AND attname IN ('delivery_id','organization_id') AND NOT attisdropped
-         AND atttypid='uuid'::regtype AND attnotnull)<>2
-     OR EXISTS (
-       SELECT FROM pg_class c CROSS JOIN LATERAL aclexplode(coalesce(c.relacl,acldefault('r',c.relowner))) a
-       WHERE c.oid=ledger AND a.grantee<>c.relowner
-         AND NOT (a.grantee=reader AND a.privilege_type='SELECT' AND NOT a.is_grantable)
-     ) OR EXISTS (
-       SELECT FROM pg_attribute a CROSS JOIN LATERAL aclexplode(a.attacl) acl
-       JOIN pg_class c ON c.oid=a.attrelid
-       WHERE a.attrelid=ledger AND acl.grantee<>c.relowner
-     ) OR NOT has_table_privilege('authenticated',ledger,'SELECT') THEN
-    RAISE EXCEPTION 'historical ledger contract: table/column ACL or RLS drift';
-  END IF;
-  FOREACH app_role IN ARRAY ARRAY['anon','authenticated','service_role'] LOOP
-    IF has_table_privilege(app_role,ledger,'INSERT,UPDATE,DELETE,TRUNCATE,REFERENCES,TRIGGER')
-       OR has_any_column_privilege(app_role,ledger,'INSERT,UPDATE,REFERENCES')
-       OR (app_role<>'authenticated' AND (has_table_privilege(app_role,ledger,'SELECT')
-           OR has_any_column_privilege(app_role,ledger,'SELECT'))) THEN
-      RAISE EXCEPTION 'historical ledger contract: effective privileges drift for %',app_role;
-    END IF;
-  END LOOP;
-  IF (SELECT count(*) FROM pg_policy WHERE polrelid=ledger)<>2
-     OR NOT EXISTS (SELECT FROM pg_policy WHERE polrelid=ledger
-       AND polname='org_scope_isolation' AND NOT polpermissive AND polcmd='r'
-       AND polroles=ARRAY[reader] AND polwithcheck IS NULL
-       AND pg_get_expr(polqual,polrelid)='organization_scope_matches(organization_id)')
-     OR NOT EXISTS (SELECT FROM pg_policy WHERE polrelid=ledger
-       AND polname='visible_delivery' AND polpermissive AND polcmd='r'
-       AND polroles=ARRAY[reader] AND polwithcheck IS NULL
-       AND regexp_replace(pg_get_expr(polqual,polrelid),'\s','','g')=
-         regexp_replace($expr$((organization_id = current_internal_organization_id()) AND is_internal_member(auth.uid()) AND (EXISTS ( SELECT 1 FROM deliveries d WHERE ((d.id = delivery_historical_reconciliations.delivery_id) AND (d.organization_id = delivery_historical_reconciliations.organization_id)))))$expr$,'\s','','g')) THEN
-    RAISE EXCEPTION 'historical ledger contract: SELECT policies drift';
-  END IF;
-  IF (SELECT count(*) FROM pg_trigger WHERE tgrelid=ledger AND NOT tgisinternal)<>2
-     OR NOT EXISTS (SELECT FROM pg_trigger WHERE tgrelid=ledger
-       AND tgname='guard_delivery_historical_reconciliation' AND NOT tgisinternal
-       AND tgtype=31 AND tgenabled='O' AND tgqual IS NULL AND tgnargs=0
-       AND tgfoid='public.guard_delivery_historical_reconciliation()'::regprocedure)
-     OR NOT EXISTS (SELECT FROM pg_trigger WHERE tgrelid=ledger
-       AND tgname='audit_delivery_historical_reconciliation' AND NOT tgisinternal
-       AND tgtype=21 AND tgenabled='O' AND tgqual IS NULL AND tgnargs=0
-       AND tgfoid='public.audit_delivery_historical_reconciliation()'::regprocedure)
-     OR EXISTS (SELECT FROM pg_proc p CROSS JOIN LATERAL
-       aclexplode(coalesce(p.proacl,acldefault('f',p.proowner))) a
-       WHERE p.oid IN ('public.guard_delivery_historical_reconciliation()'::regprocedure,
-                       'public.audit_delivery_historical_reconciliation()'::regprocedure)
-         AND a.grantee<>p.proowner)
-     OR EXISTS (SELECT FROM pg_proc p JOIN pg_class c ON c.oid=ledger
-       WHERE p.oid IN ('public.guard_delivery_historical_reconciliation()'::regprocedure,
-                       'public.audit_delivery_historical_reconciliation()'::regprocedure)
-         AND (p.proowner<>c.relowner OR p.prosecdef
-              OR p.proconfig IS DISTINCT FROM ARRAY['search_path=public, pg_temp'])) THEN
-    RAISE EXCEPTION 'historical ledger contract: guard/audit trigger or function drift';
-  END IF;
-END;
-$ledger_contract$;
--- END historical ledger contract.
-
 DO $$
 DECLARE
   -- Tablas SIN organization_id: identidad global o catálogo del sistema.
@@ -230,10 +161,7 @@ BEGIN
     END IF;
 
     IF r.tiene_org OR r.table_name = ANY (c_infra_deny_all) THEN
-      IF r.table_name = 'delivery_historical_reconciliations' THEN
-        -- Fully checked by the exact owner-write/tenant-read contract above.
-        NULL;
-      ELSIF r.table_name = ANY (c_relacion) THEN
+      IF r.table_name = ANY (c_relacion) THEN
         -- Relación/infra: policies propias; ninguna debe ser abierta.
         IF EXISTS (
           SELECT 1 FROM pg_policies p
