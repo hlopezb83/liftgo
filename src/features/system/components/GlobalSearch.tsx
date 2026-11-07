@@ -6,12 +6,13 @@ import { Button } from "@/components/ui/button";
 import {
   CommandDialog, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList,
 } from "@/components/ui/command";
-import { useEntitySearch } from "@/features/system/hooks/useEntitySearch";
-import { getNavigationAccessLevel, useHasFinancialAccess, useRolePermissions, useUserRole } from "@/features/users";
+import { useEntitySearch, type EntityResults } from "@/features/system/hooks/useEntitySearch";
+import { getNavigationAccessLevel, useHasFinancialAccess, useHasModuleAccess, useRolePermissions, useUserRole } from "@/features/users";
 import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import { notifyError } from "@/lib/ui/appFeedback";
 import { restoreModalFocus } from "@/lib/ui/restoreModalFocus";
+import { normalizeQuoteNumber } from "../lib/quoteSearchTerm";
 
 type Item = { title: string; url: string; icon: ElementType; group: string; keywords?: string };
 
@@ -44,19 +45,20 @@ const ITEMS: Item[] = [
 ];
 
 const SECTION_LABELS: Record<string, string> = {
-  invoices: "Facturas", customers: "Clientes", bookings: "Reservas", deliveries: "Entregas", returns: "Devoluciones",
+  quotes: "Cotizaciones", invoices: "Facturas", customers: "Clientes", bookings: "Reservas", deliveries: "Entregas", returns: "Devoluciones",
 };
 
 /**
  * L-6a: fallo parcial de una sección — avisar en vez de mostrarla vacía como
  * si simplemente no hubiera coincidencias.
  */
-function SearchPartialErrors({ errors }: { errors?: Record<string, string> }) {
+function SearchPartialErrors({ errors, isFetching, onRetry }: { errors?: Record<string, string>; isFetching: boolean; onRetry: () => void }) {
   const failed = Object.keys(errors ?? {}).map((k) => SECTION_LABELS[k] ?? k);
   if (failed.length === 0) return null;
   return (
     <div className="px-3 py-2 text-xs text-warning" role="status">
       No se pudo buscar en: {failed.join(", ")}. Intenta de nuevo.
+      <Button variant="ghost" size="sm" onClick={onRetry} disabled={isFetching}>Reintentar búsqueda</Button>
     </div>
   );
 }
@@ -64,15 +66,18 @@ function SearchPartialErrors({ errors }: { errors?: Record<string, string> }) {
 type EntityHit = { id: string; label: string; sub?: string; url: string };
 type EntityGroup = { heading: string; prefix: string; hits: EntityHit[]; mono: boolean };
 
-/** Grupos de entidades encontradas (facturas, clientes, reservas, entregas, devoluciones). */
+/** Grupos de entidades encontradas; cada sección conserva su límite. */
 function EntitySearchResults({
-  entities, isPending, onSelect,
+  entities, query, isPending, onSelect,
 }: {
-  entities: { invoices: EntityHit[]; customers: EntityHit[]; bookings: EntityHit[]; deliveries: EntityHit[]; returns: EntityHit[] };
+  entities: EntityResults;
+  query: string;
   isPending: boolean;
   onSelect: (url: string) => void;
 }) {
+  const normalizedQuote = normalizeQuoteNumber(query);
   const sections: EntityGroup[] = [
+    { heading: "Cotizaciones", prefix: "cot", hits: entities.quotes, mono: true },
     { heading: "Facturas", prefix: "fac", hits: entities.invoices, mono: true },
     { heading: "Clientes", prefix: "cli", hits: entities.customers, mono: false },
     { heading: "Reservas", prefix: "rsv", hits: entities.bookings, mono: true },
@@ -84,8 +89,9 @@ function EntitySearchResults({
       {sections.filter((s) => s.hits.length > 0).map((s) => (
         <CommandGroup key={s.prefix} heading={s.heading}>
           {s.hits.map((e) => (
-            <CommandItem key={e.id} value={`${s.prefix} ${e.label} ${e.sub ?? ""}`} onSelect={() => onSelect(e.url)} disabled={isPending}>
-              {s.prefix === "fac" ? <InvoiceIcon className="mr-2 h-4 w-4" />
+            <CommandItem key={e.id} value={s.prefix === "cot" && e.label === normalizedQuote ? query.trim() : `${s.prefix} ${e.label} ${e.sub ?? ""}`} onSelect={() => onSelect(e.url)} disabled={isPending}>
+              {s.prefix === "cot" ? <DocumentIcon className="mr-2 h-4 w-4" />
+                : s.prefix === "fac" ? <InvoiceIcon className="mr-2 h-4 w-4" />
                 : s.prefix === "cli" ? <UsersIcon className="mr-2 h-4 w-4" />
                 : s.prefix === "rsv" ? <BookOpen className="mr-2 h-4 w-4" />
                 : <DeliveryIcon className="mr-2 h-4 w-4" />}
@@ -99,8 +105,46 @@ function EntitySearchResults({
   );
 }
 
+function authorizedResults(data: EntityResults | undefined, canVisit: (url: string) => boolean, canSeeFinancials: boolean, canSearchQuotes: boolean): EntityResults | undefined {
+  const sectionRoutes: Record<string, string> = {
+    quotes: "/quotes", invoices: "/invoices", customers: "/customers", bookings: "/bookings", deliveries: "/deliveries", returns: "/returns",
+  };
+  return data ? {
+    ...data,
+    quotes: canSearchQuotes ? data.quotes.filter((hit) => canVisit(hit.url)) : [],
+    invoices: canSeeFinancials ? data.invoices.filter((hit) => canVisit(hit.url)) : [],
+    customers: data.customers.filter((hit) => canVisit(hit.url)),
+    bookings: data.bookings.filter((hit) => canVisit(hit.url)),
+    deliveries: data.deliveries.filter((hit) => canVisit(hit.url)),
+    returns: data.returns.filter((hit) => canVisit(hit.url)),
+    errors: Object.fromEntries(Object.entries(data.errors ?? {}).filter(([section]) =>
+      !!sectionRoutes[section] && canVisit(sectionRoutes[section]) && (section !== "invoices" || canSeeFinancials) && (section !== "quotes" || canSearchQuotes),
+    )),
+  } : undefined;
+}
+
+function SearchFeedback({ isLoading, isError, errors, onRetry }: {
+  isLoading: boolean; isError: boolean; errors?: EntityResults["errors"]; onRetry: () => void;
+}) {
+  const hasPartialErrors = Object.keys(errors ?? {}).length > 0;
+  return <>
+    {!isLoading && !isError && !hasPartialErrors && <CommandEmpty>
+      <div className="flex flex-col items-center gap-1 py-4 text-xs text-muted-foreground">
+        <span>Sin resultados.</span>
+        <span className="opacity-70">Prueba con otro término o revisa la ortografía.</span>
+      </div>
+    </CommandEmpty>}
+    {isError && <div className="px-3 py-2 text-xs text-destructive" role="alert">
+      No se pudo completar la búsqueda. Intenta de nuevo.
+      <Button variant="ghost" size="sm" onClick={onRetry} disabled={isLoading}>Reintentar búsqueda</Button>
+    </div>}
+    <SearchPartialErrors errors={errors} isFetching={isLoading} onRetry={onRetry} />
+  </>;
+}
+
 export function GlobalSearch() {
   const canSeeFinancials = useHasFinancialAccess();
+  const canSearchQuotes = useHasModuleAccess("Cotizaciones", "read");
   const { data: role, isError: roleError } = useUserRole();
   const { data: permissionData, isError: permissionsError } = useRolePermissions();
   const perms = roleError || permissionsError ? undefined : permissionData;
@@ -145,23 +189,12 @@ export function GlobalSearch() {
   const entityQuery = useEntitySearch(debouncedInput, open);
   // A role/permission switch must not retain links from a privileged query.
   const canVisit = (url: string) => getNavigationAccessLevel(perms, role ?? undefined, url) !== "none";
-  const sectionRoutes: Record<string, string> = {
-    invoices: "/invoices", customers: "/customers", bookings: "/bookings", deliveries: "/deliveries", returns: "/returns",
-  };
-  const entities = entityQuery.data && {
-    ...entityQuery.data,
-    invoices: canSeeFinancials ? entityQuery.data.invoices.filter((hit) => canVisit(hit.url)) : [],
-    customers: entityQuery.data.customers.filter((hit) => canVisit(hit.url)),
-    bookings: entityQuery.data.bookings.filter((hit) => canVisit(hit.url)),
-    deliveries: entityQuery.data.deliveries.filter((hit) => canVisit(hit.url)),
-    returns: entityQuery.data.returns.filter((hit) => canVisit(hit.url)),
-    errors: Object.fromEntries(Object.entries(entityQuery.data.errors ?? {}).filter(([section]) =>
-      !!sectionRoutes[section] && canVisit(sectionRoutes[section]) && (section !== "invoices" || canSeeFinancials),
-    )),
-  };
-  const hasEntities = !!entities && (entities.invoices.length + entities.customers.length + entities.bookings.length + entities.deliveries.length + entities.returns.length > 0);
+  const isSearchLoading = entityQuery.isFetching || (input.trim().length >= 2 && (input !== debouncedInput || entityQuery.isPending));
+  const entities = authorizedResults(input === debouncedInput ? entityQuery.data : undefined, canVisit, canSeeFinancials, canSearchQuotes);
+  const hasEntities = !!entities && (entities.quotes.length + entities.invoices.length + entities.customers.length + entities.bookings.length + entities.deliveries.length + entities.returns.length > 0);
 
   const go = (url: string) => {
+    if (url.startsWith("/quotes/") && (!canSearchQuotes || !canVisit(url))) return;
     navigatingRef.current = true;
     setOpen(false);
     startTransition(() => {
@@ -198,25 +231,18 @@ export function GlobalSearch() {
         if (navigatingRef.current) { event.preventDefault(); return; }
         restoreModalFocus(event, triggerRef.current);
       }}>
-        {/* shouldFilter=false: entidades se filtran server-side; para páginas
-            usamos el `value` que incluye keywords y cmdk filtra localmente. */}
+        {/* cmdk keeps module filtering. Exact quote values match the current
+            input so normalized folios stay visible and rank before broad hits. */}
         <CommandInput
-          placeholder={canSeeFinancials ? "Buscar módulo, factura, cliente o reserva…" : "Buscar módulo, cliente o reserva…"}
+          placeholder={`Buscar módulo, ${canSearchQuotes ? "cotización, " : ""}${canSeeFinancials ? "factura, " : ""}cliente o reserva…`}
           value={input}
           onValueChange={setInput}
         />
         <CommandList>
-          <CommandEmpty>
-            <div className="flex flex-col items-center gap-1 py-4 text-xs text-muted-foreground">
-              <span>Sin resultados.</span>
-              <span className="opacity-70">Prueba con otro término o revisa la ortografía.</span>
-            </div>
-          </CommandEmpty>
-
-          <SearchPartialErrors errors={entities?.errors} />
+          <SearchFeedback isLoading={!!isSearchLoading} isError={entityQuery.isError} errors={entities?.errors} onRetry={() => void entityQuery.refetch()} />
 
           {hasEntities && (
-            <EntitySearchResults entities={entities} isPending={isPending} onSelect={go} />
+            <EntitySearchResults entities={entities} query={input} isPending={isPending} onSelect={go} />
           )}
 
           {groups.map(([group, items]) => (
@@ -242,10 +268,10 @@ export function GlobalSearch() {
             <span><kbd className="rounded border bg-muted px-1 font-mono">Enter</kbd> abrir</span>
             <span><kbd className="rounded border bg-muted px-1 font-mono">Esc</kbd> cerrar</span>
           </div>
-          {isPending || entityQuery.isFetching ? (
+          {isPending || isSearchLoading ? (
             <span className="flex items-center gap-1 text-primary">
               <SpinnerIcon className="h-3 w-3 animate-spin" />
-              {entityQuery.isFetching ? "Buscando…" : "Cargando…"}
+              {isSearchLoading ? "Buscando…" : "Cargando…"}
             </span>
           ) : null}
         </div>

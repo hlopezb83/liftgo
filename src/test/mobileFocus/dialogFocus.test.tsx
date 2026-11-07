@@ -18,6 +18,7 @@ vi.mock("@/hooks/use-mobile", () => ({
 vi.mock("@/features/users", () => ({
   getNavigationAccessLevel: () => "full",
   useHasFinancialAccess: () => true,
+  useHasModuleAccess: () => true,
   useUserRole: () => ({ data: "admin" }),
   useRolePermissions: () => ({ data: {} }),
 }));
