@@ -40,10 +40,15 @@ START_EXCLUDES = {
 # 0127 adds an INVOKER function with scoped ACLs. Its business writes execute
 # only when called; the migration performs no business-data writes, HTTP or cron.
 # The resulting migration tree matches the previously reviewed dfa04efa tree.
+# Official 0127 activation added only the read-only 0128 receipt, its journal
+# entry and empty custom-migration snapshot, reviewed at bb795efc35da1033.
+# The snapshot links to the last existing 0124 snapshot; 0125-0127 had none.
+# Earlier SQL/journal entries are unchanged. 0128 only asserts function/ACL
+# postconditions and raises on mismatch; it performs no DDL or business writes.
 # Any subsequent history change requires explicit source review.
 SOURCE_TREES = {
     "supabase/migrations": "3e3575f5ff6d509ecdd624ae7fc1772508b5dce6",
-    "drizzle/migrations": "dfa04efa2f150d9a742ebf780e614190bc95512c",
+    "drizzle/migrations": "9b2ba0d2e88e0f19b32393dfa50080db74c89d0c",
 }
 HTTP_SOURCES = {
     "20260721000000_retry_queue_cron.sql": "2aecccd0758961f41769d9fed522d03df14937650b9dde80fce47646a1fa6887",
