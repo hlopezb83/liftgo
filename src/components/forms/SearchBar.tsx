@@ -76,6 +76,14 @@ export function SearchBar({
     inputRef.current?.focus();
   };
 
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Escape" && local) {
+      e.preventDefault();
+      e.stopPropagation();
+      handleClear();
+    }
+  };
+
   const prClass = captureCtrlK
     ? local ? "pr-24" : "pr-16"
     : local ? "pr-9" : "pr-3";
@@ -90,6 +98,7 @@ export function SearchBar({
         aria-label={ariaLabel ?? placeholder}
         value={local}
         onChange={(e) => setLocal(e.target.value)}
+        onKeyDown={handleKeyDown}
         className={cn("pl-9", prClass)}
         data-testid={testId}
       />

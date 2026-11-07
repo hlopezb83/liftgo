@@ -2,7 +2,7 @@ import { resolve } from "node:path";
 import tailwindcss from "@tailwindcss/vite";
 import react from "@vitejs/plugin-react";
 import { defineConfig } from "vite";
-import { fakeBackendEnv } from "./tests/design-group-c/paths";
+import { fakeBackendEnv } from "./tests/design-group-c/paths.ts";
 
 // Isolated component fixture: real shared form primitives; only data hooks
 // are replaced. No auth provider, backend client or application entry mounts.
