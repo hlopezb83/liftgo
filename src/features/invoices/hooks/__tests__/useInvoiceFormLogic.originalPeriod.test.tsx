@@ -1,8 +1,8 @@
 import { act, renderHook } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 const state = vi.hoisted(() => ({ bookings: [] as unknown[], claims: [] as unknown[], extensions: [] as unknown[], returns: [] as unknown[], existing: null as unknown,
-  rows: [] as unknown[], returnReady: true, ready: true, error: false, handler: vi.fn(), refetch: vi.fn() }));
-vi.mock("@/features/bookings", () => ({ useBookings: () => ({ data: state.bookings, refetch: state.refetch }) }));
+  rows: [] as unknown[], candidatesReady: true, candidatesError: false, returnReady: true, ready: true, error: false, handler: vi.fn(), refetch: vi.fn() }));
+vi.mock("../invoices/useInvoiceBookingCandidates", () => ({ useInvoiceBookingCandidates: () => ({ isSuccess: state.candidatesReady, isError: state.candidatesError, data: state.bookings, refetch: state.refetch }) }));
 vi.mock("@/features/customers", () => ({ useCustomers: () => ({ data: [] }) }));
 vi.mock("@/features/fleet", () => ({ useForklifts: () => ({ data: [] }), useQuoteAssignments: () => ({ data: [] }) }));
 vi.mock("@/features/quotes", () => ({ useQuote: () => ({ data: undefined }), useQuotesByIds: () => ({ data: [] }), useQuoteSaleAssignmentStatus: () => ({ isComplete: true }) }));
@@ -35,10 +35,18 @@ const values = () => ({ ...buildEmptyInvoiceValues(), bookingIds: ["b1"], billin
 beforeEach(() => {
   state.bookings = [booking]; state.extensions = [extension]; state.claims = [claim]; state.existing = null; state.rows = [];
   state.returns = [{ booking_id: "b1", forklift_id: "f1", inspected_at: "2026-09-30T18:00:00Z" }];
+  state.candidatesReady = true; state.candidatesError = false;
   state.returnReady = true; state.ready = true; state.error = false; state.handler.mockClear(); state.refetch.mockClear();
 });
 
 describe("original period form wiring", () => {
+  it.each([false, true])("blocks linked selections while candidates are unavailable (error=%s), but allows manual invoices", (error) => {
+    state.candidatesReady = false; state.candidatesError = error;
+    const { result } = renderHook(() => useInvoiceFormLogic({ fromQuoteId: null }));
+    expect(result.current.validateSelection(values())?.field).toBe("bookingIds");
+    expect(result.current.bookingAvailabilityBlock).toBeTruthy();
+    expect(result.current.validateSelection({ ...values(), bookingIds: [] })).toBeNull();
+  });
   it.each(["draft", "sent", "paid", "cancelled"])("shows original term after extension %s and passes it to line prefill", (status) => {
     state.claims = [{ ...claim, status }];
     const { result } = renderHook(() => useInvoiceFormLogic({ fromQuoteId: null }));
