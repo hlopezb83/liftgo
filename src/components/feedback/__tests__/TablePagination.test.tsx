@@ -13,10 +13,18 @@ describe("TablePagination (V26-01)", () => {
 
     expect(screen.getByText("3 de 12")).toBeInTheDocument();
 
-    const numeric = screen.getByRole("button", { name: "3" });
+    const numeric = screen.getByRole("button", { name: "Página 3" });
     // El contenedor <li> de cada número es `hidden` hasta el breakpoint sm.
     expect(numeric.closest("li")?.className).toContain("hidden");
     expect(numeric.closest("li")?.className).toContain("sm:block");
+  });
+
+  it("asigna aria-label accesible a los enlaces de página", () => {
+    render(<TablePagination page={2} totalPages={3} onPageChange={vi.fn()} />);
+
+    expect(screen.getByRole("button", { name: "Ir a la página 1" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Página 2" })).toHaveAttribute("aria-current", "page");
+    expect(screen.getByRole("button", { name: "Ir a la página 3" })).toBeInTheDocument();
   });
 
   it("mantiene Anterior/Siguiente en los tres estados", () => {
