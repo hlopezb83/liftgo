@@ -9,6 +9,9 @@ export interface SaveInvoiceWithBookingsArgs {
   expectedVersion?: number | null;
   /** Repaired damage linked inside the same database transaction. */
   damageId?: string | null;
+  extensionId?: string | null;
+  acceptQuoteId?: string | null;
+  quoteExpectedVersion?: number | null;
 }
 
 /** Keep overload selection and null/default semantics at one transport boundary. */
@@ -23,6 +26,23 @@ export function buildInvoiceSaveRpcArgs({
     p_expected_version: damageId ? (expectedVersion ?? null) : (expectedVersion ?? undefined),
     ...(damageId ? { p_damage_id: damageId } : {}),
   };
+}
+
+/** Source links belong to the same transaction; never fall back to separate writes. */
+export function buildInvoiceSaveRequest(args: SaveInvoiceWithBookingsArgs) {
+  if (!args.extensionId && !args.acceptQuoteId) {
+    return { name: "save_invoice_with_bookings" as const, args: buildInvoiceSaveRpcArgs(args) };
+  }
+  return { name: "save_invoice_with_sources" as const, args: {
+    p_invoice: args.payload as unknown as Json,
+    p_booking_ids: args.bookingIds,
+    p_invoice_id: args.invoiceId ?? null,
+    p_expected_version: args.expectedVersion ?? null,
+    p_damage_id: args.damageId ?? null,
+    p_extension_id: args.extensionId ?? null,
+    p_accept_quote_id: args.acceptQuoteId ?? null,
+    p_quote_expected_version: args.quoteExpectedVersion ?? null,
+  } };
 }
 
 const confirmationError = () => new Error(
