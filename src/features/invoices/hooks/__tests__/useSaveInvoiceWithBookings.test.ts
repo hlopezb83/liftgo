@@ -139,3 +139,62 @@ describe("useSaveInvoiceWithBookings — RPC transaccional save_invoice_with_boo
     });
   });
 });
+
+
+describe("save confirmation boundary", () => {
+  it.each([
+    null, [], {}, true, "saved", [{ id: "inv-1" }],
+    [{ id: "", invoice_number: "BORRADOR-1" }],
+    [{ id: "inv-1", invoice_number: "" }],
+    [{ id: "inv-1", invoice_number: "BORRADOR-1" }, { id: "inv-2", invoice_number: "BORRADOR-2" }],
+  ])("does not announce success for malformed confirmation %j", async (data) => {
+    rpcResp = { data, error: null };
+    rpcCalls.length = 0;
+    const onSuccess = vi.fn();
+    const { Wrapper, queryClient } = createQueryWrapper();
+    const invalidate = vi.spyOn(queryClient, "invalidateQueries");
+    const { result } = renderHook(() => useSaveInvoiceWithBookings(), { wrapper: Wrapper });
+    result.current.mutate({ payload, bookingIds: [] }, { onSuccess });
+    await waitFor(() => expect(result.current.isError).toBe(true));
+    expect(onSuccess).not.toHaveBeenCalled();
+    expect(invalidate.mock.calls.map(([options]) => options?.queryKey)).toEqual([
+      ["invoices"], ["report"], ["invoice_bookings"],
+    ]);
+    expect(rpcCalls).toHaveLength(1);
+  });
+
+  it("rejects a response for a different invoice during edit", async () => {
+    rpcResp = { data: [{ id: "other-invoice", invoice_number: "FAC-1" }], error: null };
+    const { Wrapper } = createQueryWrapper();
+    const { result } = renderHook(() => useSaveInvoiceWithBookings(), { wrapper: Wrapper });
+    result.current.mutate({ payload, bookingIds: [], invoiceId: "inv-1", expectedVersion: 2 });
+    await waitFor(() => expect(result.current.isError).toBe(true));
+  });
+});
+
+
+describe("uncertain invoice receipt cache recovery", () => {
+  it("keeps the original receipt error if a reader refresh rejects", async () => {
+    rpcResp = { data: {}, error: null };
+    rpcCalls.length = 0;
+    const { Wrapper, queryClient } = createQueryWrapper();
+    vi.spyOn(queryClient, "invalidateQueries").mockRejectedValue(new Error("refresh failed"));
+    const onSuccess = vi.fn();
+    const { result } = renderHook(() => useSaveInvoiceWithBookings(), { wrapper: Wrapper });
+    result.current.mutate({ payload, bookingIds: [] }, { onSuccess });
+    await waitFor(() => expect(result.current.isError).toBe(true));
+    expect(result.current.error?.message).toMatch(/No se pudo confirmar/);
+    expect(onSuccess).not.toHaveBeenCalled();
+    expect(rpcCalls).toHaveLength(1);
+  });
+  it("does not treat an RPC rejection as an unreadable receipt", async () => {
+    rpcResp = { data: null, error: { message: "stale_write: conflict" } };
+    const { Wrapper, queryClient } = createQueryWrapper();
+    const invalidate = vi.spyOn(queryClient, "invalidateQueries");
+    const { result } = renderHook(() => useSaveInvoiceWithBookings(), { wrapper: Wrapper });
+    result.current.mutate({ payload, bookingIds: [], invoiceId: "inv-1", expectedVersion: 2 });
+    await waitFor(() => expect(result.current.isError).toBe(true));
+    expect(result.current.error?.message).toMatch(/stale_write/);
+    expect(invalidate).not.toHaveBeenCalled();
+  });
+});
