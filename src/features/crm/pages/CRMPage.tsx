@@ -4,7 +4,7 @@ import { PageContainer } from "@/components/layout/PageContainer";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { PageTransition } from "@/components/layout/PageTransition";
 import { usePageActions } from "@/contexts/pageActions";
-import { useQuotesLite } from "@/features/quotes";
+import { useCrmQuoteNumbers } from "@/features/quotes";
 import { useHasModuleAccess } from "@/features/users";
 import { formatCurrency } from "@/lib/format/formatCurrency";
 import { CRMKanbanGrid } from "../components/CRMKanbanGrid";
@@ -22,7 +22,8 @@ import type { DragEndEvent } from "@dnd-kit/core";
 
 export default function CRMPage() {
   const { data: prospects = [], isLoading, isError, isFetching, refetch } = useProspects();
-  const { data: quotes = [] } = useQuotesLite();
+  const quoteNumbers = useCrmQuoteNumbers(prospects.flatMap((prospect) => prospect.quoteId ? [prospect.quoteId] : []));
+  const quotes = quoteNumbers.isError ? [] : (quoteNumbers.data ?? []);
   const { canCloseDeal, assertCanClose } = useProspectGuard();
   const canWrite = useHasModuleAccess("CRM / Prospectos", "full");
   const createProspect = useCreateProspect();
@@ -138,6 +139,11 @@ export default function CRMPage() {
             pipelineTotalLabel={formatCurrency(pipelineTotal)}
           />
 
+          {quoteNumbers.isError && (
+            <p role="alert" className="px-4 text-sm text-destructive">
+              No se pudieron cargar los folios vinculados. <button type="button" className="underline" onClick={() => { void quoteNumbers.refetch(); }}>Reintentar</button>
+            </p>
+          )}
           <div className="flex-1 relative">
             <div className="pointer-events-none absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-background to-transparent z-10" />
             <div className="h-full overflow-x-auto p-4 scroll-smooth">
