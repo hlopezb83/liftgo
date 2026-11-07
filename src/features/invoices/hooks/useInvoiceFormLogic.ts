@@ -196,7 +196,7 @@ export function useInvoiceFormLogic({ id, fromQuoteId, extensionId = null }: Use
   const { relatedQuoteIds, chargeAvailability, bookingSourceBlock, chargeAvailabilityError } = useInvoiceQuoteCharges({
     form, bookings, invoiceBookingsRows, existing, fromQuoteId, currentInvoiceId: id,
   });
-  const { quoteChargePrefillError } = useInvoicePrefill({ existing, sourceQuote, assignments, forklifts, customers, isEdit, form, existingBookingIds,
+  const { quoteChargePrefillError, sourceQuoteVersion } = useInvoicePrefill({ existing, sourceQuote, assignments, forklifts, customers, isEdit, form, existingBookingIds,
     chargeAvailability: chargeAvailability.isError ? undefined : chargeAvailability.data });
   const { handleCustomerSelect, handleBookingSelect, handleBookingsChange, isLoadingCharges, chargeSelectionError, retryChargeSelection } = useInvoiceFormHandlers({
     form, customers, bookings: periods.handlerBookings, forklifts, quotes: bookingSourceQuotes,
@@ -292,6 +292,7 @@ export function useInvoiceFormLogic({ id, fromQuoteId, extensionId = null }: Use
     invoiceVersion,
     customers, availableBookings,
     sourceQuote,
+    sourceQuoteVersion,
     saleAssignmentGuard,
     serverSaleAssignmentBlock,
     extension,
@@ -307,7 +308,6 @@ export function useInvoiceFormLogic({ id, fromQuoteId, extensionId = null }: Use
     },
     isLoadingChargeAvailability: [bookingsQuery.isFetching, isLoadingCharges, chargeAvailability.isFetching, periods.isFetching].some(Boolean),
     saveInvoice: submit.saveInvoice,
-    updateQuote: submit.updateQuote,
     subtotal: totals.subtotal, taxAmount: totals.taxAmount, total: totals.total,
     isPending: submit.isPending,
   };

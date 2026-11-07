@@ -3,6 +3,7 @@ import type { Database } from "@/integrations/supabase/types";
 
 type RpcName =
   | keyof Database["public"]["Functions"]
+  | "save_invoice_with_sources"
   | "complete_delivery"
   | "get_cash_flow_recurring_bookings"
   | "get_feedback_reports_by_status"

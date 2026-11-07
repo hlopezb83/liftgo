@@ -1,4 +1,6 @@
 import { useQueryClient } from "@tanstack/react-query";
+import { bookingKeys } from "@/features/bookings";
+import { quoteKeys } from "@/features/quotes";
 import { reportKeys } from "@/features/reports";
 import { supabase } from "@/integrations/supabase/client";
 import type { TablesInsert, TablesUpdate } from "@/integrations/supabase/types";
@@ -6,7 +8,7 @@ import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
 import { callRpc } from "@/lib/rpc";
 import type { BusinessBlock } from "@/lib/rules/businessBlocks";
 import { assertRowsAffected } from "@/lib/supabase/assertRowsAffected";
-import { buildInvoiceSaveRpcArgs, readSavedInvoice, type SaveInvoiceWithBookingsArgs } from "../../lib/invoiceSaveContract";
+import { buildInvoiceSaveRequest, readSavedInvoice, type SaveInvoiceWithBookingsArgs } from "../../lib/invoiceSaveContract";
 import { invoiceBookingKeys, invoiceKeys } from "../../lib/queryKeys";
 export type { SaveInvoiceWithBookingsArgs } from "../../lib/invoiceSaveContract";
 
@@ -50,21 +52,22 @@ export function useSaveInvoiceWithBookings(opts?: { onBusinessBlock?: (block: Bu
   const queryClient = useQueryClient();
   return useEntityMutation({
     mutationFn: async (args: SaveInvoiceWithBookingsArgs) => {
-      const data = await callRpc<unknown>("save_invoice_with_bookings", buildInvoiceSaveRpcArgs(args));
+      const request = buildInvoiceSaveRequest(args);
+      const data = await callRpc<unknown>(request.name, request.args);
       try {
         return readSavedInvoice(data, args.invoiceId);
       } catch (error) {
         // The transaction may have committed despite an unreadable receipt.
         // Refresh readers, never retry the write or run success callbacks.
         await Promise.allSettled(
-          [invoiceKeys.all, reportKeys.all, invoiceBookingKeys.all].map(
+          [invoiceKeys.all, reportKeys.all, invoiceBookingKeys.all, bookingKeys.all, quoteKeys.all].map(
             (queryKey) => queryClient.invalidateQueries({ queryKey }),
           ),
         );
         throw error;
       }
     },
-    invalidateKeys: [invoiceKeys.all, reportKeys.all, invoiceBookingKeys.all],
+    invalidateKeys: [invoiceKeys.all, reportKeys.all, invoiceBookingKeys.all, bookingKeys.all, quoteKeys.all],
     errorTitle: "Error al guardar factura",
     onBusinessBlock: opts?.onBusinessBlock,
   });

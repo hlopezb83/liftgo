@@ -10,7 +10,7 @@ import type { UseFormReturn } from "react-hook-form";
 interface Props {
   chargeAvailability?: QuoteChargeAvailability;
   existing: (ExistingInvoice & { id: string }) | null | undefined;
-  sourceQuote: SourceQuote | null | undefined;
+  sourceQuote: (SourceQuote & { version?: number }) | null | undefined;
   assignments: Assignment[] | undefined;
   forklifts: Forklift[] | undefined;
   customers: Customer[] | undefined;
@@ -76,10 +76,20 @@ function hydrateCustomerFiscalFields(
   }
 }
 
+interface QuoteSnapshot { id: string; version: number | null }
+function captureQuoteSnapshot(quote: Props["sourceQuote"]): QuoteSnapshot | null {
+  return quote?.id ? { id: quote.id, version: quote.version ?? null } : null;
+}
+function snapshotVersion(snapshot: QuoteSnapshot | null, quote: Props["sourceQuote"], isEdit: boolean) {
+  if (isEdit || !snapshot || snapshot.id !== quote?.id) return null;
+  return snapshot.version;
+}
+
 export function useInvoicePrefill({
   existing, sourceQuote, assignments, forklifts, customers, isEdit, form, existingBookingIds, chargeAvailability,
 }: Props) {
   const prefilledQuote = useRef<string | undefined>(undefined);
+  const [quoteSnapshot, setQuoteSnapshot] = useState<QuoteSnapshot | null>(null);
   const [quoteChargePrefillError, setQuoteChargePrefillError] = useState<string | null>(null);
   const invoiceHydration = useRef<InvoiceHydration | null>(null);
   const invoiceId = existing?.id;
@@ -139,10 +149,14 @@ export function useInvoicePrefill({
         form.setValue("lineItems", [...values.lineItems, ...enteredLines], { shouldDirty: true });
       }
       prefilledQuote.current = sourceQuote.id;
+      // Capture the optimistic version with the exact values entering the form.
+      // Later refetches must not authorize this older draft with a newer version.
+      setQuoteSnapshot(captureQuoteSnapshot(sourceQuote));
       setQuoteChargePrefillError(null);
     } catch (error) {
       setQuoteChargePrefillError(error instanceof Error ? error.message : "No se pudieron verificar los cargos de la cotización.");
     }
   }, [sourceQuote, customers, isEdit, assignments, forklifts, chargeAvailability]);
-  return { quoteChargePrefillError };
+  const sourceQuoteVersion = snapshotVersion(quoteSnapshot, sourceQuote, isEdit);
+  return { quoteChargePrefillError, sourceQuoteVersion };
 }

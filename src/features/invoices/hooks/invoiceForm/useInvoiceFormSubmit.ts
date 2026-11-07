@@ -1,4 +1,3 @@
-import { useUpdateQuote } from "@/features/quotes";
 import { orEmpty } from "@/lib/coerce";
 import { monthBounds } from "@/lib/date/monthBounds";
 import { toYMD } from "@/lib/date/toYMD";
@@ -81,7 +80,6 @@ interface UseInvoiceFormSubmitOpts {
  */
 export function useInvoiceFormSubmit(opts?: UseInvoiceFormSubmitOpts) {
   const saveInvoice = useSaveInvoiceWithBookings({ onBusinessBlock: opts?.onBusinessBlock });
-  const updateQuote = useUpdateQuote();
 
   const buildPayload = ({ values, isEdit, fromQuoteId, existingBookingId, existingQuoteId }: BuildPayloadArgs) => {
     const { bookingIds, customerId, customerName, lineItems, taxRate, dueDate, issueDate, notes, cfdi } = values;
@@ -114,7 +112,7 @@ export function useInvoiceFormSubmit(opts?: UseInvoiceFormSubmitOpts) {
   };
 
   return {
-    saveInvoice, updateQuote,
+    saveInvoice,
     buildPayload,
     isPending: saveInvoice.isPending,
   };
