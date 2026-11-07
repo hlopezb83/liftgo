@@ -35,10 +35,15 @@ START_EXCLUDES = {
 # are unchanged. 0126 creates an empty historical ledger with scoped RLS and
 # invoker triggers, closes only its new objects' inherited ACLs, and contains
 # no HTTP/cron operations or business-data writes.
+# Reviewed invoice-source transaction reconstruction on base 1160d397:
+# only 0127 and its journal entry are added; all earlier sources are unchanged.
+# 0127 adds an INVOKER function with scoped ACLs. Its business writes execute
+# only when called; the migration performs no business-data writes, HTTP or cron.
+# The resulting migration tree matches the previously reviewed dfa04efa tree.
 # Any subsequent history change requires explicit source review.
 SOURCE_TREES = {
     "supabase/migrations": "3e3575f5ff6d509ecdd624ae7fc1772508b5dce6",
-    "drizzle/migrations": "e5056ad079bdda42190e5601978d38e54f81a02f",
+    "drizzle/migrations": "dfa04efa2f150d9a742ebf780e614190bc95512c",
 }
 HTTP_SOURCES = {
     "20260721000000_retry_queue_cron.sql": "2aecccd0758961f41769d9fed522d03df14937650b9dde80fce47646a1fa6887",

@@ -22,6 +22,10 @@ const rpcCalls: Array<{ name: string; args: unknown }> = [];
 vi.mock("@/integrations/supabase/client", () => ({
   supabase: createSupabaseChainMock({
     rpcResolvers: {
+      save_invoice_with_sources: (args: unknown) => {
+        rpcCalls.push({ name: "save_invoice_with_sources", args });
+        return rpcResp;
+      },
       save_invoice_with_bookings: (args: unknown) => {
         rpcCalls.push({ name: "save_invoice_with_bookings", args });
         return rpcResp;
@@ -158,7 +162,7 @@ describe("save confirmation boundary", () => {
     await waitFor(() => expect(result.current.isError).toBe(true));
     expect(onSuccess).not.toHaveBeenCalled();
     expect(invalidate.mock.calls.map(([options]) => options?.queryKey)).toEqual([
-      ["invoices"], ["report"], ["invoice_bookings"],
+      ["invoices"], ["report"], ["invoice_bookings"], ["bookings"], ["quotes"],
     ]);
     expect(rpcCalls).toHaveLength(1);
   });
@@ -197,4 +201,39 @@ describe("uncertain invoice receipt cache recovery", () => {
     expect(result.current.error?.message).toMatch(/stale_write/);
     expect(invalidate).not.toHaveBeenCalled();
   });
+});
+
+describe("invoice source transaction", () => {
+  it("uses one RPC for all links", async () => {
+    rpcResp = { data: [{ id: "inv-1", invoice_number: "BORRADOR-1" }], error: null };
+    rpcCalls.length = 0;
+    const { Wrapper } = createQueryWrapper();
+    const { result } = renderHook(() => useSaveInvoiceWithBookings(), { wrapper: Wrapper });
+    result.current.mutate({ payload, bookingIds: ["b-1"], extensionId: "ext-1", acceptQuoteId: "q-1", quoteExpectedVersion: 3 });
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+    expect(rpcCalls).toEqual([{ name: "save_invoice_with_sources", args: { p_invoice: payload, p_booking_ids: ["b-1"], p_invoice_id: null, p_expected_version: null, p_damage_id: null, p_extension_id: "ext-1", p_accept_quote_id: "q-1", p_quote_expected_version: 3 } }]);
+  });
+  it("does not fallback or announce success when the source RPC is unavailable", async () => {
+    rpcResp = { data: null, error: { message: "Function not found", code: "PGRST202" } };
+    rpcCalls.length = 0;
+    const onSuccess = vi.fn();
+    const { Wrapper } = createQueryWrapper();
+    const { result } = renderHook(() => useSaveInvoiceWithBookings(), { wrapper: Wrapper });
+    result.current.mutate({ payload, bookingIds: [], extensionId: "ext-1" }, { onSuccess });
+    await waitFor(() => expect(result.current.isError).toBe(true));
+    expect(rpcCalls).toHaveLength(1);
+    expect(rpcCalls[0].name).toBe("save_invoice_with_sources");
+    expect(onSuccess).not.toHaveBeenCalled();
+  });
+});
+
+it("refreshes source readers after an uncertain source receipt without another write", async () => {
+  rpcResp = { data: {}, error: null }; rpcCalls.length = 0;
+  const { Wrapper, queryClient } = createQueryWrapper();
+  const invalidate = vi.spyOn(queryClient, "invalidateQueries"); const onSuccess = vi.fn();
+  const { result } = renderHook(() => useSaveInvoiceWithBookings(), { wrapper: Wrapper });
+  result.current.mutate({ payload, bookingIds: [], extensionId: "ext-1", acceptQuoteId: "q-1", quoteExpectedVersion: 4 }, { onSuccess });
+  await waitFor(() => expect(result.current.isError).toBe(true));
+  expect(invalidate.mock.calls.map(([options]) => options?.queryKey)).toEqual([["invoices"], ["report"], ["invoice_bookings"], ["bookings"], ["quotes"]]);
+  expect(onSuccess).not.toHaveBeenCalled(); expect(rpcCalls).toHaveLength(1);
 });
