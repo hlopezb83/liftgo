@@ -9,12 +9,15 @@ import type { Customer } from "../../../hooks/invoiceForm/invoiceFormBuilders";
 
 afterEach(cleanup);
 
-const mocks = vi.hoisted(() => ({ remote: {} as Record<string, unknown> }));
+const mocks = vi.hoisted(() => ({
+  remote: {} as Record<string, unknown>,
+  detail: undefined as Record<string, unknown> | undefined,
+}));
 vi.mock("@/features/customers", async () => ({
   CustomerSelector: (await import("@/features/customers/components/customers/CustomerSelector")).CustomerSelector,
 }));
 vi.mock("@/features/customers/hooks/customers/customerQueries", () => ({
-  useCustomer: () => ({ data: mocks.remote }),
+  useCustomer: () => ({ data: mocks.detail }),
   useCustomerSelectorSearch: (term: string, open: boolean) => ({
     data: open && term.length >= 2 ? { customers: [mocks.remote], isTruncated: false } : undefined,
     isSearchPending: false, isFetching: false, isError: false,
@@ -24,8 +27,11 @@ vi.mock("../../../hooks/invoices/useNextInvoiceNumber", () => ({ useNextInvoiceN
 
 const initial: Customer = { id: "a", name: "Cliente anterior", rfc: "AAA010101AAA", razon_social: "Anterior SA",
   regimen_fiscal: "601", domicilio_fiscal_cp: "64000", uso_cfdi: "I03", tax_rate: 8 };
-const customers = [initial, ...Array.from({ length: 500 }, (_, i) => ({ id: `filler-${i}`, name: `Cliente ${i}` }))];
-function Harness() {
+const initialCustomers = [initial];
+// Exercise the real capped-list boundary once; receiver-state cases do not need
+// to repeatedly mount 500 unrelated cmdk options just to select a remote DTO.
+const cappedCustomers = [initial, ...Array.from({ length: 500 }, (_, i) => ({ id: `filler-${i}`, name: `Cliente ${i}` }))];
+function Harness({ customers = initialCustomers }: { customers?: Customer[] }) {
   const values = buildEmptyInvoiceValues();
   values.customerId = initial.id;
   values.customerName = initial.name;
@@ -48,23 +54,37 @@ async function selectRemote() {
   fireEvent.click(await screen.findByRole("option", { name: "Cliente remoto" }));
 }
 describe("invoice customer selection across the capped list boundary", () => {
-  beforeEach(() => { mocks.remote = { id: "remote-902", name: "Cliente remoto", rfc: "BBB010101BBB",
+  beforeEach(() => { mocks.detail = undefined; mocks.remote = { id: "remote-902", name: "Cliente remoto", rfc: "BBB010101BBB",
     razon_social: "Remoto SA", regimen_fiscal: "612", domicilio_fiscal_cp: "03100", uso_cfdi: "G01", tax_rate: 0 }; });
   it("preserves the saved receiver snapshot until the user selects a customer", () => {
     render(<Harness />);
     expect(state()).toMatchObject({ customerId: "a", taxRate: 8, cfdi: { receptorRfc: "AAA010101AAA",
       receptorRazonSocial: "Anterior SA", receptorRegimenFiscal: "601", receptorDomicilioFiscalCp: "64000", usoCfdi: "I03" } });
   });
-  it("keeps the most recent of consecutive remote selections without a stale detail response", async () => {
-    render(<Harness />);
+  it("keeps the latest remote selection when detail responses arrive out of order", async () => {
+    const { rerender } = render(<Harness />);
+    const firstRemote = mocks.remote;
     await selectRemote();
+    expect(state()).toMatchObject({ customerId: "remote-902", taxRate: 0, cfdi: { receptorRfc: "BBB010101BBB" } });
     mocks.remote = { id: "remote-903", name: "Cliente remoto", rfc: "CCC010101CCC", tax_rate: 8, uso_cfdi: "G02" };
     await selectRemote();
-    expect(state()).toMatchObject({ customerId: "remote-903", taxRate: 8,
-      cfdi: { receptorRfc: "CCC010101CCC", usoCfdi: "G02", receptorRegimenFiscal: "", receptorDomicilioFiscalCp: "" } });
+    const latestReceiver = { customerId: "remote-903", taxRate: 8,
+      cfdi: { receptorRfc: "CCC010101CCC", usoCfdi: "G02", receptorRegimenFiscal: "", receptorDomicilioFiscalCp: "" } };
+    expect(state()).toMatchObject(latestReceiver);
+    // The latest detail arrives first, then a stale response for the previous
+    // customer. Neither response may overwrite the explicitly selected DTO.
+    mocks.detail = mocks.remote;
+    rerender(<Harness />);
+    expect(state()).toMatchObject(latestReceiver);
+    mocks.detail = firstRemote;
+    rerender(<Harness />);
+    expect(state()).toMatchObject(latestReceiver);
   });
-  it("replaces the previous receiver using the remote result, including an explicit zero VAT", async () => {
-    render(<Harness />);
+  it("replaces the previous receiver beyond the capped list, including an explicit zero VAT", async () => {
+    render(<Harness customers={cappedCustomers} />);
+    expect(cappedCustomers).toHaveLength(501);
+    expect(screen.getByText(/Hay más clientes en la cartera/)).toBeInTheDocument();
+    expect(cappedCustomers.some((customer) => customer.id === mocks.remote.id)).toBe(false);
     await selectRemote();
     expect(state()).toMatchObject({ customerId: "remote-902", customerName: "Cliente remoto", taxRate: 0,
       cfdi: { receptorRfc: "BBB010101BBB", receptorRazonSocial: "Remoto SA", receptorRegimenFiscal: "612",
