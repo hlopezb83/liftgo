@@ -8597,6 +8597,87 @@ export type Database = {
               isSetofReturn: true
             }
           }
+      save_invoice_with_sources: {
+        Args: {
+          p_accept_quote_id?: string
+          p_booking_ids?: string[]
+          p_damage_id?: string
+          p_expected_version?: number
+          p_extension_id?: string
+          p_invoice: Json
+          p_invoice_id?: string
+          p_quote_expected_version?: number
+        }
+        Returns: {
+          acuse_pdf_url: string | null
+          acuse_xml_url: string | null
+          billing_period_end: string | null
+          billing_period_start: string | null
+          booking_id: string | null
+          cancellation_motive: string | null
+          cancellation_reason: string | null
+          cancellation_requested_at: string | null
+          cancellation_status: string
+          cancelled_at: string | null
+          cfdi_error_message: string | null
+          cfdi_pdf_url: string | null
+          cfdi_status: string | null
+          cfdi_uuid: string | null
+          cfdi_xml: string | null
+          cfdi_xml_pending: boolean
+          cfdi_xml_url: string | null
+          created_at: string
+          customer_id: string | null
+          customer_name: string | null
+          due_date: string | null
+          e2e_scope: string | null
+          facturapi_env: string | null
+          facturapi_invoice_id: string | null
+          folio: string | null
+          forma_pago: string | null
+          global_months: string | null
+          global_periodicity: string | null
+          global_year: number | null
+          id: string
+          invoice_number: string
+          invoice_type: string
+          is_e2e: boolean
+          issued_at: string
+          line_items: Json
+          metodo_pago: string | null
+          moneda: string | null
+          notes: string | null
+          organization_id: string
+          paid_at: string | null
+          quote_charge_ever_issued: boolean
+          quote_charge_tracking_version: number | null
+          quote_id: string | null
+          receptor_domicilio_fiscal_cp: string | null
+          receptor_razon_social: string | null
+          receptor_regimen_fiscal: string | null
+          receptor_rfc: string | null
+          serie: string | null
+          stamp_variance: number | null
+          stamp_variance_checked_at: string | null
+          stamping_attempts: number
+          status: string
+          substitution_uuid: string | null
+          subtotal: number
+          tax_amount: number
+          tax_rate: number
+          tipo_cambio: number | null
+          total: number
+          updated_at: string
+          uso_cfdi: string | null
+          version: number
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "invoices"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
       save_manual_damage_report: {
         Args: {
           p_customer_id?: string
