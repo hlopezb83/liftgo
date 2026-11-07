@@ -8,7 +8,13 @@ import { SearchBar } from "../SearchBar";
  */
 describe("SearchBar (V26-04)", () => {
   it("expone nombre accesible contextual aunque haya texto escrito", () => {
-    render(<SearchBar value="mont" onChange={vi.fn()} placeholder="Buscar facturas…" />);
+    render(
+      <SearchBar
+        value="mont"
+        onChange={vi.fn()}
+        placeholder="Buscar facturas…"
+      />,
+    );
     const input = screen.getByRole("searchbox", { name: "Buscar facturas…" });
     expect(input).toHaveValue("mont");
   });
@@ -32,10 +38,19 @@ describe("SearchBar (V26-04)", () => {
 
   it("muestra el botón de limpiar cuando hay texto y lo limpia al hacer clic", () => {
     const onChange = vi.fn();
-    render(<SearchBar value="test" onChange={onChange} placeholder="Buscar…" debounceMs={0} />);
+    render(
+      <SearchBar
+        value="test"
+        onChange={onChange}
+        placeholder="Buscar…"
+        debounceMs={0}
+      />,
+    );
 
     // El botón de limpiar debe existir
-    const clearButton = screen.getByRole("button", { name: "Limpiar búsqueda" });
+    const clearButton = screen.getByRole("button", {
+      name: "Limpiar búsqueda",
+    });
     expect(clearButton).toBeInTheDocument();
 
     // Hacer clic en limpiar
@@ -45,5 +60,48 @@ describe("SearchBar (V26-04)", () => {
     const input = screen.getByRole("searchbox");
     expect(input).toHaveValue("");
     expect(input).toHaveFocus();
+  });
+
+  it("limpia el texto al presionar Escape cuando hay texto ingresado", () => {
+    const onChange = vi.fn();
+    render(
+      <SearchBar
+        value="consulta inicial"
+        onChange={onChange}
+        placeholder="Buscar…"
+        debounceMs={0}
+      />,
+    );
+
+    const input = screen.getByRole("searchbox");
+    expect(input).toHaveValue("consulta inicial");
+
+    // Presionar Escape con texto presente
+    fireEvent.keyDown(input, { key: "Escape" });
+
+    // El input debe vaciarse
+    expect(input).toHaveValue("");
+  });
+
+  it("desenfoca el input al presionar Escape si ya está vacío", () => {
+    const onChange = vi.fn();
+    render(
+      <SearchBar
+        value=""
+        onChange={onChange}
+        placeholder="Buscar…"
+        debounceMs={0}
+      />,
+    );
+
+    const input = screen.getByRole("searchbox");
+    input.focus();
+    expect(input).toHaveFocus();
+
+    // Presionar Escape cuando ya está vacío
+    fireEvent.keyDown(input, { key: "Escape" });
+
+    // El input debe perder el foco
+    expect(input).not.toHaveFocus();
   });
 });

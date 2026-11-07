@@ -7,7 +7,6 @@ import { Input } from "@/components/ui/input";
 import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 import { cn } from "@/lib/utils";
 
-
 interface SearchBarProps {
   value: string;
   onChange: (value: string) => void;
@@ -61,7 +60,6 @@ export function SearchBar({
     emit(debounced);
   }, [debounced]);
 
-
   useHotkeys(
     "mod+k",
     (e) => {
@@ -76,9 +74,24 @@ export function SearchBar({
     inputRef.current?.focus();
   };
 
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Escape") {
+      if (local) {
+        e.preventDefault();
+        setLocal("");
+      } else {
+        inputRef.current?.blur();
+      }
+    }
+  };
+
   const prClass = captureCtrlK
-    ? local ? "pr-24" : "pr-16"
-    : local ? "pr-9" : "pr-3";
+    ? local
+      ? "pr-24"
+      : "pr-16"
+    : local
+      ? "pr-9"
+      : "pr-3";
 
   return (
     <div className={`relative flex-1 ${className}`}>
@@ -90,6 +103,7 @@ export function SearchBar({
         aria-label={ariaLabel ?? placeholder}
         value={local}
         onChange={(e) => setLocal(e.target.value)}
+        onKeyDown={handleKeyDown}
         className={cn("pl-9", prClass)}
         data-testid={testId}
       />
