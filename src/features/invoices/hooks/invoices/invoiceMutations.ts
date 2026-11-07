@@ -1,14 +1,14 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { reportKeys } from "@/features/reports";
 import { supabase } from "@/integrations/supabase/client";
-import type { Json, Tables, TablesInsert, TablesUpdate } from "@/integrations/supabase/types";
+import type { TablesInsert, TablesUpdate } from "@/integrations/supabase/types";
 import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
 import { callRpc } from "@/lib/rpc";
 import type { BusinessBlock } from "@/lib/rules/businessBlocks";
 import { assertRowsAffected } from "@/lib/supabase/assertRowsAffected";
+import { buildInvoiceSaveRpcArgs, readSavedInvoice, type SaveInvoiceWithBookingsArgs } from "../../lib/invoiceSaveContract";
 import { invoiceBookingKeys, invoiceKeys } from "../../lib/queryKeys";
-
-type InvoiceRow = Tables<"invoices">;
+export type { SaveInvoiceWithBookingsArgs } from "../../lib/invoiceSaveContract";
 
 export function useCreateInvoice(opts?: { onBusinessBlock?: (block: BusinessBlock) => void }) {
   return useEntityMutation({
@@ -34,17 +34,6 @@ export function useCreateInvoice(opts?: { onBusinessBlock?: (block: BusinessBloc
   });
 }
 
-export interface SaveInvoiceWithBookingsArgs {
-  payload: Omit<TablesInsert<"invoices">, "invoice_number" | "organization_id">;
-  bookingIds: string[];
-  /** null/undefined → crear; uuid → editar. */
-  invoiceId?: string | null;
-  /** R4-25: versión de la factura al abrir el formulario (sólo edición). */
-  expectedVersion?: number | null;
-  /** Daño reparado que se liga a la factura dentro de la misma transacción. */
-  damageId?: string | null;
-}
-
 /**
  * Regresión v7.423.0 (P1): guardado transaccional de factura + reservas.
  * UN solo RPC (`save_invoice_with_bookings`, SECURITY INVOKER — aplican las
@@ -58,23 +47,22 @@ export interface SaveInvoiceWithBookingsArgs {
  * conflicto regresa el mensaje canónico "stale_write…".
  */
 export function useSaveInvoiceWithBookings(opts?: { onBusinessBlock?: (block: BusinessBlock) => void }) {
+  const queryClient = useQueryClient();
   return useEntityMutation({
-    mutationFn: async ({ payload, bookingIds, invoiceId, expectedVersion, damageId }: SaveInvoiceWithBookingsArgs) => {
-      const rpcArgs = {
-        p_invoice: payload as unknown as Json,
-        p_booking_ids: bookingIds,
-        // El overload con daño requiere los cinco argumentos para que PostgREST
-        // lo resuelva sin ambigüedad; el flujo ordinario conserva los defaults.
-        p_invoice_id: damageId ? (invoiceId ?? null) : (invoiceId ?? undefined),
-        p_expected_version: damageId ? (expectedVersion ?? null) : (expectedVersion ?? undefined),
-        ...(damageId ? { p_damage_id: damageId } : {}),
-      };
-      // callRpc mantiene el cast aislado fuera de los tipos generados. El
-      // overload de cinco parámetros se incorporará al regenerar Supabase.
-      const data = await callRpc<InvoiceRow[]>("save_invoice_with_bookings", rpcArgs);
-      const row = (Array.isArray(data) ? data[0] : data) as InvoiceRow | undefined;
-      if (!row) throw new Error("No se pudo guardar la factura.");
-      return row;
+    mutationFn: async (args: SaveInvoiceWithBookingsArgs) => {
+      const data = await callRpc<unknown>("save_invoice_with_bookings", buildInvoiceSaveRpcArgs(args));
+      try {
+        return readSavedInvoice(data, args.invoiceId);
+      } catch (error) {
+        // The transaction may have committed despite an unreadable receipt.
+        // Refresh readers, never retry the write or run success callbacks.
+        await Promise.allSettled(
+          [invoiceKeys.all, reportKeys.all, invoiceBookingKeys.all].map(
+            (queryKey) => queryClient.invalidateQueries({ queryKey }),
+          ),
+        );
+        throw error;
+      }
     },
     invalidateKeys: [invoiceKeys.all, reportKeys.all, invoiceBookingKeys.all],
     errorTitle: "Error al guardar factura",
