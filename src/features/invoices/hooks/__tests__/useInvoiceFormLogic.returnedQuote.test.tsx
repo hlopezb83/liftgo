@@ -24,10 +24,10 @@ const data = vi.hoisted(() => {
     returns: [{ booking_id: bookingId, forklift_id: forklift.id, inspected_at: "2026-10-10T18:00:00Z" }],
     empty: [], charges, refetch: vi.fn(), load: vi.fn().mockResolvedValue(charges), mutate: vi.fn() };
 });
-vi.mock("@/features/bookings", () => ({
-  useBookings: () => ({ data: data.bookings, refetch: data.refetch }),
-  useBookingExtension: () => ({ data: undefined }),
+vi.mock("../invoices/useInvoiceBookingCandidates", () => ({
+  useInvoiceBookingCandidates: () => ({ isSuccess: true, data: data.bookings, refetch: data.refetch }),
 }));
+vi.mock("@/features/bookings", () => ({ useBookingExtension: () => ({ data: undefined }) }));
 vi.mock("@/features/customers", () => ({ useCustomers: () => ({ data: data.customers }) }));
 vi.mock("@/features/fleet", () => ({
   useForklifts: () => ({ data: data.forklifts }), useQuoteAssignments: () => ({ data: data.empty }),

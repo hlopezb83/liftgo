@@ -1,7 +1,7 @@
 
 import { useState } from "react";
 import { useForm, useWatch } from "react-hook-form";
-import { useBookings, type BookingWithForklift } from "@/features/bookings";
+import type { BookingWithForklift } from "@/features/bookings";
 import { useCustomers } from "@/features/customers";
 import { useForklifts, useQuoteAssignments } from "@/features/fleet";
 import { useQuote, useQuoteSaleAssignmentStatus, useQuotesByIds } from "@/features/quotes";
@@ -33,6 +33,7 @@ import { useInvoiceFormSubmit } from "./invoiceForm/useInvoiceFormSubmit";
 import { useInvoiceFormTotals } from "./invoiceForm/useInvoiceFormTotals";
 import { useInvoicePrefill } from "./invoiceForm/useInvoicePrefill";
 import { invoiceChargeBlock, useInvoiceQuoteCharges } from "./invoiceForm/useInvoiceQuoteCharges";
+import { useInvoiceBookingCandidates } from "./invoices/useInvoiceBookingCandidates";
 import { useInvoiceBookings } from "./invoices/useInvoiceBookings";
 import { useInvoice } from "./invoices/useInvoices";
 import { useExtensionPrefill } from "./useExtensionPrefill";
@@ -128,13 +129,28 @@ function filterAvailableBookings(
   );
 }
 
+function linkedCandidateIds(ids: string[], existing?: ExistingInvoice | null) {
+  return existing?.booking_id ? [...ids, existing.booking_id] : ids;
+}
+
+function candidateAvailabilityBlock(query: { isError: boolean; isSuccess: boolean }) {
+  if (query.isError) return "No se pudieron consultar las reservas facturables. Reintenta la consulta.";
+  return query.isSuccess ? null : "Espera a que carguen las reservas facturables.";
+}
+
+function selectedCandidateBlock(ids: string[] | undefined, block: string | null) {
+  return ids?.length ? block : null;
+}
+
+function selectedBillingBookings(ids: string[] | undefined, bookings: BillableBooking[] | undefined): BillableBooking[] {
+  return (ids ?? []).flatMap((id) => bookings?.find((booking) => booking.id === id) ?? []);
+}
+
 export function useInvoiceFormLogic({ id, fromQuoteId, extensionId = null }: UseInvoiceFormLogicArgs) {
 
   const isEdit = !!id;
   const quoteId = fromQuoteId || undefined;
 
-  const bookingsQuery = useBookings();
-  const { data: bookings } = bookingsQuery;
   const { data: forklifts } = useForklifts();
   const { data: customers } = useCustomers();
   const { data: existing, isLoading: isLoadingExisting } = useInvoice(id);
@@ -143,6 +159,9 @@ export function useInvoiceFormLogic({ id, fromQuoteId, extensionId = null }: Use
   const invoiceBookingsQuery = useInvoiceBookings(id);
   const { data: invoiceBookingsRows } = invoiceBookingsQuery;
   const existingBookingIds = (invoiceBookingsRows ?? []).map((r) => r.booking_id);
+  const bookingsQuery = useInvoiceBookingCandidates(linkedCandidateIds(existingBookingIds, existing));
+  const { data: bookings } = bookingsQuery;
+  const candidatesBlock = candidateAvailabilityBlock(bookingsQuery);
   const periods = useInvoiceBookingPeriods({ bookings, forklifts, isEdit, id, extensionId, existing, existingBookingIds });
 
   const invoiceVersion = useInitialRecordVersion(id, existing?.id, existing?.version);
@@ -232,11 +251,11 @@ export function useInvoiceFormLogic({ id, fromQuoteId, extensionId = null }: Use
   const validateSelection = (
     values: InvoiceFormValues,
   ): { field: "bookingIds" | "billingPeriodStart" | "lineItems"; message: string } | null => {
+    const candidateError = selectedCandidateBlock(values.bookingIds, candidatesBlock);
+    if (candidateError) return { field: "bookingIds", message: candidateError };
     const chargeError = chargeBlock || quoteChargeSelectionError(relatedQuoteIds, values.lineItems, chargeAvailability.data);
     if (chargeError) return { field: "lineItems", message: chargeError };
-    const selected = (values.bookingIds ?? [])
-      .map((bid) => periods.billingBookings?.find((b) => b.id === bid))
-      .filter(Boolean) as unknown as BillableBooking[];
+    const selected = selectedBillingBookings(values.bookingIds, periods.billingBookings);
     const periodError = bookingPeriodSelectionError(values.bookingIds ?? [], selected, periods.claims,
       values.billingPeriodStart, values.billingPeriodEnd, periods.linkedBlock(values.bookingIds), id);
     if (periodError) return periodError;
@@ -280,13 +299,13 @@ export function useInvoiceFormLogic({ id, fromQuoteId, extensionId = null }: Use
     onSubmit,
     validateSelection,
     chargeBlock,
-    bookingAvailabilityBlock: periods.availabilityBlock,
+    bookingAvailabilityBlock: [candidatesBlock, periods.availabilityBlock].find(Boolean) ?? null,
     retryChargeAvailability: () => {
-      if (periods.block || periods.invalidHistory) return Promise.all([bookingsQuery.refetch(), periods.refetch()]);
+      if ([candidatesBlock, periods.block, periods.invalidHistory].some(Boolean)) return Promise.all([bookingsQuery.refetch(), periods.refetch()]);
       if (bookingSourceBlock) return Promise.all([bookingsQuery.refetch(), invoiceBookingsQuery.refetch()]);
       return chargeSelectionError ? retryChargeSelection() : chargeAvailability.refetch();
     },
-    isLoadingChargeAvailability: isLoadingCharges || chargeAvailability.isFetching || periods.isFetching,
+    isLoadingChargeAvailability: [bookingsQuery.isFetching, isLoadingCharges, chargeAvailability.isFetching, periods.isFetching].some(Boolean),
     saveInvoice: submit.saveInvoice,
     updateQuote: submit.updateQuote,
     subtotal: totals.subtotal, taxAmount: totals.taxAmount, total: totals.total,
