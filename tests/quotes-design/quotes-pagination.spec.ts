@@ -94,13 +94,22 @@ test("server quote pagination and search reach old row 501", async ({ page, cont
   await page.screenshot({ path: `${folder}/${testInfo.project.name}-quotes-server-search.png`, fullPage: true });
   const geometry = await page.evaluate(() => ({ width: innerWidth, scroll: document.documentElement.scrollWidth }));
   expect(geometry.scroll).toBeLessThanOrEqual(geometry.width + 1);
-  if (testInfo.project.name.startsWith("mobile")) await activateListControl(page.getByRole("button", { name: "Filtros", exact: true }));
-  await activateListControl(page.getByRole("combobox", { name: "Filtrar por estado" }));
+  const mobile = testInfo.project.name.startsWith("mobile");
+  // Search is still active, so the accessible trigger is "Filtros activos".
+  if (mobile) await activateListControl(page.getByRole("button", { name: "Filtros activos", exact: true }));
+  const filtersPanel = page.getByRole("dialog", { name: "Filtros", exact: true });
+  await expect(filtersPanel).toHaveCount(Number(mobile));
+  const statusFilter = page.getByRole("combobox", { name: "Filtrar por estado" });
+  await expect(statusFilter).toBeVisible();
+  await activateListControl(statusFilter);
   await activateListControl(page.getByRole("option", { name: "Borradores", exact: true }));
-  if (testInfo.project.name.startsWith("mobile")) await page.keyboard.press("Escape");
+  await expect(statusFilter).toHaveText("Estado: Borradores");
+  if (mobile) await page.keyboard.press("Escape");
+  await expect(filtersPanel).toHaveCount(0);
   await expect(page.getByText("No hay resultados con los filtros actuales")).toBeVisible();
   await activateListControl(page.getByRole("button", { name: "Limpiar filtros", exact: true }).last());
   await expect(page.getByText("1–25 de 501", { exact: true })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Filtros", exact: true })).toHaveCount(Number(mobile));
 
   const teardownErrors = await closeOfflinePages(context);
   writeFileSync(`${folder}/${testInfo.project.name}-quotes-server-network.json`, JSON.stringify({ ...transport, requests, pageErrors, teardownErrors, geometry }, null, 2));

@@ -27,3 +27,11 @@ Pasaron 43 pruebas en cuatro archivos: gesto existente, nuevas interacciones tou
 El bloqueo de un ratón físico en un dispositivo híbrido/táctil antes del primer tap es un comportamiento preexistente del hook compartido y queda fuera de este parche. Corregir la entrada del spec no demuestra que ese caso de uso esté resuelto.
 
 No se relanzó Chromium local tras el bloqueo previo de sockets del entorno. El cambio debe validarse con el rerun de Quality/Playwright en CI sobre su nuevo SHA; las pruebas DOM y la traza explican el fallo, pero no sustituyen esa ejecución. No se subió este parche ni se ejecutó una migración o despliegue.
+
+## Segundo resultado de CI: nombre accesible con búsqueda activa
+
+En el siguiente run `42498688299`, job `128786489848`, artifact `13624299966`, las pruebas móviles superaron navegación anterior con RPC página 19, rango, búsquedas de la fila antigua y captura. El siguiente fallo fue el selector exacto «Filtros»: la traza muestra el botón «Filtros activos» mientras `q=COT-0445` sigue presente. Es el contrato de `FiltersSlot`, ya cubierto por el test de `ListPageLayout`; no se trata de un botón ausente ni de un nuevo fallo táctil.
+
+El ajuste usa el nombre accesible exacto «Filtros activos». Comprueba además el panel móvil, combobox visible, texto exacto «Estado: Borradores», cierre del panel y regreso a «Filtros» después de limpiar. No amplía el selector con un regex permisivo y mantiene el resto de comprobaciones. Sólo cambia el spec y este reporte. Su ejecución Chromium sigue pendiente del siguiente CI; no se cambió código de aplicación ni base de datos.
+
+Validación de este ajuste: 51/51 pruebas DOM/transporte en tres archivos, TypeScript browser y diff-check verdes. Lint Playwright explícito: cero errores y las mismas dos advertencias condicionales preexistentes. No se ejecutó Chromium local.
