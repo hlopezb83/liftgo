@@ -3,6 +3,7 @@
 from importlib.util import module_from_spec, spec_from_file_location
 from pathlib import Path
 import contextlib
+import hashlib
 import io
 import json
 import subprocess
@@ -18,6 +19,41 @@ spec.loader.exec_module(ci)
 
 
 class LocalCiDatabaseTests(unittest.TestCase):
+    def test_receipt133_has_exact_source_identity_and_reviewed_tree_pins(self):
+        root = Path(__file__).parents[2]
+        self.assertEqual(ci.SOURCE_TREES, {
+            "supabase/migrations": "3e3575f5ff6d509ecdd624ae7fc1772508b5dce6",
+            "drizzle/migrations": "9f580d5bfd5344aab55f1cec3a2338526b34cd35",
+        })
+        migrations = root / "drizzle/migrations"
+        journal = json.loads((migrations / "meta/_journal.json").read_text())
+        self.assertEqual(journal["entries"][133], {
+            "idx": 133, "version": "7", "when": 1794173743361,
+            "tag": "0133_control0132_verified_release", "breakpoints": True,
+        })
+        for name, expected in {
+            "0132_inventory_server_page.sql": "f670704eee1b2bd41393240962b08b0e3237998868a8457fc10cb46ac23276a2",
+            "0133_control0132_verified_release.sql": "00e33f75ffe7b626ce4e582621ca6560e3a8d34ff20eaf33638f396de7b9aa92",
+        }.items():
+            with self.subTest(source=name):
+                self.assertEqual(hashlib.sha256((migrations / name).read_bytes()).hexdigest(), expected)
+        snapshot = json.loads((migrations / "meta/0133_snapshot.json").read_text())
+        self.assertEqual(snapshot["prevId"], "23f0bfcb-7b26-46ff-b617-e034f69c9986")
+        self.assertEqual(snapshot["prevId"], json.loads((migrations / "meta/0131_snapshot.json").read_text())["id"])
+        for field in ["tables", "enums", "schemas", "views", "sequences", "roles", "policies"]:
+            self.assertEqual(snapshot[field], {})
+
+    def test_receipt133_old_source_tree_pin_fails_before_sql_inspection(self):
+        old_trees = [
+            "040000 tree 3e3575f5ff6d509ecdd624ae7fc1772508b5dce6\tsupabase/migrations",
+            "040000 tree 9cd9e112058206028074d60be1bc919c2258c9ff\tdrizzle/migrations",
+        ]
+        with mock.patch.object(ci, "command_lines", return_value=old_trees) as commands, \
+                mock.patch.object(ci, "check_http_sources") as inspect_sql, self.assertRaises(ValueError):
+            ci.preflight_sources()
+        self.assertEqual(commands.call_count, 1)
+        inspect_sql.assert_not_called()
+
     def test_remote_and_non_ci_destinations_are_rejected(self):
         for env in ({}, {"DB_URL": ci.LOCAL_DB_URL},
                     {"GITHUB_ACTIONS": "true", "DB_URL": "postgresql://remote/postgres"}):
