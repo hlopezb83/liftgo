@@ -17,6 +17,8 @@ export interface QueryBuilderLike {
   not: (col: string, op: string, val: unknown) => QueryBuilderLike;
   order: (col: string, opts?: Record<string, unknown>) => QueryBuilderLike;
   limit: (n: number) => QueryBuilderLike;
+  gt?: (column: string, value: unknown) => QueryBuilderLike;
+  range?: (from: number, to: number) => QueryBuilderLike;
 
   single: () => Promise<{ data: unknown; error: unknown }>;
   maybeSingle: () => Promise<{ data: unknown; error: unknown }>;
