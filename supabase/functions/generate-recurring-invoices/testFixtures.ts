@@ -44,8 +44,15 @@ export function invoiceFixture(
 type Filters = Array<{ col: string; val: unknown }>;
 export function planningFixture(options: {
   bookings?: ReturnType<typeof bookingFixture>[];
-  linked?: Array<{ invoices: HistoricalInvoice | null }>;
-  direct?: HistoricalInvoice[];
+  linked?: Array<
+    {
+      booking_id?: string;
+      invoices: (HistoricalInvoice & { organization_id?: string }) | null;
+    }
+  >;
+  direct?: Array<
+    HistoricalInvoice & { booking_id?: string; organization_id?: string }
+  >;
   failTable?: string;
 } = {}) {
   const queries: Array<{ table: string; filters: Filters }> = [];
@@ -73,7 +80,9 @@ export function planningFixture(options: {
         response(
           "organization_customers",
           filters,
-          filters.some((filter) => filter.col === "organization_id")
+          !filters.some((filter) =>
+              filter.col === "customer_id" && Array.isArray(filter.val)
+            )
             ? {
               tax_rate: filters.find((filter) =>
                   filter.col === "organization_id"
@@ -95,12 +104,40 @@ export function planningFixture(options: {
                 tax_rate: 8,
                 uso_cfdi: "G03",
               },
-            ],
+            ].filter((row) =>
+              filters.every(({ col, val }) =>
+                Array.isArray(val)
+                  ? val.includes(row[col as keyof typeof row])
+                  : row[col as keyof typeof row] === val
+              )
+            ),
         ),
       invoice_bookings: (filters) =>
-        response("invoice_bookings", filters, options.linked ?? []),
+        response(
+          "invoice_bookings",
+          filters,
+          (options.linked ?? []).map((row) => ({
+            ...row,
+            booking_id: row.booking_id ?? bookings[0]?.id,
+            invoice_id: row.invoices?.id,
+            invoices: row.invoices
+              ? {
+                organization_id: bookings[0]?.organization_id,
+                ...row.invoices,
+              }
+              : null,
+          })),
+        ),
       invoices: (filters) =>
-        response("invoices", filters, options.direct ?? []),
+        response(
+          "invoices",
+          filters,
+          (options.direct ?? []).map((row) => ({
+            booking_id: bookings[0]?.id,
+            organization_id: bookings[0]?.organization_id,
+            ...row,
+          })),
+        ),
       organization_memberships: (filters) =>
         response("organization_memberships", filters, [{
           organization_id: "org-A",

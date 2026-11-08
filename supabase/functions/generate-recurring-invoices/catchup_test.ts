@@ -235,7 +235,7 @@ Deno.test("history: direct + pivot merge overrides stale cursor, cancelled rows 
   for (const table of ["invoice_bookings", "invoices"]) {
     const query = mock.queries.find((query) => query.table === table)!;
     assertEquals(query.filters, [
-      { col: "booking_id", val: "booking-1" },
+      { col: "booking_id", val: ["booking-1"] },
       {
         col: table === "invoices"
           ? "organization_id"
@@ -328,5 +328,8 @@ Deno.test("planner: zero agreed rate is valid, only absent configured rate block
     result.items.map((item) => [item.bookingId, item.billedAmount]),
     [["zero", 0]],
   );
-  assertEquals(result.lines[1].reason, "no_monthly_rate");
+  assertEquals(
+    result.lines.find((line) => line.bookingId === "missing")?.reason,
+    "no_monthly_rate",
+  );
 });
