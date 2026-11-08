@@ -27,7 +27,13 @@ const OPTIONAL_RECEIPT = {
   tag: "0110_control0109_verified_release",
   sha256: "3e99b978f260dedd927dd1104b84b5af74ee524b3d78dff0acd9446c2df2e13f",
 };
-const isPinnedReceipt = (entry) => [RECEIPT.tag, OPTIONAL_RECEIPT.tag].includes(entry.tag);
+const SOURCE_RELEASE_RECEIPT = {
+  idx: 131,
+  tag: "0131_control0129_0130_verified_release",
+  when: 1794160319241,
+  sha256: "f4126e4b47e9bb7cbefdc4d46c1403cec2eea7ce45f29cd5ed3051a2c1c82dba",
+};
+const isPinnedReceipt = (entry) => [RECEIPT.tag, OPTIONAL_RECEIPT.tag, SOURCE_RELEASE_RECEIPT.tag].includes(entry.tag);
 const REPO_ROOT = fileURLToPath(new URL("../../", import.meta.url));
 const ENV = Object.freeze({
   CI: "true",
@@ -543,7 +549,7 @@ test("optional exact 0110 receipt is excluded while 0109 and later functional mi
   const journalBytes = readFileSync(f.journalPath);
   const replay = await prepareReplay(f);
   assert.deepEqual(replay.manifest.excludedReceipts.map(({ idx, tag, when, sha256 }) => ({ idx, tag, when, sha256 })),
-    [RECEIPT, { ...OPTIONAL_RECEIPT, when: receipt.when }]);
+    [RECEIPT, { ...OPTIONAL_RECEIPT, when: receipt.when }, SOURCE_RELEASE_RECEIPT]);
   assert.ok(replay.entries.some(({ idx, tag }) => idx === 109 && tag === "0109_nonrecurring_invoice_period_overlap"));
   assert.ok(replay.entries.some(({ tag }) => tag === future.tag));
   assert.equal(existsSync(path.join(replay.migrationsDir, `${receipt.tag}.sql`)), false);
@@ -624,5 +630,37 @@ for (const scenario of ["timestamp drift", "removed receipt", "manifest timestam
       cpSync(path.join(f.canonicalDir, `${receipt.tag}.sql`), path.join(replay.migrationsDir, `${receipt.tag}.sql`));
     }
     assert.throws(() => validateReplay(f));
+  });
+}
+
+
+test("0131 exclusion retains exact executable 0129/0130 and their required ledger rows", async (t) => {
+  const f = fixture(t);
+  const replay = await prepareReplay(f);
+  assert.deepEqual(replay.manifest.excludedReceipts.map(({idx})=>idx), [108,110,131]);
+  for (const [idx, hash] of [[129,"11bd425b48ef7685ea5558cc91280160cd59edb03cc54fa9b35fff79eab6b9aa"],
+    [130,"646fede0b54cf4ba8ed7dd34ec4a8ce251c0fcbca660832792dddc7dc0af0405"]]) {
+    const entry = replay.entries.find(e=>e.idx===idx);
+    assert.ok(entry);
+    assert.equal(entry.sha256,hash);
+    assert.equal(digest(readFileSync(path.join(replay.migrationsDir,`${entry.tag}.sql`))),hash);
+    assert.throws(()=>assertReplayLedger(ledger(replay.entries.filter(e=>e.idx!==idx)),replay.entries));
+  }
+  assert.equal(existsSync(path.join(replay.migrationsDir,`${SOURCE_RELEASE_RECEIPT.tag}.sql`)),false);
+  assert.throws(()=>assertReplayLedger([...ledger(replay.entries),{hash:SOURCE_RELEASE_RECEIPT.sha256,created_at:String(SOURCE_RELEASE_RECEIPT.when)}],replay.entries));
+});
+for (const change of ["bytes","tag","timestamp","breakpoints","duplicate","missing"]) {
+  test(`0131 exclusion rejects ${change} drift rather than skipping unreviewed SQL`,async(t)=>{
+    const f=fixture(t),journal=readJson(f.journalPath);
+    const entry=journal.entries.find(e=>e.idx===131);
+    const file=path.join(f.canonicalDir,`${entry.tag}.sql`);
+    if(change==="bytes") appendFileSync(file,"\n-- drift\n");
+    if(change==="tag") {entry.tag="0131_unreviewed_receipt";renameSync(file,path.join(f.canonicalDir,`${entry.tag}.sql`));}
+    if(change==="timestamp") entry.when++;
+    if(change==="breakpoints") entry.breakpoints=false;
+    if(change==="missing") rmSync(file);
+    writeJson(f.journalPath,journal);
+    if(change==="duplicate") {const extra=addFutureMigration(f);cpSync(file,path.join(f.canonicalDir,`${extra.tag}.sql`));}
+    await assert.rejects(prepareReplay(f),/0131 receipt|Canonical SQL file missing/);
   });
 }
