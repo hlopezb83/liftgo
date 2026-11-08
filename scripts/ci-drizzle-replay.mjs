@@ -32,6 +32,12 @@ const SOURCE_RELEASE_RECEIPT = Object.freeze({
   when: 1794160319241,
   sha256: "f4126e4b47e9bb7cbefdc4d46c1403cec2eea7ce45f29cd5ed3051a2c1c82dba",
 });
+const INVENTORY_RELEASE_RECEIPT = Object.freeze({
+  idx: 133,
+  tag: "0133_control0132_verified_release",
+  when: 1794173743361,
+  sha256: "00e33f75ffe7b626ce4e582621ca6560e3a8d34ff20eaf33638f396de7b9aa92",
+});
 const EXCLUSION_REASON = "Target-bound release-control receipt: its production ledger and ACL assertions cannot attest a fresh CI database. It is not applied or recorded in the CI ledger.";
 const JOURNAL_RELATIVE_PATH = "meta/_journal.json";
 const sha256 = (bytes) => createHash("sha256").update(bytes).digest("hex");
@@ -143,23 +149,24 @@ function loadCanonical(rootDir) {
     }
     excludedReceipts.push({ ...OPTIONAL_RECEIPT, when: optionalReceipt.entry.when, reason: EXCLUSION_REASON });
   }
-  const sourceReceipt = sourceEntries.find(({ entry, sha256: hash }) =>
-    entry.idx === SOURCE_RELEASE_RECEIPT.idx || entry.tag === SOURCE_RELEASE_RECEIPT.tag
-    || hash === SOURCE_RELEASE_RECEIPT.sha256);
-  // Older synthetic histories remain supported; the real checkout is also
-  // pinned by ci_database.py. Never exclude any unrecognized entry.
-  if (sourceReceipt) {
-    if (sourceReceipt.entry.idx !== SOURCE_RELEASE_RECEIPT.idx
-      || sourceReceipt.entry.tag !== SOURCE_RELEASE_RECEIPT.tag
-      || sourceReceipt.entry.when !== SOURCE_RELEASE_RECEIPT.when
+  for (const pinned of [SOURCE_RELEASE_RECEIPT, INVENTORY_RELEASE_RECEIPT]) {
+    const sourceReceipt = sourceEntries.find(({ entry, sha256: hash }) =>
+      entry.idx === pinned.idx || entry.tag === pinned.tag || hash === pinned.sha256);
+    // Older synthetic histories remain supported; the real checkout is also
+    // pinned by ci_database.py. Never exclude any unrecognized entry.
+    if (!sourceReceipt) continue;
+    const label = String(pinned.idx).padStart(4, "0");
+    if (sourceReceipt.entry.idx !== pinned.idx
+      || sourceReceipt.entry.tag !== pinned.tag
+      || sourceReceipt.entry.when !== pinned.when
       || sourceReceipt.entry.breakpoints !== true
-      || sourceReceipt.sha256 !== SOURCE_RELEASE_RECEIPT.sha256) {
-      throw new Error("Unrecognized 0131 receipt: exact idx, tag, timestamp, breakpoints and pinned SHA256 are required. No migration was excluded.");
+      || sourceReceipt.sha256 !== pinned.sha256) {
+      throw new Error(`Unrecognized ${label} receipt: exact idx, tag, timestamp, breakpoints and pinned SHA256 are required. No migration was excluded.`);
     }
-    if (sourceEntries.filter(({ sha256: hash }) => hash === SOURCE_RELEASE_RECEIPT.sha256).length !== 1) {
-      throw new Error("Duplicate pinned 0131 receipt. No migration was excluded.");
+    if (sourceEntries.filter(({ sha256: hash }) => hash === pinned.sha256).length !== 1) {
+      throw new Error(`Duplicate pinned ${label} receipt. No migration was excluded.`);
     }
-    excludedReceipts.push({ ...SOURCE_RELEASE_RECEIPT, reason: EXCLUSION_REASON });
+    excludedReceipts.push({ ...pinned, reason: EXCLUSION_REASON });
   }
   const excludedIndexes = new Set(excludedReceipts.map(({ idx }) => idx));
   const included = sourceEntries.filter(({ entry }) => !excludedIndexes.has(entry.idx));

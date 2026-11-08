@@ -54,10 +54,15 @@ START_EXCLUDES = {
 # exact production-bound receipt, never the functional migrations.
 # Candidate 0132 adds only the INVOKER inventory-page RPC and journal entry.
 # Earlier migration bytes stay unchanged; no business DML is introduced.
+# Official 0132 activation added only assertion receipt 0133 and generated
+# migration metadata, reviewed at 2e26308cb6deb37acdc07d96de6d3eafd3fb63bf.
+# Its empty snapshot links to 0131. All earlier sources and Supabase migrations
+# remain unchanged. Only the exact target-bound receipt is excluded from CI;
+# 0132 remains byte-identical and required in the observed replay ledger.
 # Any subsequent history change requires explicit source review.
 SOURCE_TREES = {
     "supabase/migrations": "3e3575f5ff6d509ecdd624ae7fc1772508b5dce6",
-    "drizzle/migrations": "9cd9e112058206028074d60be1bc919c2258c9ff",
+    "drizzle/migrations": "9f580d5bfd5344aab55f1cec3a2338526b34cd35",
 }
 HTTP_SOURCES = {
     "20260721000000_retry_queue_cron.sql": "2aecccd0758961f41769d9fed522d03df14937650b9dde80fce47646a1fa6887",
