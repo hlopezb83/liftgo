@@ -15,6 +15,7 @@ const mocks = vi.hoisted(() => ({
 }));
 vi.mock("@/features/customers", async () => ({
   CustomerSelector: (await import("@/features/customers/components/customers/CustomerSelector")).CustomerSelector,
+  customerTaxRate: (await import("@/features/customers/lib/customerTaxRate")).customerTaxRate,
 }));
 vi.mock("@/features/customers/hooks/customers/customerQueries", () => ({
   useCustomer: () => ({ data: mocks.detail }),

@@ -39,7 +39,7 @@ export default function BookingDetail() {
     ...deliveryQueries.list({ bookingId: id }),
     enabled: canReadTransports,
   });
-  const { data: extensions } = useBookingExtensions(id);
+  const extensionsQuery = useBookingExtensions(id);
 
   const readableDeliveries = canReadTransports ? deliveries : undefined;
   const hourometer = useBookingHourometer(
@@ -80,7 +80,7 @@ export default function BookingDetail() {
 
   const forkliftName = booking.forklifts?.name ?? "";
   const forkliftModel = booking.forklifts?.model ?? "";
-  const extensionsList = extensions ?? [];
+  const extensionsList = extensionsQuery.data ?? [];
 
   return (
     <PageContainer maxWidth="wide">
@@ -121,6 +121,9 @@ export default function BookingDetail() {
       <BookingHourometerCard {...hourometer} />
       <BookingExtensionsCard
         extensions={extensionsList}
+        billingChecking={!extensionsQuery.isFetchedAfterMount || extensionsQuery.fetchStatus !== "idle"}
+        billingError={extensionsQuery.isError}
+        onRetryBilling={() => { void extensionsQuery.refetch(); }}
         recurringBilling={booking.recurring_billing}
       />
 

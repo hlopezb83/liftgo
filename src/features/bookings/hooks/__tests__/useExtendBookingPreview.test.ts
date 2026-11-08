@@ -20,6 +20,17 @@ const forkliftsData = [
   },
 ];
 
+const customerState = vi.hoisted(() => ({
+  data: { tax_rate: 16 as number | string | null | undefined } as { tax_rate: number | string | null | undefined } | null,
+  isPending: false, isFetching: false, isError: false,
+}));
+vi.mock("@/features/users", () => ({ useHasFinancialAccess: () => true }));
+const customerRead = vi.hoisted(() => vi.fn());
+vi.mock("@/features/customers", async () => ({
+  ...await vi.importActual("@/features/customers/lib/customerTaxRate"),
+  useCustomer: (id: string | undefined) => { customerRead(id); return customerState; },
+}));
+
 vi.mock("@/features/fleet", () => ({
   useForklifts: () => ({ data: forkliftsData }),
 }));
@@ -30,13 +41,17 @@ import type { BookingWithForklift } from "../bookings/useBookings";
 
 const booking = {
   id: "bk-1",
+  customer_id: "customer-1",
   forklift_id: "fk-1",
   start_date: "2026-08-01",
   end_date: "2026-08-15",
 } as unknown as BookingWithForklift;
 
 describe("useExtendBookingPreview · BL-A1 IVA 16%", () => {
-  beforeEach(() => vi.clearAllMocks());
+  beforeEach(() => {
+    vi.clearAllMocks();
+    Object.assign(customerState, { data: { tax_rate: 16 }, isPending: false, isFetching: false, isError: false });
+  });
 
   it("aplica IVA mexicano (16%) sobre el subtotal, no 21%", () => {
     // Extensión del 16 al 20 de agosto = 5 días × $1,000.
@@ -119,4 +134,36 @@ describe("useExtendBookingPreview · BL-A1 IVA 16%", () => {
   it("no calcula partidas ni días NaN para una fecha inválida", () => {
     expect(useExtendBookingPreview(booking, new Date(Number.NaN))).toBeNull();
   });
+  it.each([
+    [0, 0, 5000], [8, 400, 5400], [16, 800, 5800], [null, 800, 5800], [undefined, 800, 5800],
+  ])("respects customer VAT %s with invoice defaults only when missing", (rate, taxAmount, total) => {
+    customerState.data = { tax_rate: rate };
+    const result = useExtendBookingPreview(booking, new Date("2026-08-20T12:00:00"));
+    expect(customerRead).toHaveBeenCalledWith("customer-1");
+    expect(result).toMatchObject({ taxRate: rate ?? 16, subtotal: 5000, taxAmount, total });
+  });
+
+  it.each(["isPending", "isFetching", "isError"] as const)("does not show a fallback estimate while customer %s", (key) => {
+    customerState[key] = true;
+    expect(useExtendBookingPreview(booking, new Date("2026-08-20T12:00:00"))).toBeNull();
+  });
+
+  it("does not show a default estimate for an unavailable customer", () => {
+    customerState.data = null;
+    expect(useExtendBookingPreview(booking, new Date("2026-08-20T12:00:00"))).toBeNull();
+  });
+
+  it("does not request the customer until a valid extension date is selected", () => {
+    useExtendBookingPreview(booking, undefined);
+    useExtendBookingPreview(booking, new Date(Number.NaN));
+    expect(customerRead.mock.calls).toEqual([[undefined], [undefined]]);
+  });
+
+  it("preserves default tax for an unlinked booking without fetching a customer", () => {
+    customerState.data = null;
+    const result = useExtendBookingPreview({ ...booking, customer_id: null }, new Date("2026-08-20T12:00:00"));
+    expect(customerRead).toHaveBeenCalledWith(undefined);
+    expect(result).toMatchObject({ taxRate: 16, total: 5800 });
+  });
+
 });

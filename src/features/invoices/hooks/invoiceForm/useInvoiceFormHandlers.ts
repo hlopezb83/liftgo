@@ -1,4 +1,5 @@
 import { useRef, useState } from "react";
+import { customerTaxRate } from "@/features/customers";
 import type { Forklift } from "@/features/fleet";
 import { resolveBookingRates } from "@/lib/domain/bookingRates";
 import { firstBillingPeriod, prorateMonthlyLine } from "@/lib/domain/firstBillingPeriod";
@@ -55,8 +56,8 @@ function applyCfdiPatch(form: UseFormReturn<InvoiceFormValues>, customer: Custom
   });
   // FIX-3: la tasa de IVA del cliente (p. ej. frontera 8%) manda sobre el 16%
   // por defecto. Sólo se aplica si está capturada y es un número válido.
-  const rate = Number(customer.tax_rate);
-  if (customer.tax_rate != null && Number.isFinite(rate) && rate >= 0) {
+  const rate = customerTaxRate(customer.tax_rate);
+  if (rate !== undefined) {
     form.setValue("taxRate", rate, { shouldDirty: true });
   }
 }
