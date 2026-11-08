@@ -16,6 +16,8 @@ export function useBookingExtensions(bookingId?: string) {
     queryKey: bookingId ? bookingKeys.extensions(bookingId) : [...bookingKeys.all, "extensions"],
     enabled: !!bookingId,
     staleTime: 60_000,
+    // An invoice may have reserved the extension while this page was unmounted.
+    refetchOnMount: "always",
     queryFn: async () => {
       const { data, error } = await supabase
         .from("booking_extensions")

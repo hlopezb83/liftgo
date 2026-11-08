@@ -1,4 +1,6 @@
+import { customerTaxRate, useCustomer } from "@/features/customers";
 import { useForklifts } from "@/features/fleet";
+import { useHasFinancialAccess } from "@/features/users";
 import { computeTotals } from "@/lib/domain/invoiceHelpers";
 import { toYMD } from "@/lib/format/dateFormats";
 import { DEFAULT_VAT_RATE } from "@/lib/money";
@@ -16,19 +18,22 @@ export interface BookingExtensionPreview {
   rateSource: "booking" | "catalog";
 }
 
-/**
- * Cálculo derivado del preview de extensión de reserva.
- * Memoizado para evitar recomputar en cada render.
- *
- * BL-A1 (v7.120.0): usa la tasa de IVA de dominio (México = 16%) en lugar del
- * literal 21 heredado de una plantilla foránea. `computeTotals` recibe el
- * porcentaje entero, por lo que se multiplica DEFAULT_VAT_RATE (0.16) × 100.
- */
+/** Preview and invoice prefill share the customer's VAT policy and line totals. */
 export function useExtendBookingPreview(
   booking: BookingWithForklift,
   newEndDate: Date | undefined,
 ): BookingExtensionPreview | null {
   const { data: forklifts } = useForklifts();
+  const canSeeFinancials = useHasFinancialAccess();
+  // Fetch the specific organization-visible customer, not a truncated list.
+  // Do not issue a customer query for every closed row action in the list.
+  const customerId = canSeeFinancials && newEndDate && Number.isFinite(newEndDate.getTime())
+    ? booking.customer_id ?? undefined : undefined;
+  const customer = useCustomer(customerId);
+  // Match the existing financial UI boundary before reading customer tax data.
+  if (!canSeeFinancials) return null;
+  // Never flash the default 16% while the customer's actual rate is unknown.
+  if (customerId && (customer.isPending || customer.isFetching || customer.isError || !customer.data)) return null;
   return (() => {
     const forklift = forklifts?.find((f) => f.id === booking.forklift_id);
     if (!forklift || !newEndDate || !Number.isFinite(newEndDate.getTime())) return null;
@@ -59,11 +64,9 @@ export function useExtendBookingPreview(
       serialNumber: forklift.serial_number,
     });
     if (items.length === 0) return null;
-    const totals = computeTotals(items, DEFAULT_VAT_RATE * 100);
-    // R9 Bloque 3: propagamos el código de moneda para que el preview lo
-    // formatee explícitamente. Hoy `bookings` no persiste moneda propia
-    // (todas las rentas se facturan en MXN); fallback a "MXN" preserva la UI
-    // actual y deja la puerta abierta a rentas multi-moneda futuras.
+    const taxRate = customerTaxRate(customer.data?.tax_rate) ?? DEFAULT_VAT_RATE * 100;
+    const totals = computeTotals(items, taxRate);
+    // Keep the booking currency explicit, just as the extension invoice does.
     const currency =
       (booking as { currency?: string | null }).currency ?? "MXN";
     // The canonical resolver treats any positive agreed rate as the complete
@@ -71,6 +74,6 @@ export function useExtendBookingPreview(
     // source without inventing a separately agreed daily/weekly price.
     const rateSource = [booking.daily_rate, booking.weekly_rate, booking.monthly_rate]
       .some((rate) => (Number(rate) || 0) > 0) ? "booking" : "catalog";
-    return { ...totals, currency, items, range, taxRate: DEFAULT_VAT_RATE * 100, rateSource };
+    return { ...totals, currency, items, range, taxRate, rateSource };
   })();
 }

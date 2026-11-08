@@ -11,6 +11,10 @@ const state = vi.hoisted(() => ({
   includeUnrequestedFields: false,
   notifyError: vi.fn(),
   notifyWarning: vi.fn(),
+  customerLoaded: true,
+  listIncludesCustomer: true,
+  customerUnavailable: false,
+  customerError: false,
 }));
 
 // Simulate only transport projection: the production query determines which
@@ -48,7 +52,12 @@ function readExtension(calls: ChainCall[]) {
 vi.mock("@/integrations/supabase/client", () => ({
   supabase: createSupabaseChainMock({ tableResolvers: { booking_extensions: readExtension } }),
 }));
-vi.mock("@/features/fleet", () => ({ forkliftKeys: { all: ["forklifts"] } }));
+vi.mock("@/features/users", () => ({ useHasFinancialAccess: () => true }));
+vi.mock("@/features/fleet", () => ({
+  forkliftKeys: { all: ["forklifts"] }, useForklifts: () => ({ data: [forklift] }),
+}));
+vi.mock("@/features/customers", async () => ({
+  ...await vi.importActual("@/features/customers/lib/customerTaxRate"), useCustomer: () => ({ data: state.customerLoaded && !state.customerUnavailable ? customer : null, isPending: !state.customerLoaded, isFetching: !state.customerLoaded, isError: state.customerError, refetch: vi.fn() }) }));
 vi.mock("@/features/bookings", async () => ({
   ...await vi.importActual("@/features/bookings/hooks/bookingActions/useBookingExtensions"),
   ...await vi.importActual("@/features/bookings/lib/extensionBilling"),
@@ -59,12 +68,14 @@ vi.mock("@/lib/ui/appFeedback", () => ({
   notifyValidation: vi.fn(),
 }));
 
+import { useExtendBookingPreview } from "@/features/bookings/hooks/bookingActions/useExtendBookingPreview";
+import type { BookingWithForklift } from "@/features/bookings/hooks/bookings/useBookings";
 import { useExtensionPrefill } from "../useExtensionPrefill";
 import { useInvoiceFormHandlers } from "../invoiceForm/useInvoiceFormHandlers";
 import { useInvoiceFormTotals } from "../invoiceForm/useInvoiceFormTotals";
 import { buildEmptyInvoiceValues, invoiceFormSchema } from "../../lib/invoiceFormSchema";
 
-const customer = { id: "synthetic-customer", name: "Synthetic customer", tax_rate: 0 };
+const customer = { id: "synthetic-customer", name: "Synthetic customer", tax_rate: 0 as number | null | undefined };
 const forklift = {
   id: "synthetic-unit", name: "Synthetic forklift", serial_number: "SYNTHETIC",
   daily_rate: 900, weekly_rate: 6000, monthly_rate: 20000,
@@ -77,31 +88,38 @@ const booking = {
   currency: "USD", tipo_cambio: 17.5, forklifts: forklift,
 };
 
-function useRealPrefill(loaded: boolean, edit: boolean) {
+function useRealPrefill(edit: boolean) {
   const defaults = buildEmptyInvoiceValues();
   // An earlier manual value must not survive applying a different booking.
   defaults.cfdi = { ...defaults.cfdi, moneda: "EUR", tipoCambio: 22 };
   const form = useForm({ defaultValues: defaults });
   const handlers = useInvoiceFormHandlers({
-    form, customers: [customer], bookings: [booking], forklifts: [forklift] as never,
+    form, customers: state.listIncludesCustomer ? [customer] : [], bookings: [booking], forklifts: [forklift] as never,
     // Extension currency fixtures have no quote charges to load.
     loadQuoteCharges: async () => {
       throw new Error("Unexpected quote-charge lookup in extension currency test");
     },
   });
   const prefill = useExtensionPrefill({
-    form, isEdit: edit, extensionId: "synthetic-extension", customersLoaded: loaded,
+    form, isEdit: edit, extensionId: "synthetic-extension",
     handleCustomerSelect: handlers.handleCustomerSelect,
   });
   const totals = useInvoiceFormTotals(form);
-  return { form, prefill, totals };
+  const preview = useExtendBookingPreview({ ...booking, end_date: String(state.source.original_end_date) } as unknown as BookingWithForklift,
+    new Date(`${String(state.source.new_end_date)}T12:00:00`));
+  return { form, prefill, totals, preview, handlers };
 }
 
 function renderPrefill(loaded = true, edit = false) {
   const { Wrapper } = createQueryWrapper();
-  return renderHook((props) => useRealPrefill(props.loaded, props.edit), {
+  state.customerLoaded = loaded;
+  const hook = renderHook((props) => useRealPrefill(props.edit), {
     wrapper: Wrapper, initialProps: { loaded, edit },
   });
+  return { ...hook, rerender: (props: { loaded: boolean; edit: boolean }) => {
+    state.customerLoaded = props.loaded;
+    hook.rerender(props);
+  } };
 }
 
 async function waitUntilPrefilled(result: ReturnType<typeof renderPrefill>["result"]) {
@@ -114,6 +132,11 @@ async function waitUntilPrefilled(result: ReturnType<typeof renderPrefill>["resu
 
 beforeEach(() => {
   vi.clearAllMocks();
+  customer.tax_rate = 0;
+  state.customerLoaded = true;
+  state.listIncludesCustomer = true;
+  state.customerUnavailable = false;
+  state.customerError = false;
   state.includeUnrequestedFields = false;
   state.select = "";
   state.response = null;
@@ -182,7 +205,7 @@ describe("extension invoice currency through the actual query and prefill", () =
     expect(invoiceFormSchema.safeParse(result.current.form.getValues()).success).toBe(false);
   });
 
-  it("waits for customers, then inherits currency once without overwriting later edits", async () => {
+  it("waits for customer detail, then inherits currency once without overwriting later edits", async () => {
     const { result, rerender } = renderPrefill(false);
     await waitFor(() => expect(result.current.prefill.extension).not.toBeNull());
     expect(result.current.form.getValues("lineItems")).toEqual([]);
@@ -218,4 +241,75 @@ describe("extension invoice currency through the actual query and prefill", () =
     expect(result.current.form.getValues("lineItems")).toEqual([]);
     expect(result.current.form.getValues("cfdi")).toMatchObject({ moneda: "EUR", tipoCambio: 22 });
   });
+  it.each([0, 8, 16, null, undefined])("matches extension preview to the real draft prefill and totals for customer VAT %s", async (rate) => {
+    customer.tax_rate = rate;
+    const { result } = renderPrefill();
+    await waitFor(() => expect(result.current.form.getValues("lineItems")).toHaveLength(1));
+    await waitFor(() => expect(result.current.totals.subtotal).toBe(200));
+    expect(result.current.form.getValues("taxRate")).toBe(rate ?? 16);
+    expect(result.current.preview).toMatchObject({
+      ...result.current.totals, taxRate: result.current.form.getValues("taxRate"),
+      currency: result.current.form.getValues("cfdi.moneda"),
+      range: { start: "2026-10-21", end: "2026-10-22", days: 2 },
+    });
+    expect(result.current.totals).toEqual({ subtotal: 200, taxAmount: 200 * (rate ?? 16) / 100, total: 200 + 200 * (rate ?? 16) / 100 });
+    expect(result.current.form.getValues("lineItems")[0]).toMatchObject(result.current.preview!.items[0]);
+  });
+
+  it("does not change the booking-selection policy for a missing customer rate", async () => {
+    customer.tax_rate = null;
+    const { result } = renderPrefill();
+    await waitFor(() => expect(result.current.form.getValues("lineItems")).toHaveLength(1));
+    act(() => result.current.form.setValue("taxRate", 8));
+    await act(async () => result.current.handlers.handleBookingsChange([booking.id]));
+    // Existing booking prefill only overrides tax when the customer supplies it.
+    expect(result.current.form.getValues("taxRate")).toBe(8);
+    act(() => result.current.handlers.handleCustomerSelect(customer.id));
+    // Explicit customer selection still resets the invoice default first.
+    expect(result.current.form.getValues("taxRate")).toBe(16);
+  });
+
+  it.each([0, 8, 16, null, undefined])("matches preview with an empty customer list and detail VAT %s", async (rate) => {
+    customer.tax_rate = rate;
+    state.listIncludesCustomer = false;
+    const { result } = renderPrefill();
+    await waitFor(() => expect(result.current.totals.subtotal).toBe(200));
+    expect(result.current.form.getValues()).toMatchObject({ customerId: customer.id, taxRate: rate ?? 16 });
+    expect(result.current.preview).toMatchObject(result.current.totals);
+    expect(result.current.prefill.prefillBlock).toBeNull();
+  });
+
+  it.each(["missing", "error"])("does not apply default 16 or lines when customer detail is %s", async (mode) => {
+    state.customerUnavailable = mode === "missing";
+    state.customerError = mode === "error";
+    const { result } = renderPrefill();
+    await waitFor(() => expect(result.current.prefill.extension).not.toBeNull());
+    expect(result.current.prefill.prefillBlock).toMatch(/No se pudo verificar el cliente/);
+    expect(result.current.form.getValues("customerId")).toBe("");
+    expect(result.current.form.getValues("lineItems")).toEqual([]);
+    expect(result.current.form.getValues("cfdi.moneda")).toBe("EUR");
+  });
+
+  it.each(["customer", "clear", "reset", "tax"])("never overwrites a newer %s action while detail is pending", async (action) => {
+    const { result, rerender } = renderPrefill(false);
+    await waitFor(() => expect(result.current.prefill.extension).not.toBeNull());
+    expect(result.current.prefill.prefillBlock).toMatch(/Verificando/);
+    act(() => {
+      if (action === "customer") result.current.handlers.handleCustomerSelect("other", { id: "other", name: "Other", tax_rate: 8 });
+      if (action === "clear") {
+        // The public form handler marks explicit intent even if RHF's value is
+        // already empty (a no-op setValue does not emit a subscription event).
+        result.current.prefill.interruptPrefill();
+        result.current.handlers.handleCustomerSelect("");
+      }
+      if (action === "reset") result.current.form.reset();
+      if (action === "tax") result.current.form.setValue("taxRate", 8, { shouldDirty: true });
+    });
+    const before = result.current.form.getValues();
+    rerender({ loaded: true, edit: false });
+    await waitFor(() => expect(result.current.prefill.prefillBlock).toMatch(/Cambiaste el formulario/));
+    expect(result.current.form.getValues()).toEqual(before);
+    expect(result.current.form.getValues("lineItems")).toEqual([]);
+  });
+
 });

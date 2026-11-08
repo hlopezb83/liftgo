@@ -3,7 +3,8 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 const state = vi.hoisted(() => ({ bookings: [] as unknown[], claims: [] as unknown[], extensions: [] as unknown[], returns: [] as unknown[], existing: null as unknown,
   rows: [] as unknown[], candidatesReady: true, candidatesError: false, returnReady: true, ready: true, error: false, handler: vi.fn(), refetch: vi.fn() }));
 vi.mock("../invoices/useInvoiceBookingCandidates", () => ({ useInvoiceBookingCandidates: () => ({ isSuccess: state.candidatesReady, isError: state.candidatesError, data: state.bookings, refetch: state.refetch }) }));
-vi.mock("@/features/customers", () => ({ useCustomers: () => ({ data: [] }) }));
+vi.mock("@/features/customers", async () => ({
+  ...await vi.importActual("@/features/customers/lib/customerTaxRate"), useCustomers: () => ({ data: [] }) }));
 vi.mock("@/features/fleet", () => ({ useForklifts: () => ({ data: [] }), useQuoteAssignments: () => ({ data: [] }) }));
 vi.mock("@/features/quotes", () => ({ useQuote: () => ({ data: undefined }), useQuotesByIds: () => ({ data: [] }), useQuoteSaleAssignmentStatus: () => ({ isComplete: true }) }));
 vi.mock("@/hooks/useInitialRecordVersion", () => ({ useInitialRecordVersion: () => 1 }));
@@ -24,7 +25,7 @@ vi.mock("../invoiceForm/useInvoiceQuoteCharges", () => ({
   useInvoiceQuoteCharges: () => ({ relatedQuoteIds: [], chargeAvailability: { data: undefined, isError: false }, bookingSourceBlock: null, chargeAvailabilityError: null }),
   invoiceChargeBlock: () => null,
 }));
-vi.mock("../useExtensionPrefill", () => ({ useExtensionPrefill: () => ({ extension: null }) }));
+vi.mock("../useExtensionPrefill", () => ({ useExtensionPrefill: () => ({ extension: null, interruptPrefill: vi.fn() }) }));
 import { useInvoiceFormLogic } from "../useInvoiceFormLogic";
 import { buildEmptyInvoiceValues } from "../../lib/invoiceFormSchema";
 

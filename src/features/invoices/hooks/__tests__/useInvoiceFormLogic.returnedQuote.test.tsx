@@ -1,5 +1,5 @@
-import { act, renderHook } from "@testing-library/react";
-import { describe, expect, it, vi } from "vitest";
+import { act, renderHook, waitFor } from "@testing-library/react";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 // Only data-access hooks are replaced. Period projection, selection, quote
 // charge validation, line calculation, totals and payload builder remain real.
@@ -19,7 +19,7 @@ const data = vi.hoisted(() => {
       { description: "QA daily rent", quantity: 16, unit_price: 100, total: 1600, line_kind: "rental" },
     ], rental_meta: [{ modelId: "qa", quantity: 1, dailyRate: 100, weeklyRate: 700, monthlyRate: 3000, discount: 0 }] };
   const charges = { complete: true, quotes: [{ quote_id: quoteId, legacy_review_required: false, lines: [] }] };
-  return { booking, bookings: [booking], forklifts: [forklift], quotes: [quote],
+  return { extension: null as Record<string, unknown> | null, customerDetail: { data: null as Record<string, unknown> | null, isPending: false, isFetching: false, isError: false }, booking, bookings: [booking], forklifts: [forklift], quotes: [quote],
     customers: [{ id: "qa", name: "QA", rfc: "XAXX010101000" }],
     returns: [{ booking_id: bookingId, forklift_id: forklift.id, inspected_at: "2026-10-10T18:00:00Z" }],
     empty: [], charges, refetch: vi.fn(), load: vi.fn().mockResolvedValue(charges), mutate: vi.fn() };
@@ -27,8 +27,12 @@ const data = vi.hoisted(() => {
 vi.mock("../invoices/useInvoiceBookingCandidates", () => ({
   useInvoiceBookingCandidates: () => ({ isSuccess: true, data: data.bookings, refetch: data.refetch }),
 }));
-vi.mock("@/features/bookings", () => ({ useBookingExtension: () => ({ data: undefined }) }));
-vi.mock("@/features/customers", () => ({ useCustomers: () => ({ data: data.customers }) }));
+vi.mock("@/features/bookings", async () => ({
+  ...await vi.importActual("@/features/bookings/lib/extensionBilling"),
+  useBookingExtension: () => ({ data: data.extension, isPending: false, isFetching: false, isError: false, refetch: data.refetch }),
+}));
+vi.mock("@/features/customers", async () => ({
+  ...await vi.importActual("@/features/customers/lib/customerTaxRate"), useCustomers: () => ({ data: data.customers }), useCustomer: () => ({ ...data.customerDetail, refetch: data.refetch }) }));
 vi.mock("@/features/fleet", () => ({
   useForklifts: () => ({ data: data.forklifts }), useQuoteAssignments: () => ({ data: data.empty }),
 }));
@@ -80,4 +84,59 @@ describe("returned quote-backed monthly booking through the invoice form", () =>
     expect(data.mutate).not.toHaveBeenCalled();
     expect(data.booking.end_date).toBe("2026-09-30");
   });
+});
+
+
+afterEach(() => {
+  data.extension = null;
+  data.customerDetail = { data: null, isPending: false, isFetching: false, isError: false };
+  data.customers = [{ id: "qa", name: "QA", rfc: "XAXX010101000" }];
+});
+
+describe("extension customer readiness through invoice form submission guards", () => {
+  function setExtension() {
+    data.extension = { id: "extension-1", booking_id: data.booking.id, invoice_id: null,
+      original_end_date: "2026-09-30", new_end_date: "2026-10-01", bookings: data.booking };
+    data.customers = [];
+  }
+
+  it.each(["pending", "error", "missing"])("blocks submission while customer detail is %s even with an empty list", (status) => {
+    setExtension();
+    data.customerDetail.isPending = status === "pending";
+    data.customerDetail.isFetching = status === "pending";
+    data.customerDetail.isError = status === "error";
+    const { result } = renderHook(() => useInvoiceFormLogic({ fromQuoteId: null, extensionId: "extension-1" }));
+    expect(result.current.chargeBlock).toMatch(status === "pending" ? /Verificando el cliente/ : /No se pudo verificar el cliente/);
+    expect(result.current.validateSelection(result.current.form.getValues())).toEqual({
+      field: "lineItems", message: result.current.chargeBlock,
+    });
+    expect(result.current.form.getValues("lineItems")).toEqual([]);
+  });
+
+  it("uses a verified customer detail outside the list without changing invoice tax", async () => {
+    setExtension();
+    data.customerDetail.data = { id: "qa", name: "QA", tax_rate: 0, rfc: "XAXX010101000" };
+    const { result } = renderHook(() => useInvoiceFormLogic({ fromQuoteId: null, extensionId: "extension-1" }));
+    await waitFor(() => expect(result.current.form.getValues("lineItems")).toHaveLength(1));
+    expect(result.current.form.getValues()).toMatchObject({ customerId: "qa", taxRate: 0 });
+    expect(result.current.chargeBlock).toBeNull();
+  });
+  it.each(["customer", "booking", "bookings", "reset"])("keeps a newer %s clear/reset blocked when the deferred detail arrives", async (action) => {
+    setExtension();
+    data.customerDetail.isPending = true;
+    const { result, rerender } = renderHook(() => useInvoiceFormLogic({ fromQuoteId: null, extensionId: "extension-1" }));
+    act(() => {
+      if (action === "customer") result.current.handleCustomerSelect("");
+      if (action === "booking") result.current.handleBookingSelect("");
+      if (action === "bookings") void result.current.handleBookingsChange([]);
+      if (action === "reset") result.current.form.reset();
+    });
+    data.customerDetail = { data: { id: "qa", name: "QA", tax_rate: 0 }, isPending: false, isFetching: false, isError: false };
+    rerender();
+    await waitFor(() => expect(result.current.chargeBlock).toMatch(/Cambiaste el formulario/));
+    expect(result.current.form.getValues("customerId")).toBe("");
+    expect(result.current.form.getValues("lineItems")).toEqual([]);
+    expect(result.current.validateSelection(result.current.form.getValues())).toEqual({ field: "lineItems", message: result.current.chargeBlock });
+  });
+
 });
