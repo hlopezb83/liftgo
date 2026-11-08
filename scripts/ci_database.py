@@ -45,10 +45,13 @@ START_EXCLUDES = {
 # The snapshot links to the last existing 0124 snapshot; 0125-0127 had none.
 # Earlier SQL/journal entries are unchanged. 0128 only asserts function/ACL
 # postconditions and raises on mismatch; it performs no DDL or business writes.
+# Candidate 0129 (PR410) adds the scoped quote-page RPC; 0130 adds only
+# the reviewed sale-quote invoice trigger and owner preflight. Neither runs
+# business DML during installation. Earlier migration bytes stay unchanged.
 # Any subsequent history change requires explicit source review.
 SOURCE_TREES = {
     "supabase/migrations": "3e3575f5ff6d509ecdd624ae7fc1772508b5dce6",
-    "drizzle/migrations": "9b2ba0d2e88e0f19b32393dfa50080db74c89d0c",
+    "drizzle/migrations": "1ba5cb8bba03189bdadc5ee8c3fe8a79b2c729ea",
 }
 HTTP_SOURCES = {
     "20260721000000_retry_queue_cron.sql": "2aecccd0758961f41769d9fed522d03df14937650b9dde80fce47646a1fa6887",

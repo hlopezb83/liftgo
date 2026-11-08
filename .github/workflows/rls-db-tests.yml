@@ -392,6 +392,12 @@ jobs:
           node scripts/tests/fiscal/recurring-full-schema.mjs 2>&1 | tee reports/recurring-full-schema.log
           test "$(grep -c '^PASS full-schema ' reports/recurring-full-schema.log)" -eq 5
 
+      - name: Invoice source concurrency on full replayed schema (8 scenarios)
+        run: |
+          set -euo pipefail
+          node scripts/tests/fiscal/invoice-source-full-schema.mjs 2>&1 | tee reports/invoice-source-full-schema.log
+          test "$(grep -c '^PASS full-schema source ' reports/invoice-source-full-schema.log)" -eq 8
+
       - name: Upload SQL reports
         if: always()
         uses: actions/upload-artifact@v7
