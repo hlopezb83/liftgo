@@ -7249,6 +7249,17 @@ export type Database = {
         Args: { p_quote_id: string }
         Returns: Json
       }
+      get_quotes_page: {
+        Args: {
+          p_expected_organization_id: string
+          p_page?: number
+          p_page_size?: number
+          p_search?: string
+          p_sort?: Json
+          p_status?: string
+        }
+        Returns: Json
+      }
       get_sale_available_forklifts: {
         Args: { p_limit?: number; p_offset?: number }
         Returns: {
@@ -7494,6 +7505,7 @@ export type Database = {
       next_quote_number_e2e: { Args: never; Returns: string }
       next_stage_order: { Args: { p_stage: string }; Returns: number }
       next_supplier_bill_number: { Args: never; Returns: string }
+      normalize_quote_search: { Args: { p_value: string }; Returns: string }
       normalize_regimen_fiscal: { Args: { p_value: string }; Returns: string }
       notify_admins: {
         Args: {
