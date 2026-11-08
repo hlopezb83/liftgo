@@ -18,6 +18,7 @@ export function createPostgresAdapter(sql: ReturnType<typeof postgres>) {
       let columns = "*";
       let maximum: number | null = null;
       let single = false;
+      const ordering: string[] = [];
       const predicates: Array<[string, string, unknown]> = [];
       let execution: Promise<unknown> | undefined;
       const execute = async () => {
@@ -39,7 +40,7 @@ export function createPostgresAdapter(sql: ReturnType<typeof postgres>) {
         const target = `public.${identifier(table)}`;
         const query = patch
           ? `UPDATE ${target} SET ${assignment}${where ? ` WHERE ${where}` : ""} RETURNING ${selected}`
-          : `SELECT ${selected} FROM ${target}${where ? ` WHERE ${where}` : ""}${maximum === null ? "" : ` LIMIT ${maximum}`}`;
+          : `SELECT ${selected} FROM ${target}${where ? ` WHERE ${where}` : ""}${ordering.length ? ` ORDER BY ${ordering.join(",")}` : ""}${maximum === null ? "" : ` LIMIT ${maximum}`}`;
         try {
           // Let PostgreSQL serialize JSON like PostgREST. A JS Date would
           // truncate timestamp microseconds and silently weaken the CAS test.
@@ -63,6 +64,7 @@ export function createPostgresAdapter(sql: ReturnType<typeof postgres>) {
         lt(column: string, value: unknown) { predicates.push([column, "<", value]); return chain; },
         is(column: string, value: unknown) { if (value !== null) throw new Error("Only IS NULL is supported"); predicates.push([column, "IS NULL", null]); return chain; },
         not(column: string, operator: string, value: unknown) { if (operator !== "is" || value !== null) throw new Error("Only IS NOT NULL is supported"); predicates.push([column, "IS NOT NULL", null]); return chain; },
+        order(column: string, options: { ascending?: boolean } = {}) { ordering.push(`${identifier(column)} ${options.ascending === false ? "DESC" : "ASC"}`); return chain; },
         limit(value: number) { if (!Number.isSafeInteger(value) || value < 1) throw new Error("Invalid limit"); maximum = value; return chain; },
         maybeSingle() { single = true; return promise(); },
         then(resolve: (value: unknown) => unknown, reject?: (error: unknown) => unknown) { return promise().then(resolve, reject); },

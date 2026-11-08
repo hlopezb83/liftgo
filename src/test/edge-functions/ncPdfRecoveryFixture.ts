@@ -46,6 +46,7 @@ export type WriteFailure = {
   stage: "claim" | "final";
   outcome: "error" | "zero" | "throw";
 };
+type QueryResult = { data: Row | Row[] | null; error: unknown };
 
 // This deliberately implements query semantics, not the handler's eligibility
 // predicate. A missing production filter therefore changes actual test data.
@@ -120,6 +121,30 @@ export function createNcPdfRecoveryFixture(
     throw new Error("PDF recovery must never invoke a fiscal RPC");
   });
 
+  // Instrumentation runs before matching filters so tests can simulate a row
+  // changing after selection but before the database evaluates its UPDATE.
+  function recordQueryAndCheckFailure(
+    snapshot: QueryRecord,
+  ): QueryResult | null {
+    const patch = snapshot.patch;
+    if (!patch) {
+      reads.push(snapshot);
+      return behavior.readError?.(snapshot)
+        ? { data: null, error: { message: "Injected read failure" } }
+        : null;
+    }
+    writes.push(snapshot);
+    behavior.beforeWrite?.(snapshot);
+    const stage = "cfdi_pdf_url" in patch ? "final" : "claim";
+    if (behavior.failure?.stage !== stage) return null;
+    const outcome = behavior.failure.outcome;
+    if (outcome === "throw") throw new Error("Injected DB transport error");
+    return {
+      data: null,
+      error: outcome === "error" ? { message: "Injected DB failure" } : null,
+    };
+  }
+
   const admin = {
     storage: { from: storageFrom },
     rpc,
@@ -133,8 +158,7 @@ export function createNcPdfRecoveryFixture(
         limit: undefined,
       };
       let singleton = false;
-      let execution:
-        Promise<{ data: Row | Row[] | null; error: unknown }> | undefined;
+      let execution: Promise<QueryResult> | undefined;
       const execute = () => {
         execution ??= Promise.resolve().then(() => {
           const snapshot: QueryRecord = {
@@ -144,31 +168,8 @@ export function createNcPdfRecoveryFixture(
             ...(spec.patch ? { patch: { ...spec.patch } } : {}),
           };
           const patch = snapshot.patch;
-          if (patch) {
-            writes.push(snapshot);
-            behavior.beforeWrite?.(snapshot);
-            const stage = "cfdi_pdf_url" in patch ? "final" : "claim";
-            if (behavior.failure?.stage === stage) {
-              const outcome = behavior.failure.outcome;
-              if (outcome === "throw")
-                throw new Error("Injected DB transport error");
-              return {
-                data: null,
-                error:
-                  outcome === "error"
-                    ? { message: "Injected DB failure" }
-                    : null,
-              };
-            }
-          } else {
-            reads.push(snapshot);
-            if (behavior.readError?.(snapshot)) {
-              return {
-                data: null,
-                error: { message: "Injected read failure" },
-              };
-            }
-          }
+          const failure = recordQueryAndCheckFailure(snapshot);
+          if (failure) return failure;
           let selected = tables[table].filter((row) =>
             snapshot.filters.every((filter) => matches(row, filter)),
           );
