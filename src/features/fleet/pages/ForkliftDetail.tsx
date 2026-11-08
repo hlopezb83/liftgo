@@ -6,6 +6,7 @@ import { StatusBadge } from "@/components/feedback/StatusBadge";
 import { Edit, DeleteIcon } from "@/components/icons";
 import { DetailPageHeader } from "@/components/layout/DetailPageHeader";
 import { PageContainer } from "@/components/layout/PageContainer";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -38,6 +39,15 @@ function FinancialAccessGuard({ canViewFinancials, children }: { canViewFinancia
   return children;
 }
 
+function ForkliftAvailabilityBadge({ status, unverified }: { status: string; unverified: boolean }) {
+  if (unverified && status === "available") return <Badge variant="outline">Disponibilidad sin verificar</Badge>;
+  return <><StatusBadge status={status} />{unverified && <span className="text-xs text-muted-foreground">Reservas sin verificar</span>}</>;
+}
+
+function hasUnverifiedBookings(query: { data: unknown; isPending: boolean; isError: boolean; isFetching: boolean }) {
+  return query.data === undefined || query.isPending || query.isError || query.isFetching;
+}
+
 export default function ForkliftDetail() {
   const canUploadDamagePhotos = useHasModuleAccess("Daños", "full");
   const canSeeCosts = useCanSeeFinancialCosts();
@@ -45,13 +55,15 @@ export default function ForkliftDetail() {
   const navigate = useNavigateTransition();
   const { data: forklift, isLoading, isError, refetch } = useForklift(id);
   const { data: logs, isLoading: logsLoading, isError: logsError, isFetching: logsFetching, refetch: refetchLogs } = useStatusLogs(id);
-  const { data: bookings } = useBookings(id);
+  const bookingsQuery = useBookings(id);
+  const { data: bookings, isPending: bookingsPending, isError: bookingsError, isFetching: bookingsFetching, refetch: refetchBookings } = bookingsQuery;
+  const bookingsUnverified = hasUnverifiedBookings(bookingsQuery);
   const { data: maintenanceLogs } = useMaintenanceLogs(id);
   // R9-FE: mismo criterio operativo que FleetPage — el `status` crudo se
   // desincroniza (available con reserva vigente, o rented sin ella). El badge
   // del detalle debe reflejar la disponibilidad derivada, no el status crudo.
   const todayYmd = useServerTodayMty();
-  const availability = forklift && bookings ? computeFleetAvailability([forklift], bookings, todayYmd) : null;
+  const availability = forklift && bookings && !bookingsUnverified ? computeFleetAvailability([forklift], bookings, todayYmd) : null;
   const displayStatus = deriveForkliftDisplayStatus(forklift, availability);
   const { data: financials, isLoading: loadingFinancials, canViewFinancials } = useForkliftFinancials(id);
   const { data: locationData, isError: locationError } = useForkliftLocation(id);
@@ -91,7 +103,7 @@ export default function ForkliftDetail() {
         title={forklift.name}
         subtitle={`${forklift.model} — ${forklift.manufacturer}`}
         backTo="/fleet"
-        badges={<StatusBadge status={displayStatus ?? forklift.status} />}
+        badges={<ForkliftAvailabilityBadge status={displayStatus ?? forklift.status} unverified={bookingsUnverified} />}
         actions={
           <>
             <RoleGuard module="Flota" minAccess="full" fallback={null}>
@@ -132,7 +144,7 @@ export default function ForkliftDetail() {
       <RoleGuard module="Flota" minAccess="full" fallback={null}>
         <StatusChangeCard forkliftId={forklift.id} currentStatus={forklift.status} />
       </RoleGuard>
-      <ForkliftBookingsList bookings={bookings || []} />
+      <ForkliftBookingsList bookings={bookings} isPending={bookingsPending} isError={bookingsError} isFetching={bookingsFetching} onRetry={() => { void refetchBookings(); }} />
       <ForkliftMaintenanceList logs={maintenanceLogs || []} />
       <FinancialAccessGuard canViewFinancials={canViewFinancials}>
         {financials && <ForkliftHourometerHistory history={financials.hourometer_history} />}
