@@ -165,14 +165,10 @@ async function availableChargesForBookings(
   return buildAvailableQuoteChargeLines(quoteIds, availability);
 }
 
-export function useInvoiceFormHandlers({ form, customers, bookings, forklifts, quotes, loadQuoteCharges }: Props) {
-
-  const selectionRequest = useRef(0);
-  const [isLoadingCharges, setIsLoadingCharges] = useState(false);
-  const [chargeSelectionError, setChargeSelectionError] = useState<string | null>(null);
-  const [lastSelection, setLastSelection] = useState<string[]>([]);
-
-  const handleCustomerSelect = (selectedCustomerId: string, selectedCustomer?: Customer) => {
+function applySelectedCustomer(
+  form: UseFormReturn<InvoiceFormValues>, customers: Customer[] | undefined,
+  selectedCustomerId: string, selectedCustomer?: Customer,
+) {
     form.setValue("customerId", selectedCustomerId, { shouldDirty: true });
     const customer = selectedCustomer?.id === selectedCustomerId
       ? selectedCustomer : customers?.find((c) => c.id === selectedCustomerId);
@@ -183,18 +179,105 @@ export function useInvoiceFormHandlers({ form, customers, bookings, forklifts, q
     form.setValue("cfdi.usoCfdi", receiver.uso_cfdi || "G03", { shouldDirty: true });
     form.setValue("taxRate", 16, { shouldDirty: true });
     applyCfdiPatch(form, receiver);
+}
+
+function incompatibleCustomerBookings(form: UseFormReturn<InvoiceFormValues>, bookings: Booking[] | undefined, customerId: string) {
+  if (customerId === form.getValues("customerId")) return false;
+  const ids = [...(form.getValues("bookingIds") ?? []), form.getValues("bookingId")].filter(Boolean);
+  return ids.some((id) => {
+    const booking = bookings?.find((candidate) => candidate.id === id);
+    return !booking || booking.customer_id !== customerId;
+  });
+}
+
+function applyInitialBillingPeriod(form: UseFormReturn<InvoiceFormValues>, first?: Booking) {
+  if (!first || form.getValues("billingPeriodStart")) return;
+  const { start, end } = prefillBillingPeriod(first, form.getValues("issueDate") ?? nowMty());
+  form.setValue("billingPeriodStart", start, { shouldDirty: true });
+  form.setValue("billingPeriodEnd", end, { shouldDirty: true });
+}
+
+// Booking defaults may replace earlier defaults, but never edits made while
+// charge availability was loading. Capture scalar values before the request.
+function protectLaterEdits(form: UseFormReturn<InvoiceFormValues>): UseFormReturn<InvoiceFormValues> {
+  const values = form.getValues();
+  const before = new Map<string, unknown>([
+    ["customerId", values.customerId], ["customerName", values.customerName], ["taxRate", values.taxRate],
+    ...Object.entries(values.cfdi).map(([key, value]) => [`cfdi.${key}`, value] as const),
+  ]);
+  return { ...form, setValue: (name, value, options) => {
+    if (before.has(name) && Object.is(form.getValues(name), before.get(name))) {
+      form.setValue(name, value, options);
+    }
+  } };
+}
+
+export function useInvoiceFormHandlers({ form, customers, bookings, forklifts, quotes, loadQuoteCharges }: Props) {
+
+  const selectionRequest = useRef(0);
+  const [isLoadingCharges, setIsLoadingCharges] = useState(false);
+  const [chargeSelectionError, setChargeSelectionError] = useState<string | null>(null);
+  const lastSelection = useRef<string[]>([]);
+  const pendingSelection = useRef(false);
+  const selectionNeedsReview = useRef(false);
+  const detachedSelection = useRef<{ customerId: string; ids: string[]; primary: string } | null>(null);
+
+  const handleCustomerSelect = (selectedCustomerId: string, selectedCustomer?: Customer) => {
+    // A manual receiver choice supersedes a pending booking request. Do not
+    // permit Retry to resurrect that request or silently reassign the receiver.
+    const canceled = pendingSelection.current || (chargeSelectionError !== null && lastSelection.current.length > 0);
+    ++selectionRequest.current;
+    pendingSelection.current = false;
+    setIsLoadingCharges(false);
+    lastSelection.current = [];
+    const previousCustomerId = form.getValues("customerId");
+    const restore = detachedSelection.current?.customerId === selectedCustomerId ? detachedSelection.current : null;
+    if (restore) {
+      form.setValue("bookingIds", restore.ids, { shouldDirty: true });
+      form.setValue("bookingId", restore.primary, { shouldDirty: true });
+      detachedSelection.current = null;
+      selectionNeedsReview.current = false;
+      setChargeSelectionError(null);
+    }
+    const linked = form.getValues("bookingIds") ?? [];
+    const primary = form.getValues("bookingId");
+    const incompatible = !restore && incompatibleCustomerBookings(form, bookings, selectedCustomerId);
+    if (incompatible) {
+      detachedSelection.current ??= { customerId: previousCustomerId, ids: linked, primary };
+      form.setValue("bookingIds", [], { shouldDirty: true });
+      form.setValue("bookingId", "", { shouldDirty: true });
+    }
+    if (!restore && (canceled || incompatible)) {
+      selectionNeedsReview.current = true;
+      const recovery = detachedSelection.current
+        ? "Selecciona el cliente anterior o vuelve a seleccionar reservas compatibles"
+        : "Vuelve a seleccionar reservas compatibles";
+      const message = `Cambiaste el cliente. ${recovery} y revisa las partidas antes de guardar.`;
+      setChargeSelectionError(message);
+      notifyValidation({ message });
+    }
+    applySelectedCustomer(form, customers, selectedCustomerId, selectedCustomer);
   };
 
   const handleBookingsChange = async (selectedIds: string[]) => {
+    if (selectionNeedsReview.current && selectedIds.length === 0) {
+      ++selectionRequest.current;
+      pendingSelection.current = false;
+      lastSelection.current = [];
+      setIsLoadingCharges(false);
+      return;
+    }
     const request = ++selectionRequest.current;
-    setChargeSelectionError(null);
-    setLastSelection(selectedIds);
+    if (!selectionNeedsReview.current) setChargeSelectionError(null);
+    lastSelection.current = selectedIds;
+    const defaultsForm = protectLaterEdits(form);
     const selected = selectedIds
       .map((id) => bookings?.find((b) => b.id === id))
       .filter((b): b is Booking => !!b);
 
     let rentalLines: LineItemValues[];
     let extraLines: LineItemValues[];
+    pendingSelection.current = true;
     setIsLoadingCharges(true);
     try {
       if (selected.length !== new Set(selectedIds).size) throw new Error("No se pudieron cargar todas las reservas seleccionadas. Recarga las reservas y reintenta.");
@@ -211,27 +294,26 @@ export function useInvoiceFormHandlers({ form, customers, bookings, forklifts, q
       notifyValidation({ message });
       return;
     } finally {
-      if (request === selectionRequest.current) setIsLoadingCharges(false);
+      if (request === selectionRequest.current) {
+        pendingSelection.current = false;
+        setIsLoadingCharges(false);
+      }
     }
 
     form.setValue("bookingIds", selectedIds, { shouldDirty: true });
     form.setValue("bookingId", selectedIds[0] ?? "", { shouldDirty: true });
 
-    // H-6 / Bug 4: pre-llenar el periodo sólo si el usuario no lo capturó;
-    // siempre acotado a las fechas de la reserva (ver prefillBillingPeriod).
-    if (selectedIds.length > 0 && !form.getValues("billingPeriodStart")) {
-      const issue = form.getValues("issueDate") ?? nowMty();
-      const { start, end } = prefillBillingPeriod(selected[0], issue);
-      form.setValue("billingPeriodStart", start, { shouldDirty: true });
-      form.setValue("billingPeriodEnd", end, { shouldDirty: true });
-    }
+    applyInitialBillingPeriod(form, selected[0]);
 
     if (selected.length === 0) return;
 
-    applyPrimaryCustomer(form, selected[0], customers);
-    applyPrimaryCurrency(form, selected[0]);
+    applyPrimaryCustomer(defaultsForm, selected[0], customers);
+    applyPrimaryCurrency(defaultsForm, selected[0]);
 
     form.setValue("lineItems", [...rentalLines, ...extraLines], { shouldDirty: true });
+    selectionNeedsReview.current = false;
+    detachedSelection.current = null;
+    setChargeSelectionError(null);
   };
 
   // Compat: handler antiguo single-select (delega al multi).
@@ -239,5 +321,5 @@ export function useInvoiceFormHandlers({ form, customers, bookings, forklifts, q
     handleBookingsChange(id ? [id] : []);
   };
 
-  return { handleCustomerSelect, handleBookingSelect, handleBookingsChange, isLoadingCharges, chargeSelectionError, retryChargeSelection: () => handleBookingsChange(lastSelection) };
+  return { handleCustomerSelect, handleBookingSelect, handleBookingsChange, isLoadingCharges, chargeSelectionError, retryChargeSelection: () => lastSelection.current.length ? handleBookingsChange(lastSelection.current) : Promise.resolve() };
 }
