@@ -86,7 +86,10 @@ export function usePullToRefresh({
       enabled: enabled && !!target,
       axis: "y",
       pointer: { touch: true },
-      filterTaps: true,
+      // With touch-only listeners, filterTaps captures mouse clicks too and
+      // suppresses them because no touch initialized its tap state. The drag
+      // threshold already ignores taps; leave click handling to the browser.
+      filterTaps: false,
       threshold: 8,
       eventOptions: { passive: true },
     },

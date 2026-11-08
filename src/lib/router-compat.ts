@@ -136,8 +136,8 @@ export function useNavigationType(): NavigationType {
 // ---------- useBlocker (react-router v7 compat) ----------
 
 type BlockerFnArgs = {
-  currentLocation: { pathname: string };
-  nextLocation: { pathname: string };
+  currentLocation: { pathname: string; search: string };
+  nextLocation: { pathname: string; search: string };
 };
 
 export function useBlocker(shouldBlock: boolean | ((args: BlockerFnArgs) => boolean)): {
@@ -145,12 +145,13 @@ export function useBlocker(shouldBlock: boolean | ((args: BlockerFnArgs) => bool
   proceed?: () => void;
   reset?: () => void;
 } {
+  const router = useRouter();
   const blocker = tsUseBlocker({
     shouldBlockFn: ({ current, next }) => {
       if (typeof shouldBlock === "function") {
         return shouldBlock({
-          currentLocation: { pathname: current.pathname },
-          nextLocation: { pathname: next.pathname },
+          currentLocation: { pathname: current.pathname, search: router.options.stringifySearch(current.search) },
+          nextLocation: { pathname: next.pathname, search: router.options.stringifySearch(next.search) },
         });
       }
       return shouldBlock;
