@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
-import { useQuotes } from "@/features/quotes";
+import { useCrmQuote, useCrmQuoteOptions } from "@/features/quotes";
+import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 import {
   STAGES_REQUIRING_DEAL_VALUE,
   prospectPayloadSchema,
@@ -62,9 +63,21 @@ export function useProspectForm({
   const [notesError, setNotesError] = useState<string | null>(null);
   const [formError, setFormError] = useState<string | null>(null);
 
-  const { data: allQuotes = [] } = useQuotes();
-
-  const matchingQuotes = sortQuotesByCompanyMatch(allQuotes, company);
+  const [quoteSearch, setQuoteSearch] = useState("");
+  const debouncedQuoteSearch = useDebouncedValue(quoteSearch);
+  const quoteOptions = useCrmQuoteOptions(debouncedQuoteSearch, open);
+  const linkedQuoteQuery = useCrmQuote(quoteId, open);
+  const selectedQuote = quoteId && linkedQuoteQuery.data?.id === quoteId ? linkedQuoteQuery.data : null;
+  const allQuotes = [...new Map((quoteOptions.data?.pages.flat() ?? []).map((quote) => [quote.id, quote])).values()];
+  const matchingQuotes = sortQuotesByCompanyMatch(
+    selectedQuote && !allQuotes.some((quote) => quote.id === selectedQuote.id)
+      ? [selectedQuote, ...allQuotes] : allQuotes, company,
+  );
+  const linkedQuoteError = !quoteId ? null
+    : linkedQuoteQuery.isError ? "No se pudo verificar la cotización vinculada. Reintenta antes de guardar."
+    : linkedQuoteQuery.isPending || linkedQuoteQuery.isFetching ? "Espera a que se verifique la cotización vinculada."
+    : !selectedQuote ? "La cotización vinculada no está disponible. Reintenta o desvincúlala explícitamente."
+    : null;
 
   // El alta respeta la etapa inicial del servidor, incluso desde un acceso rápido heredado.
   const effectiveStage = prospect ? (overrideStage ?? prospect.stage) : "nuevo_prospecto";
@@ -85,6 +98,7 @@ export function useProspectForm({
       setCompany(""); setContact(""); setEmail(""); setPhone("");
       setDealValue(""); setNotes(""); setQuoteId(null);
     }
+    setQuoteSearch("");
     setDealValueError(null);
     setEmailError(null);
     setCompanyError(null);
@@ -100,7 +114,7 @@ export function useProspectForm({
     const selectedId = value === "none" ? null : value;
     setQuoteId(selectedId);
     if (selectedId) {
-      const quote = allQuotes.find((q) => q.id === selectedId);
+      const quote = matchingQuotes.find((q) => q.id === selectedId);
       if (quote) {
         const converted = quoteDealValueMxn(quote);
         setDealValue(converted.value === null ? "" : String(converted.value));
@@ -112,8 +126,11 @@ export function useProspectForm({
   };
 
   const buildPayload = (): ProspectFormPayload | null => {
-    const linkedQuote = allQuotes.find((q) => q.id === quoteId);
-    const quoteError = linkedQuote ? quoteDealValueMxn(linkedQuote).error : null;
+    if (linkedQuoteError) {
+      setFormError(linkedQuoteError);
+      return null;
+    }
+    const quoteError = selectedQuote ? quoteDealValueMxn(selectedQuote).error : null;
     if (quoteError) {
       setDealValueError(quoteError);
       return null;
@@ -156,8 +173,6 @@ export function useProspectForm({
     return parsed.data;
   };
 
-  const selectedQuote = quoteId ? allQuotes.find((q) => q.id === quoteId) : null;
-
   // R22-A: sin RHF, derivamos isDirty comparando contra los valores iniciales.
   const isDirty = isProspectFormDirty(prospect, {
     company, contact, email, phone, dealValue, notes, quoteId,
@@ -177,6 +192,17 @@ export function useProspectForm({
     },
     matchingQuotes,
     selectedQuote,
+    quoteSelection: {
+      search: quoteSearch,
+      onSearchChange: setQuoteSearch,
+      isLoading: quoteOptions.isFetching,
+      isError: quoteOptions.isError,
+      hasMore: !!quoteOptions.hasNextPage,
+      onLoadMore: () => { void quoteOptions.fetchNextPage(); },
+      onRetry: () => { void quoteOptions.refetch(); },
+      linkedError: linkedQuoteError,
+      onRetryLinked: () => { void linkedQuoteQuery.refetch(); },
+    },
     effectiveStage,
     requiresDealValue,
     buildPayload,

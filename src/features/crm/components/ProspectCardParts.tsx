@@ -25,7 +25,7 @@ interface ExpandedProps {
 
 export function ProspectCardExpanded({ prospect, quoteNumber }: ExpandedProps) {
   const navigate = useNavigateTransition();
-  const showQuote = Boolean(prospect.quoteId && quoteNumber);
+  const showQuote = Boolean(prospect.quoteId);
   const showFooter = Boolean(prospect.createdByName || prospect.createdAtLabel);
 
   return (
@@ -54,7 +54,7 @@ export function ProspectCardExpanded({ prospect, quoteNumber }: ExpandedProps) {
             }}
           >
             <DocumentIcon className="h-3 w-3" />
-            {quoteNumber}
+            {quoteNumber ?? "Cotización vinculada"}
           </Badge>
         </div>
       )}

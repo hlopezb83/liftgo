@@ -32,7 +32,7 @@ export function ProspectFormDialog({
   defaultStage = "nuevo_prospecto", overrideStage,
   canCloseDeal = true, onSave, onDelete, isPending = false,
 }: Props) {
-  const { fields, setters, matchingQuotes, selectedQuote, effectiveStage, requiresDealValue, buildPayload, isDirty } =
+  const { fields, setters, matchingQuotes, selectedQuote, quoteSelection, effectiveStage, requiresDealValue, buildPayload, isDirty } =
     useProspectForm({ prospect, open, defaultStage, overrideStage });
 
   // R23-B: antes se cerraba el modal sin esperar el INSERT; con latencia o
@@ -73,6 +73,7 @@ export function ProspectFormDialog({
           setters={setters}
           matchingQuotes={matchingQuotes}
           selectedQuote={selectedQuote}
+          quoteSelection={quoteSelection}
           requiresDealValue={requiresDealValue}
         />
         {showCloseDeal && prospect && (

@@ -7,7 +7,10 @@ import type { Prospect } from "../../lib/prospectTypes";
 const state = vi.hoisted(() => ({ quotes: [] as Array<{
   id: string; total: number; currency: string; tipo_cambio: number | null; customer_name: string;
 }> }));
-vi.mock("@/features/quotes", () => ({ useQuotes: () => ({ data: state.quotes }) }));
+vi.mock("@/features/quotes", () => ({
+  useCrmQuoteOptions: () => ({ data: { pages: [state.quotes] }, isFetching: false, isError: false, hasNextPage: false, fetchNextPage: vi.fn(), refetch: vi.fn() }),
+  useCrmQuote: (id: string | null) => ({ data: state.quotes.find((quote) => quote.id === id) ?? null, isPending: false, isFetching: false, isError: false, refetch: vi.fn() }),
+}));
 
 const quoteId = "ab5f48ed-83cd-49d7-8b37-40bf53a10ccf";
 const prospect = {
