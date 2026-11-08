@@ -1,5 +1,5 @@
+import { useEffect } from "react";
 import { useLiftgoTable } from "@/components/dataTable/v2";
-import { ListTruncationNotice } from "@/components/feedback/ListTruncationNotice";
 import { StatusBadge } from "@/components/feedback/StatusBadge";
 import { FiltersToolbar } from "@/components/filters/FiltersToolbar";
 import { AddIcon, ChevronRightIcon, DocumentIcon } from "@/components/icons";
@@ -17,11 +17,11 @@ import { RoleGuard } from "@/layouts/RoleGuard";
 import { STATUS_LABELS } from "@/lib/constants";
 import { toYMD } from "@/lib/date/toYMD";
 import { Link } from "@/lib/router-compat-ui";
-import { visibleListRows } from "@/lib/supabase/constants";
 import { formatDateRange, nowMty, parseDateLocal } from "@/lib/utils";
 import { QUOTE_STATUS_TAB_LABELS, quoteStatusLabel as quoteLabel } from "../constants";
 import { isPublicoGeneral } from "../hooks/quoteDetail/useQuoteDetailData";
-import { useQuotes, quoteQueries } from "../hooks/quotes/useQuotes";
+import { quoteQueries, type QuoteListItem } from "../hooks/quotes/useQuotes";
+import { useQuotesPage } from "../hooks/quotes/useQuotesPage";
 import { formatQuoteTotal } from "../lib/quoteDisplay";
 import { buildQuotesColumns } from "./quotesColumns";
 
@@ -33,34 +33,42 @@ const QUOTE_STATUS_OPTIONS = [
   ...QUOTE_STATUSES.map((s) => ({ value: s, label: QUOTE_STATUS_TAB_LABELS[s] ?? s })),
 ];
 
-type Quote = NonNullable<ReturnType<typeof useQuotes>["data"]>[number];
+type Quote = QuoteListItem;
 
 export default function QuotesPage() {
-  const { data: quotesRaw, isLoading, isError, refetch } = useQuotes();
-  const quotes = visibleListRows(quotesRaw);
   const navigate = useNavigateTransition();
   const canWrite = useHasModuleAccess("Cotizaciones", "full");
-  usePageActions({
-    onNew: canWrite ? () => navigate("/quotes/new") : undefined,
-    onRefresh: refetch,
-    newLabel: canWrite ? "Nueva cotización" : undefined,
-  });
-
-  const { values, set, reset, hasActive, filtered } = useTableFilters<Quote, {
+  const { values, set, reset, hasActive } = useTableFilters<Quote, {
     q: { type: "text"; fields: (keyof Quote)[] };
     status: { type: "enum"; field: keyof Quote; options: readonly (QuoteStatus | "all")[] };
   }>({
-    items: quotes ?? [],
+    mode: "server",
     facets: {
       q: { type: "text", fields: ["quote_number", "customer_name"] as (keyof Quote)[] },
       status: { type: "enum", field: "status", options: ["all", ...QUOTE_STATUSES] as const },
     },
   });
 
-  const tableViewState = useTableViewState(filtered.length);
+  const tableViewState = useTableViewState();
+  const { controlledPagination: pagination, controlledSorting: sorting, onControlledPaginationChange } = tableViewState;
+  const { data, isLoading, isError, refetch } = useQuotesPage({
+    search: values.q, status: values.status, ...pagination, sorting,
+  });
+  useEffect(() => {
+    if (data && data.pageIndex !== pagination.pageIndex) {
+      onControlledPaginationChange({ ...pagination, pageIndex: data.pageIndex });
+    }
+  }, [data, pagination, onControlledPaginationChange]);
+  usePageActions({
+    onNew: canWrite ? () => navigate("/quotes/new") : undefined,
+    onRefresh: refetch,
+    newLabel: canWrite ? "Nueva cotización" : undefined,
+  });
   const table = useLiftgoTable<Quote>({
     ...tableViewState,
-    data: filtered,
+    data: data?.items,
+    pageCount: Math.ceil((data?.totalCount ?? 0) / pagination.pageSize),
+    manualSorting: true,
     columns: buildQuotesColumns<Quote>(),
     getRowId: (q) => q.id,
   });
@@ -75,9 +83,8 @@ export default function QuotesPage() {
           <Button onClick={() => navigate("/quotes/new")} size="sm"><AddIcon className="h-4 w-4 mr-1" />Nueva cotización</Button>
         </RoleGuard>
       }
-      notice={
-        <ListTruncationNotice rows={quotesRaw} />
-      }
+      rowCount={data?.totalCount}
+      totalCount={data?.totalCount}
       search={
         <FiltersToolbar.Search
           value={values.q}

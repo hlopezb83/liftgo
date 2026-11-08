@@ -30,7 +30,7 @@ const lineItems = [
   })),
 ];
 const quote = {
-  organization_id: ORG, customer_id: CUSTOMER, customer_name: customerName, quote_type: "rental", status: "draft",
+  organization_id: ORG, customer_id: CUSTOMER, forklift_id: null, customer_name: customerName, quote_type: "rental", status: "draft",
   start_date: "2026-11-01", end_date: "2026-11-30", valid_until: "2026-12-31",
   subtotal: 31000, tax_rate: 16, tax_amount: 4960, total: 35960,
   tipo_cambio: 1, rental_meta: [{ modelId: MODEL, quantity: 2 }], line_items: lineItems,
@@ -116,7 +116,18 @@ export async function installQuoteTransport(context: BrowserContext, origin: str
     if (method === "OPTIONS") return route.fulfill({ status: 204, headers: cors });
     if (url.pathname === "/auth/v1/user" && method === "GET") { observed.push("synthetic auth user GET"); return json(user); }
     const rpc = url.pathname.replace("/rest/v1/rpc/", "");
-    // These three named RPCs are read-only. No other POST is ever allowed.
+    // Exact read RPC allowlist, including the paginated list; every other POST stays blocked.
+    if (url.pathname === "/rest/v1/rpc/get_quotes_page" && method === "POST") {
+      const args = request.postDataJSON() as { p_expected_organization_id: string; p_search: string | null; p_status: string; p_page: number; p_page_size: number };
+      if (args.p_expected_organization_id !== ORG) return reject();
+      observed.push("read RPC get_quotes_page");
+      const needle = args.p_search?.toLowerCase();
+      const items = (rows.quotes as (typeof quote & { id: string; quote_number: string; currency: string })[])
+        .filter((row) => args.p_status === "all" || row.status === args.p_status)
+        .filter((row) => !needle || `${row.quote_number} ${row.customer_name}`.toLowerCase().includes(needle));
+      const pageIndex = Math.min(args.p_page, Math.max(0, Math.ceil(items.length / args.p_page_size) - 1));
+      return json({ items: items.slice(pageIndex * args.p_page_size, (pageIndex + 1) * args.p_page_size), totalCount: items.length, pageIndex });
+    }
     const reads: Record<string, unknown> = {
       get_organization_display_name: "QA Empresa ficticia", get_public_branding: [{ razon_social: "QA Empresa ficticia" }], get_sidebar_badge_counts: {},
     };

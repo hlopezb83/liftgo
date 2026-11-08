@@ -904,6 +904,13 @@
       "when": 1794081979795,
       "tag": "0128_control0127_verified_release",
       "breakpoints": true
+    },
+    {
+      "idx": 129,
+      "version": "7",
+      "when": 1794132000000,
+      "tag": "0129_quotes_server_page",
+      "breakpoints": true
     }
   ]
 }
