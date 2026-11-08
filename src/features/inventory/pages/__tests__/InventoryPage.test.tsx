@@ -1,6 +1,8 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { TestRouter } from "@/test/router";
+import { fireEvent, render as rtlRender, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import InventoryPage from "../InventoryPage";
+const render = async (ui: React.ReactElement) => { const view = rtlRender(ui, { wrapper: TestRouter }); await screen.findByRole("searchbox"); return view; };
 
 const mocks = vi.hoisted(() => ({ canWrite: true }));
 vi.mock("@/features/users", () => ({ useHasModuleAccess: () => mocks.canWrite }));
@@ -11,6 +13,18 @@ vi.mock("../../hooks/usePartsInventory", () => ({
 vi.mock("../../components/inventory/PartDetailSheet", () => ({
   PartDetailSheet: ({ part, open }: { part?: { name: string }; open: boolean }) => open ? <div role="dialog" aria-label="Detalle de refacción">{part?.name}</div> : null,
 }));
+vi.mock("../../hooks/useInventoryPage", async () => {
+  const { usePartsInventory } = await import("../../hooks/usePartsInventory");
+  return { useInventoryPage: ({ search, category }: { search: string; category: string }) => {
+    const original = usePartsInventory();
+    const items = (original.data ?? []).filter((p) => (!search || p.name.toLowerCase().includes(search.toLowerCase())) && (category === "all" || p.category === category));
+    return { ...original, data: { items, totalCount: items.length, pageIndex: 0, lowStockCount: 0 } };
+  } };
+});
+vi.mock("../../hooks/useInventoryPart", async () => {
+  const { usePartsInventory } = await import("../../hooks/usePartsInventory");
+  return { useInventoryPart: (id: string | null) => ({ ...usePartsInventory(), data: usePartsInventory().data?.find((p) => p.id === id) ?? null }) };
+});
 vi.mock("../../components/inventory/PartFormDialog", () => ({ PartFormDialog: () => null }));
 vi.mock("../../components/inventory/ActivatePartDialog", () => ({ ActivatePartDialog: () => null }));
 
@@ -18,7 +32,7 @@ beforeEach(() => { mocks.canWrite = true; });
 
 describe("InventoryPage", () => {
   it("ofrece limpiar una búsqueda vacía sin afirmar que no existen refacciones", async () => {
-    render(<InventoryPage />);
+    await render(<InventoryPage />);
     fireEvent.change(screen.getByRole("searchbox"), { target: { value: "No coincide" } });
     expect(await screen.findByText("No hay resultados con los filtros actuales")).toBeInTheDocument();
     expect(screen.queryByText("Sin refacciones registradas")).not.toBeInTheDocument();
@@ -27,15 +41,15 @@ describe("InventoryPage", () => {
     expect(screen.getByRole("button", { name: /Filtro de aceite/ })).toBeInTheDocument();
   });
 
-  it.each(["Enter", " "])("abre la tarjeta usando la tecla %s", (key) => {
-    render(<InventoryPage />);
+  it.each(["Enter", " "])("abre la tarjeta usando la tecla %s", async (key) => {
+    await render(<InventoryPage />);
     fireEvent.keyDown(screen.getByRole("button", { name: /Filtro de aceite/ }), { key });
     expect(screen.getByRole("dialog", { name: "Detalle de refacción" })).toHaveTextContent("Filtro de aceite");
   });
 
-  it("mantiene la consulta por teclado y omite alta para un usuario de lectura", () => {
+  it("mantiene la consulta por teclado y omite alta para un usuario de lectura", async () => {
     mocks.canWrite = false;
-    render(<InventoryPage />);
+    await render(<InventoryPage />);
     expect(screen.queryByRole("button", { name: "Habilitar refacción" })).not.toBeInTheDocument();
     fireEvent.keyDown(screen.getByRole("button", { name: /Filtro de aceite/ }), { key: "Enter" });
     expect(screen.getByRole("dialog", { name: "Detalle de refacción" })).toBeInTheDocument();
