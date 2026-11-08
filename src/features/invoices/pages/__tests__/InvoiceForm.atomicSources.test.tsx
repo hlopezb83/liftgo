@@ -37,7 +37,7 @@ vi.mock("../../components/invoice-form/InvoiceSourceNotice", () => ({ InvoiceSou
 vi.mock("../../components/invoice-form/SaleAssignmentBlocked", () => ({ SaleAssignmentBlocked: () => null }));
 import InvoiceForm from "../InvoiceForm";
 beforeEach(() => {
-  vi.clearAllMocks(); state.isEdit = false; state.fail = false; state.liveVersion = 4;
+  vi.clearAllMocks(); state.isEdit = false; state.fail = false; state.liveVersion = 4; state.params = new URLSearchParams("extension_id=ext-1&from_quote=quote-1");
   state.save.mockImplementation((_args, callbacks) => { if (!state.fail) callbacks.onSuccess({ id: "inv-1", invoice_number: "BORRADOR-1" }); });
 });
 afterEach(cleanup);
@@ -69,4 +69,36 @@ describe("atomic invoice sources", () => {
     expect(state.save.mock.calls[0][0]).toMatchObject({ invoiceId: "inv-1", expectedVersion: 3, extensionId: null, acceptQuoteId: null, quoteExpectedVersion: null });
     expect(state.legacyLink).not.toHaveBeenCalled(); expect(state.legacyQuote).not.toHaveBeenCalled();
   });
+});
+
+it("starts a clean form when extension identity changes, retaining edits on same source", () => {
+  const { rerender } = render(<InvoiceForm />);
+  const notes = screen.getByPlaceholderText("Notas adicionales…");
+  fireEvent.change(notes, { target: { value: "Edited extension A" } });
+  rerender(<InvoiceForm />);
+  expect(screen.getByPlaceholderText("Notas adicionales…")).toHaveValue("Edited extension A");
+  state.params = new URLSearchParams("extension_id=ext-2");
+  rerender(<InvoiceForm />);
+  expect(screen.getByPlaceholderText("Notas adicionales…")).toHaveValue("");
+});
+
+it("clears extension draft when leaving extension mode and returning", () => {
+  const { rerender } = render(<InvoiceForm />);
+  fireEvent.change(screen.getByPlaceholderText("Notas adicionales…"), { target: { value: "Extension draft" } });
+  state.params = new URLSearchParams();
+  rerender(<InvoiceForm />);
+  expect(screen.getByPlaceholderText("Notas adicionales…")).toHaveValue("");
+  fireEvent.change(screen.getByPlaceholderText("Notas adicionales…"), { target: { value: "Manual draft" } });
+  state.params = new URLSearchParams("extension_id=ext-1");
+  rerender(<InvoiceForm />);
+  expect(screen.getByPlaceholderText("Notas adicionales…")).toHaveValue("");
+});
+
+it("does not reset an existing invoice snapshot when only extension query changes", () => {
+  state.isEdit = true;
+  const { rerender } = render(<InvoiceForm />);
+  fireEvent.change(screen.getByPlaceholderText("Notas adicionales…"), { target: { value: "Existing invoice edit" } });
+  state.params = new URLSearchParams("extension_id=ext-2");
+  rerender(<InvoiceForm />);
+  expect(screen.getByPlaceholderText("Notas adicionales…")).toHaveValue("Existing invoice edit");
 });
