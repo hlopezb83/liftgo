@@ -48,10 +48,14 @@ START_EXCLUDES = {
 # Candidate 0129 (PR410) adds the scoped quote-page RPC; 0130 adds only
 # the reviewed sale-quote invoice trigger and owner preflight. Neither runs
 # business DML during installation. Earlier migration bytes stay unchanged.
+# Official activation added only assertion receipt 0131 and generated metadata,
+# reviewed at 07d2ab34861e8fcda28bbaa3ca7643cfe68a3e56. Its snapshot links
+# to 0128; 0129/0130 bytes are unchanged. The replay helper excludes only the
+# exact production-bound receipt, never the functional migrations.
 # Any subsequent history change requires explicit source review.
 SOURCE_TREES = {
     "supabase/migrations": "3e3575f5ff6d509ecdd624ae7fc1772508b5dce6",
-    "drizzle/migrations": "1ba5cb8bba03189bdadc5ee8c3fe8a79b2c729ea",
+    "drizzle/migrations": "b5f0f28c31d0a49bf7ceead14faea7dabd6fa246",
 }
 HTTP_SOURCES = {
     "20260721000000_retry_queue_cron.sql": "2aecccd0758961f41769d9fed522d03df14937650b9dde80fce47646a1fa6887",
