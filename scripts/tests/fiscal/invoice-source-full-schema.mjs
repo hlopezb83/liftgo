@@ -37,6 +37,8 @@ async function snapshot() {
   const result={};
   for(const table of ['invoices','invoice_bookings','booking_extensions','quotes','damage_records'])
     result[table]=await c.client.unsafe(`SELECT to_jsonb(t) AS row FROM public.${table} t WHERE organization_id=$1 ORDER BY to_jsonb(t)::text`,[ORG]);
+  result.assignments=await c.client`SELECT to_jsonb(t) AS row FROM public.quote_assigned_forklifts t JOIN public.quotes q ON q.id=t.quote_id WHERE q.organization_id=${ORG} ORDER BY to_jsonb(t)::text`;
+  result.forklifts=await c.client`SELECT to_jsonb(t) AS row FROM public.forklifts t WHERE organization_id=${ORG} ORDER BY to_jsonb(t)::text`;
   return result;
 }
 async function seed(n) {
@@ -53,6 +55,28 @@ async function save(client,n,{extension=null,quote=null,version=null}={}) {
     subtotal:100,tax_rate:16,tax_amount:16,total:116,moneda:'MXN',tipo_cambio:1,billing_period_start:start,billing_period_end:end};
   return client`SELECT * FROM public.save_invoice_with_sources(${client.json(payload)}::jsonb,${[uid(n)]}::uuid[],NULL,NULL,NULL,${extension}::uuid,${quote}::uuid,${version}::integer)`;
 }
+const saleLine={description:'Synthetic lift - Venta de equipo',quantity:1,unit_price:100,total:100,objeto_imp:'02'};
+async function seedSale(n) {
+  const quote=uid(n),forklift=uid(n+1);
+  await begin(c.client);
+  await c.client`INSERT INTO public.forklifts(id,name,model,status,organization_id) VALUES (${forklift},${`SOURCE-SALE-${n}`},'Synthetic','available',${ORG})`;
+  await c.client`INSERT INTO public.quotes(id,quote_number,customer_id,customer_name,quote_type,status,line_items,subtotal,tax_amount,total,organization_id,valid_until)
+    VALUES (${quote},${`SOURCE-SALE-Q-${n}`},${CUSTOMER},'Synthetic source CI','sale','draft',${c.client.json([saleLine])}::jsonb,100,16,116,${ORG},public.today_mty()+30)`;
+  await c.client`UPDATE public.quotes SET status='sent' WHERE id=${quote}`;
+  await c.client`COMMIT`;
+  await begin(c.client,'authenticated');
+  await c.client`UPDATE public.quotes SET status='accepted',accepted_at=now(),accepted_by_user_id=${USER} WHERE id=${quote}`;
+  await c.client`SELECT public.assign_forklift_to_sale_quote(${quote}::uuid,${[forklift]}::uuid[],ARRAY[0])`;
+  await c.client`COMMIT`;
+  const [{version}]=await c.client`SELECT version FROM public.quotes WHERE id=${quote}`;
+  return {quote,version};
+}
+async function saveSale(client,{quote,version}) {
+  const payload={customer_id:CUSTOMER,customer_name:'Synthetic source CI',quote_id:quote,
+    line_items:[saleLine],subtotal:100,tax_rate:16,tax_amount:16,total:116,moneda:'MXN',tipo_cambio:1};
+  return client`SELECT * FROM public.save_invoice_with_sources(${client.json(payload)}::jsonb,ARRAY[]::uuid[],NULL,NULL,NULL,NULL,${quote}::uuid,${version}::integer)`;
+}
+
 try {
   assert.equal((await c.client`SELECT count(*)::int AS n FROM public.organizations WHERE id=${ORG}`)[0].n,0,'Fixture must not preexist');
   assert.equal((await c.client`SELECT count(*)::int AS n FROM auth.users WHERE id=${USER}`)[0].n,0,'Fixture user must not preexist');
@@ -123,7 +147,51 @@ try {
     for(const table of Object.keys(before)) assert.deepEqual(ordered(after[table]),ordered(before[table]),`Unexpected persisted ${table} after stale rejection`);
     console.log(`PASS full-schema source ${role}: concurrent quote edit yields stale_write with no save residue`);
   }
-  console.log(`Source concurrency: 4/4, replay ${replay.count}; real roles and all replayed guards. No PAC.`);
+  // Two forms capture the same accepted sale/version before either save.
+  // No booking or billing period: cannot pass via the extension uniqueness guard.
+  for(const [index,role] of ['authenticated','service_role'].entries()) {
+    const source=await seedSale(500+index*100);
+    await begin(a.client,role);
+    const winner=await saveSale(a.client,source);
+    assert.equal(winner.length,1);
+    assert.equal(winner[0].status,'draft');
+    assert.equal(Number(winner[0].total),116);
+    await a.client`COMMIT`;
+    const winnerState=await snapshot();
+    await begin(b.client,role);
+    const loser=await settle(saveSale(b.client,source));
+    // Always roll back the probe, even while the production defect still exists.
+    await b.client`ROLLBACK`;
+    assert.ok(loser.error,'Duplicate accepted sale must be rejected; second form unexpectedly saved a draft');
+    assert.equal(loser.error.code,'23505',loser.error.message);
+    assert.equal(loser.error.constraint_name,'sale_quote_active_invoice_unique');
+    assert.deepEqual(await snapshot(),winnerState,'Rejected duplicate sale must preserve all business rows');
+    const invoices=await c.client`SELECT id FROM public.invoices WHERE organization_id=${ORG} AND quote_id=${source.quote}`;
+    assert.deepEqual(invoices.map(r=>r.id),[winner[0].id]);
+    assert.equal((await c.client`SELECT count(*)::int AS n FROM public.invoice_bookings WHERE invoice_id=${winner[0].id}`)[0].n,0);
+    console.log(`PASS full-schema source ${role}: accepted sale rejects second prefilled form without residue`);
+  }
+  for(const [index,role] of ['authenticated','service_role'].entries()) {
+    const source=await seedSale(800+index*100);
+    await begin(a.client,role);
+    const winner=await saveSale(a.client,source);
+    assert.equal(winner.length,1);
+    await begin(b.client,role);
+    const waiting=settle(saveSale(b.client,source));
+    await blockedBy(b.pid,a.pid);
+    await a.client`COMMIT`;
+    const winnerState=await snapshot();
+    const loser=await waiting;
+    await b.client`ROLLBACK`;
+    assert.ok(loser.error,'Concurrent sale claimant must fail');
+    assert.equal(loser.error.code,'23505',loser.error.message);
+    assert.equal(loser.error.constraint_name,'sale_quote_active_invoice_unique');
+    assert.deepEqual(await snapshot(),winnerState,'Concurrent losing sale must leave no business changes');
+    const invoices=await c.client`SELECT id FROM public.invoices WHERE organization_id=${ORG} AND quote_id=${source.quote}`;
+    assert.deepEqual(invoices.map(r=>r.id),[winner[0].id]);
+    console.log(`PASS full-schema source ${role}: competing accepted sale, one winner and no loser residue`);
+  }
+  console.log(`Source concurrency: 8/8, replay ${replay.count}; real roles and all replayed guards. No PAC.`);
 } finally {
   await Promise.allSettled(sessions.map(async({client})=>{try{await client`ROLLBACK`;}finally{client.release();}}));
   await sql.end({timeout:5});
