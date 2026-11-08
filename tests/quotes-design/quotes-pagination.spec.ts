@@ -1,7 +1,14 @@
-import { test, expect } from "@playwright/test";
+import { test, expect, type Locator } from "@playwright/test";
 import { mkdirSync, writeFileSync } from "node:fs";
 import { closeOfflinePages } from "../offlineTeardown";
 import { installQuoteTransport } from "./fixtures";
+
+// Match the device's input. Touch-only pull-to-refresh filters mouse clicks
+// before React receives them; locator.click() does not synthesize a touch tap.
+async function activateListControl(target: Locator) {
+  if (test.info().project.use.hasTouch) await target.tap();
+  else await target.click();
+}
 
 const folder = "test-results/quotes-design/evidence";
 const org = "00000000-0000-4000-8000-000000000002";
@@ -60,8 +67,17 @@ test("server quote pagination and search reach old row 501", async ({ page, cont
   await expect(page.getByText("COT-0445", { exact: true })).toBeVisible();
   await expect(page.getByRole("button", { name: "Ir a la página siguiente" })).toBeDisabled();
   await expect(page.getByText(/Mostrando los primeros 500/)).toHaveCount(0);
-  await page.getByRole("button", { name: "Ir a la página anterior" }).click();
+  const previousRequest = page.waitForRequest((request) =>
+    request.url() === "http://127.0.0.1:54321/rest/v1/rpc/get_quotes_page" &&
+    request.method() === "POST" && request.postDataJSON().p_page === 19);
+  await activateListControl(page.getByRole("button", { name: "Ir a la página anterior" }));
+  expect((await previousRequest).postDataJSON()).toMatchObject({
+    p_expected_organization_id: org, p_page: 19, p_page_size: 25, p_search: null, p_status: "all",
+  });
+  await expect(page).toHaveURL(/tablePage=19(?:&|$)/);
   await expect(page.getByText("476–500 de 501", { exact: true })).toBeVisible();
+  await expect(page.getByText("COT-0445", { exact: true })).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "Ir a la página siguiente" })).toBeEnabled();
 
   const search = page.getByRole("searchbox", { name: "Buscar cotizaciones…" });
   await search.fill("445");
@@ -78,12 +94,12 @@ test("server quote pagination and search reach old row 501", async ({ page, cont
   await page.screenshot({ path: `${folder}/${testInfo.project.name}-quotes-server-search.png`, fullPage: true });
   const geometry = await page.evaluate(() => ({ width: innerWidth, scroll: document.documentElement.scrollWidth }));
   expect(geometry.scroll).toBeLessThanOrEqual(geometry.width + 1);
-  if (testInfo.project.name.startsWith("mobile")) await page.getByRole("button", { name: "Filtros", exact: true }).click();
-  await page.getByRole("combobox", { name: "Filtrar por estado" }).click();
-  await page.getByRole("option", { name: "Borradores", exact: true }).click();
+  if (testInfo.project.name.startsWith("mobile")) await activateListControl(page.getByRole("button", { name: "Filtros", exact: true }));
+  await activateListControl(page.getByRole("combobox", { name: "Filtrar por estado" }));
+  await activateListControl(page.getByRole("option", { name: "Borradores", exact: true }));
   if (testInfo.project.name.startsWith("mobile")) await page.keyboard.press("Escape");
   await expect(page.getByText("No hay resultados con los filtros actuales")).toBeVisible();
-  await page.getByRole("button", { name: "Limpiar filtros", exact: true }).last().click();
+  await activateListControl(page.getByRole("button", { name: "Limpiar filtros", exact: true }).last());
   await expect(page.getByText("1–25 de 501", { exact: true })).toBeVisible();
 
   const teardownErrors = await closeOfflinePages(context);
