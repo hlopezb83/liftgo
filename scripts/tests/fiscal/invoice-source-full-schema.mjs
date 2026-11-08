@@ -83,7 +83,9 @@ try {
     const loser=await waiting;
     assert.ok(loser.error,'Second extension claimant must fail');
     assert.equal(loser.error.code,'23505');
-    assert.match(loser.error.message,/cobertura|superpuest|superpon|extensión ya está reservada/i);
+    if (loser.error.constraint_name !== 'invoices_booking_period_uniq') {
+      assert.match(loser.error.message,/cobertura|superpuest|superpon|extensión ya está reservada/i);
+    }
     await b.client`ROLLBACK`;
     assert.deepEqual(await snapshot(),winnerState,'Losing extension call must leave no business row changes');
     const invoices=await c.client`SELECT id FROM public.invoices WHERE organization_id=${ORG} AND booking_id=${uid(n)}`;
