@@ -29,7 +29,7 @@ function invoiceAllowsCredit(invoice: Props["invoice"], maxCreditable: number, b
 
 export function InvoiceCreditNotesCard({ invoice }: Props) {
   const canWrite = useHasModuleAccess("Facturas", "full");
-  const { data: creditNotes = [] } = useCreditNotesForInvoice(invoice.id);
+  const { data: creditNotes = [], refetch: refetchCreditNotes } = useCreditNotesForInvoice(invoice.id);
   const { data: payments = [] } = usePayments(invoice.id);
   const [createOpen, setCreateOpen] = useState(false);
   const [cancelTarget, setCancelTarget] = useState<CreditNote | null>(null);
@@ -79,6 +79,7 @@ export function InvoiceCreditNotesCard({ invoice }: Props) {
           />
           <CreditNotesTable
             creditNotes={creditNotes}
+            onDownloaded={() => { void refetchCreditNotes(); }}
             stampMutation={stampMutation}
             deleteMutation={deleteMutation}
             refreshCancelMutation={refreshCancelMutation}

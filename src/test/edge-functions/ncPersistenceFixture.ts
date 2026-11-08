@@ -79,6 +79,7 @@ export function createNcPersistenceFixture(
           return query;
         },
         lt: () => query,
+        order: () => query,
         limit: () => query,
         is: () => query,
         not: () => query,

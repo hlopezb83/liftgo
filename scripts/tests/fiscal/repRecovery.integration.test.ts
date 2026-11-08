@@ -60,7 +60,8 @@ beforeAll(async () => {
     CREATE TABLE invoices (id uuid, organization_id uuid, cfdi_status text, cfdi_uuid uuid,
       facturapi_invoice_id text, serie text, folio text, updated_at timestamptz, stamping_attempts integer);
     CREATE TABLE credit_notes (id uuid, organization_id uuid, cfdi_status text, cfdi_uuid uuid,
-      facturapi_invoice_id text, updated_at timestamptz, lookup_attempts integer, stamping_attempts integer);
+      facturapi_invoice_id text, updated_at timestamptz, lookup_attempts integer, stamping_attempts integer,
+      status text, cancellation_status text, cfdi_xml_pending boolean, cfdi_xml_url text, cfdi_pdf_url text);
     CREATE TABLE fixture_fault (mode text NOT NULL);
     INSERT INTO fixture_fault VALUES ('none');
     CREATE FUNCTION fixture_reject_write() RETURNS trigger LANGUAGE plpgsql AS $$
