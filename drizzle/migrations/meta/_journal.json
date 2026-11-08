@@ -911,6 +911,13 @@
       "when": 1794132000000,
       "tag": "0129_quotes_server_page",
       "breakpoints": true
+    },
+    {
+      "idx": 130,
+      "version": "7",
+      "when": 1794153218000,
+      "tag": "0130_sale_quote_invoice_uniqueness",
+      "breakpoints": true
     }
   ]
 }
