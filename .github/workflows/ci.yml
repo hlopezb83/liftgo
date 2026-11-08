@@ -168,6 +168,11 @@ jobs:
           SMOKE_REUSE_BUILD: "1"
         run: bunx playwright test --config playwright.quotes-design.config.ts
 
+      - name: Inventory acceptance 360/390/1440 (real build, fake data)
+        env:
+          SMOKE_REUSE_BUILD: "1"
+        run: bunx playwright test --config playwright.inventory-design.config.ts
+
       - name: Booking acceptance 360/390/1440 (real build, fake data)
         env:
           SMOKE_REUSE_BUILD: "1"
@@ -216,6 +221,17 @@ jobs:
           path: |
             playwright-report/quotes-design/
             test-results/quotes-design/
+          retention-days: 7
+          if-no-files-found: ignore
+
+      - name: Upload inventory evidence
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: inventory-design-artifacts
+          path: |
+            playwright-report/inventory-design/
+            test-results/inventory-design/
           retention-days: 7
           if-no-files-found: ignore
 
@@ -464,6 +480,23 @@ jobs:
       - name: Validar GRANT / RLS / POLICY / search_path
         if: steps.files.outputs.list != ''
         run: bun scripts/lint-migrations.ts ${{ steps.files.outputs.list }}
+
+  inventory-contract:
+    name: Inventory tenant and paging contract
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+      - uses: ./.github/actions/setup-bun-project
+      - name: Prepare disposable PostgreSQL runtime
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y postgresql-16
+      - name: Verify synthetic inventory isolation and pagination
+        env:
+          RUN_LOCAL_INVENTORY_TESTS: "1"
+          PG_BIN: /usr/lib/postgresql/16/bin
+        run: node scripts/tests/inventory/run-local-postgres.mjs
 
   dependency-contracts:
     name: Contratos de dependencias instaladas

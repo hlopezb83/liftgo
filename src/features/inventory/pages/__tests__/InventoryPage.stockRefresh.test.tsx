@@ -1,8 +1,11 @@
 import type { ReactNode } from "react";
-import { act, cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { act, cleanup, fireEvent, render as rtlRender, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import InventoryPage from "../InventoryPage";
+const render = async (ui: React.ReactElement) => { const view = rtlRender(ui); await screen.findByRole("searchbox"); return view; };
 
+vi.mock("@/hooks/filters/useTableFilters", () => ({ useTableFilters: () => ({ values: { q: "", category: "all" }, set: vi.fn(), reset: vi.fn(), hasActive: false }) }));
+vi.mock("@/hooks/filters/useTableViewState", () => ({ useTableViewState: () => ({ controlledPagination: { pageIndex: 0, pageSize: 25 }, controlledSorting: [], onControlledPaginationChange: vi.fn(), onControlledSortingChange: vi.fn() }) }));
 // Keep the real page → detail → adjustment chain; only data/network and modal
 // shells are substituted. No backend inventory is touched by these tests.
 const mocks = vi.hoisted(() => ({ stock: 12, present: true, mutate: vi.fn() }));
@@ -17,6 +20,18 @@ vi.mock("../../hooks/usePartsInventory", () => ({
   useDeletePart: () => ({ mutate: vi.fn(), isPending: false }),
   useAdjustPartStock: () => ({ mutate: mocks.mutate, isPending: false }),
 }));
+vi.mock("../../hooks/useInventoryPage", async () => {
+  const { usePartsInventory } = await import("../../hooks/usePartsInventory");
+  return { useInventoryPage: ({ search, category }: { search: string; category: string }) => {
+    const original = usePartsInventory();
+    const items = (original.data ?? []).filter((p) => (!search || p.name.toLowerCase().includes(search.toLowerCase())) && (category === "all" || p.category === category));
+    return { ...original, data: { items, totalCount: items.length, pageIndex: 0, lowStockCount: 0 } };
+  } };
+});
+vi.mock("../../hooks/useInventoryPart", async () => {
+  const { usePartsInventory } = await import("../../hooks/usePartsInventory");
+  return { useInventoryPart: (id: string | null) => ({ ...usePartsInventory(), data: usePartsInventory().data?.find((p) => p.id === id) ?? null }) };
+});
 vi.mock("../../components/inventory/PartFormDialog", () => ({ PartFormDialog: () => null }));
 vi.mock("../../components/inventory/ActivatePartDialog", () => ({ ActivatePartDialog: () => null }));
 vi.mock("@/components/ui/sheet", () => ({
@@ -48,8 +63,8 @@ function enterCount(quantity: number, reason: string) {
 }
 
 describe("InventoryPage stock refresh", () => {
-  it("updates the detail and uses current stock for two consecutive adjustments without closing the detail", () => {
-    const view = render(<InventoryPage />);
+  it("updates the detail and uses current stock for two consecutive adjustments without closing the detail", async () => {
+    const view = await render(<InventoryPage />);
     openDetail();
     openAdjustment();
     expect(screen.getByLabelText("Conteo físico *")).toHaveValue(12);
@@ -72,8 +87,8 @@ describe("InventoryPage stock refresh", () => {
     expect(screen.getByRole("dialog", { name: "Detalle" })).toHaveTextContent("18 unidades");
   });
 
-  it("refreshes the detail without replacing the expected stock or draft of an already open adjustment", () => {
-    const view = render(<InventoryPage />);
+  it("refreshes the detail without replacing the expected stock or draft of an already open adjustment", async () => {
+    const view = await render(<InventoryPage />);
     openDetail();
     openAdjustment();
     enterCount(18, "Conteo en curso");
@@ -94,8 +109,8 @@ describe("InventoryPage stock refresh", () => {
     expect(screen.getByLabelText("Conteo físico *")).toHaveValue(15);
   });
 
-  it("does not retain an actionable stale detail when the selected part disappears", () => {
-    const view = render(<InventoryPage />);
+  it("does not retain an actionable stale detail when the selected part disappears", async () => {
+    const view = await render(<InventoryPage />);
     openDetail();
     mocks.present = false;
     view.rerender(<InventoryPage />);

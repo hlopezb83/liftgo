@@ -52,10 +52,12 @@ START_EXCLUDES = {
 # reviewed at 07d2ab34861e8fcda28bbaa3ca7643cfe68a3e56. Its snapshot links
 # to 0128; 0129/0130 bytes are unchanged. The replay helper excludes only the
 # exact production-bound receipt, never the functional migrations.
+# Candidate 0132 adds only the INVOKER inventory-page RPC and journal entry.
+# Earlier migration bytes stay unchanged; no business DML is introduced.
 # Any subsequent history change requires explicit source review.
 SOURCE_TREES = {
     "supabase/migrations": "3e3575f5ff6d509ecdd624ae7fc1772508b5dce6",
-    "drizzle/migrations": "b5f0f28c31d0a49bf7ceead14faea7dabd6fa246",
+    "drizzle/migrations": "9cd9e112058206028074d60be1bc919c2258c9ff",
 }
 HTTP_SOURCES = {
     "20260721000000_retry_queue_cron.sql": "2aecccd0758961f41769d9fed522d03df14937650b9dde80fce47646a1fa6887",

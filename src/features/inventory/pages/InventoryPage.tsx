@@ -1,134 +1,87 @@
-import { useState } from "react";
-import { useLiftgoTable, type ColumnDef } from "@/components/dataTable/v2";
+import { useEffect, useState } from "react";
+import { useLiftgoTable } from "@/components/dataTable/v2";
 import { KpiTile } from "@/components/domain/KpiTile";
-import { ListTruncationNotice } from "@/components/feedback/ListTruncationNotice";
+import { QueryErrorState } from "@/components/feedback/QueryErrorState";
 import { SearchBar } from "@/components/forms/SearchBar";
 import { AddIcon, InventoryIcon } from "@/components/icons";
 import { ListPageLayout } from "@/components/layout/ListPageLayout";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useHasModuleAccess } from "@/features/users";
+import { useTableFilters } from "@/hooks/filters/useTableFilters";
+import { useTableViewState } from "@/hooks/filters/useTableViewState";
 import { useDialogState, useToggleDialog } from "@/hooks/useDialogState";
-import { formatCurrency } from "@/lib/format/formatCurrency";
-import { visibleListRows } from "@/lib/supabase/constants";
 import { ActivatePartDialog } from "../components/inventory/ActivatePartDialog";
+import { inventoryColumns } from "../components/inventory/inventoryColumns";
+import { InventoryMobileCard } from "../components/inventory/InventoryRows";
 import { PartDetailSheet } from "../components/inventory/PartDetailSheet";
 import { PartFormDialog } from "../components/inventory/PartFormDialog";
-import { useInventoryFilters } from "../hooks/inventory/useInventoryFilters";
-import { usePartsInventory, type PartInventory } from "../hooks/usePartsInventory";
-import { partCategoryLabel } from "../lib/partCategories";
+import { useInventoryPage } from "../hooks/useInventoryPage";
+import { useInventoryPart } from "../hooks/useInventoryPart";
+import { type PartInventory } from "../hooks/usePartsInventory";
 import { PART_CATEGORIES } from "../lib/partConstants";
+
+function useInventoryListState() {
+  const { values, set, reset, hasActive } = useTableFilters<PartInventory, {
+    q: { type: "text"; fields: (keyof PartInventory)[] };
+    category: { type: "enum"; field: keyof PartInventory; options: readonly string[] };
+  }>({ mode: "server", facets: {
+    q: { type: "text", fields: ["name", "sku"] },
+    category: { type: "enum", field: "category", options: ["all", ...PART_CATEGORIES] },
+  } });
+  const viewState = useTableViewState();
+  const { controlledPagination: pagination, controlledSorting: sorting, onControlledPaginationChange } = viewState;
+  const { data, isLoading, isError, refetch } = useInventoryPage({
+    search: values.q, category: values.category, ...pagination, sorting,
+  });
+  useEffect(() => {
+    if (data && data.pageIndex !== pagination.pageIndex) {
+      onControlledPaginationChange({ ...pagination, pageIndex: data.pageIndex });
+    }
+  }, [data, pagination, onControlledPaginationChange]);
+
+  const lowStockCount = isError ? 0 : data?.lowStockCount ?? 0;
+  const totalCount = data?.totalCount;
+  const items = data?.items;
+  const pageCount = Math.ceil((totalCount ?? 0) / pagination.pageSize);
+  return { values, set, reset, hasActive, viewState, items, pageCount, totalCount, isLoading, isError, refetch, lowStockCount };
+}
 
 export default function InventoryPage() {
   const canWrite = useHasModuleAccess("Refacciones", "full");
-  const { data: partsRaw, isLoading, isError, refetch } = usePartsInventory();
-  const parts = visibleListRows(partsRaw);
+  const { values, set, reset, hasActive, viewState, items, pageCount, totalCount, isLoading, isError, refetch, lowStockCount } = useInventoryListState();
 
   const formDialog = useToggleDialog();
   const activateDialog = useToggleDialog();
   const [editing, setEditing] = useState<PartInventory | null>(null);
   const detail = useDialogState<PartInventory["id"]>();
-  // Resolve selection against current query data, not the row snapshot from
-  // opening the sheet. The adjustment dialog owns its separate open snapshot.
-  const selectedPart = parts.find((part) => part.id === detail.selected) ?? null;
-
-  const { search, setSearch, filterCategory, setFilterCategory, filtered, lowStockCount, hasActive, reset } =
-    useInventoryFilters(parts);
+  const selected = useInventoryPart(detail.isOpen ? detail.selected : null);
+  const selectedPart = selected.isError ? null : selected.data;
 
   const openCreate = () => { if (!canWrite) return; setEditing(null); activateDialog.openDialog(); };
   const openEdit = (p: PartInventory) => { if (!canWrite) return; setEditing(p); formDialog.openDialog(); };
 
-  const columns: ColumnDef<PartInventory>[] = [
-    {
-      id: "sku",
-      header: "SKU",
-      accessorFn: (p) => p.sku || "",
-      cell: ({ row }) => <span className="font-mono text-muted-foreground">{row.original.sku || "—"}</span>,
-    },
-    {
-      id: "name",
-      header: "Nombre",
-      accessorKey: "name",
-      cell: ({ row }) => <span className="font-medium">{row.original.name}</span>,
-    },
-    {
-      id: "category",
-      header: "Categoría",
-      accessorKey: "category",
-      cell: ({ row }) => <Badge variant="outline">{partCategoryLabel(row.original.category)}</Badge>,
-    },
-    {
-      id: "unit_cost",
-      header: "Costo Unitario",
-      accessorKey: "unit_cost",
-      meta: { kind: "money" },
-      cell: ({ row }) => <span className="font-mono">{formatCurrency(row.original.unit_cost)}</span>,
-    },
-    {
-      id: "stock_quantity",
-      header: "Stock",
-      accessorKey: "stock_quantity",
-      meta: { align: "center" },
-      cell: ({ row }) => {
-        const p = row.original;
-        const isLow = p.stock_quantity <= p.min_stock_level;
-        return (
-          <Badge variant={isLow ? "destructive" : "secondary"}>
-            {isLow ? `${p.stock_quantity} - Reabastecer` : p.stock_quantity}
-          </Badge>
-        );
-      },
-    },
-  ];
-
   const table = useLiftgoTable<PartInventory>({
-    data: filtered,
-    columns,
+    ...viewState,
+    data: items,
+    pageCount,
+    manualSorting: true,
+    columns: inventoryColumns,
     getRowId: (p) => p.id,
   });
 
-  const mobileCard = (p: PartInventory) => {
-    const isLow = p.stock_quantity <= p.min_stock_level;
-    return (
-      <Card onClick={() => detail.open(p.id)} role="button" tabIndex={0}
-        onKeyDown={(event) => {
-          if (event.key !== "Enter" && event.key !== " ") return;
-          event.preventDefault();
-          detail.open(p.id);
-        }}
-        className="cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
-        <CardContent className="p-4 space-y-2">
-          <div className="flex items-start justify-between gap-2">
-            <div className="min-w-0">
-              <p className="font-medium break-words">{p.name}</p>
-              <p className="text-xs font-mono text-muted-foreground break-words">{p.sku || "Sin SKU"}</p>
-            </div>
-            <Badge variant={isLow ? "destructive" : "secondary"}>{p.stock_quantity}</Badge>
-          </div>
-          <div className="flex flex-wrap items-center justify-between gap-2 text-sm">
-            <Badge variant="outline">{partCategoryLabel(p.category)}</Badge>
-            <span className="font-mono">{formatCurrency(p.unit_cost)}</span>
-          </div>
-        </CardContent>
-      </Card>
-    );
-  };
 
   return (
     <>
       <ListPageLayout<PartInventory>
         title="Control de Refacciones"
         subtitle="Gestiona existencias y costos locales sobre el catálogo LiftGo"
-        totalCount={filtered.length}
+        totalCount={totalCount}
+        rowCount={totalCount}
+        onRefresh={refetch}
         actions={canWrite ? <Button onClick={openCreate}><AddIcon className="h-4 w-4 mr-1" />Habilitar refacción</Button> : undefined}
-        notice={
-          <ListTruncationNotice rows={partsRaw} />
-        }
-        filters={
-          <div className="space-y-3">
-            {lowStockCount > 0 && (
+        search={<SearchBar value={values.q} onChange={(value) => set("q", value)} placeholder="Buscar por nombre o SKU…" className="sm:max-w-xs" />}
+        notice={lowStockCount > 0 && (
               <KpiTile
                 label="Refacciones con stock bajo"
                 value={lowStockCount}
@@ -138,10 +91,10 @@ export default function InventoryPage() {
                 valueSize="lg"
               />
             )}
-
+        filters={
+          <div className="space-y-3">
             <div className="flex flex-col sm:flex-row gap-3">
-              <SearchBar value={search} onChange={setSearch} placeholder="Buscar por nombre o SKU…" className="sm:max-w-xs" />
-              <Select value={filterCategory} onValueChange={setFilterCategory}>
+              <Select value={values.category} onValueChange={(value) => set("category", value)}>
                 <SelectTrigger className="w-full sm:w-[180px]"><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">Todas las categorías</SelectItem>
@@ -163,9 +116,10 @@ export default function InventoryPage() {
         emptyActionLabel={canWrite ? "Habilitar refacción" : undefined}
         onEmptyAction={canWrite ? openCreate : undefined}
         skeletonColumns={5}
-        mobileCardRender={mobileCard}
+        mobileCardRender={(part) => <InventoryMobileCard part={part} onOpen={detail.open} />}
       />
 
+      {detail.isOpen && selected.isError && <QueryErrorState entity="refacción" onRetry={() => { void selected.refetch(); }} />}
       {selectedPart && <PartDetailSheet
         key={selectedPart.id}
         part={selectedPart}
