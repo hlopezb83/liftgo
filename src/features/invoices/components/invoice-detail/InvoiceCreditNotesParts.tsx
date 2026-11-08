@@ -95,18 +95,22 @@ interface CreditNoteActionsProps {
   refreshCancelMutation: ReturnType<typeof useRefreshCreditNoteCancellationStatus>;
   confirm: ReturnType<typeof useConfirm>;
   setCancelTarget: (cn: CreditNote | null) => void;
+  onDownloaded?: () => void;
 }
 
-function CreditNoteActions({ cn, stampMutation, deleteMutation, refreshCancelMutation, confirm, setCancelTarget }: CreditNoteActionsProps) {
+function CreditNoteActions({ cn, stampMutation, deleteMutation, refreshCancelMutation, confirm, setCancelTarget, onDownloaded }: CreditNoteActionsProps) {
   const canWrite = useHasModuleAccess("Facturas", "full");
+  const download = async (format: "pdf" | "xml") => {
+    if (await downloadCreditNote(cn.id, format, cn.credit_note_number)) onDownloaded?.();
+  };
   return (
     <div className="flex items-center justify-end gap-1">
       {cn.cfdi_status === "stamped" && (
         <>
-          <Button variant="ghost" size="icon" className="h-7 w-7" title="PDF SAT" aria-label="Descargar PDF SAT" onClick={() => downloadCreditNote(cn.id, "pdf", cn.credit_note_number)}>
+          <Button variant="ghost" size="icon" className="h-7 w-7" title="PDF SAT" aria-label="Descargar PDF SAT" onClick={() => download("pdf")}>
             <DocumentIcon className="h-3.5 w-3.5" />
           </Button>
-          <Button variant="ghost" size="icon" className="h-7 w-7" title="XML SAT" aria-label="Descargar XML SAT" onClick={() => downloadCreditNote(cn.id, "xml", cn.credit_note_number)}>
+          <Button variant="ghost" size="icon" className="h-7 w-7" title="XML SAT" aria-label="Descargar XML SAT" onClick={() => download("xml")}>
             <DownloadIcon className="h-3.5 w-3.5" />
           </Button>
           {canWrite && (cn.cancellation_status === "pending" ? (
@@ -157,9 +161,10 @@ export interface CreditNotesTableProps {
   refreshCancelMutation: ReturnType<typeof useRefreshCreditNoteCancellationStatus>;
   confirm: ReturnType<typeof useConfirm>;
   setCancelTarget: (cn: CreditNote | null) => void;
+  onDownloaded?: () => void;
 }
 
-export function CreditNotesTable({ creditNotes, stampMutation, deleteMutation, refreshCancelMutation, confirm, setCancelTarget }: CreditNotesTableProps) {
+export function CreditNotesTable({ creditNotes, stampMutation, deleteMutation, refreshCancelMutation, confirm, setCancelTarget, onDownloaded }: CreditNotesTableProps) {
   if (creditNotes.length === 0) {
     return <p className="px-6 pb-4 text-sm text-muted-foreground">Sin notas de crédito emitidas.</p>;
   }
@@ -182,10 +187,16 @@ export function CreditNotesTable({ creditNotes, stampMutation, deleteMutation, r
             <TableCell className="text-sm">{formatDateMty(cn.issued_at)}</TableCell>
             <TableCell className="text-sm">{MOTIVE_LABELS[cn.motive] ?? cn.motive}</TableCell>
             <TableCell className="text-right font-mono whitespace-nowrap">{formatCurrencyWithCode(Number(cn.total), cn.currency ?? "MXN")}</TableCell>
-            <TableCell><CnBadge cn={cn} /></TableCell>
+            <TableCell>
+              <CnBadge cn={cn} />
+              {cn.cfdi_status === "stamped" && !cn.cfdi_pdf_url && (
+                <p className="mt-1 text-xs text-muted-foreground">PDF pendiente de recuperación. Puedes intentar descargarlo sin volver a timbrar.</p>
+              )}
+            </TableCell>
             <TableCell>
               <CreditNoteActions
                 cn={cn}
+                onDownloaded={onDownloaded}
                 stampMutation={stampMutation}
                 deleteMutation={deleteMutation}
                 refreshCancelMutation={refreshCancelMutation}

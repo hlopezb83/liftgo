@@ -16,6 +16,8 @@
 //      post-verificación §4).
 //
 // NC-2: exige `x-cron-secret` o `Authorization: Bearer <CRON_SECRET>`.
+import { recoverCreditNotePdf } from "./recoverCreditNotePdf.ts";
+import type { SupabaseLike } from "../_shared/types.ts";
 import { handleCors } from "../_shared/cors.ts";
 import { jsonResponse } from "../_shared/http.ts";
 import { getAdminClient } from "../_shared/supabaseClients.ts";
@@ -231,6 +233,36 @@ export async function handleRequest(req: Request): Promise<Response> {
     console.error("[reconcile-stamping] credit_notes fetch failed", ncErr);
   }
 
+  // File-only recovery is independent of fiscal reconciliation. NCs with XML
+  // pending, cancellations or missing provider identity stay outside this lane.
+  let pdfPendingQuery = admin.from("credit_notes").select(
+    "id, organization_id, status, cfdi_status, cancellation_status, cfdi_uuid, facturapi_invoice_id, cfdi_xml_url, cfdi_xml_pending, cfdi_pdf_url, updated_at",
+  ).eq("cfdi_status", "stamped").eq("status", "stamped")
+    .eq("cancellation_status", "none").eq("cfdi_xml_pending", false).is(
+      "cfdi_pdf_url",
+      null,
+    )
+    .not("cfdi_xml_url", "is", null).not("cfdi_uuid", "is", null)
+    .not("facturapi_invoice_id", "is", null).lt("updated_at", cutoff)
+    .order("updated_at", { ascending: true }).order("id", { ascending: true })
+    .limit(RUN_ROW_LIMIT);
+  if (manualOrganizationId) {
+    pdfPendingQuery = pdfPendingQuery.eq(
+      "organization_id",
+      manualOrganizationId,
+    );
+  }
+  const { data: pdfPendingNcs, error: pdfPendingErr } = await pdfPendingQuery;
+  if (pdfPendingErr) {
+    console.error(
+      "[reconcile-stamping] NC PDF selection failed",
+      pdfPendingErr,
+    );
+  }
+  const pdfPendingAll = (pdfPendingErr ? [] : pdfPendingNcs ?? []) as Array<
+    Record<string, unknown>
+  >;
+
   const stuckAll = (rows ?? []) as StuckRow[];
   const paymentsAll = (stuckPayments ?? []) as Array<Record<string, unknown>>;
   const ncsAll = (stuckNcs ?? []) as Array<Record<string, unknown>>;
@@ -243,7 +275,7 @@ export async function handleRequest(req: Request): Promise<Response> {
   // solo cliente Facturapi compartido entre empresas).
   if (
     stuckAll.length === 0 && paymentsAll.length === 0 && ncsAll.length === 0 &&
-    folioPendingAll.length === 0
+    folioPendingAll.length === 0 && pdfPendingAll.length === 0 && !pdfPendingErr
   ) {
     return json({ processed: 0, results: [] }, 200);
   }
@@ -254,12 +286,14 @@ export async function handleRequest(req: Request): Promise<Response> {
   const paymentsGrouped = groupByOrganization(paymentsAll);
   const ncsGrouped = groupByOrganization(ncsAll);
   const folioPendingGrouped = groupByOrganization(folioPendingAll);
+  const pdfPendingGrouped = groupByOrganization(pdfPendingAll);
 
   const organizationIds = new Set<string>([
     ...stuckGrouped.groups.keys(),
     ...paymentsGrouped.groups.keys(),
     ...ncsGrouped.groups.keys(),
     ...folioPendingGrouped.groups.keys(),
+    ...pdfPendingGrouped.groups.keys(),
   ]);
 
   // N-29: claim optimista por fila. Dos ejecuciones concurrentes del cron
@@ -291,6 +325,14 @@ export async function handleRequest(req: Request): Promise<Response> {
     }
   > = [];
 
+  if (pdfPendingErr) {
+    results.push({
+      invoice_id: "unknown",
+      status: "nc_pdf_selection_error",
+      error: "No se pudo consultar la cola de PDF de NC",
+    });
+  }
+
   // Documentos sin organization_id: no se procesan (no hay forma segura de
   // resolver credenciales), pero se reportan para diagnóstico.
   for (
@@ -299,6 +341,7 @@ export async function handleRequest(req: Request): Promise<Response> {
       ...paymentsGrouped.withoutOrganization,
       ...ncsGrouped.withoutOrganization,
       ...folioPendingGrouped.withoutOrganization,
+      ...pdfPendingGrouped.withoutOrganization,
     ]
   ) {
     const id = (orphan as { id?: unknown }).id;
@@ -363,7 +406,12 @@ export async function handleRequest(req: Request): Promise<Response> {
           organization_id: organizationId,
         });
       }
-      for (const nc of ncsGrouped.groups.get(organizationId) ?? []) {
+      for (
+        const nc of [
+          ...(ncsGrouped.groups.get(organizationId) ?? []),
+          ...(pdfPendingGrouped.groups.get(organizationId) ?? []),
+        ]
+      ) {
         results.push({
           invoice_id: (nc as { id: string }).id,
           status: "org_misconfigured",
@@ -1189,6 +1237,22 @@ export async function handleRequest(req: Request): Promise<Response> {
         });
         results.push({ invoice_id: ncId, status: "nc_exception", error: msg });
       }
+    }
+    for (const nc of pdfPendingGrouped.groups.get(organizationId) ?? []) {
+      if (outOfBudget()) {
+        truncated = true;
+        break;
+      }
+      results.push(
+        await recoverCreditNotePdf(
+          admin as unknown as SupabaseLike,
+          client,
+          nc,
+          organizationId,
+          mode,
+          outOfBudget,
+        ),
+      );
     }
   } // fin del bloque por organización
 
