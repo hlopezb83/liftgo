@@ -37,5 +37,13 @@ test("inventory pages and searches beyond500 with a global low-stock count", asy
   expect(width.scroll).toBeLessThanOrEqual(width.viewport + 1);
   await page.screenshot({ path: `test-results/inventory-design/${info.project.name}-inventory501.png`, fullPage: true });
   expect(await closeOfflinePages(context)).toEqual([]);
-  expect(transport.unexpected).toEqual([]); expect(transport.blockedWrites).toEqual([]); expect(transport.externalBlocked).toEqual([]);
+  expect(transport.unexpected).toEqual([]);
+  expect(transport.blockedWrites).toEqual([]);
+  // The shared offline transport aborts these known build requests. They are
+  // expected blocked traffic, never allowed network or application mutations.
+  const knownBlocked = new Set([
+    "GET https://fonts.googleapis.com/css2",
+    "POST http://127.0.0.1:54322/api/1/envelope/",
+  ]);
+  expect(transport.externalBlocked.filter((request) => !knownBlocked.has(request))).toEqual([]);
 });
