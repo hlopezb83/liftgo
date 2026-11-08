@@ -7133,6 +7133,17 @@ export type Database = {
         Returns: Json
       }
       get_insurance_alerts: { Args: never; Returns: Json }
+      get_inventory_page: {
+        Args: {
+          p_category?: string
+          p_expected_organization_id: string
+          p_page?: number
+          p_page_size?: number
+          p_search?: string
+          p_sort?: Json
+        }
+        Returns: Json
+      }
       get_mrr_detail: { Args: never; Returns: Json }
       get_my_feedback_points_total: { Args: never; Returns: number }
       get_my_support_case: { Args: { p_report: string }; Returns: Json }
