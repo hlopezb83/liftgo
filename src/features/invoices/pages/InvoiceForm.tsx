@@ -1,5 +1,5 @@
 import { useRef } from "react";
-import { useFormContext, useWatch } from "react-hook-form";
+import { useFormContext, useFormState, useWatch } from "react-hook-form";
 import { TotalsSummary } from "@/components/domain/TotalsSummary";
 import { EmptyState } from "@/components/feedback/EmptyState";
 import { FormActions } from "@/components/forms/FormActions";
@@ -59,6 +59,15 @@ function InvoiceNotesCard() {
 }
 
 export default function InvoiceForm() {
+  const { id } = useParams();
+  const [searchParams] = useSearchParams();
+  // Source identity owns the whole draft, including the one-shot prefills.
+  // A new extension must never submit the previous extension's form state.
+  const sourceKey = id ? `invoice:${id}` : `extension:${searchParams.get("extension_id") ?? ""}`;
+  return <InvoiceFormSession key={sourceKey} />;
+}
+
+function InvoiceFormSession() {
   const navigate = useNavigateTransition();
   const { id } = useParams();
   const [searchParams] = useSearchParams();
@@ -84,8 +93,11 @@ export default function InvoiceForm() {
   // R16 F-03: el guard acepta getter y lo evalúa DENTRO del callback del blocker,
   // así ve `justSavedRef.current=true` justo después de reset()+navigate().
   const justSavedRef = useRef(false);
+  const { isDirty } = useFormState({ control: f.form.control });
   useUnsavedChangesGuard(
-    () => f.form.formState.isDirty && !isSubmitting && !justSavedRef.current,
+    () => isDirty && !isSubmitting && !justSavedRef.current,
+    undefined,
+    id ? false : (search) => new URLSearchParams(search).get("extension_id"),
   );
 
   const onSubmit = (values: InvoiceFormValues) => {
