@@ -45,10 +45,15 @@ START_EXCLUDES = {
 # The snapshot links to the last existing 0124 snapshot; 0125-0127 had none.
 # Earlier SQL/journal entries are unchanged. 0128 only asserts function/ACL
 # postconditions and raises on mismatch; it performs no DDL or business writes.
+# Reviewed local quote paging candidate on base 026d1ce6: only 0129 and its
+# journal entry are added. Earlier sources are unchanged. 0129 creates a
+# dedicated ICU collation, an INVOKER normalizer and an INVOKER read-only RPC
+# with scoped ACLs. It performs no business-data writes, HTTP or cron work.
+# This source pin is not evidence of full-schema replay or remote application.
 # Any subsequent history change requires explicit source review.
 SOURCE_TREES = {
     "supabase/migrations": "3e3575f5ff6d509ecdd624ae7fc1772508b5dce6",
-    "drizzle/migrations": "9b2ba0d2e88e0f19b32393dfa50080db74c89d0c",
+    "drizzle/migrations": "b9796acd9d2760affa564394056ea3f695b6a3ae",
 }
 HTTP_SOURCES = {
     "20260721000000_retry_queue_cron.sql": "2aecccd0758961f41769d9fed522d03df14937650b9dde80fce47646a1fa6887",
