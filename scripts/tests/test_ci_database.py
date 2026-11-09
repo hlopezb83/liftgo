@@ -547,18 +547,22 @@ class SourceAndWorkflowTests(unittest.TestCase):
 
     def assert_ab_project_marker_scope(self, text):
         # Source contract: the CLI reads SUPABASE_PROJECT_ID as a TOML override.
-        # Keep it only in the Playwright step, never in job/global/GITHUB_ENV.
+        # Keep it only in the two Playwright steps, never in job/global/GITHUB_ENV.
         marker = "SUPABASE_PROJECT_ID: local-ab-ephemeral"
-        self.assertEqual(text.count("\n          " + marker + "\n"), 1)
+        self.assertEqual(text.count("\n          " + marker + "\n"), 2)
         import re
         assignments = re.findall(r"(?m)^\s*SUPABASE_PROJECT_ID:\s*.*$", text)
-        self.assertEqual(len(assignments), 1)
+        self.assertEqual(len(assignments), 2)
         steps = text.split("\n      - name: ")
         gate = next(step for step in steps if step.startswith("Ejecutar gate A/B (datos + Storage + portal)\n"))
         self.assertIn("        env:\n          " + marker + "\n", gate)
         self.assertIn("        run: bun run test:multitenant-ab", gate)
+        census = next(step for step in steps if step.startswith("Enumerar manifiesto completo sin ejecutar fixtures\n"))
+        self.assertIn("        env:\n          " + marker + "\n", census)
+        self.assertIn("--list --reporter=json", census)
+        self.assertNotIn("supabase ", census)
         for step in steps:
-            if step is not gate:
+            if step not in (gate, census):
                 self.assertNotRegex(step, r"(?m)^\s*SUPABASE_PROJECT_ID:")
         export = next(step for step in steps if step.startswith("Exportar credenciales locales efímeras\n"))
         self.assertNotIn("SUPABASE_PROJECT_ID=", export)
@@ -576,7 +580,9 @@ class SourceAndWorkflowTests(unittest.TestCase):
                                         "      VITE_SUPABASE_PROJECT_ID: local-ab-ephemeral\n      SUPABASE_PROJECT_ID: local-ab-ephemeral\n")
         leaked = text.replace('            echo "SUPABASE_URL=$API_URL"',
                               '            echo "SUPABASE_PROJECT_ID=local-ab-ephemeral"\n            echo "SUPABASE_URL=$API_URL"')
-        for invalid in (old_global, leaked):
+        cli_override = text.replace("      - name: Setup Supabase CLI\n", "      - name: Setup Supabase CLI\n        env:\n          SUPABASE_PROJECT_ID: local-ab-ephemeral\n")
+        moved_marker = cli_override.replace("      - name: Enumerar manifiesto completo sin ejecutar fixtures\n        env:\n          SUPABASE_PROJECT_ID: local-ab-ephemeral\n", "      - name: Enumerar manifiesto completo sin ejecutar fixtures\n")
+        for invalid in (old_global, leaked, cli_override, moved_marker):
             with self.subTest(global_override=invalid is old_global), self.assertRaises(AssertionError):
                 self.assert_ab_project_marker_scope(invalid)
 
