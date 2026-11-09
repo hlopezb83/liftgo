@@ -8,6 +8,7 @@ import {
   EMPTY_CFDI,
 } from "../../lib/invoiceFormSchema";
 import { applyQuoteChargeAvailability, type QuoteChargeAvailability } from "../../lib/quoteChargeAvailability";
+import { quoteLineSatDefaults, type InvoiceLineItemSource } from "./invoiceSatDefaults";
 
 export type Customer = {
   id: string; name: string;
@@ -76,14 +77,14 @@ function cfdiFromInvoice(inv: ExistingInvoice): CfdiFormValues {
 function enrichLineItem(
   item: LineItemValues,
   index: number,
+  source: InvoiceLineItemSource,
   isSaleWithAssignments: boolean,
   assignments: Assignment[] | undefined,
   forklifts: Forklift[] | undefined,
 ): LineItemValues {
   const enriched: LineItemValues = {
     ...item,
-    clave_prod_serv: item.clave_prod_serv || "78181500",
-    clave_unidad: item.clave_unidad || "DAY",
+    ...quoteLineSatDefaults(item, source),
     objeto_imp: item.objeto_imp || "02",
   };
   if (!isSaleWithAssignments) return enriched;
@@ -142,6 +143,7 @@ export function buildFromQuote({ q, assignments, forklifts, customers, chargeAva
     if (c) Object.assign(cfdi, cfdiFromCustomer(c));
   }
   const items = (q.line_items as LineItemValues[]) || [];
+  const source: InvoiceLineItemSource = { quoteId: q.id, quoteType: q.quote_type };
   const isSaleWithAssignments = q.quote_type === "sale" && !!assignments && assignments.length > 0;
   return {
     bookingId: "",
@@ -149,8 +151,8 @@ export function buildFromQuote({ q, assignments, forklifts, customers, chargeAva
     customerId: q.customer_id ?? "",
     customerName: toStr(q.customer_name),
     lineItems: q.id
-      ? applyQuoteChargeAvailability(q.id, items.map((item, i) => enrichLineItem(item, i, isSaleWithAssignments, assignments, forklifts)), chargeAvailability)
-      : items.map((item, i) => enrichLineItem(item, i, isSaleWithAssignments, assignments, forklifts)),
+      ? applyQuoteChargeAvailability(q.id, items.map((item, i) => enrichLineItem(item, i, source, isSaleWithAssignments, assignments, forklifts)), chargeAvailability)
+      : items.map((item, i) => enrichLineItem(item, i, source, isSaleWithAssignments, assignments, forklifts)),
     taxRate: q.tax_rate == null ? 16 : Number(q.tax_rate),
     dueDate: undefined,
     issueDate: nowMty(),

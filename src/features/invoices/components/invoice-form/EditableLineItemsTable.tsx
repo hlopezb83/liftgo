@@ -10,11 +10,12 @@ import { applyDiscountToBase, lineItemTotal } from "@/lib/domain/invoiceHelpers"
 import { CLAVE_PROD_SERV, CLAVE_UNIDAD } from "@/lib/domain/satCatalogs";
 import { formatCurrencyWithCode } from "@/lib/format/formatCurrency";
 import { useInvoiceLineItemHandlers } from "../../hooks/invoiceForm/useInvoiceLineItemHandlers";
+import type { InvoiceLineItemSource } from "../../hooks/invoiceForm/invoiceSatDefaults";
 import type { InvoiceFormValues } from "../../lib/invoiceFormSchema";
 
-export function EditableLineItemsTable() {
+export function EditableLineItemsTable({ source }: { source?: InvoiceLineItemSource }) {
   const form = useFormContext<InvoiceFormValues>();
-  const { fields, addLineItem, removeLineItem } = useInvoiceLineItemHandlers(form);
+  const { fields, addLineItem, removeLineItem } = useInvoiceLineItemHandlers(form, source);
   // R15 F-02: Zod superRefine con path: ["lineItems"] emite en .root.message
   // (RHF 7.x). Preferimos root, con fallback a .message por compatibilidad.
   const rootError =

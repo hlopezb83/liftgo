@@ -7,6 +7,8 @@ export interface LineItem {
   source_quote_line_id?: string;
   line_kind?: "charge" | "rental" | "sale" | "manual";
   charge_kind?: "logistics" | "insurance";
+  /** Explicit SAT selection survives removal of the original source rows. */
+  sat_selection_required?: boolean;
   description: string;
   quantity: number;
   unit_price: number;
