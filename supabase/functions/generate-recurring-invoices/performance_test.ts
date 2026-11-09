@@ -124,3 +124,25 @@ Deno.test("performance: concurrent durations are aggregate and trace state is re
   equal(logs[0].traceId === logs[1].traceId, false);
   equal(logs[1].counts, {});
 });
+
+Deno.test("performance: backward and non-finite clocks never produce invalid durations", async () => {
+  let time = 100;
+  const logs: RecurringPerformanceSnapshot[] = [];
+  const metrics = createRecurringPerformance({
+    now: () => time,
+    emit: (entry) => logs.push(entry),
+  });
+  time = 90;
+  await metrics.measure("plan", () => {
+    time = NaN;
+    return Promise.resolve();
+  });
+  time = Infinity;
+  await metrics.measure("plan", () => {
+    time = -Infinity;
+    return Promise.resolve();
+  });
+  time = 120;
+  equal(metrics.finish("ok").serverTiming, "plan;dur=0, total;dur=20");
+  equal(logs[0].phases, { plan: { calls: 2, ms: 0 } });
+});
