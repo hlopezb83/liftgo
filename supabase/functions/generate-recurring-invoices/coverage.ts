@@ -6,6 +6,7 @@ import {
 } from "./periods.ts";
 import {
   type HistoricalInvoice,
+  type InvoicePeriods,
   mergedInvoicePeriods,
 } from "./invoiceHistory.ts";
 
@@ -34,6 +35,21 @@ export function pendingCanonicalPeriods(
   limit: Date,
   invoices: HistoricalInvoice[],
 ): { starts: string[]; pendingCount: number } {
+  return pendingCanonicalPeriodsFromCoverage(
+    startDate,
+    endDate,
+    limit,
+    () => mergedInvoicePeriods(invoices),
+  );
+}
+
+/** Same subtraction; laziness preserves the no-candidate early return. */
+export function pendingCanonicalPeriodsFromCoverage(
+  startDate: string,
+  endDate: string | null | undefined,
+  limit: Date,
+  getCoverage: () => InvoicePeriods,
+): { starts: string[]; pendingCount: number } {
   const start = validDate(startDate);
   const end = endDate ? validDate(endDate) : null;
   const last = end && end < limit ? end : limit;
@@ -48,7 +64,7 @@ export function pendingCanonicalPeriods(
       : toIsoDate(lastOfMonth(monthDate(month)));
   // Undated/invalid live history blocks the whole booking. One review row is
   // sufficient, and no guessed cursor or pending count is returned.
-  const dailyCoverage = mergedInvoicePeriods(invoices);
+  const dailyCoverage = getCoverage();
   if (!dailyCoverage) return { starts: [startDate], pendingCount: 0 };
   const covered: Array<[number, number]> = [];
   for (const interval of dailyCoverage) {

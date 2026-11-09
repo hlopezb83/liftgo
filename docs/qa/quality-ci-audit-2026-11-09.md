@@ -61,3 +61,67 @@ El intercambio suma runners, instalaciones calientes y transferencia de un build
 - ESLint global y Group C, tipos de aplicación/navegador, arquitectura, parseo YAML y `git diff --check` correctos.
 - Build ficticio correcto con Node 24.22.1 y dependencias congeladas coincidentes. CI mantiene sus pins Node 26.13.0/Bun 1.4.4 sin cambios.
 - El smoke y el contrato Chromium locales **no se acreditan como aprobados**: Chromium no pudo crear su socket Unix por la restricción del contenedor (`Operation not permitted`), también en el intento de ejecución autorizada. No se modificaron harness ni pruebas para eludir esa restricción. Deben pasar en Actions; no se integra antes.
+
+## Primera medición remota
+
+PR #434, head `d417c3574e69e895026017f87bf32e3d3e41cd11`, run
+[42697386435](https://github.com/hlopezb83/liftgo/actions/runs/42697386435):
+CI correcto, 20:54:23–21:01:45 UTC (**7 min 22 s**, no cumple todavía 5 min).
+Todos los carriles y el gate de calidad pasaron. Browser acceptance mantuvo
+20 móvil + 24 factura + 24 cotizaciones + 3 inventario + 28 reservas +
+54 Group C + 33 componentes, con los dos skips preexistentes de reservas.
+El smoke también pasó. RLS, A/B y Gitleaks quedaron verdes.
+
+- Estático 118 s; Vitest más largo 170 s y merge/cobertura 35 s.
+- Productor build/smoke 225 s: build 14 s, Chromium 158 s, smoke 30 s.
+- La caché Chromium sí tuvo hit y tardó 2,4 s. La demora fue apt:
+  21,1 MB de fuentes descargadas del mirror Ubuntu a 145 kB/s en 145 s.
+- Carriles: móvil/factura 200 s, Group C 195 s, cotizaciones/inventario
+  152 s, reservas 122 s y componentes 112 s. No hubo fallos/reintentos.
+
+Se propone cachear únicamente los archivos `.deb` descargados, con clave por
+imagen de runner/arquitectura/Playwright. Se conserva la instalación completa
+normal. Antes de restaurar archivos, el helper actualiza los índices firmados
+con Error-Mode=any y verifica nombre canónico, SHA256 y tamaño explícitamente.
+No confía en la ruta rápida de apt para archivos locales del mismo tamaño. No se cachean
+índices, bases de datos, bibliotecas instaladas, ni se omiten dependencias.
+La caché fría puede no acelerar la primera corrida y las colas/mirrors externos
+impiden prometer un límite absoluto. Hace falta medir el candidato y comprobar
+que la imagen conserva paquetes descargados al finalizar `install-deps`.
+
+## Segunda propuesta: preparación de dependencias
+
+- La caché `.deb` valida SHA256, tamaño y nombre canónico contra índices
+  autenticados renovados con fallo ante errores. Copia una instantánea privada
+  de los bytes verificados, rechaza raíces symlink y sustituye destinos de
+  guardado atómicamente. Reporta cantidad/bytes y no guarda cachés vacías.
+  Doce pruebas cubren corrupción de igual tamaño, nombres falsos, epochs,
+  metadatos ambiguos, errores de update, symlinks y mutación posterior al hash.
+- Supabase CLI 2.34.0 conserva el arranque guardado y todas las migraciones.
+  Sólo adelanta en paralelo las cuatro/seis imágenes oficiales exactas que
+  antes bajaba secuencialmente. Trece tests ejercitan concurrencia, errores,
+  versión, destino y wiring; 65 tests existentes de BD/SQL/receipt siguen verdes.
+  Se debe comparar **prefetch + arranque**, no esconder el tiempo del prefetch.
+- A/B históricos: 309–386 s de pared; bootstrap 130–152 s, principalmente
+  imágenes (replay ~2–3 s). RLS actual 267 s; CodeQL 156 s, prod smoke 60 s
+  y Gitleaks 13–58 s ya estaban bajo cinco minutos en las muestras consultadas.
+  Restore rehearsal no tiene ejecución acreditada y no se ejecuta contra una
+  base real para fabricar una medición. Network trial continúa rechazando
+  ejecuciones fuera de la autorización histórica.
+- Imagen oficial Playwright 1.64.1-noble evaluada: aproximadamente 990 MB
+  comprimidos para amd64 con tres navegadores. No se adopta sin medir ese
+  costo frío ni cambiar inadvertidamente usuario, sandbox o runtimes.
+
+Estas optimizaciones no establecen aún un SLA absoluto: faltan las nuevas
+corridas remotas fría/caliente. No se recortan pruebas ni se fija timeout=5
+para presentar un aborto como mejora.
+
+## Ajuste solicitado: exactamente cuatro jobs de Calidad
+
+La medición de 7m22s anterior corresponde al diseño intermedio de cinco
+carriles. Por instrucción posterior se reemplaza con cuatro jobs totales:
+estático, build/smoke, aceptación de navegador y gate histórico. El job de
+navegador conserva sus siete suites en cuatro grupos internos con puertos y
+outputs aislados. No hay matriz oculta que incremente el número de jobs.
+Debe medirse nuevamente el tiempo total y la contención del runner compartido;
+el resultado intermedio no acredita el nuevo diseño.

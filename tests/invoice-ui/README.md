@@ -23,7 +23,7 @@ Para reutilizar un build ya generado con el backend ficticio, configurar
 referencias productivas antes de servirlo. `SMOKE_CHROMIUM_PATH` permite usar un
 Chromium local instalado. El origen de la aplicación debe seguir siendo local.
 
-El carril `mobile-invoice` de la matriz `browser-acceptance` en `ci.yml` ejecuta
+El grupo interno móvil/factura del job `browser-acceptance` en `ci.yml` ejecuta
 los 24 escenarios después de la aceptación móvil, con `SMOKE_REUSE_BUILD=1`.
 Reutiliza el artifact verificado de `quality-build`; el gate `quality` exige
 que todo el carril termine correctamente, sin cambiar los filtros de ramas.

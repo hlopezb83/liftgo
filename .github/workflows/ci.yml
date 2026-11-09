@@ -82,6 +82,7 @@ jobs:
               - '.github/workflows/**'
               - '.github/actions/**'
               - 'scripts/ci_database.py'
+              - 'scripts/cache-playwright-apt.py'
               - 'scripts/tests/**'
               - 'scripts/run_sql_suites.py'
 
@@ -89,7 +90,7 @@ jobs:
   # ---------------------------------------------------------------------------
   # BASE 1 — lint/tipos en paralelo con el build; aceptación en runners aislados.
   # Se conserva TODO el alcance anterior y el nombre público del gate quality.
-  # Un solo build ficticio, validado con smoke real, alimenta cinco carriles.
+  # Exactamente cuatro jobs: estático, build/smoke, navegador y gate.
   # ---------------------------------------------------------------------------
   quality-static:
     name: Calidad estática (lint, tipos y contratos)
@@ -115,7 +116,10 @@ jobs:
           node --test scripts/tests/lint-migrations.test.mjs
 
       - name: Contrato del grafo de calidad y su gate
-        run: node --test scripts/tests/quality-workflow.test.mjs
+        run: |
+          node --test scripts/tests/quality-workflow.test.mjs
+          python3 -m unittest discover -s scripts/tests -p test_playwright_apt_cache.py
+          python3 -m unittest discover -s scripts/tests -p test_browser_acceptance_runner.py
 
       - name: Offline harness lifecycle and artifact guards
         run: node --test tests/offlineTeardown.test.mjs tests/design-group-c/artifactGuard.test.mjs
@@ -195,16 +199,10 @@ jobs:
           if-no-files-found: ignore
 
   browser-acceptance:
-    name: Aceptación offline (${{ matrix.suite }})
+    name: Aceptación offline (grupos internos aislados)
     runs-on: ubuntu-24.04
     timeout-minutes: 10
     needs: quality-build
-    strategy:
-      fail-fast: false
-      # Cinco runners como máximo, sin subir workers ni compartir puertos.
-      max-parallel: 5
-      matrix:
-        suite: [mobile-invoice, quotes-inventory, bookings, group-c, components]
     env:
       SMOKE_REUSE_BUILD: "1"
       GROUP_C_BUILD_DIR: "."
@@ -232,41 +230,16 @@ jobs:
       - name: Preparar Chromium
         uses: ./.github/actions/setup-playwright
 
-      - name: Aceptación móvil 360/390 (build real, datos ficticios)
-        if: matrix.suite == 'mobile-invoice'
-        run: bun run test:e2e:mobile
+      - name: Ejecutar todas las suites en grupos internos aislados
+        run: python3 scripts/run-browser-acceptance.py
 
-      - name: Aceptación Nueva factura (24 escenarios, datos ficticios)
-        if: matrix.suite == 'mobile-invoice'
-        run: bunx playwright test --config playwright.invoice-ui.config.ts
-
-      - name: Quote acceptance 360/390/1440 (real build, fake data)
-        if: matrix.suite == 'quotes-inventory'
-        run: bunx playwright test --config playwright.quotes-design.config.ts
-
-      - name: Inventory acceptance 360/390/1440 (real build, fake data)
-        if: matrix.suite == 'quotes-inventory'
-        run: bunx playwright test --config playwright.inventory-design.config.ts
-
-      - name: Booking acceptance 360/390/1440 (real build, fake data)
-        if: matrix.suite == 'bookings'
-        run: bunx playwright test --config tests/bookings/playwright.config.ts
-
-      - name: Group C acceptance (real build, fake data)
-        if: matrix.suite == 'group-c'
-        run: node node_modules/@playwright/test/cli.js test --config playwright.group-c-design.config.ts
-
-      - name: Group C supplemental component comparisons
-        if: matrix.suite == 'components'
-        run: node node_modules/@playwright/test/cli.js test --config playwright.group-c-component.config.ts
-
-      # Un artifact por runner: no colisiones ni pérdida de evidencia entre suites.
+      # Logs y outputs separados por suite; se conserva evidencia aun al fallar.
       # Incluye ahora capturas de factura también en corridas exitosas.
       - name: Subir evidencia del carril
         if: always()
         uses: actions/upload-artifact@v7
         with:
-          name: browser-acceptance-${{ matrix.suite }}-${{ github.run_id }}-${{ github.run_attempt }}
+          name: browser-acceptance-${{ github.run_id }}-${{ github.run_attempt }}
           path: |
             playwright-report/
             test-results/

@@ -34,40 +34,28 @@ const staticJob = job('quality-static');
 const buildJob = job('quality-build');
 const browserJob = job('browser-acceptance');
 const gate = job('quality');
-const lanes = ['mobile-invoice', 'quotes-inventory', 'bookings', 'group-c', 'components'];
-
 function assertAllSuites(workflow) {
   const build = job('quality-build', workflow);
   const browser = job('browser-acceptance', workflow);
   assert.match(build, /run: bunx playwright test --config playwright\.smoke\.config\.ts\n/);
-  const suites = new Map([
-    ['bun run test:e2e:mobile', 'mobile-invoice'],
-    ['bunx playwright test --config playwright.invoice-ui.config.ts', 'mobile-invoice'],
-    ['bunx playwright test --config playwright.quotes-design.config.ts', 'quotes-inventory'],
-    ['bunx playwright test --config playwright.inventory-design.config.ts', 'quotes-inventory'],
-    ['bunx playwright test --config tests/bookings/playwright.config.ts', 'bookings'],
-    ['node node_modules/@playwright/test/cli.js test --config playwright.group-c-design.config.ts', 'group-c'],
-    ['node node_modules/@playwright/test/cli.js test --config playwright.group-c-component.config.ts', 'components'],
-  ]);
-  for (const [command, lane] of suites) {
-    assert.equal(workflow.split(`run: ${command}\n`).length - 1, 1, `Run exactly once: ${command}`);
-    assert.ok(browser.includes(`        if: matrix.suite == '${lane}'\n        run: ${command}\n`), `Unconditional lane coverage: ${command}`);
-  }
-  assert.ok(browser.includes(`suite: [${lanes.join(', ')}]`));
+  assert.equal(workflow.split('run: python3 scripts/run-browser-acceptance.py\n').length - 1, 1);
+  const orchestration = step(browser, 'Ejecutar todas las suites en grupos internos aislados');
+  assert.doesNotMatch(orchestration, /if:|continue-on-error/);
+  assert.match(orchestration, /run: python3 scripts\/run-browser-acceptance\.py/);
 }
 
-test('all original browser commands run once, on five isolated lanes with no scenario filters', () => {
+test('quality has exactly four jobs including its stable gate, without a browser matrix', () => {
   assertAllSuites(source);
-  assert.doesNotMatch(browserJob, /--(?:grep|shard|project|workers|pass-with-no-tests)|continue-on-error/);
-  assert.match(browserJob, /fail-fast: false/);
-  assert.match(browserJob, /max-parallel: 5/);
+  const qualitySection = source.slice(source.indexOf('  quality-static:'), source.indexOf('  tests:'));
+  const names = [...qualitySection.matchAll(/^  ([\w-]+):$/gm)].map(match => match[1]);
+  assert.deepEqual(names, ['quality-static', 'quality-build', 'browser-acceptance', 'quality']);
+  assert.doesNotMatch(browserJob, /strategy:|matrix:|continue-on-error/);
   assert.match(browserJob, /SMOKE_REUSE_BUILD: "1"/);
 });
 
-test('sentinel catches a dropped suite or a newly conditional/skipped lane', () => {
-  assert.throws(() => assertAllSuites(source.replace('run: bun run test:e2e:mobile', 'run: echo omitted')));
-  assert.throws(() => assertAllSuites(source.replace("if: matrix.suite == 'components'", "if: false")));
-  assert.throws(() => assertAllSuites(source.replace(', components]', ']')));
+test('sentinel catches dropped or conditional orchestration', () => {
+  assert.throws(() => assertAllSuites(source.replace('run: python3 scripts/run-browser-acceptance.py', 'run: echo omitted')));
+  assert.throws(() => assertAllSuites(source.replace('run: python3 scripts/run-browser-acceptance.py', 'if: false\n        run: python3 scripts/run-browser-acceptance.py')));
 });
 
 test('static and build start independently, acceptance waits for the validated build', () => {
@@ -110,10 +98,10 @@ test('artifact is run/attempt scoped, built only after smoke and checked before 
   assert.match(browserJob, /BUILD_SHA256: \$\{\{ needs\.quality-build\.outputs\.build-sha256 \}\}/);
 });
 
-test('per-lane evidence is unique and preserved on failure, including invoice and both Group C suites', () => {
+test('all suite evidence is preserved on failure', () => {
   const evidence = step(browserJob, 'Subir evidencia del carril');
   assert.match(evidence, /if: always\(\)/);
-  assert.ok(evidence.includes('name: browser-acceptance-${{ matrix.suite }}-${{ github.run_id }}-${{ github.run_attempt }}'));
+  assert.ok(evidence.includes('name: browser-acceptance-${{ github.run_id }}-${{ github.run_attempt }}'));
   assert.match(evidence, /playwright-report\/\n            test-results\//);
 });
 

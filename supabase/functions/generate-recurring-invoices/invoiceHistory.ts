@@ -7,7 +7,8 @@ export type HistoricalInvoice = {
   cfdi_status: string | null;
   cfdi_uuid?: string | null;
   cancellation_status?: string | null;
-  line_items: unknown;
+  // Optional legacy input only; planning never reads invoice line-item payloads.
+  line_items?: unknown;
 };
 
 /** Pending fiscal cancellation/stamping continues to occupy its period. */
@@ -42,6 +43,10 @@ export function mergeLiveInvoiceHistory(
   }
   return [...history.values()];
 }
+
+export type InvoicePeriods =
+  | ReadonlyArray<{ start: string; end: string }>
+  | null;
 
 /** Union actual inclusive calendar-day coverage; null means ambiguous history. */
 export function mergedInvoicePeriods(
@@ -84,7 +89,19 @@ export function periodCoverage(
   start: string,
   end: string,
 ): "covered" | "uncovered" | "legacy_period_review" | "period_overlap_review" {
-  const merged = mergedInvoicePeriods(invoices);
+  return periodCoverageFromIntervals(
+    mergedInvoicePeriods(invoices),
+    start,
+    end,
+  );
+}
+
+/** Reuse one validated union per booking; null still blocks ambiguous history. */
+export function periodCoverageFromIntervals(
+  merged: InvoicePeriods,
+  start: string,
+  end: string,
+): ReturnType<typeof periodCoverage> {
   if (!merged) return "legacy_period_review";
   if (
     merged.some((interval) => interval.start <= start && interval.end >= end)

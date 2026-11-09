@@ -79,7 +79,7 @@ se verifican por separado.
 
 Calidad y Vitest completos + condicionales. Sin `schedule`. Las corridas
 obsoletas de la misma rama se cancelan. Calidad separa trabajo estático,
-build/smoke y cinco carriles de navegador en runners distintos; no reduce
+build/smoke, aceptación de navegador y gate: **cuatro jobs en total**; no reduce
 escenarios, viewports, permisos comprobados ni condiciones de ejecución.
 
 Los workflows fijan `ubuntu-24.04` para mantener el sistema operativo validado
@@ -91,8 +91,8 @@ bloquean la integración. Los avisos informativos de pruebas aprobadas se conser
 | --- | --- | --- |
 | `quality-static` | siempre | ESLint, tipos de app/navegador, arquitectura y contratos de los guardrails |
 | `quality-build` | siempre | Un build ficticio, aislamiento de red y **smoke de arranque real** |
-| `browser-acceptance` (cinco carriles) | tras build/smoke correcto | Móvil + Nueva factura; cotizaciones + inventario; reservas; Group C app; Group C componentes. Todas las suites y viewports anteriores |
-| `quality` | siempre, incluso con dependencias fallidas | Gate con el nombre histórico **Calidad (lint, tipos, build y arranque)**; exige estático, build/smoke y toda la matriz verdes |
+| `browser-acceptance` | tras build/smoke correcto | Cuatro grupos internos: móvil + factura; cotizaciones + inventario + reservas; Group C app; componentes. Todas las suites y viewports anteriores |
+| `quality` | siempre, incluso con dependencias fallidas | Gate con el nombre histórico **Calidad (lint, tipos, build y arranque)**; exige estático, build/smoke y toda la aceptación verdes |
 | `tests` (matriz 1/6 … 6/6) | siempre | Suite completa de Vitest, repartida en seis shards |
 | `tests-merge` | siempre | Une los blobs y aplica los **umbrales de cobertura** |
 | `deno-functions` | si cambió `supabase/functions/**`, o manual | `deno fmt`, `deno lint` y tests unitarios **sin red** |
@@ -133,12 +133,19 @@ debe reejecutar el productor y sus consumidores, o toda la corrida. Esto no
 relaja el contrato independiente de Vitest: para recuperar sus shards/merge
 sigue siendo obligatorio **Re-run all jobs**, como se describe abajo.
 
-Los cinco runners no comparten puertos ni carpetas. Se mantienen `workers: 1`,
-retries, configs y escenarios originales. Cada carril publica
-`browser-acceptance-<carril>-<run>-<intento>` con `playwright-report/` y
+El runner de navegador ejecuta cuatro grupos internos con puertos distintos.
+Móvil/factura y cotizaciones/inventario/reservas son secuenciales dentro de
+sus grupos; Group C aplicación y componentes tienen grupos independientes.
+Se mantienen `workers: 1`, retries, configs y escenarios originales. El runner
+espera todos los resultados y falla si cualquiera falla; sus procesos tienen
+limpieza y límites explícitos. Los outputs nunca usan la raíz compartida:
+móvil usa `test-results/mobile`, Group C separa aplicación/componentes, y cada
+suite conserva un log propio. El artifact
+`browser-acceptance-<run>-<intento>` incluye `playwright-report/` y
 `test-results/`, incluso al fallar. Las capturas de factura se conservan también
 cuando pasan; smoke guarda su diagnóstico si falla. No se quitaron pruebas ni
-se enviaron a una ejecución nocturna.
+se enviaron a una ejecución nocturna. La contención de CPU de los cuatro grupos
+se debe medir en Actions antes de acreditar el objetivo de cinco minutos.
 
 La auditoría y los tiempos anteriores están en
 [la auditoría de calidad del 2026-11-09](qa/quality-ci-audit-2026-11-09.md).

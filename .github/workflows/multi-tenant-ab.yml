@@ -57,7 +57,10 @@ on:
       - "tests/e2e/fixtures/**"
       - "scripts/patch_legacy_migrations.py"
       - "scripts/ci_database.py"
+      - "scripts/cache-playwright-apt.py"
+      - "scripts/ci_supabase_prefetch.py"
       - "scripts/tests/test_ci_database.py"
+      - "scripts/tests/test_ci_supabase_prefetch.py"
       - ".github/actions/setup-bun-project/**"
       - ".node-version"
       - ".nvmrc"
@@ -113,7 +116,10 @@ on:
       - "tests/e2e/fixtures/**"
       - "scripts/patch_legacy_migrations.py"
       - "scripts/ci_database.py"
+      - "scripts/cache-playwright-apt.py"
+      - "scripts/ci_supabase_prefetch.py"
       - "scripts/tests/test_ci_database.py"
+      - "scripts/tests/test_ci_supabase_prefetch.py"
       - ".github/actions/setup-bun-project/**"
       - ".node-version"
       - ".nvmrc"
@@ -163,7 +169,10 @@ jobs:
       - uses: actions/checkout@v7
 
       - name: Probar guard de base antes de arrancar la BD
-        run: python3 -m unittest discover -s scripts/tests -p test_ci_database.py
+        run: |
+          set -euo pipefail
+          python3 -m unittest discover -s scripts/tests -p test_ci_database.py
+          python3 -m unittest discover -s scripts/tests -p test_ci_supabase_prefetch.py
 
       - name: Setup Supabase CLI
         uses: supabase/setup-cli@d239d1052f6f024a8d746d7e5aeddead63b9cb53 # v3.1.0
@@ -185,6 +194,12 @@ jobs:
       # PostgREST y storage-api: prueba la API real, no solo psql.
       - name: Exigir base vacía y deshabilitar seed local
         run: python3 scripts/ci_database.py prepare
+
+      # Sólo descarga imágenes; no cachea volúmenes ni altera el bootstrap.
+      # El inventario cerrado corresponde a la CLI pineada arriba.
+      - name: Prefetch concurrente de imágenes Supabase
+        timeout-minutes: 5
+        run: python3 scripts/ci_supabase_prefetch.py --profile ab
 
       - name: Start Supabase (DB + auth + API + Storage)
         timeout-minutes: 15
