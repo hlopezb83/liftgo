@@ -77,8 +77,10 @@ se verifican por separado.
 
 ## En cada PR y push a `main` — `ci.yml`
 
-Dos jobs base + condicionales. Sin `schedule`. Las corridas obsoletas de la
-misma rama se cancelan.
+Calidad y Vitest completos + condicionales. Sin `schedule`. Las corridas
+obsoletas de la misma rama se cancelan. Calidad separa trabajo estático,
+build/smoke y cinco carriles de navegador en runners distintos; no reduce
+escenarios, viewports, permisos comprobados ni condiciones de ejecución.
 
 Los workflows fijan `ubuntu-24.04` para mantener el sistema operativo validado
 y evitar la migración automática de `ubuntu-latest`. El job de calidad usa
@@ -87,7 +89,10 @@ bloquean la integración. Los avisos informativos de pruebas aprobadas se conser
 
 | Job | Corre | Qué protege |
 | --- | --- | --- |
-| `quality` | siempre | ESLint, typecheck, guardrails de arquitectura, build, **smoke de arranque**, **20 escenarios móviles offline** y **24 escenarios de Nueva factura** |
+| `quality-static` | siempre | ESLint, tipos de app/navegador, arquitectura y contratos de los guardrails |
+| `quality-build` | siempre | Un build ficticio, aislamiento de red y **smoke de arranque real** |
+| `browser-acceptance` (cinco carriles) | tras build/smoke correcto | Móvil + Nueva factura; cotizaciones + inventario; reservas; Group C app; Group C componentes. Todas las suites y viewports anteriores |
+| `quality` | siempre, incluso con dependencias fallidas | Gate con el nombre histórico **Calidad (lint, tipos, build y arranque)**; exige estático, build/smoke y toda la matriz verdes |
 | `tests` (matriz 1/6 … 6/6) | siempre | Suite completa de Vitest, repartida en seis shards |
 | `tests-merge` | siempre | Une los blobs y aplica los **umbrales de cobertura** |
 | `deno-functions` | si cambió `supabase/functions/**`, o manual | `deno fmt`, `deno lint` y tests unitarios **sin red** |
@@ -95,16 +100,48 @@ bloquean la integración. Los avisos informativos de pruebas aprobadas se conser
 | `dependency-review` | solo PR | CVEs altos y licencias no permitidas |
 | `actionlint` | push y PR si cambió `.github/**`, o manual | YAML de workflows |
 
-La aceptación de Nueva factura se ejecuta después de móvil con
+La aceptación de Nueva factura comparte un runner con móvil y se ejecuta con
 `bunx playwright test --config playwright.invoice-ui.config.ts` y
 `SMOKE_REUSE_BUILD=1`. Reutiliza el build ficticio validado y cubre escritorio de
 1440px y móviles de 360/390px, ocho escenarios por viewport. El interceptor
 bloquea mutaciones, endpoints no enumerados y red externa; no guarda ni timbra
 facturas. Ver [su cobertura y límites](../tests/invoice-ui/README.md).
 
-No hay job agregador. `main` **no tiene branch protection ni checks requeridos**
-hoy: los resultados se leen en la propia corrida. Un `ci-success` que solo relee
-resultados añade un runner y un punto de fallo propio sin poder detectar nada.
+El gate `quality` conserva exactamente el nombre anterior para no debilitar
+reglas que lo requieran. Usa `always()` y exige `success` explícito en sus tres
+dependencias; fallo, cancelación o salto inesperado no equivalen a verde. No es
+un agregador de todo CI: Vitest/cobertura y los demás checks conservan su estado.
+
+El 2026-11-09 la API de rulesets devolvió una lista vacía. La integración devolvió
+403 al consultar branch protection por carecer de permiso administrativo, por
+lo que **no se puede afirmar que no existan checks requeridos**. No se modificó
+ningún ajuste de protección, permisos ni concurrencia.
+
+### Build compartido y reintentos de aceptación
+
+`quality-build` instala y guarda las cachés de Bun/Chromium una sola vez. Después
+de comprobar aislamiento y smoke, empaqueta exclusivamente `dist/`, conserva
+sus permisos y publica el SHA-256 como output del job. Cada consumidor descarga
+el artifact nombrado por el **intento del productor**, comprueba el hash antes
+de extraerlo y vuelve a validar el backend ficticio. No se copian archivos `.env`,
+dependencias, sesiones ni estado de Wrangler. El build no se repite por suite.
+
+El nombre y el hash viajan juntos desde `quality-build`; así un carril de
+navegador reintentado puede reutilizar el productor exitoso del mismo run aunque
+su propio `run_attempt` aumente. El artifact dura siete días; tras expirar se
+debe reejecutar el productor y sus consumidores, o toda la corrida. Esto no
+relaja el contrato independiente de Vitest: para recuperar sus shards/merge
+sigue siendo obligatorio **Re-run all jobs**, como se describe abajo.
+
+Los cinco runners no comparten puertos ni carpetas. Se mantienen `workers: 1`,
+retries, configs y escenarios originales. Cada carril publica
+`browser-acceptance-<carril>-<run>-<intento>` con `playwright-report/` y
+`test-results/`, incluso al fallar. Las capturas de factura se conservan también
+cuando pasan; smoke guarda su diagnóstico si falla. No se quitaron pruebas ni
+se enviaron a una ejecución nocturna.
+
+La auditoría y los tiempos anteriores están en
+[la auditoría de calidad del 2026-11-09](qa/quality-ci-audit-2026-11-09.md).
 
 El job `changes` (detector de rutas) necesita `pull-requests: read` además del
 `contents: read` heredado: sin ese permiso `dorny/paths-filter` recibe 403 en
@@ -126,7 +163,7 @@ señal (archivos, dependencias, exports y tipos sin uso) se revisa en local con
 
 ### Integridad de los guardrails y pruebas de navegador
 
-`quality` prueba los controles mismos antes de usarlos: identidad de release,
+`quality-static` prueba los controles mismos antes de usarlos: identidad de release,
 configuración efectiva de ESLint, fronteras de imports, procedencia de blobs y
 alcance del proyecto TypeScript de navegador. Los sentinelas negativos deben
 rechazar entradas deliberadamente incorrectas; no sustituyen lint, typecheck,

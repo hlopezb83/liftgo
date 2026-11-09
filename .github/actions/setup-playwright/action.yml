@@ -3,7 +3,7 @@ description: Restaurar Chromium de la versión instalada e instalar las librerí
 
 inputs:
   save-cache:
-    description: Guardar una caché ausente desde el productor quality.
+    description: Guardar una caché ausente desde el productor quality-build.
     required: false
     default: "false"
 

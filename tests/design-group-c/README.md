@@ -47,4 +47,4 @@ node node_modules/@playwright/test/cli.js test --config playwright.group-c-desig
 
 Si el sandbox de Windows impide renombrar la caché temporal, fijar `TEMP` y `TMP` a un directorio dentro del workspace. No modificar configuraciones compartidas para resolverlo.
 
-Las configuraciones estan integradas en el job quality de CI y en tsconfig.browser-tests.json, incluidos los fixtures .tsx y el config Vite. La aceptacion real y las comparaciones suplementarias conservan sus proyectos y escenarios existentes. CI esta configurada para ejecutarlas; este documento no acredita una corrida remota.
+Las configuraciones están integradas en los carriles `group-c` y `components` de `browser-acceptance` en CI y en tsconfig.browser-tests.json, incluidos los fixtures .tsx y el config Vite. El gate `quality` exige ambos carriles. La aceptación real y las comparaciones suplementarias conservan sus proyectos y escenarios existentes, ahora con artifacts separados por carril. CI está configurada para ejecutarlas; este documento no acredita una corrida remota.

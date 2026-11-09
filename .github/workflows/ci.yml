@@ -1,8 +1,8 @@
 name: CI
 
 # CI mínimo y honesto (ver docs/ci.md):
-#   - Dos jobs base que siempre corren: `quality` (estático + build + arranque
-#     real del bundle) y `tests` (Vitest en 6 shards) + `tests-merge`, que une
+#   - Calidad completa en paralelo: `quality` agrega estático, build/smoke y
+#     aceptación offline. `tests` (Vitest en 6 shards) + `tests-merge` une
 #     los blobs y aplica los umbrales de cobertura.
 #   - Jobs condicionales que solo corren cuando su área cambió.
 #   - CERO secretos de producción: el build de CI apunta a un backend
@@ -87,15 +87,14 @@ jobs:
 
 
   # ---------------------------------------------------------------------------
-  # BASE 1 — ¿compila, cumple las reglas y arranca de verdad?
-  # El smoke de navegador sirve el bundle real con `wrangler dev`: es el único
-  # punto donde se detectan fallos de empaquetado (p. ej. `__name is not
-  # defined`) que el typecheck y los tests unitarios no ven.
+  # BASE 1 — lint/tipos en paralelo con el build; aceptación en runners aislados.
+  # Se conserva TODO el alcance anterior y el nombre público del gate quality.
+  # Un solo build ficticio, validado con smoke real, alimenta cinco carriles.
   # ---------------------------------------------------------------------------
-  quality:
-    name: Calidad (lint, tipos, build y arranque)
+  quality-static:
+    name: Calidad estática (lint, tipos y contratos)
     runs-on: ubuntu-24.04
-    timeout-minutes: 20
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v7
       # Eliminar sin leer antes de que Bun/Vite puedan cargar archivos locales.
@@ -103,8 +102,6 @@ jobs:
       - name: Excluir archivos de entorno locales del build
         run: rm -f -- .env .env.*
       - uses: ./.github/actions/setup-bun-project
-        with:
-          save-cache: "true"
 
       - name: Contrato de identidad de release
         run: node --test scripts/tests/release-identity.test.mjs
@@ -116,6 +113,9 @@ jobs:
         run: |
           node --test scripts/tests/feature-imports.test.mjs scripts/tests/vitest-blob-provenance.test.mjs scripts/tests/browser-typecheck.test.mjs
           node --test scripts/tests/lint-migrations.test.mjs
+
+      - name: Contrato del grafo de calidad y su gate
+        run: node --test scripts/tests/quality-workflow.test.mjs
 
       - name: Offline harness lifecycle and artifact guards
         run: node --test tests/offlineTeardown.test.mjs tests/design-group-c/artifactGuard.test.mjs
@@ -135,8 +135,22 @@ jobs:
       - name: Guardrails de arquitectura
         run: bash scripts/arch-check.sh
 
-      # Build con destino DELIBERADAMENTE inexistente: smoke y móvil usan sólo
-      # respuestas ficticias, nunca datos reales. Así el CI no necesita secretos.
+  quality-build:
+    name: Build y smoke de arranque real
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    outputs:
+      build-sha256: ${{ steps.pack.outputs.sha256 }}
+      build-artifact-name: ${{ steps.pack.outputs.artifact-name }}
+    steps:
+      - uses: actions/checkout@v7
+      - name: Excluir archivos de entorno locales del build
+        run: rm -f -- .env .env.*
+      - uses: ./.github/actions/setup-bun-project
+        with:
+          save-cache: "true"
+
+      # Nunca compilar contra un backend real ni usar secretos de producción.
       - name: Build
         run: node scripts/browser-test-server.mjs --build-only
 
@@ -153,107 +167,130 @@ jobs:
           SMOKE_REUSE_BUILD: "1"
         run: bunx playwright test --config playwright.smoke.config.ts
 
-      - name: Aceptación móvil 360/390 (build real, datos ficticios)
-        env:
-          SMOKE_REUSE_BUILD: "1"
-        run: bun run test:e2e:mobile
+      # Sólo dist/, nunca .env, node_modules, checkout ni estado de Wrangler.
+      # El SHA-256 proviene de este job: un consumidor no acepta otros bytes.
+      - name: Empaquetar el build ficticio validado
+        id: pack
+        run: |
+          echo "artifact-name=browser-build-$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT" >> "$GITHUB_OUTPUT"
+          tar -czf "$RUNNER_TEMP/browser-build.tar.gz" dist
+          echo "sha256=$(sha256sum "$RUNNER_TEMP/browser-build.tar.gz" | cut -d ' ' -f 1)" >> "$GITHUB_OUTPUT"
 
-      - name: Aceptación Nueva factura (24 escenarios, datos ficticios)
-        env:
-          SMOKE_REUSE_BUILD: "1"
-        run: bunx playwright test --config playwright.invoice-ui.config.ts
-
-      - name: Quote acceptance 360/390/1440 (real build, fake data)
-        env:
-          SMOKE_REUSE_BUILD: "1"
-        run: bunx playwright test --config playwright.quotes-design.config.ts
-
-      - name: Inventory acceptance 360/390/1440 (real build, fake data)
-        env:
-          SMOKE_REUSE_BUILD: "1"
-        run: bunx playwright test --config playwright.inventory-design.config.ts
-
-      - name: Booking acceptance 360/390/1440 (real build, fake data)
-        env:
-          SMOKE_REUSE_BUILD: "1"
-          BOOKINGS_EVIDENCE_DIR: test-results/bookings/evidence
-        run: bunx playwright test --config tests/bookings/playwright.config.ts
-
-      - name: Group C acceptance (real build, fake data)
-        env:
-          GROUP_C_BUILD_DIR: "."
-          GROUP_C_EVIDENCE_DIR: test-results/group-c
-        run: node node_modules/@playwright/test/cli.js test --config playwright.group-c-design.config.ts
-
-      - name: Group C supplemental component comparisons
-        env:
-          GROUP_C_BUILD_DIR: "."
-          GROUP_C_EVIDENCE_DIR: test-results/group-c
-        run: node node_modules/@playwright/test/cli.js test --config playwright.group-c-component.config.ts
-
-      - name: Upload group C evidence
-        if: always()
+      - name: Compartir el build de esta corrida e intento
         uses: actions/upload-artifact@v7
         with:
-          name: group-c-design-artifacts
-          path: |
-            test-results/group-c/app-results/
-            test-results/group-c/component-results/
-            test-results/group-c/*.png
-            test-results/group-c/*.json
+          name: ${{ steps.pack.outputs.artifact-name }}
+          path: ${{ runner.temp }}/browser-build.tar.gz
+          compression-level: 0
           retention-days: 7
-          if-no-files-found: ignore
-
-      - name: Upload booking acceptance evidence
-        if: always()
-        uses: actions/upload-artifact@v7
-        with:
-          name: bookings-design-artifacts
-          path: test-results/bookings/
-          retention-days: 7
-          if-no-files-found: ignore
-
-      - name: Upload quote acceptance evidence
-        if: always()
-        uses: actions/upload-artifact@v7
-        with:
-          name: quotes-design-artifacts
-          path: |
-            playwright-report/quotes-design/
-            test-results/quotes-design/
-          retention-days: 7
-          if-no-files-found: ignore
-
-      - name: Upload inventory evidence
-        if: always()
-        uses: actions/upload-artifact@v7
-        with:
-          name: inventory-design-artifacts
-          path: |
-            playwright-report/inventory-design/
-            test-results/inventory-design/
-          retention-days: 7
-          if-no-files-found: ignore
-
-      - name: Subir evidencia móvil
-        if: always()
-        uses: actions/upload-artifact@v7
-        with:
-          name: mobile-acceptance-artifacts
-          path: |
-            playwright-report/mobile/
-            test-results/mobile/
-          retention-days: 7
-          if-no-files-found: ignore
+          if-no-files-found: error
 
       - name: Subir diagnóstico del smoke
         if: failure()
         uses: actions/upload-artifact@v7
         with:
-          name: smoke-artifacts
+          name: smoke-artifacts-${{ github.run_id }}-${{ github.run_attempt }}
           path: test-results/
           retention-days: 3
           if-no-files-found: ignore
+
+  browser-acceptance:
+    name: Aceptación offline (${{ matrix.suite }})
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    needs: quality-build
+    strategy:
+      fail-fast: false
+      # Cinco runners como máximo, sin subir workers ni compartir puertos.
+      max-parallel: 5
+      matrix:
+        suite: [mobile-invoice, quotes-inventory, bookings, group-c, components]
+    env:
+      SMOKE_REUSE_BUILD: "1"
+      GROUP_C_BUILD_DIR: "."
+      GROUP_C_EVIDENCE_DIR: test-results/group-c
+      BOOKINGS_EVIDENCE_DIR: test-results/bookings/evidence
+    steps:
+      - uses: actions/checkout@v7
+      - name: Excluir archivos de entorno locales
+        run: rm -f -- .env .env.*
+      - uses: ./.github/actions/setup-bun-project
+      # El output identifica el intento del productor, no el del consumidor.
+      # Un reintento parcial conserva el mismo build exitoso y su SHA-256.
+      - name: Descargar sólo el build validado por el productor
+        uses: actions/download-artifact@v8
+        with:
+          name: ${{ needs.quality-build.outputs.build-artifact-name }}
+          path: ${{ runner.temp }}/browser-build
+      - name: Verificar bytes y restaurar build
+        env:
+          BUILD_SHA256: ${{ needs.quality-build.outputs.build-sha256 }}
+        run: |
+          printf '%s  %s\n' "$BUILD_SHA256" "$RUNNER_TEMP/browser-build/browser-build.tar.gz" | sha256sum --check --strict
+          tar -xzf "$RUNNER_TEMP/browser-build/browser-build.tar.gz"
+          node --input-type=module -e 'import { assertBuildUsesFakeBackend } from "./scripts/browser-test-config.mjs"; assertBuildUsesFakeBackend(process.cwd());'
+      - name: Preparar Chromium
+        uses: ./.github/actions/setup-playwright
+
+      - name: Aceptación móvil 360/390 (build real, datos ficticios)
+        if: matrix.suite == 'mobile-invoice'
+        run: bun run test:e2e:mobile
+
+      - name: Aceptación Nueva factura (24 escenarios, datos ficticios)
+        if: matrix.suite == 'mobile-invoice'
+        run: bunx playwright test --config playwright.invoice-ui.config.ts
+
+      - name: Quote acceptance 360/390/1440 (real build, fake data)
+        if: matrix.suite == 'quotes-inventory'
+        run: bunx playwright test --config playwright.quotes-design.config.ts
+
+      - name: Inventory acceptance 360/390/1440 (real build, fake data)
+        if: matrix.suite == 'quotes-inventory'
+        run: bunx playwright test --config playwright.inventory-design.config.ts
+
+      - name: Booking acceptance 360/390/1440 (real build, fake data)
+        if: matrix.suite == 'bookings'
+        run: bunx playwright test --config tests/bookings/playwright.config.ts
+
+      - name: Group C acceptance (real build, fake data)
+        if: matrix.suite == 'group-c'
+        run: node node_modules/@playwright/test/cli.js test --config playwright.group-c-design.config.ts
+
+      - name: Group C supplemental component comparisons
+        if: matrix.suite == 'components'
+        run: node node_modules/@playwright/test/cli.js test --config playwright.group-c-component.config.ts
+
+      # Un artifact por runner: no colisiones ni pérdida de evidencia entre suites.
+      # Incluye ahora capturas de factura también en corridas exitosas.
+      - name: Subir evidencia del carril
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: browser-acceptance-${{ matrix.suite }}-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            playwright-report/
+            test-results/
+          retention-days: 7
+          if-no-files-found: ignore
+
+  quality:
+    # Nombre estable para cualquier regla requerida existente o futura.
+    # always() hace visible un fallo incluso si un carril quedó skipped.
+    name: Calidad (lint, tipos, build y arranque)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 2
+    needs: [quality-static, quality-build, browser-acceptance]
+    if: always()
+    steps:
+      - name: Exigir todos los controles de calidad
+        env:
+          STATIC_RESULT: ${{ needs.quality-static.result }}
+          BUILD_RESULT: ${{ needs.quality-build.result }}
+          BROWSER_RESULT: ${{ needs.browser-acceptance.result }}
+        run: |
+          test "$STATIC_RESULT" = "success"
+          test "$BUILD_RESULT" = "success"
+          test "$BROWSER_RESULT" = "success"
 
   # ---------------------------------------------------------------------------
   # BASE 2 — suite completa de Vitest en SEIS shards + un merge mínimo.
