@@ -327,6 +327,8 @@ jobs:
           node -e 'const r=JSON.parse(require("node:fs").readFileSync("reports/quote-charge-review-browser.json","utf8"));const s=r.stats;if(r.errors?.length||!s||s.expected!==6||s.skipped!==0||s.unexpected!==0||s.flaky!==0)throw new Error("Expected all six quote charge browser cases, without skips or failures");console.log("PASS quote-charge-browser COMPLETE tests=6 skipped=0");'
 
       - name: Enumerar manifiesto completo sin ejecutar fixtures
+        env:
+          SUPABASE_PROJECT_ID: local-ab-ephemeral
         run: |
           mkdir -p reports
           node node_modules/@playwright/test/cli.js test --config playwright.multitenant.config.ts --list --reporter=json > reports/multitenant-manifest.raw.json

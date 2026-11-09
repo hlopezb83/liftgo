@@ -81,6 +81,7 @@ class EvidenceTests(unittest.TestCase):
         self.assertIn('fail-fast: false',s);self.assertIn('shard: [1, 2]',s)
         self.assertIn('run: bun run test:multitenant-ab --shard=${{ matrix.shard }}/2',s)
         self.assertIn('if: matrix.shard == 1',s)
+        self.assertIn('name: Enumerar manifiesto completo sin ejecutar fixtures\n        env:\n          SUPABASE_PROJECT_ID: local-ab-ephemeral',s)
         self.assertIn('pattern: ab-shard-sealed-${{ github.run_id }}-${{ github.run_attempt }}-*',s)
         self.assertIn('needs: multi-tenant-ab\n    if: always()',s)
         self.assertIn('test "$SHARDS_RESULT" = "success"',s)
