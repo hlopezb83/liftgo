@@ -85,6 +85,7 @@ jobs:
           node --test scripts/tests/release-identity.test.mjs scripts/tests/eslint-guardrails.test.mjs scripts/tests/feature-imports.test.mjs scripts/tests/browser-typecheck.test.mjs scripts/tests/lint-migrations.test.mjs scripts/tests/quality-workflow.test.mjs
           node --test tests/offlineTeardown.test.mjs tests/design-group-c/artifactGuard.test.mjs
           python3 -m unittest discover -s scripts/tests -p 'test_*.py'
+          node --test scripts/tests/deno-ci-import-map.test.mjs
       - name: Validar workflows
         uses: reviewdog/action-actionlint@619a81ec64ff8c0211cd6146eb2b21e8f1d7f440
         with:
@@ -101,6 +102,8 @@ jobs:
               - supabase/functions/**
               - scripts/deno-test-selection.sh
               - scripts/deno-tests-offline.sh
+              - scripts/ci/deno-import-map.mjs
+              - scripts/ci/vendor/**
               - .github/workflows/ci.yml
             migrations:
               - supabase/migrations/**/*.sql

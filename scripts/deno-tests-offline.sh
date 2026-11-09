@@ -13,6 +13,9 @@ if [[ ${#FILES[@]} -eq 0 ]]; then
 fi
 
 cd "$ROOT/supabase/functions"
-deno cache --frozen --node-modules-dir=auto "${FILES[@]}"
-exec deno test --frozen --cached-only --parallel --allow-env --allow-read --allow-net=0.0.0.0:8000 \
+IMPORT_MAP="$(mktemp "${TMPDIR:-/tmp}/liftgo-deno-import-map.XXXXXX.json")"
+trap 'rm -f -- "$IMPORT_MAP"' EXIT
+node "$ROOT/scripts/ci/deno-import-map.mjs" "$IMPORT_MAP"
+deno cache --frozen --import-map="$IMPORT_MAP" --node-modules-dir=auto "${FILES[@]}"
+deno test --frozen --cached-only --import-map="$IMPORT_MAP" --parallel --allow-env --allow-read --allow-net=0.0.0.0:8000 \
   --node-modules-dir=auto "$@" "${FILES[@]}"
