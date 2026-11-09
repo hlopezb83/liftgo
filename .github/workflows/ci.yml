@@ -6,16 +6,7 @@ on:
   push:
     branches:
       - main
-  workflow_dispatch:
-    inputs:
-      shards:
-        description: Particiones de Vitest para medir rendimiento
-        type: choice
-        options:
-          - "1"
-          - "2"
-          - "4"
-        default: "4"
+  workflow_dispatch: {}
 permissions:
   contents: read
 concurrency:
@@ -25,27 +16,27 @@ jobs:
   quality:
     name: Calidad
     runs-on: ubuntu-24.04
-    timeout-minutes: 8
+    timeout-minutes: 6
     permissions:
       contents: read
       pull-requests: read
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           persist-credentials: false
           fetch-depth: 0
       - name: Excluir entorno local
         run: rm -f -- .env .env.* .dev.vars .dev.vars.*
       - name: Node del proyecto
-        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
         with:
           node-version-file: .node-version
       - name: Bun del proyecto
-        uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6
+        uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
         with:
           bun-version: 1.4.4
       - name: Caché de paquetes
-        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
         with:
           path: ~/.bun/install/cache
           key: ${{ runner.os }}-${{ runner.arch }}-bun-v2-${{ hashFiles('bun.lock', 'package.json', '.bun-version', '.node-version') }}
@@ -56,7 +47,7 @@ jobs:
           bun install --frozen-lockfile
           test "$lock_before" = "$(sha256sum bun.lock)"
       - name: Secretos
-        uses: gitleaks/gitleaks-action@e0c47f4f8be36e29cdc102c57e68cb5cbf0e8d1e
+        uses: gitleaks/gitleaks-action@e0c47f4f8be36e29cdc102c57e68cb5cbf0e8d1e # v3.0.0
         env:
           GITHUB_TOKEN: ${{ github.token }}
           GITLEAKS_ENABLE_SUMMARY: "true"
@@ -67,7 +58,7 @@ jobs:
           node node_modules/eslint/bin/eslint.js --config eslint.group-c-design.config.mjs --max-warnings=0 tests/design-group-c tests/offlineTeardown.ts tests/offlineTeardown.test.mjs playwright.group-c-design.config.ts playwright.group-c-component.config.ts vite.group-c-fixture.config.ts
       - name: Revisión de dependencias
         if: github.event_name == 'pull_request'
-        uses: actions/dependency-review-action@a1d282b36b6f3519aa1f3fc636f609c47dddb294
+        uses: actions/dependency-review-action@a1d282b36b6f3519aa1f3fc636f609c47dddb294 # v5.0.0
         with:
           fail-on-severity: high
           comment-summary-in-pr: never
@@ -87,14 +78,14 @@ jobs:
           python3 -m unittest discover -s scripts/tests -p 'test_*.py'
           node --test scripts/tests/deno-ci-import-map.test.mjs
       - name: Validar workflows
-        uses: reviewdog/action-actionlint@619a81ec64ff8c0211cd6146eb2b21e8f1d7f440
+        uses: reviewdog/action-actionlint@619a81ec64ff8c0211cd6146eb2b21e8f1d7f440 # v1.81.1
         with:
           fail_level: error
           filter_mode: nofilter
           reporter: local
       - name: Áreas modificadas
         id: changes
-        uses: dorny/paths-filter@ceb8a2b8f2d89434be7ff52d3de7ec3738c5cc9d
+        uses: dorny/paths-filter@ceb8a2b8f2d89434be7ff52d3de7ec3738c5cc9d # v4.0.3
         with:
           list-files: json
           filters: |
@@ -115,7 +106,7 @@ jobs:
         run: node --input-type=module -e 'import fs from "node:fs"; import {spawnSync} from "node:child_process"; const files=JSON.parse(process.env.MIGRATION_FILES).filter(f=>fs.existsSync(f)); if(files.length){const r=spawnSync("bun",["scripts/lint-migrations.ts",...files],{stdio:"inherit"}); if(r.error)throw r.error; process.exit(r.status??1)}'
       - name: Deno
         if: steps.changes.outputs.functions == 'true' || github.event_name == 'workflow_dispatch'
-        uses: denoland/setup-deno@22d081ff2d3a40755e97629de92e3bcbfa7cf2ed
+        uses: denoland/setup-deno@22d081ff2d3a40755e97629de92e3bcbfa7cf2ed # v2.0.5
         with:
           deno-version: v2.9.8
       - name: Funciones offline
@@ -127,29 +118,33 @@ jobs:
           cd ../..
           bash scripts/deno-tests-offline.sh
   tests:
-    name: Unitarias ${{ matrix.shard }}/${{ inputs.shards || '4' }}
+    name: Unitarias ${{ matrix.shard }}/4
     runs-on: ubuntu-24.04
-    timeout-minutes: 12
+    timeout-minutes: 6
     strategy:
       fail-fast: false
       matrix:
-        shard: ${{ fromJSON(inputs.shards == '1' && '[1]' || inputs.shards == '2' && '[1,2]' || '[1,2,3,4]') }}
+        shard:
+          - 1
+          - 2
+          - 3
+          - 4
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           persist-credentials: false
       - name: Excluir entorno local
         run: rm -f -- .env .env.* .dev.vars .dev.vars.*
       - name: Node del proyecto
-        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
         with:
           node-version-file: .node-version
       - name: Bun del proyecto
-        uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6
+        uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
         with:
           bun-version: 1.4.4
       - name: Caché de paquetes
-        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
         with:
           path: ~/.bun/install/cache
           key: ${{ runner.os }}-${{ runner.arch }}-bun-v2-${{ hashFiles('bun.lock', 'package.json', '.bun-version', '.node-version') }}
@@ -162,12 +157,12 @@ jobs:
       - name: Vitest completo sin cobertura
         env:
           SHARD: ${{ matrix.shard }}
-          SHARDS: ${{ inputs.shards || '4' }}
+          SHARDS: "4"
           NODE_OPTIONS: --max-old-space-size=6144
         run: node node_modules/vitest/vitest.mjs run --shard="$SHARD/$SHARDS"
       - name: Diagnóstico de fallo
         if: failure()
-        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: unitarias-${{ matrix.shard }}
           path: reports/
@@ -176,25 +171,25 @@ jobs:
   build-smoke:
     name: Build y smoke
     runs-on: ubuntu-24.04
-    timeout-minutes: 8
+    timeout-minutes: 6
     env:
       SMOKE_REUSE_BUILD: "1"
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           persist-credentials: false
       - name: Excluir entorno local
         run: rm -f -- .env .env.* .dev.vars .dev.vars.*
       - name: Node del proyecto
-        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
         with:
           node-version-file: .node-version
       - name: Bun del proyecto
-        uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6
+        uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
         with:
           bun-version: 1.4.4
       - name: Caché de paquetes
-        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
         with:
           path: ~/.bun/install/cache
           key: ${{ runner.os }}-${{ runner.arch }}-bun-v2-${{ hashFiles('bun.lock', 'package.json', '.bun-version', '.node-version') }}
@@ -207,7 +202,7 @@ jobs:
       - name: Build real con backend ficticio
         run: node scripts/browser-test-server.mjs --build-only
       - name: Caché de Chromium
-        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
         with:
           path: ~/.cache/ms-playwright
           key: ${{ runner.os }}-${{ runner.arch }}-chromium-v2-${{ hashFiles('bun.lock') }}
@@ -219,7 +214,7 @@ jobs:
         run: node node_modules/@playwright/test/cli.js test --config playwright.smoke.config.ts
       - name: Diagnóstico de fallo
         if: failure()
-        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: smoke-diagnostico
           path: |-

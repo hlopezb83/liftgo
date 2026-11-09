@@ -5,7 +5,7 @@
 Corre en cada PR hacia main, push a main y ejecución manual. No hay cron ni filtros que omitan cambios de documentación. El objetivo operativo es menos de cinco minutos de pared; los límites de cada job sirven para cortar procesos atascados y no acreditan rendimiento.
 
 - Calidad: ESLint sin advertencias, tipos de aplicación y navegador, arquitectura, contratos de dependencias, Gitleaks, actionlint y contratos rápidos del aislamiento. Dependency Review corre en PR. Las funciones Deno y las migraciones modificadas conservan sus controles rápidos por área.
-- Unitarias: toda la suite Vitest, sin cobertura ni selección por archivos cambiados. Las particiones son independientes, sin transferencias ni merge de artifacts. El input manual shards permite comparar 1, 2 y 4; PR y push usan cuatro inicialmente, sujetos a la medición remota.
+- Unitarias: toda la suite Vitest, sin cobertura ni selección por archivos cambiados. Las particiones son independientes, sin transferencias ni merge de artifacts. La matriz fija usa cuatro particiones. Las pruebas de calibración con una y dos no completaron dentro del presupuesto de cinco minutos; cuatro completó en 226 s. No existe un selector permanente de rendimiento.
 - Build y smoke: una compilación real con backend ficticio y el smoke Chromium existente. Comprueba hidratación e interacción del Worker. Conserva proxy restringido, bloqueo de red externa y validación de bindings.
 
 Los bloques comienzan independientemente. Cualquier fallo mantiene rojo el workflow. Cada job conserva su estado real; no hay un agregador que convierta skips en éxito. Una nueva corrida de la misma rama cancela la anterior.
@@ -39,3 +39,7 @@ Dependabot mantiene su configuración de actualizaciones. Los registros dinámic
 La aceptación exige diez corridas completas menores de cinco minutos, con caché fría y caliente. Se registran SHA, evento, particiones, resultado, tiempo desde creación hasta cierre, preparación/colas y pasos lentos. El registro de resultados se completará con evidencia remota; no se acredita la meta con estimaciones locales.
 
 La validación fría detectó dos representaciones CDN alternantes de tslib@2.8.1 bajo la misma URL. Las pruebas Deno generan un import map temporal que usa una copia local de la fuente oficial, verificada contra un commit fijo de Microsoft y por SHA-256. Conservan todos los aliases del manifiesto actual y --frozen/--cached-only para el resto del grafo. El manifiesto y lock productivos permanecen originales. La procedencia y comparación de estructura están en [ci-tslib-integrity-2026-11-09.json](qa/ci-tslib-integrity-2026-11-09.json).
+
+## Dependencias de funciones Cloud
+
+El manifiesto y lock de supabase/functions son el contrato versionado de las funciones. El CLI Deno seleccionado en CI verifica ese código, pero no acredita la versión ni compatibilidad del runtime del hosting. Las actualizaciones de SDK y las verificaciones de empaquetado/publicación de Cloud se revisan por separado. El mapa temporal de tslib se usa exclusivamente en el harness offline y no modifica el contrato desplegado.

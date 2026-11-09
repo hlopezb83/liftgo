@@ -3,7 +3,6 @@
   "package": "tslib",
   "version": "2.8.1",
   "specifier": "https://esm.sh/tslib@2.8.1/denonext/tslib.mjs",
-  "bytes": 11220,
   "officialSource": "https://raw.githubusercontent.com/microsoft/tslib/d72d6f70b36286bc3f94a3dda1e64dcb568b1370/tslib.es6.mjs",
   "officialSourceSha256": "0929993220938091ede542d688b0fdb87dad99a7e77678e1983c32d18a503339",
   "verification": {
@@ -22,5 +21,6 @@
   "upstreamCommit": "d72d6f70b36286bc3f94a3dda1e64dcb568b1370",
   "vendoredFile": "scripts/ci/vendor/tslib-2.8.1.mjs",
   "vendoredSha256": "0929993220938091ede542d688b0fdb87dad99a7e77678e1983c32d18a503339",
-  "productionLockUnchanged": true
+  "productionLockUnchanged": true,
+  "cdnBytes": 11220
 }

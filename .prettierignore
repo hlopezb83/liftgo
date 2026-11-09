@@ -1,0 +1,2 @@
+# Preserve the reviewed upstream bytes checked by the offline Deno harness.
+scripts/ci/vendor/tslib-2.8.1.mjs
