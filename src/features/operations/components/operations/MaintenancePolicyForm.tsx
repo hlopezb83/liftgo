@@ -1,3 +1,4 @@
+import { QueryErrorState } from "@/components/feedback/QueryErrorState";
 import { FormDialog, FormDialogFooter } from "@/components/forms/FormDialog";
 import { FormDialogCancelButton } from "@/components/forms/FormDialogCancelButton";
 import { FormSection } from "@/components/forms/FormSection";
@@ -17,6 +18,11 @@ interface Props {
   isPending: boolean;
   form: MaintenancePolicyFormValues;
   availableForklifts: Array<{ id: string; name: string; model: string }> | undefined;
+  optionsLoading: boolean;
+  optionsError: boolean;
+  optionsLimitMessage?: string;
+  onRetryOptions: () => void;
+  canSave: boolean;
   onChange: (key: keyof MaintenancePolicyFormValues, value: string) => void;
   onSave: () => void;
   /** E4: pide confirmación al cerrar si hay cambios sin guardar. */
@@ -24,7 +30,7 @@ interface Props {
 }
 
 export function MaintenancePolicyForm({
-  open, onOpenChange, isEdit, isPending, form, availableForklifts, onChange, onSave, isDirty = false,
+  open, onOpenChange, isEdit, isPending, form, availableForklifts, onChange, onSave, isDirty = false, optionsLoading, optionsError, optionsLimitMessage, onRetryOptions, canSave,
 }: Props) {
   return (
     <FormDialog
@@ -38,7 +44,7 @@ export function MaintenancePolicyForm({
       <FormSection title="Equipo y proveedor" first>
         <div className="space-y-1.5">
           <Label>Montacargas <RequiredMark /></Label>
-          <Select value={form.forklift_id} onValueChange={(v) => onChange("forklift_id", v)}>
+          <Select disabled={isPending || optionsLoading || optionsError} value={form.forklift_id} onValueChange={(v) => onChange("forklift_id", v)}>
             <SelectTrigger><SelectValue placeholder="Seleccionar montacargas rentado" /></SelectTrigger>
             <SelectContent>
               {availableForklifts?.map((f) => (
@@ -46,6 +52,18 @@ export function MaintenancePolicyForm({
               ))}
             </SelectContent>
           </Select>
+          {optionsError ? (
+            optionsLimitMessage ? (
+              <div role="alert" className="space-y-2 text-sm text-destructive">
+                <p>{optionsLimitMessage}</p>
+                <Button type="button" variant="outline" onClick={onRetryOptions}>Reintentar</Button>
+              </div>
+            ) : <QueryErrorState bare entity="los montacargas para la póliza" onRetry={onRetryOptions} />
+          ) : optionsLoading ? (
+            <p role="status" className="text-sm text-muted-foreground">Verificando montacargas…</p>
+          ) : availableForklifts?.length === 0 ? (
+            <p role="status" className="text-sm text-muted-foreground">No hay montacargas rentados sin póliza disponibles.</p>
+          ) : null}
         </div>
         <div className="space-y-1.5">
           <Label>Proveedor <RequiredMark /></Label>
@@ -70,7 +88,7 @@ export function MaintenancePolicyForm({
       </FormSection>
       <FormDialogFooter>
         <FormDialogCancelButton onCancel={() => onOpenChange(false)} disabled={isPending} />
-        <Button onClick={onSave} disabled={isPending}>
+        <Button onClick={onSave} disabled={isPending || !canSave}>
           {isEdit ? "Guardar" : "Agregar póliza"}
         </Button>
       </FormDialogFooter>

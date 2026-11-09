@@ -55,6 +55,7 @@ vi.mock("@/features/maintenance", () => ({
   useUpdateMechanic: idleMutation,
   useDeleteMechanic: idleMutation,
   useMaintenancePolicies: () => useMaintenancePoliciesMock(),
+  useMaintenancePolicyOptions: () => ({ ...idleQueryResult, isReady: true }),
   useCreateMaintenancePolicy: idleMutation,
   useUpdateMaintenancePolicy: idleMutation,
   useDeleteMaintenancePolicy: idleMutation,
