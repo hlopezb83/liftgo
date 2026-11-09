@@ -37,3 +37,5 @@ La reconstrucción del 9 de noviembre de 2026 incluye eliminar el historial de A
 Dependabot mantiene su configuración de actualizaciones. Los registros dinámicos de GitHub y sus alertas de seguridad son administrados por GitHub; no se duplica CodeQL programado en YAML. No se cambian la protección de main ni el despliegue de Lovable.
 
 La aceptación exige diez corridas completas menores de cinco minutos, con caché fría y caliente. Se registran SHA, evento, particiones, resultado, tiempo desde creación hasta cierre, preparación/colas y pasos lentos. El registro de resultados se completará con evidencia remota; no se acredita la meta con estimaciones locales.
+
+La validación fría detectó un checksum obsoleto del módulo CDN tslib@2.8.1. Se verificó su estructura completa contra la fuente oficial de Microsoft antes de actualizar exclusivamente esa huella. La evidencia está en [ci-tslib-integrity-2026-11-09.json](qa/ci-tslib-integrity-2026-11-09.json); Deno conserva --frozen y ejecuta con --cached-only.
