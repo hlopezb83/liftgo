@@ -25,7 +25,6 @@ on:
       - "docs/audits/2026-11-04/release-0123/control0123-receipt.sql"
       - "scripts/run_sql_suites.py"
       - "scripts/ci_database.py"
-      - "scripts/ci_supabase_prefetch.py"
       - "scripts/tests/**"
       - ".github/actions/setup-bun-project/**"
       - ".node-version"
@@ -54,7 +53,6 @@ on:
       - "docs/audits/2026-11-04/release-0123/control0123-receipt.sql"
       - "scripts/run_sql_suites.py"
       - "scripts/ci_database.py"
-      - "scripts/ci_supabase_prefetch.py"
       - "scripts/tests/**"
       - ".github/actions/setup-bun-project/**"
       - ".node-version"
@@ -110,7 +108,6 @@ jobs:
           set -euo pipefail
           python3 -m unittest discover -s scripts/tests -p test_run_sql_suites.py
           python3 -m unittest discover -s scripts/tests -p test_ci_database.py
-          python3 -m unittest discover -s scripts/tests -p test_ci_supabase_prefetch.py
           python3 -m unittest discover -s scripts/tests -p test_control0123_receipt.py
 
       - name: Setup Supabase CLI
@@ -142,12 +139,6 @@ jobs:
 
       - name: Exigir base vacía y deshabilitar seed local
         run: python3 scripts/ci_database.py prepare
-
-      # Sólo descarga imágenes; no cachea volúmenes ni altera el bootstrap.
-      # El inventario cerrado corresponde a la CLI pineada arriba.
-      - name: Prefetch concurrente de imágenes Supabase
-        timeout-minutes: 5
-        run: python3 scripts/ci_supabase_prefetch.py --profile rls
 
       - name: Start Supabase (DB + auth, sin gateway ni PostgREST)
         continue-on-error: false

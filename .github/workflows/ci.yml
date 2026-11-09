@@ -90,62 +90,59 @@ jobs:
   # ---------------------------------------------------------------------------
   # BASE 1 — lint/tipos en paralelo con el build; aceptación en runners aislados.
   # Se conserva TODO el alcance anterior y el nombre público del gate quality.
-  # Exactamente cuatro jobs: productor estático/build/smoke, dos consumidores y gate.
+  # Exactamente cuatro jobs: estático, dos builds/navegador independientes y gate.
   # ---------------------------------------------------------------------------
-  quality-build:
-    name: Estático, build y smoke de arranque real
+  quality-static:
+    name: Calidad estática (lint, tipos y contratos)
     runs-on: ubuntu-24.04
     timeout-minutes: 10
-    outputs:
-      build-sha256: ${{ steps.pack.outputs.sha256 }}
-      build-artifact-name: ${{ steps.pack.outputs.artifact-name }}
     steps:
       - uses: actions/checkout@v7
+      # Eliminar sin leer antes de que Bun/Vite puedan cargar archivos locales.
+      # El build mantiene exclusivamente las variables ficticias del step Build.
       - name: Excluir archivos de entorno locales del build
         run: rm -f -- .env .env.*
       - uses: ./.github/actions/setup-bun-project
-        with:
-          save-cache: "true"
 
-      - name: Preparar Chromium
-        uses: ./.github/actions/setup-playwright
-        with:
-          save-cache: "true"
-      - name: Validar estático y build smoke en paralelo
-        run: python3 scripts/quality-producer.py
+      - name: Contrato de identidad de release
+        run: node --test scripts/tests/release-identity.test.mjs
 
-      # Sólo dist/, nunca .env, node_modules, checkout ni estado de Wrangler.
-      # El SHA-256 proviene de este job: un consumidor no acepta otros bytes.
-      - name: Empaquetar el build ficticio validado
-        id: pack
+      - name: Contrato de configuración efectiva de ESLint
+        run: node --test scripts/tests/eslint-guardrails.test.mjs
+
+      - name: Contratos de guardrails (AST, blobs y alcance de tipos)
         run: |
-          echo "artifact-name=browser-build-$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT" >> "$GITHUB_OUTPUT"
-          tar -czf "$RUNNER_TEMP/browser-build.tar.gz" dist
-          echo "sha256=$(sha256sum "$RUNNER_TEMP/browser-build.tar.gz" | cut -d ' ' -f 1)" >> "$GITHUB_OUTPUT"
+          node --test scripts/tests/feature-imports.test.mjs scripts/tests/vitest-blob-provenance.test.mjs scripts/tests/browser-typecheck.test.mjs
+          node --test scripts/tests/lint-migrations.test.mjs
 
-      - name: Compartir el build de esta corrida e intento
-        uses: actions/upload-artifact@v7
-        with:
-          name: ${{ steps.pack.outputs.artifact-name }}
-          path: ${{ runner.temp }}/browser-build.tar.gz
-          compression-level: 0
-          retention-days: 7
-          if-no-files-found: error
+      - name: Contrato del grafo de calidad y su gate
+        run: |
+          node --test scripts/tests/quality-workflow.test.mjs
+          python3 -m unittest discover -s scripts/tests -p test_playwright_apt_cache.py
+          python3 -m unittest discover -s scripts/tests -p test_browser_acceptance_runner.py
 
-      - name: Subir diagnóstico del smoke
-        if: failure()
-        uses: actions/upload-artifact@v7
-        with:
-          name: smoke-artifacts-${{ github.run_id }}-${{ github.run_attempt }}
-          path: test-results/
-          retention-days: 3
-          if-no-files-found: ignore
+      - name: Offline harness lifecycle and artifact guards
+        run: node --test tests/offlineTeardown.test.mjs tests/design-group-c/artifactGuard.test.mjs
+
+      - name: ESLint
+        run: bun run lint --max-warnings=0
+
+      - name: Group C and shared harness ESLint
+        run: node node_modules/eslint/bin/eslint.js --config eslint.group-c-design.config.mjs --max-warnings=0 tests/design-group-c tests/offlineTeardown.ts tests/offlineTeardown.test.mjs playwright.group-c-design.config.ts playwright.group-c-component.config.ts vite.group-c-fixture.config.ts
+
+      - name: Typecheck
+        run: bun run typecheck
+
+      - name: Typecheck de pruebas de navegador
+        run: bun run typecheck:browser-tests
+
+      - name: Guardrails de arquitectura
+        run: bash scripts/arch-check.sh
 
   browser-a:
     name: Aceptación offline A (grupos aislados)
     runs-on: ubuntu-24.04
     timeout-minutes: 10
-    needs: quality-build
     env:
       SMOKE_REUSE_BUILD: "1"
       GROUP_C_BUILD_DIR: "."
@@ -156,22 +153,19 @@ jobs:
       - name: Excluir archivos de entorno locales
         run: rm -f -- .env .env.*
       - uses: ./.github/actions/setup-bun-project
-      # El output identifica el intento del productor, no el del consumidor.
-      # Un reintento parcial conserva el mismo build exitoso y su SHA-256.
-      - name: Descargar sólo el build validado por el productor
-        uses: actions/download-artifact@v8
         with:
-          name: ${{ needs.quality-build.outputs.build-artifact-name }}
-          path: ${{ runner.temp }}/browser-build
-      - name: Verificar bytes y restaurar build
-        env:
-          BUILD_SHA256: ${{ needs.quality-build.outputs.build-sha256 }}
-        run: |
-          printf '%s  %s\n' "$BUILD_SHA256" "$RUNNER_TEMP/browser-build/browser-build.tar.gz" | sha256sum --check --strict
-          tar -xzf "$RUNNER_TEMP/browser-build/browser-build.tar.gz"
-          node --input-type=module -e 'import { assertBuildUsesFakeBackend } from "./scripts/browser-test-config.mjs"; assertBuildUsesFakeBackend(process.cwd());'
+          save-cache: "true"
+      - name: Compilar build ficticio independiente
+        run: node scripts/browser-test-server.mjs --build-only
+      - name: Verificar aislamiento de navegador y Worker con destinos locales
+        run: node --test scripts/tests/browser-test-*.test.mjs
       - name: Preparar Chromium
         uses: ./.github/actions/setup-playwright
+        with:
+          save-cache: "true"
+
+      - name: Smoke de arranque (build real)
+        run: bunx playwright test --config playwright.smoke.config.ts
 
       - name: Ejecutar todas las suites en grupos internos aislados
         run: python3 scripts/run-browser-acceptance.py --lane a
@@ -193,7 +187,6 @@ jobs:
     name: Aceptación offline B (grupos aislados)
     runs-on: ubuntu-24.04
     timeout-minutes: 10
-    needs: quality-build
     env:
       SMOKE_REUSE_BUILD: "1"
       GROUP_C_BUILD_DIR: "."
@@ -204,20 +197,10 @@ jobs:
       - name: Excluir archivos de entorno locales
         run: rm -f -- .env .env.*
       - uses: ./.github/actions/setup-bun-project
-      # El output identifica el intento del productor, no el del consumidor.
-      # Un reintento parcial conserva el mismo build exitoso y su SHA-256.
-      - name: Descargar sólo el build validado por el productor
-        uses: actions/download-artifact@v8
-        with:
-          name: ${{ needs.quality-build.outputs.build-artifact-name }}
-          path: ${{ runner.temp }}/browser-build
-      - name: Verificar bytes y restaurar build
-        env:
-          BUILD_SHA256: ${{ needs.quality-build.outputs.build-sha256 }}
-        run: |
-          printf '%s  %s\n' "$BUILD_SHA256" "$RUNNER_TEMP/browser-build/browser-build.tar.gz" | sha256sum --check --strict
-          tar -xzf "$RUNNER_TEMP/browser-build/browser-build.tar.gz"
-          node --input-type=module -e 'import { assertBuildUsesFakeBackend } from "./scripts/browser-test-config.mjs"; assertBuildUsesFakeBackend(process.cwd());'
+      - name: Compilar build ficticio independiente
+        run: node scripts/browser-test-server.mjs --build-only
+      - name: Verificar aislamiento de navegador y Worker con destinos locales
+        run: node --test scripts/tests/browser-test-*.test.mjs
       - name: Preparar Chromium
         uses: ./.github/actions/setup-playwright
 
@@ -243,17 +226,17 @@ jobs:
     name: Calidad (lint, tipos, build y arranque)
     runs-on: ubuntu-24.04
     timeout-minutes: 2
-    needs: [quality-build, browser-a, browser-b]
+    needs: [quality-static, browser-a, browser-b]
     if: always()
     steps:
       - name: Exigir todos los controles de calidad
         env:
           A_RESULT: ${{ needs.browser-a.result }}
-          BUILD_RESULT: ${{ needs.quality-build.result }}
+          STATIC_RESULT: ${{ needs.quality-static.result }}
           B_RESULT: ${{ needs.browser-b.result }}
         run: |
           test "$A_RESULT" = "success"
-          test "$BUILD_RESULT" = "success"
+          test "$STATIC_RESULT" = "success"
           test "$B_RESULT" = "success"
 
   # ---------------------------------------------------------------------------

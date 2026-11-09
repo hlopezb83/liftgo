@@ -131,3 +131,10 @@ el resultado intermedio no acredita el nuevo diseño.
 The first four-job run passed the quality gate in about 7m48s, but browser acceptance alone took 6m02s on one runner with four internal groups. Global CI failed on a customer-search timeout and Supabase prefetch. This does not meet the five-minute target.
 
 The next candidate retains four total quality jobs: a producer that supervises static checks concurrently with build/smoke, two consumers each running two disjoint existing browser groups, and the historical aggregate gate. The producer reuses bounded subreaper cleanup. No suite, retry, worker setting, permission or production guard is removed. Supabase prefetch now exposes sanitized failure diagnostics and retries only observed transient failures once within one shared time budget. Remote measurements remain required.
+
+
+## Independent-build four-job candidate
+
+The combined producer took about 3m03s before either browser consumer could start. To remove this serial dependency, the next candidate starts static checks and both browser jobs independently. Each browser job performs the same guarded synthetic build; lane A also executes the unchanged smoke suite. The fourth job retains the historical fail-closed aggregate name. There is no cross-run build artifact to trust. The small duplicated build cost is intentional. All seven acceptance suites and the smoke remain required.
+
+Removed the experimental Supabase prefetch and restored both database workflows byte-for-byte to main 3337870a. ECR diagnostics confirmed repeated `toomanyrequests: Rate exceeded`; burst downloads added an avoidable failure mode. Baseline CLI startup is retained. The under-five-minute goal remains unproven.

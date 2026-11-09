@@ -79,7 +79,7 @@ se verifican por separado.
 
 Calidad y Vitest completos + condicionales. Sin `schedule`. Las corridas
 obsoletas de la misma rama se cancelan. Calidad separa trabajo estático,
-build/smoke, aceptación de navegador y gate: **cuatro jobs en total**; no reduce
+dos carriles independientes de build/navegador y gate: **cuatro jobs en total**; no reduce
 escenarios, viewports, permisos comprobados ni condiciones de ejecución.
 
 Los workflows fijan `ubuntu-24.04` para mantener el sistema operativo validado
@@ -89,9 +89,9 @@ bloquean la integración. Los avisos informativos de pruebas aprobadas se conser
 
 | Job | Corre | Qué protege |
 | --- | --- | --- |
-| `quality-build` | siempre | Estático (lint/tipos/contratos) y build/smoke en dos ramas supervisadas en paralelo |
-| `browser-a` | tras productor correcto | Móvil + factura y Group C app en dos grupos aislados |
-| `browser-b` | tras productor correcto | Cotizaciones + inventario + reservas y componentes en dos grupos aislados |
+| `quality-static` | siempre | Lint, tipos, arquitectura y contratos |
+| `browser-a` | siempre | Build ficticio propio + smoke; móvil + factura y Group C app |
+| `browser-b` | siempre | Build ficticio propio; cotizaciones + inventario + reservas y componentes |
 | `quality` | siempre, incluso con dependencias fallidas | Gate con el nombre histórico **Calidad (lint, tipos, build y arranque)**; exige estático, build/smoke y toda la aceptación verdes |
 | `tests` (matriz 1/6 … 6/6) | siempre | Suite completa de Vitest, repartida en seis shards |
 | `tests-merge` | siempre | Une los blobs y aplica los **umbrales de cobertura** |
@@ -117,23 +117,16 @@ El 2026-11-09 la API de rulesets devolvió una lista vacía. La integración dev
 lo que **no se puede afirmar que no existan checks requeridos**. No se modificó
 ningún ajuste de protección, permisos ni concurrencia.
 
-### Build compartido y reintentos de aceptación
+### Builds independientes y reintentos de aceptación
 
-`quality-build` instala y guarda las cachés de Bun/Chromium una sola vez. Después
-de comprobar aislamiento y smoke, empaqueta exclusivamente `dist/`, conserva
-sus permisos y publica el SHA-256 como output del job. Cada consumidor descarga
-el artifact nombrado por el **intento del productor**, comprueba el hash antes
-de extraerlo y vuelve a validar el backend ficticio. No se copian archivos `.env`,
-dependencias, sesiones ni estado de Wrangler. El build no se repite por suite.
+Los dos jobs de navegador comienzan sin esperar al estático. Cada uno compila
+su propio build ficticio con los mismos controles de aislamiento, después de
+eliminar los archivos dotenv locales. No se transfieren builds entre jobs.
+El carril A ejecuta además smoke y guarda las cachés; B sólo las restaura.
+Un reintento recompila y vuelve a validar su propio build. Vitest mantiene su
+contrato independiente: para recuperar shards/merge se exige **Re-run all jobs**.
 
-El nombre y el hash viajan juntos desde `quality-build`; así un carril de
-navegador reintentado puede reutilizar el productor exitoso del mismo run aunque
-su propio `run_attempt` aumente. El artifact dura siete días; tras expirar se
-debe reejecutar el productor y sus consumidores, o toda la corrida. Esto no
-relaja el contrato independiente de Vitest: para recuperar sus shards/merge
-sigue siendo obligatorio **Re-run all jobs**, como se describe abajo.
-
-El runner de navegador ejecuta cuatro grupos internos con puertos distintos.
+Los dos runners de navegador ejecutan dos grupos internos cada uno, con puertos distintos.
 Móvil/factura y cotizaciones/inventario/reservas son secuenciales dentro de
 sus grupos; Group C aplicación y componentes tienen grupos independientes.
 Se mantienen `workers: 1`, retries, configs y escenarios originales. El runner
@@ -170,7 +163,7 @@ señal (archivos, dependencias, exports y tipos sin uso) se revisa en local con
 
 ### Integridad de los guardrails y pruebas de navegador
 
-`quality-static.sh`, ejecutado por el productor, prueba los controles mismos antes de usarlos: identidad de release,
+`quality-static` prueba los controles mismos antes de usarlos: identidad de release,
 configuración efectiva de ESLint, fronteras de imports, procedencia de blobs y
 alcance del proyecto TypeScript de navegador. Los sentinelas negativos deben
 rechazar entradas deliberadamente incorrectas; no sustituyen lint, typecheck,
