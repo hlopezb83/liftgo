@@ -107,7 +107,7 @@ src/
 ├── layouts/                        MainLayout, CustomerPortalLayout, AuthGuard, RoleGuard
 ├── app-routes/
 │   ├── routes.ts                   Constantes de URL (`ROUTES.invoices.detail(id)`)
-│   ├── routes-config.tsx           Registro heredado: loaders lazy + metadatos para sidebar/búsqueda
+│   ├── routes-config.tsx           Registro heredado: loaders lazy para prefetch de navegación
 │   └── RouteSkeletons.tsx          Fallbacks de Suspense
 ├── routes/                         Rutas file-based de TanStack Router
 │   ├── __root.tsx                  Shell HTML, head/meta, providers, error/not-found
@@ -399,11 +399,12 @@ programados y trabajo con privilegios de servicio:
 
 - Los segmentos `_main` y `_portal` son layouts sin URL propia: `/invoices` vive en `src/routes/_main/invoices.index.tsx`.
 - Cada archivo de ruta declara sus propios guards: importa la página con `lazy`, define `module`/`minAccess` localmente y monta `Suspense` + `RoleGuard` (ej. `src/routes/_main/invoices.index.tsx`). **No** importan `routes-config.tsx`.
-- `src/app-routes/routes-config.tsx` es un registro heredado del router previo: hoy lo consumen el sidebar (`SidebarNavSection`, `SidebarQuickCreate`), la búsqueda global (`GlobalSearch`) y pruebas — no es la fuente efectiva de permisos en runtime.
+- `src/app-routes/routes-config.tsx` es un registro heredado del router previo: hoy lo consumen el sidebar (`SidebarNavSection`, `SidebarQuickCreate`), la búsqueda global (`GlobalSearch`) y pruebas — conserva el prefetch, no es el catálogo de navegación ni la fuente efectiva de permisos en runtime.
+- `src/lib/navigation/navigationCatalog.ts` centraliza título, URL e icono de cada destino. Define explícitamente los grupos/orden y metadatos de cada superficie (`NAV_GROUPS`, `SEARCH_NAVIGATION_ITEMS`); `layouts/sidebar/navConfig.ts` reexporta el contrato del sidebar. No igualar su cobertura: el buscador conserva `/expenses`, títulos/grupos propios y no incluye plataforma. Permisos, estado de operador y destino dinámico del Panel siguen fuera del catálogo. El fixture `src/lib/navigation/__tests__/fixtures/surfaces.json` protege el contrato de ambas superficies.
 - `MainLayout` se monta una sola vez (layout route); `Suspense` envuelve cada página individual.
 - Constantes de URL en `src/app-routes/routes.ts` (`ROUTES.invoices.detail(id)`) para evitar strings mágicos.
 - La navegación usa `Link`/`navigate` de TanStack Router; `src/lib/router-compat-ui.tsx` y `src/lib/router-compat-url.ts` ofrecen equivalentes (`Navigate`, lectura de query string) para el código migrado.
-- Rutas notables fuera de los CRUD: `/income-statement`, `/mrr`, `/expenses` (operativos), `/audit`, `/activity`, `/users/permissions`, `/settings/operations`, `/changelog`, `/help`, `/feedback` (admin Kanban), `/mis-reportes`, `/leaderboard`.
+- Rutas notables fuera de los CRUD: `/income-statement`, `/mrr`, `/expenses` (alias heredado de cuentas por pagar), `/audit`, `/activity`, `/users/permissions`, `/settings/operations`, `/changelog`, `/help`, `/feedback` (admin Kanban), `/mis-reportes`, `/leaderboard`.
 
 
 ---
@@ -574,7 +575,7 @@ Workflows vigentes en `.github/workflows/`: `ci.yml` (ESLint, `tsc`, `arch-check
 3. Hook(s) de dominio en `src/features/<feature>/hooks/use<Feature>.ts` con TanStack Query. Si supera 80 LOC, divide en `*Query.ts` + `*Mutations.ts`.
 4. Componentes UI en `src/features/<feature>/components/`. Helpers puros en `src/features/<feature>/lib/` con sufijo `*Helpers.ts`.
 5. Crear el archivo de ruta en `src/routes/_main/<ruta>.tsx` (el nombre del archivo define la URL): `lazy` de la página, `module`/`minAccess` locales y `RoleGuard`, siguiendo el patrón de `invoices.index.tsx`. Agregar la URL a `src/app-routes/routes.ts`.
-6. Si el módulo debe aparecer en el sidebar o en la búsqueda global, registrarlo también en `src/app-routes/routes-config.tsx`.
+6. Si el módulo debe aparecer en el sidebar o en la búsqueda global, añadir su destino a `src/lib/navigation/navigationCatalog.ts` y referenciarlo explícitamente en cada superficie requerida. Ajustar los contratos de navegación sólo si el cambio de cobertura es intencional. El prefetch sigue usando los loaders de `src/app-routes/routes-config.tsx`; el catálogo no declara rutas ni guards.
 7. Insertar el módulo en `role_permissions` (migración) y en la constante `MODULES` de `src/features/users/hooks/useRolePermissions.ts`. Mapear ruta → módulo en `ROUTE_TO_MODULE`.
 
 8. Agregar test mínimo en `src/test/`.
