@@ -1,4 +1,4 @@
-import { act, cleanup, fireEvent, render, renderHook, screen, waitFor } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, renderHook, screen, waitFor, within } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useForm, useWatch } from "react-hook-form";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
@@ -85,10 +85,8 @@ afterEach(() => {
 });
 
 describe("invoice customer selection through real queries and offline HTTP", () => {
-  it("fetches 501, displays 500, searches customer 700 and preserves its selected fiscal snapshot after detail arrives", async () => {
-    let resolveDetail!: (value: Response) => void;
-    const pendingDetail = new Promise<Response>((resolve) => { resolveDetail = resolve; });
-    mockTransport(() => pendingDetail);
+  it("fetches 501 and renders exactly the first 500 options with the truncation warning", async () => {
+    mockTransport(() => response([remote]));
     const { client, Wrapper } = wrapper();
     render(<Harness />, { wrapper: Wrapper });
     const select = await screen.findByRole("combobox", { name: /Cliente/ });
@@ -98,9 +96,30 @@ describe("invoice customer selection through real queries and offline HTTP", () 
     expect(requests[0].searchParams.get("customers.deleted_at")).toBe("is.null");
     expect(client.getQueryData(customerQueries.list().queryKey)).toHaveLength(501);
     fireEvent.click(select);
-    expect(screen.getAllByRole("option")).toHaveLength(500);
-    expect(screen.queryByRole("option", { name: "Cliente 501" })).not.toBeInTheDocument();
-    expect(screen.queryByRole("option", { name: "Cliente remoto 700" })).not.toBeInTheDocument();
+    // Read the large list once. Repeated whole-document accessible-name scans
+    // for absent options add avoidable CPU work on a coverage-instrumented run.
+    // Preserve the 500 real rendered options and the explicit overflow checks.
+    const initialOptions = within(screen.getByRole("listbox")).getAllByRole("option");
+    expect(initialOptions).toHaveLength(500);
+    const initialLabels = initialOptions.map((option) => option.textContent);
+    expect(initialLabels).toEqual(Array.from({ length: 500 }, (_, i) => `Cliente ${String(i + 1).padStart(3, "0")}`));
+    expect(initialLabels).not.toContain("Cliente 501");
+    expect(initialLabels).not.toContain("Cliente remoto 700");
+    expect(requests.filter(searchRequest)).toHaveLength(0);
+  });
+
+  it("searches beyond a capped 501-row list and preserves customer 700 fiscal snapshot after detail arrives", async () => {
+    let resolveDetail!: (value: Response) => void;
+    const pendingDetail = new Promise<Response>((resolve) => { resolveDetail = resolve; });
+    mockTransport(() => pendingDetail);
+    const { client, Wrapper } = wrapper();
+    render(<Harness />, { wrapper: Wrapper });
+    const select = await screen.findByRole("combobox", { name: /Cliente/ });
+    expect(client.getQueryData(customerQueries.list().queryKey)).toHaveLength(501);
+    // Capacity/rendering is asserted independently above. This case still uses
+    // all 501 HTTP rows and the real selector, but measures the selection flow
+    // separately from the expensive enumeration of all accessible options.
+    fireEvent.click(select);
     fireEvent.change(screen.getByPlaceholderText("Buscar por nombre, razón social o RFC…"), { target: { value: "remoto" } });
     const option = await screen.findByRole("option", { name: "Cliente remoto 700" });
     expect(screen.getAllByRole("option")).toHaveLength(1); // Relation and identity results are deduplicated.
