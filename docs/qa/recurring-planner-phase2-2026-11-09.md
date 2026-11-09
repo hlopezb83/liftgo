@@ -50,3 +50,12 @@ Todas las salidas coincidieron. Muestras y rangos completos en `recurring-planne
 Los hooks del loader reciben un colector por solicitud. Miden espera de consultas y RPC, páginas, filas y cantidad de cotizaciones por fases fijas. No serializan payloads ni incorporan identificadores, errores o datos fiscales a métricas. Sin colector, la secuencia de consultas es la misma. Prueba de paridad de contexto, URLs consultadas, contadores y fallo de lectura con diagnóstico activado.
 
 Con módulo de métricas y hooks del loader: 332 pruebas Deno focalizadas, incluida verificación de tipos, y 53 pruebas Vitest de historial, selección, modal y hooks. Es evidencia local de esos módulos; los hooks HTTP/CI del conjunto se verifican por separado antes de publicar.
+
+### Validación del conjunto integrado
+
+Rebase sin conflictos sobre `54042095bf7001f27fa11263e429bcb0f91f0097`; los cambios ajenos en autenticación de preview y documentos permanecen fuera del diff. La restauración selectiva de autenticación se coordina por separado y se debe revalidar la base antes de integrar.
+
+- 339/339 pruebas Deno focalizadas, con verificación de tipos y SDK oficial 2.118.0, incluyendo seis contratos HTTP de privacidad y paridad. Runtime local Deno 2.9.6; CI usa 2.9.8.
+- 56/56 pruebas Vitest de historial, selección, diálogos y hooks recurrentes; TypeScript, arquitectura, Deno fmt/lint de archivos modificados y `git diff --check` correctos.
+- Revisión independiente del planner y loader sin bloqueantes. La instrumentación y sus contratos HTTP tienen una segunda revisión independiente, con 32 pruebas focalizadas correctas.
+- Sin cambios SQL ni migraciones, sin modificación de datos ni despliegue. La aprobación de CI del SHA final y la coordinación de la restauración de autenticación siguen siendo condiciones previas a la integración.
