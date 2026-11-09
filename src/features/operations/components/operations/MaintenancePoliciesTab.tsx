@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { DataTableV2, useLiftgoTable, type ColumnDef } from "@/components/dataTable/v2";
 import { QueryErrorState } from "@/components/feedback/QueryErrorState";
 import { AddIcon, EditIcon, DeleteIcon } from "@/components/icons";
@@ -7,11 +7,10 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { Switch } from "@/components/ui/switch";
-import { computeFleetAvailability, useServerTodayMty } from "@/features/availability";
-import { useBookings } from "@/features/bookings";
-import { useForklifts } from "@/features/fleet";
+import { useServerTodayMty } from "@/features/availability";
 import {
   useMaintenancePolicies,
+  useMaintenancePolicyOptions,
   useCreateMaintenancePolicy,
   useUpdateMaintenancePolicy,
   useDeleteMaintenancePolicy,
@@ -28,10 +27,6 @@ import { EMPTY_POLICY_FORM, type MaintenancePolicyFormValues } from "./maintenan
 export function MaintenancePoliciesTab() {
   const isMobile = useIsMobile();
   const { data: policies, isLoading, isError, refetch } = useMaintenancePolicies();
-  const { data: forklifts } = useForklifts();
-  // R6-FE-07: el status crudo se desincroniza; "rentado" = reserva confirmed
-  // que cubre hoy (misma definición que FleetPage / Panel / Calendario).
-  const { data: fleetBookings } = useBookings();
   const todayYmd = useServerTodayMty();
   const create = useCreateMaintenancePolicy();
   const update = useUpdateMaintenancePolicy();
@@ -42,24 +37,7 @@ export function MaintenancePoliciesTab() {
   const set = (key: keyof MaintenancePolicyFormValues, value: string) =>
     setForm((p) => ({ ...p, [key]: value }));
 
-  // La política aplica a unidades cuyo estado físico canónico es rented.
-  const rentedIds = useMemo(
-    () =>
-      fleetBookings
-        ? computeFleetAvailability(forklifts, fleetBookings, todayYmd)?.rentedForkliftIds
-        : undefined,
-    [forklifts, fleetBookings, todayYmd],
-  );
-  const rentedForklifts = forklifts?.filter((f) => {
-    if (editId && policies?.find((p) => p.id === editId)?.forklift_id === f.id) return true;
-    // Estados no operativos quedan fuera aunque existan reservas.
-    if (f.status !== "available" && f.status !== "rented") return false;
-    return rentedIds ? rentedIds.has(f.id) : f.status === "rented";
-  });
-  const existingForkliftIds = policies?.map((p) => p.forklift_id) ?? [];
-  const availableForSelect = rentedForklifts?.filter(
-    (f) => !existingForkliftIds.includes(f.id) || (editId && policies?.find((p) => p.id === editId)?.forklift_id === f.id)
-  );
+  const options = useMaintenancePolicyOptions(todayYmd, editId, open);
 
   // E4: snapshot de los valores al abrir el modal para poder avisar antes de
   // descartar cambios (el formulario es state plano, sin react-hook-form).
@@ -82,6 +60,10 @@ export function MaintenancePoliciesTab() {
   };
 
   const handleSave = () => {
+    if (isLoading || isError || !options.isReady || !options.data?.some((forklift) => forklift.id === form.forklift_id)) {
+      notifyValidation({ message: "Espera a que se verifiquen los montacargas y selecciona uno disponible para la póliza." });
+      return;
+    }
     if (!form.forklift_id || !form.provider_name) {
       notifyValidation({ message: "Montacargas y proveedor son requeridos" });
       return;
@@ -176,7 +158,12 @@ export function MaintenancePoliciesTab() {
         isPending={create.isPending || update.isPending}
         isDirty={isDirty}
         form={form}
-        availableForklifts={availableForSelect}
+        availableForklifts={isLoading || isError ? undefined : options.data}
+        optionsLoading={options.isLoading || isLoading}
+        optionsError={options.isError || isError}
+        optionsLimitMessage={options.limitMessage}
+        onRetryOptions={() => { void options.refetch(); void refetch(); }}
+        canSave={!isLoading && !isError && options.isReady && !!options.data?.some((forklift) => forklift.id === form.forklift_id)}
         onChange={set}
         onSave={handleSave}
       />
