@@ -13,5 +13,6 @@ if [[ ${#FILES[@]} -eq 0 ]]; then
 fi
 
 cd "$ROOT/supabase/functions"
-exec deno test --parallel --allow-env --allow-read --allow-net=0.0.0.0:8000 \
+deno cache --frozen --node-modules-dir=auto "${FILES[@]}"
+exec deno test --frozen --cached-only --parallel --allow-env --allow-read --allow-net=0.0.0.0:8000 \
   --node-modules-dir=auto "$@" "${FILES[@]}"

@@ -61,9 +61,9 @@ test('all repository literal CommonJS postgres imports use the shared normalizer
 
 test('dependency CI gate covers every scanned source root and runs both postgres contracts', () => {
   const workflow = fs.readFileSync(path.join(root, '.github/workflows/ci.yml'), 'utf8');
-  const filter = workflow.split('            dependencies:\n')[1]?.split('            workflows:\n')[0];
-  assert.ok(filter, 'dependencies path filter must exist');
-  for (const folder of sourceRoots) assert.ok(filter.includes(`- '${folder}/**'`), folder);
+  const quality = workflow.split('  quality:\n')[1]?.split('  tests:\n')[0];
+  assert.ok(quality?.includes('bun run test:dependencies'), 'dependency contracts run for every source change');
+  assert.doesNotMatch(quality.split('    steps:\n')[0], /^    if:/m);
   const command = JSON.parse(fs.readFileSync(path.join(root, 'package.json'))).scripts['test:dependencies'];
   for (const file of ['postgres-compat-offline.test.cjs', 'postgres-import-guard.test.mjs'])
     assert.ok(command.includes(`scripts/tests/${file}`), file);

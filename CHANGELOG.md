@@ -1,3 +1,7 @@
+## [Sin publicar] - 2026-11-09
+
+- Reconstruye GitHub Actions con un CI automático de calidad, unitarias completas sin cobertura y un build/smoke aislado. Consolida las validaciones pesadas en ejecución manual y retira las actions locales y las programaciones anteriores. Rendimiento pendiente de medición remota.
+
 ## [8.48.0] - 2026-11-05
 
 - Conciliación administrativa de entregas históricas con evidencia y fecha de referencia autorizada, sin alterar sus registros originales ni equipos, reservas, facturas o pagos. Se conserva el historial y se excluyen las conciliadas activas de pendientes operativos.
