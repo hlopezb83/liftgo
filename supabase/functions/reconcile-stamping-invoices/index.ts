@@ -16,104 +16,40 @@
 //      post-verificación §4).
 //
 // NC-2: exige `x-cron-secret` o `Authorization: Bearer <CRON_SECRET>`.
-import { recoverCreditNotePdf } from "./recoverCreditNotePdf.ts";
-import type { SupabaseLike } from "../_shared/types.ts";
 import { handleCors } from "../_shared/cors.ts";
 import { jsonResponse } from "../_shared/http.ts";
 import { getAdminClient } from "../_shared/supabaseClients.ts";
 import { authenticateCronRequest } from "../_shared/cronAuth.ts";
 import {
-  binaryToBytes,
-  binaryToText,
   createFacturapiClient,
-  describeFacturapiError,
   getFacturapiConfigForOrganization,
-  retryOnFacturapi5xx,
 } from "../_shared/facturapi/client.ts";
-import { organizationStoragePath } from "../_shared/storagePath.ts";
-import { lookupPacInvoice } from "../_shared/facturapi/invoiceRecovery.ts";
 import {
   groupByOrganization,
   resolveCallerOrganization,
 } from "../_shared/orgContext.ts";
-import { assignRepFolio, repFolioPendingMessage } from "../_shared/repFolio.ts";
-
+import { processInvoices, selectStuckInvoices } from "./invoiceProcessor.ts";
 import {
-  decideLookupOutcome,
-  decideRowAction,
-  decideXmlFailure,
-  MAX_LOOKUP_MISSES,
-  MAX_STAMPING_ATTEMPTS,
-  type PacLookup,
-  type StuckRow as PureStuckRow,
-} from "./decisions.ts";
-
-interface StuckRow extends PureStuckRow {
-  organization_id: string;
-  serie: string | null;
-  folio: string | null;
-  updated_at: string;
-}
+  processPaymentComplements,
+  selectRepFolios,
+  selectStuckPayments,
+} from "./paymentProcessor.ts";
+import {
+  processCreditNotes,
+  selectCreditNotePdfs,
+  selectStuckCreditNotes,
+} from "./creditNoteProcessor.ts";
+import type {
+  ProcessorContext,
+  ReconciliationResult,
+  StuckInvoice,
+} from "./processorTypes.ts";
 
 // MON-02: presupuesto de reloj por corrida y lotes más chicos. Sin ellos una
 // corrida con muchas llamadas al PAC excedía el runtime (504) o moría a media
 // ejecución (502). El cron corre cada 5 min y retoma lo que falte.
 const RUN_BUDGET_MS = 50_000;
 const RUN_ROW_LIMIT = 10;
-
-/**
- * Tramo 8.1: recuperación idempotente del folio REP de un pago ya timbrado.
- * Devuelve el `status` a reportar, o `null` si no había nada que recuperar.
- * La organización proviene SIEMPRE de la fila del pago, nunca de un parámetro
- * de la petición.
- */
-async function recoverRepFolio(
-  // El cliente real de supabase-js es estructuralmente más amplio que
-  // `SupabaseLike`; se estrecha al pasarlo al helper compartido.
-  // deno-lint-ignore no-explicit-any
-  admin: any,
-  client: { invoices: { retrieve?: (id: string) => Promise<unknown> } },
-  payment: Record<string, unknown>,
-  facturapiId: string,
-): Promise<string | null> {
-  const paymentId = payment.id as string;
-  if (payment.rep_number) return null; // ya tiene folio: nada que hacer
-
-  let folio: unknown = payment.rep_folio ?? null;
-  if (!folio) {
-    const retrieve = client.invoices.retrieve;
-    if (typeof retrieve !== "function") return "rep_folio_pending";
-    try {
-      const inv = await retryOnFacturapi5xx(() =>
-        retrieve.call(client.invoices, facturapiId) as Promise<unknown>
-      );
-      folio = (inv as { folio_number?: unknown }).folio_number ?? null;
-    } catch (err) {
-      console.error("[reconcile-stamping] REP folio lookup failed", {
-        payment_id: paymentId,
-        err: describeFacturapiError(err).message,
-      });
-      return "rep_folio_pending";
-    }
-  }
-
-  const res = await assignRepFolio(admin, {
-    paymentId,
-    organizationId: payment.organization_id as string | null,
-    folio: folio as string | number | null,
-  });
-  if (res.ok) return "rep_folio_recovered";
-
-  console.error("[reconcile-stamping] REP folio assignment failed", {
-    payment_id: paymentId,
-    code: res.code,
-    err: res.message,
-  });
-  await admin.from("payments")
-    .update({ rep_error_message: repFolioPendingMessage(res.message) })
-    .eq("id", paymentId);
-  return "rep_folio_pending";
-}
 
 export async function handleRequest(req: Request): Promise<Response> {
   const RUN_STARTED_AT = Date.now();
@@ -149,19 +85,14 @@ export async function handleRequest(req: Request): Promise<Response> {
   const STALE_THRESHOLD_MIN = 10;
   const cutoff = new Date(Date.now() - STALE_THRESHOLD_MIN * 60_000)
     .toISOString();
+  const selection = {
+    admin,
+    cutoff,
+    manualOrganizationId,
+    rowLimit: RUN_ROW_LIMIT,
+  };
 
-  let invoicesQuery = admin
-    .from("invoices")
-    .select(
-      "id, organization_id, cfdi_uuid, facturapi_invoice_id, serie, folio, updated_at, stamping_attempts",
-    )
-    .eq("cfdi_status", "stamping")
-    .lt("updated_at", cutoff)
-    .limit(RUN_ROW_LIMIT);
-  if (manualOrganizationId) {
-    invoicesQuery = invoicesQuery.eq("organization_id", manualOrganizationId);
-  }
-  const { data: rows, error } = await invoicesQuery;
+  const { data: rows, error } = await selectStuckInvoices(selection);
 
   if (error) {
     console.error("[reconcile-stamping] fetch failed", error);
@@ -171,18 +102,9 @@ export async function handleRequest(req: Request): Promise<Response> {
   // N4: consultar TAMBIÉN REP y NC atascados ANTES de decidir si salir —
   // si solo hay pagos o NCs en 'stamping', el cron no debe irse sin
   // procesarlos (deadlock permanente tras un timeout del PAC).
-  let paymentsQuery = admin
-    .from("payments")
-    .select(
-      "id, organization_id, invoice_id, rep_cfdi_uuid, rep_facturapi_id, rep_stamping_started_at, rep_lookup_attempts, rep_stamping_attempts, rep_number, rep_folio",
-    )
-    .eq("rep_cfdi_status", "stamping")
-    .lt("rep_stamping_started_at", cutoff)
-    .limit(RUN_ROW_LIMIT);
-  if (manualOrganizationId) {
-    paymentsQuery = paymentsQuery.eq("organization_id", manualOrganizationId);
-  }
-  const { data: stuckPayments, error: payErr } = await paymentsQuery;
+  const { data: stuckPayments, error: payErr } = await selectStuckPayments(
+    selection,
+  );
 
   if (payErr) {
     console.error("[reconcile-stamping] payments fetch failed", payErr);
@@ -191,43 +113,17 @@ export async function handleRequest(req: Request): Promise<Response> {
   // Tramo 8.1: pagos YA timbrados que quedaron sin folio interno (p. ej. porque
   // la asignación falló después de que el PAC timbró). No se re-timbran: sólo
   // se recupera el folio, siempre dentro de la organización del propio pago.
-  let folioPendingQuery = admin
-    .from("payments")
-    .select(
-      "id, organization_id, invoice_id, rep_facturapi_id, rep_number, rep_folio",
-    )
-    .eq("rep_cfdi_status", "stamped")
-    .is("rep_number", null)
-    .not("rep_facturapi_id", "is", null)
-    .limit(RUN_ROW_LIMIT);
-  if (manualOrganizationId) {
-    folioPendingQuery = folioPendingQuery.eq(
-      "organization_id",
-      manualOrganizationId,
-    );
-  }
-  const { data: folioPendingPayments, error: folioErr } =
-    await folioPendingQuery;
+  const { data: folioPendingPayments, error: folioErr } = await selectRepFolios(
+    selection,
+  );
 
   if (folioErr) {
     console.error("[reconcile-stamping] rep folio fetch failed", folioErr);
   }
 
-  let creditNotesQuery = admin
-    .from("credit_notes")
-    .select(
-      "id, organization_id, cfdi_uuid, facturapi_invoice_id, updated_at, lookup_attempts, stamping_attempts",
-    )
-    .eq("cfdi_status", "stamping")
-    .lt("updated_at", cutoff)
-    .limit(RUN_ROW_LIMIT);
-  if (manualOrganizationId) {
-    creditNotesQuery = creditNotesQuery.eq(
-      "organization_id",
-      manualOrganizationId,
-    );
-  }
-  const { data: stuckNcs, error: ncErr } = await creditNotesQuery;
+  const { data: stuckNcs, error: ncErr } = await selectStuckCreditNotes(
+    selection,
+  );
 
   if (ncErr) {
     console.error("[reconcile-stamping] credit_notes fetch failed", ncErr);
@@ -235,24 +131,8 @@ export async function handleRequest(req: Request): Promise<Response> {
 
   // File-only recovery is independent of fiscal reconciliation. NCs with XML
   // pending, cancellations or missing provider identity stay outside this lane.
-  let pdfPendingQuery = admin.from("credit_notes").select(
-    "id, organization_id, status, cfdi_status, cancellation_status, cfdi_uuid, facturapi_invoice_id, cfdi_xml_url, cfdi_xml_pending, cfdi_pdf_url, updated_at",
-  ).eq("cfdi_status", "stamped").eq("status", "stamped")
-    .eq("cancellation_status", "none").eq("cfdi_xml_pending", false).is(
-      "cfdi_pdf_url",
-      null,
-    )
-    .not("cfdi_xml_url", "is", null).not("cfdi_uuid", "is", null)
-    .not("facturapi_invoice_id", "is", null).lt("updated_at", cutoff)
-    .order("updated_at", { ascending: true }).order("id", { ascending: true })
-    .limit(RUN_ROW_LIMIT);
-  if (manualOrganizationId) {
-    pdfPendingQuery = pdfPendingQuery.eq(
-      "organization_id",
-      manualOrganizationId,
-    );
-  }
-  const { data: pdfPendingNcs, error: pdfPendingErr } = await pdfPendingQuery;
+  const { data: pdfPendingNcs, error: pdfPendingErr } =
+    await selectCreditNotePdfs(selection);
   if (pdfPendingErr) {
     console.error(
       "[reconcile-stamping] NC PDF selection failed",
@@ -263,7 +143,7 @@ export async function handleRequest(req: Request): Promise<Response> {
     Record<string, unknown>
   >;
 
-  const stuckAll = (rows ?? []) as StuckRow[];
+  const stuckAll = (rows ?? []) as StuckInvoice[];
   const paymentsAll = (stuckPayments ?? []) as Array<Record<string, unknown>>;
   const ncsAll = (stuckNcs ?? []) as Array<Record<string, unknown>>;
   const folioPendingAll = (folioPendingPayments ?? []) as Array<
@@ -296,34 +176,7 @@ export async function handleRequest(req: Request): Promise<Response> {
     ...pdfPendingGrouped.groups.keys(),
   ]);
 
-  // N-29: claim optimista por fila. Dos ejecuciones concurrentes del cron
-  // (o un reintento manual encimado) podían procesar el mismo documento y
-  // duplicar llamadas al PAC. El UPDATE condicionado al valor leído del
-  // timestamp deja pasar sólo a la primera; la segunda salta la fila.
-  const claimRow = async (
-    table: string,
-    id: string,
-    tsColumn: string,
-    tsValue: unknown,
-  ): Promise<boolean> => {
-    if (typeof tsValue !== "string") return true;
-    const { data } = await admin.from(table)
-      .update({ [tsColumn]: new Date().toISOString() })
-      .eq("id", id)
-      .eq(tsColumn, tsValue)
-      .select("id")
-      .maybeSingle();
-    return Boolean(data);
-  };
-
-  const results: Array<
-    {
-      invoice_id: string;
-      status: string;
-      error?: string;
-      organization_id?: string;
-    }
-  > = [];
+  const results: ReconciliationResult[] = [];
 
   if (pdfPendingErr) {
     results.push({
@@ -437,823 +290,27 @@ export async function handleRequest(req: Request): Promise<Response> {
     const ncs = ncsGrouped.groups.get(organizationId) ?? [];
     const folioPending = folioPendingGrouped.groups.get(organizationId) ?? [];
 
-    for (const row of stuck) {
-      if (outOfBudget()) {
-        truncated = true;
-        break;
-      }
-      if (!(await claimRow("invoices", row.id, "updated_at", row.updated_at))) {
-        results.push({ invoice_id: row.id, status: "claimed_by_other_run" });
-        continue;
-      }
-      if (!row.facturapi_invoice_id || !row.cfdi_uuid) {
-        // R12-B2 / TESTS-ARQ2 DIFF 2: la decisión (recover vs retry vs revert)
-        // vive en `decisions.ts`; aquí solo materializamos la consulta al PAC y
-        // aplicamos la acción resuelta.
-        let pac: PacLookup;
-        try {
-          pac = await lookupPacInvoice(
-            client,
-            row.id,
-            row.facturapi_invoice_id,
-          );
-        } catch (err) {
-          console.error("[reconcile-stamping] lookup by external_id failed", {
-            invoice_id: row.id,
-            err: describeFacturapiError(err).message,
-          });
-          pac = { kind: "lookup_failed" };
-        }
-
-        const action = decideRowAction(row, pac);
-        if (action.kind === "recover") {
-          // Persistir los ids recuperados y dejar que el siguiente ciclo
-          // baje el XML/PDF y ejecute reconcile_stamping_invoice.
-          await admin.from("invoices")
-            .update({
-              facturapi_invoice_id: action.facturapi_id,
-              cfdi_uuid: action.uuid,
-            })
-            .eq("id", row.id);
-          results.push({ invoice_id: row.id, status: "recovered_from_pac" });
-          continue;
-        }
-        if (action.kind === "pending") {
-          await admin.from("invoices").update({
-            facturapi_invoice_id: action.facturapi_id,
-            cfdi_error_message:
-              "Facturapi aceptó el CFDI; timbrado pendiente de resolución.",
-          }).eq("id", row.id);
-          results.push({ invoice_id: row.id, status: "pac_pending" });
-          continue;
-        }
-        if (action.kind === "manual_review") {
-          await admin.from("invoices").update({
-            facturapi_invoice_id: action.facturapi_id,
-            cfdi_status: "error",
-            cfdi_error_message:
-              "Facturapi confirmó fallo del timbrado. Revisar el comprobante antes de volver a emitir.",
-          }).eq("id", row.id);
-          results.push({
-            invoice_id: row.id,
-            status: "pac_failed_manual_review",
-          });
-          continue;
-        }
-        if (action.kind === "retry_lookup") {
-          // N9: solo un miss REAL consume el presupuesto de intentos; un
-          // lookup_failed (PAC caído / SDK sin list) difiere SIN bump — si no,
-          // 10 ciclos de PAC caído agotaban el presupuesto y el primer miss
-          // real revertía a 'error' de inmediato.
-          if (action.consume_attempt) {
-            await admin.from("invoices")
-              .update({ stamping_attempts: (row.stamping_attempts ?? 0) + 1 })
-              .eq("id", row.id);
-          }
-          results.push({ invoice_id: row.id, status: "pac_lookup_deferred" });
-          continue;
-        }
-        // revert_error: PAC confirmó reiteradamente que no existe (sin uuid).
-        await admin.from("invoices")
-          .update({
-            cfdi_status: "error",
-            stamping_attempts: (row.stamping_attempts ?? 0) + 1,
-            cfdi_error_message:
-              "Timbrado interrumpido sin datos de Facturapi. Revisar en el portal de Facturapi antes de retimbrar.",
-          })
-          .eq("id", row.id);
-        results.push({
-          invoice_id: row.id,
-          status: "reverted_to_error",
-          error: "no facturapi_invoice_id",
-        });
-        continue;
-      }
-
-      try {
-        let cfdiXml: string | null = null;
-        let xmlPath: string | null = null;
-        let pdfPath: string | null = null;
-        let xmlError: string | null = null;
-        let pdfError: string | null = null;
-
-        try {
-          cfdiXml = await binaryToText(
-            await retryOnFacturapi5xx(() =>
-              client.invoices.downloadXml(row.facturapi_invoice_id!)
-            ),
-          );
-          const path = organizationStoragePath(
-            row.organization_id,
-            `${row.id}/${row.cfdi_uuid}.xml`,
-          );
-          const { error: upErr } = await admin.storage.from("cfdi-files")
-            .upload(
-              path,
-              new Blob([cfdiXml], { type: "application/xml" }),
-              { contentType: "application/xml", upsert: true },
-            );
-          if (upErr) {
-            xmlError = (upErr as { message?: string }).message ?? String(upErr);
-          } else {
-            xmlPath = path;
-          }
-        } catch (err) {
-          xmlError = describeFacturapiError(err).message;
-          console.error("[reconcile-stamping] xml download failed", {
-            invoice_id: row.id,
-            err: xmlError,
-          });
-        }
-
-        try {
-          const pdfBytes = await binaryToBytes(
-            await retryOnFacturapi5xx(() =>
-              client.invoices.downloadPdf(row.facturapi_invoice_id!)
-            ),
-          );
-          const path = organizationStoragePath(
-            row.organization_id,
-            `${row.id}/${row.cfdi_uuid}.pdf`,
-          );
-          const { error: upErr } = await admin.storage.from("cfdi-files")
-            .upload(
-              path,
-              pdfBytes,
-              { contentType: "application/pdf", upsert: true },
-            );
-          if (upErr) {
-            pdfError = (upErr as { message?: string }).message ?? String(upErr);
-          } else {
-            pdfPath = path;
-          }
-        } catch (err) {
-          pdfError = describeFacturapiError(err).message;
-          console.error("[reconcile-stamping] pdf download failed", {
-            invoice_id: row.id,
-            err: pdfError,
-          });
-        }
-
-        // Verificación §4: NUNCA marcar `stamped` sin XML. Sin XML la factura
-        // queda fiscalmente incompleta (obligatorio para SAT). Bump del
-        // contador; si superamos MAX_STAMPING_ATTEMPTS revertimos a 'error'
-        // para forzar revisión manual.
-        if (!cfdiXml || !xmlPath) {
-          const attempts = (row.stamping_attempts ?? 0) + 1;
-          // FIX-R3-02: política de reintentos en una sola fuente (decisions.ts).
-          const exhausted =
-            decideXmlFailure(row.stamping_attempts) === "mark_error";
-          await admin.from("invoices")
-            .update({
-              ...(exhausted
-                ? {
-                  // H6: estado RECUPERABLE. El CFDI YA existe ante el SAT (hay
-                  // facturapi_invoice_id + cfdi_uuid persistidos). Marcar
-                  // 'error' con uuid dejaba el CFDI incancelable e
-                  // inre-timbrable. 'stamped' + cfdi_xml_pending permite
-                  // cancelar (cancel-cfdi exige 'stamped') y documenta que el
-                  // XML debe subirse manualmente desde el portal del PAC.
-                  cfdi_status: "stamped",
-                  cfdi_xml_pending: true,
-                  cfdi_error_message:
-                    `Reconcile: CFDI timbrado pero la descarga de XML falló tras ${attempts} intentos (${
-                      xmlError ?? "sin detalle"
-                    }). Sube el XML/PDF manualmente desde el portal de Facturapi y limpia cfdi_xml_pending.`,
-                }
-                : {
-                  cfdi_error_message:
-                    `Reconcile: descarga de XML falló (intento ${attempts}/${MAX_STAMPING_ATTEMPTS}): ${
-                      xmlError ?? "sin detalle"
-                    }. Se reintentará automáticamente.`,
-                }),
-              stamping_attempts: attempts,
-            })
-            .eq("id", row.id);
-          results.push({
-            invoice_id: row.id,
-            status: exhausted ? "stamped_xml_pending_manual" : "xml_pending",
-            error: xmlError ?? undefined,
-          });
-          continue;
-        }
-
-        // 4. RPC idempotente — solo con el XML ya descargado.
-        const { error: rpcErr } = await admin.rpc(
-          "reconcile_stamping_invoice",
-          {
-            p_invoice_id: row.id,
-            p_facturapi_invoice_id: row.facturapi_invoice_id,
-            p_cfdi_uuid: row.cfdi_uuid,
-            p_xml_storage_path: xmlPath,
-            p_pdf_storage_path: pdfPath,
-            p_cfdi_xml: cfdiXml,
-            p_serie: row.serie,
-            p_folio: row.folio,
-            p_facturapi_env: mode === "live" ? "live" : "test",
-          },
-        );
-
-        if (rpcErr) {
-          results.push({
-            invoice_id: row.id,
-            status: "rpc_error",
-            error: (rpcErr as { message?: string }).message ?? String(rpcErr),
-          });
-        } else {
-          results.push({
-            invoice_id: row.id,
-            status: "reconciled",
-            error: pdfError ?? undefined,
-          });
-        }
-      } catch (err) {
-        const msg = err instanceof Error ? err.message : String(err);
-        console.error("[reconcile-stamping] unexpected", {
-          invoice_id: row.id,
-          err: msg,
-        });
-        results.push({ invoice_id: row.id, status: "exception", error: msg });
-      }
+    const context: ProcessorContext = {
+      admin,
+      client,
+      organizationId,
+      mode,
+      outOfBudget,
+      results,
+    };
+    // Always invoke each processor in the original order. Do not short-circuit
+    // on `truncated`: each lane retains its original per-row budget checks.
+    if (await processInvoices(context, stuck)) truncated = true;
+    if (await processPaymentComplements(context, payments, folioPending)) {
+      truncated = true;
     }
-
-    // ── H4: reconciliación de COMPLEMENTOS DE PAGO (REP) ─────────────────────
-    // Mismo patrón que invoices: payments atascados en rep_cfdi_status='stamping'
-    // tras un timeout del PAC. Sin esto, el claim stale re-timbraba un duplicado.
-    // N4: la consulta se movió ARRIBA del early return (bloque inicial).
-    for (const p of payments) {
-      if (outOfBudget()) {
-        truncated = true;
-        break;
-      }
-      const paymentId = p.id as string;
-      // Keep a claim token for every subsequent state write. A stale worker
-      // must not overwrite a payment that another worker has since recovered.
-      const claimedAt = new Date().toISOString();
-      const { data: claimedPayment, error: claimError } = await admin
-        .from("payments")
-        .update({ rep_stamping_started_at: claimedAt })
-        .eq("id", paymentId)
-        .eq("organization_id", p.organization_id)
-        .eq("rep_cfdi_status", "stamping")
-        .eq("rep_stamping_started_at", p.rep_stamping_started_at)
-        .select("id")
-        .maybeSingle();
-      if (claimError || !claimedPayment) {
-        results.push({
-          invoice_id: paymentId,
-          status: claimError ? "rep_persistence_error" : "claimed_by_other_run",
-          ...(claimError ? { error: claimError.message } : {}),
-        });
-        continue;
-      }
-
-      const persistRepState = async (
-        patch: Record<string, unknown>,
-        operation: string,
-      ): Promise<boolean> => {
-        try {
-          const { data, error } = await admin.from("payments")
-            .update(patch)
-            .eq("id", paymentId)
-            .eq("organization_id", p.organization_id)
-            .eq("rep_cfdi_status", "stamping")
-            .eq("rep_stamping_started_at", claimedAt)
-            .select("id")
-            .maybeSingle();
-          if (!error && data) return true;
-          results.push({
-            invoice_id: paymentId,
-            status: "rep_persistence_error",
-            error: error?.message ?? `REP ${operation} update affected no rows`,
-          });
-        } catch (err) {
-          results.push({
-            invoice_id: paymentId,
-            status: "rep_persistence_error",
-            error: err instanceof Error ? err.message : String(err),
-          });
-        }
-        // Do not release the claim or report a transition unless persisted.
-        return false;
-      };
-
-      let facturapiId = p.rep_facturapi_id as string | null;
-      let repUuid = p.rep_cfdi_uuid as string | null;
-
-      // R12-B2 (payments): sin ids persistidos, lookup al PAC por external_id.
-      if (!facturapiId || !repUuid) {
-        let pac: PacLookup;
-        try {
-          pac = await lookupPacInvoice(client, paymentId, facturapiId);
-        } catch (err) {
-          pac = { kind: "lookup_failed" };
-          console.error("[reconcile-stamping] REP lookup failed", {
-            payment_id: paymentId,
-            err: describeFacturapiError(err).message,
-          });
-        }
-        // N5/N9: la decisión (recover / defer / revert) vive en decisions.ts.
-        const lookupAttempts = p.rep_lookup_attempts as number | null;
-        const outcome = decideLookupOutcome(pac, lookupAttempts);
-        if (outcome.kind === "recover") {
-          facturapiId = outcome.facturapi_id;
-          repUuid = outcome.uuid;
-          if (
-            !(await persistRepState({
-              rep_facturapi_id: facturapiId,
-              rep_cfdi_uuid: repUuid,
-              rep_lookup_attempts: 0,
-            }, "identifier"))
-          ) continue;
-        } else if (outcome.kind === "pending") {
-          if (
-            !(await persistRepState({
-              rep_facturapi_id: outcome.facturapi_id,
-              rep_error_message:
-                "Facturapi aceptó el REP; timbrado pendiente de resolución.",
-            }, "pending state"))
-          ) continue;
-          results.push({ invoice_id: paymentId, status: "rep_pac_pending" });
-          continue;
-        } else if (outcome.kind === "manual_review") {
-          if (
-            !(await persistRepState({
-              rep_facturapi_id: outcome.facturapi_id,
-              rep_cfdi_status: "error",
-              rep_error_message:
-                "Facturapi confirmó fallo del REP. Revisar el comprobante antes de volver a emitir.",
-            }, "manual review state"))
-          ) continue;
-          results.push({
-            invoice_id: paymentId,
-            status: "rep_pac_failed_manual_review",
-          });
-          continue;
-        } else if (outcome.kind === "defer") {
-          // N9: solo un miss REAL incrementa el contador; lookup_failed no.
-          if (outcome.consume_attempt) {
-            if (
-              !(await persistRepState({
-                rep_lookup_attempts: (lookupAttempts ?? 0) + 1,
-              }, "lookup attempt"))
-            ) continue;
-          }
-          // PAC no respondió o aún no indexa: reintentar el próximo ciclo.
-          results.push({
-            invoice_id: paymentId,
-            status: "rep_lookup_deferred",
-          });
-          continue;
-        } else {
-          // N5: revert SOLO tras MAX_LOOKUP_MISSES misses consecutivos con el
-          // PAC respondiendo (antes: al primer miss → re-timbrado → CFDI
-          // tipo P duplicado ante el SAT).
-          if (
-            !(await persistRepState({
-              rep_cfdi_status: "error",
-              rep_stamping_started_at: null,
-              rep_lookup_attempts: (lookupAttempts ?? 0) + 1,
-              rep_error_message:
-                `Timbrado de REP interrumpido; Facturapi confirmó ${MAX_LOOKUP_MISSES} veces que el CFDI no existe. Puedes reintentar el timbrado.`,
-            }, "retry state"))
-          ) continue;
-          results.push({
-            invoice_id: paymentId,
-            status: "rep_reverted_to_error",
-          });
-          continue;
-        }
-      }
-
-      // Con ids: descargar XML/PDF y marcar stamped (idempotente).
-      try {
-        let xmlPath: string | null = null;
-        let pdfPath: string | null = null;
-        try {
-          const xmlTxt = await binaryToText(
-            await retryOnFacturapi5xx(() =>
-              client.invoices.downloadXml(facturapiId!)
-            ),
-          );
-          const path = organizationStoragePath(
-            p.organization_id,
-            `${p.invoice_id}/rep-${repUuid}.xml`,
-          );
-          const { error: upErr } = await admin.storage.from("cfdi-files")
-            .upload(
-              path,
-              new Blob([xmlTxt], { type: "application/xml" }),
-              { contentType: "application/xml", upsert: true },
-            );
-          if (!upErr) xmlPath = path;
-        } catch (err) {
-          console.error("[reconcile-stamping] REP xml failed", {
-            payment_id: paymentId,
-            err: describeFacturapiError(err).message,
-          });
-        }
-        try {
-          const pdfBytes = await binaryToBytes(
-            await retryOnFacturapi5xx(() =>
-              client.invoices.downloadPdf(facturapiId!)
-            ),
-          );
-          const path = organizationStoragePath(
-            p.organization_id,
-            `${p.invoice_id}/rep-${repUuid}.pdf`,
-          );
-          const { error: upErr } = await admin.storage.from("cfdi-files")
-            .upload(
-              path,
-              pdfBytes,
-              { contentType: "application/pdf", upsert: true },
-            );
-          if (!upErr) pdfPath = path;
-        } catch (err) {
-          console.error("[reconcile-stamping] REP pdf failed", {
-            payment_id: paymentId,
-            err: describeFacturapiError(err).message,
-          });
-        }
-        // Nunca marcar stamped sin XML (misma regla que invoices): reintentar.
-        if (!xmlPath) {
-          // B-15: presupuesto de reintentos como en invoices (H6) — antes un REP
-          // cuyo XML nunca se podía descargar reintentaba POR SIEMPRE. Tras
-          // MAX_STAMPING_ATTEMPTS se marca stamped + rep_xml_pending (el CFDI ya
-          // existe ante el SAT; el XML se sube manualmente desde el portal del
-          // PAC) para que salga de la cola.
-          const attempts = ((p.rep_stamping_attempts as number | null) ?? 0) +
-            1;
-          const exhausted = decideXmlFailure(
-            p.rep_stamping_attempts as number | null,
-          ) === "mark_error";
-          if (
-            !(await persistRepState({
-              ...(exhausted
-                ? {
-                  rep_cfdi_status: "stamped",
-                  rep_stamping_started_at: null,
-                  rep_xml_pending: true,
-                  rep_error_message:
-                    `Reconcile: REP timbrado pero la descarga de XML falló tras ${attempts} intentos. Sube el XML/PDF manualmente desde el portal de Facturapi y limpia rep_xml_pending.`,
-                }
-                : {
-                  rep_error_message:
-                    `Reconcile: descarga de XML del REP falló (intento ${attempts}/${MAX_STAMPING_ATTEMPTS}). Se reintentará automáticamente.`,
-                }),
-              rep_stamping_attempts: attempts,
-            }, "XML state"))
-          ) continue;
-          results.push({
-            invoice_id: paymentId,
-            status: exhausted
-              ? "rep_stamped_xml_pending_manual"
-              : "rep_xml_pending",
-          });
-          continue;
-        }
-        if (
-          !(await persistRepState({
-            rep_cfdi_status: "stamped",
-            rep_stamping_started_at: null,
-            rep_xml_url: xmlPath,
-            rep_pdf_url: pdfPath,
-            rep_error_message: null,
-            rep_lookup_attempts: 0,
-            rep_stamping_attempts: 0,
-            rep_xml_pending: false,
-          }, "finalization"))
-        ) continue;
-        // Tramo 8.1: recuperar pagos ya timbrados que quedaron SIN folio
-        // interno. Siempre dentro de la organización del propio pago y de forma
-        // idempotente (la RPC devuelve el folio existente si ya coincide).
-        const folioStatus = await recoverRepFolio(
-          admin,
-          client,
-          p,
-          facturapiId!,
-        );
-        results.push({
-          invoice_id: paymentId,
-          status: folioStatus ?? "rep_reconciled",
-        });
-      } catch (err) {
-        const msg = err instanceof Error ? err.message : String(err);
-        console.error("[reconcile-stamping] REP unexpected", {
-          payment_id: paymentId,
-          err: msg,
-        });
-        results.push({
-          invoice_id: paymentId,
-          status: "rep_exception",
-          error: msg,
-        });
-      }
-    }
-
-    // ── Tramo 8.1: pagos ya timbrados SIN folio interno ─────────────────────
-    // Recuperación idempotente: nunca se vuelve a timbrar (el CFDI ya existe),
-    // sólo se asigna el folio dentro de la organización del propio pago.
-    for (const p of folioPending) {
-      if (outOfBudget()) {
-        truncated = true;
-        break;
-      }
-      const paymentId = (p as { id: string }).id;
-      const facturapiId = (p as { rep_facturapi_id?: unknown })
-        .rep_facturapi_id;
-      if (typeof facturapiId !== "string" || !facturapiId) {
-        results.push({
-          invoice_id: paymentId,
-          status: "rep_folio_pending",
-          organization_id: organizationId,
-        });
-        continue;
-      }
-      try {
-        const status = await recoverRepFolio(admin, client, p, facturapiId);
-        results.push({
-          invoice_id: paymentId,
-          status: status ?? "rep_folio_already_assigned",
-          organization_id: organizationId,
-        });
-      } catch (err) {
-        const msg = err instanceof Error ? err.message : String(err);
-        console.error("[reconcile-stamping] REP folio unexpected", {
-          payment_id: paymentId,
-          err: msg,
-        });
-        results.push({
-          invoice_id: paymentId,
-          status: "rep_folio_exception",
-          error: msg,
-          organization_id: organizationId,
-        });
-      }
-    }
-
-    // ── H5: reconciliación de NOTAS DE CRÉDITO ───────────────────────────────
-    // El claim de stamp-credit-note solo admite pending|error y nada reconciliaba
-    // credit_notes: una NC en 'stamping' tras timeout quedaba ingestionable.
-    // N4: la consulta se movió ARRIBA del early return (bloque inicial).
-    for (const nc of ncs) {
-      if (outOfBudget()) {
-        truncated = true;
-        break;
-      }
-      const ncId = nc.id as string;
-      // updated_at is changed by the database trigger on every write. Keep
-      // the exact returned value (including microseconds) as our next CAS token.
-      let ncClaimTimestamp = nc.updated_at;
-      const persistNcState = async (
-        patch: Record<string, unknown>,
-        operation: string,
-        claiming = false,
-      ): Promise<boolean> => {
-        try {
-          if (typeof ncClaimTimestamp !== "string") {
-            throw new Error("NC claim timestamp is missing");
-          }
-          const { data, error } = await admin.from("credit_notes")
-            .update(patch)
-            .eq("id", ncId)
-            .eq("organization_id", organizationId)
-            .eq("cfdi_status", "stamping")
-            .eq("updated_at", ncClaimTimestamp)
-            .select("id, updated_at")
-            .maybeSingle();
-          if (!error && data && typeof data.updated_at === "string") {
-            ncClaimTimestamp = data.updated_at;
-            return true;
-          }
-          results.push({
-            invoice_id: ncId,
-            status: claiming && !error && !data
-              ? "claimed_by_other_run"
-              : "nc_persistence_error",
-            ...(claiming && !error && !data ? {} : {
-              error: error?.message ??
-                `NC ${operation} update was not confirmed`,
-            }),
-          });
-        } catch (err) {
-          results.push({
-            invoice_id: ncId,
-            status: "nc_persistence_error",
-            error: err instanceof Error ? err.message : String(err),
-          });
-        }
-        // Never announce a transition or continue recovery on an uncertain write.
-        return false;
-      };
-      if (
-        !(await persistNcState(
-          { updated_at: new Date().toISOString() },
-          "claim",
-          true,
-        ))
-      ) continue;
-      let facturapiId = nc.facturapi_invoice_id as string | null;
-      let ncUuid = nc.cfdi_uuid as string | null;
-
-      if (!facturapiId || !ncUuid) {
-        let pac: PacLookup;
-        try {
-          pac = await lookupPacInvoice(client, ncId, facturapiId);
-        } catch (err) {
-          pac = { kind: "lookup_failed" };
-          console.error("[reconcile-stamping] NC lookup failed", {
-            credit_note_id: ncId,
-            err: describeFacturapiError(err).message,
-          });
-        }
-        // N5/N9: la decisión (recover / defer / revert) vive en decisions.ts.
-        const lookupAttempts = nc.lookup_attempts as number | null;
-        const outcome = decideLookupOutcome(pac, lookupAttempts);
-        if (outcome.kind === "recover") {
-          facturapiId = outcome.facturapi_id;
-          ncUuid = outcome.uuid;
-          if (
-            !(await persistNcState({
-              facturapi_invoice_id: facturapiId,
-              cfdi_uuid: ncUuid,
-              lookup_attempts: 0, // racha de misses consecutivos: reset
-            }, "recover identifiers"))
-          ) continue;
-        } else if (outcome.kind === "pending") {
-          if (
-            !(await persistNcState({
-              facturapi_invoice_id: outcome.facturapi_id,
-              cfdi_error_message:
-                "Facturapi aceptó la NC; timbrado pendiente de resolución.",
-            }, "PAC pending"))
-          ) continue;
-          results.push({ invoice_id: ncId, status: "nc_pac_pending" });
-          continue;
-        } else if (outcome.kind === "manual_review") {
-          if (
-            !(await persistNcState({
-              facturapi_invoice_id: outcome.facturapi_id,
-              cfdi_status: "error",
-              cfdi_error_message:
-                "Facturapi confirmó fallo de la NC. Revisar el comprobante antes de volver a emitir.",
-            }, "manual review"))
-          ) continue;
-          results.push({
-            invoice_id: ncId,
-            status: "nc_pac_failed_manual_review",
-          });
-          continue;
-        } else if (outcome.kind === "defer") {
-          // N9: solo un miss REAL incrementa el contador; lookup_failed no.
-          if (outcome.consume_attempt) {
-            if (
-              !(await persistNcState({
-                lookup_attempts: (lookupAttempts ?? 0) + 1,
-              }, "lookup miss"))
-            ) continue;
-          }
-          results.push({ invoice_id: ncId, status: "nc_lookup_deferred" });
-          continue;
-        } else {
-          // N5: revert SOLO tras MAX_LOOKUP_MISSES misses consecutivos con el
-          // PAC respondiendo (el claim vuelve a admitir pending|error).
-          if (
-            !(await persistNcState({
-              cfdi_status: "error",
-              lookup_attempts: (lookupAttempts ?? 0) + 1,
-              cfdi_error_message:
-                `Timbrado de NC interrumpido; Facturapi confirmó ${MAX_LOOKUP_MISSES} veces que el CFDI no existe. Puedes reintentar el timbrado.`,
-            }, "lookup exhausted"))
-          ) continue;
-          results.push({ invoice_id: ncId, status: "nc_reverted_to_error" });
-          continue;
-        }
-      }
-
-      try {
-        let xmlPath: string | null = null;
-        let pdfPath: string | null = null;
-        try {
-          const xml = await binaryToText(
-            await retryOnFacturapi5xx(() =>
-              client.invoices.downloadXml(facturapiId!)
-            ),
-          );
-          const path = organizationStoragePath(
-            nc.organization_id,
-            `credit-notes/${ncId}/${ncUuid}.xml`,
-          );
-          const { error: upErr } = await admin.storage.from("cfdi-files")
-            .upload(
-              path,
-              new Blob([xml], { type: "application/xml" }),
-              { contentType: "application/xml", upsert: true },
-            );
-          if (!upErr) xmlPath = path;
-        } catch (err) {
-          console.error("[reconcile-stamping] NC xml failed", {
-            credit_note_id: ncId,
-            err: describeFacturapiError(err).message,
-          });
-        }
-        try {
-          const bytes = await binaryToBytes(
-            await retryOnFacturapi5xx(() =>
-              client.invoices.downloadPdf(facturapiId!)
-            ),
-          );
-          const path = organizationStoragePath(
-            nc.organization_id,
-            `credit-notes/${ncId}/${ncUuid}.pdf`,
-          );
-          const { error: upErr } = await admin.storage.from("cfdi-files")
-            .upload(
-              path,
-              bytes,
-              { contentType: "application/pdf", upsert: true },
-            );
-          if (!upErr) pdfPath = path;
-        } catch (err) {
-          console.error("[reconcile-stamping] NC pdf failed", {
-            credit_note_id: ncId,
-            err: describeFacturapiError(err).message,
-          });
-        }
-        if (!xmlPath) {
-          // B-15: presupuesto de reintentos como en invoices (H6) — antes una NC
-          // cuyo XML nunca se podía descargar reintentaba POR SIEMPRE. Tras
-          // MAX_STAMPING_ATTEMPTS se marca stamped + cfdi_xml_pending (el CFDI ya
-          // existe ante el SAT y cancel-credit-note exige 'stamped'; el XML se
-          // sube manualmente desde el portal del PAC) para que salga de la cola.
-          const attempts = ((nc.stamping_attempts as number | null) ?? 0) + 1;
-          const exhausted = decideXmlFailure(
-            nc.stamping_attempts as number | null,
-          ) === "mark_error";
-          if (
-            !(await persistNcState({
-              ...(exhausted
-                ? {
-                  cfdi_status: "stamped",
-                  status: "stamped",
-                  cfdi_xml_pending: true,
-                  cfdi_error_message:
-                    `Reconcile: NC timbrada pero la descarga de XML falló tras ${attempts} intentos. Sube el XML/PDF manualmente desde el portal de Facturapi y limpia cfdi_xml_pending.`,
-                }
-                : {
-                  cfdi_error_message:
-                    `Reconcile: descarga de XML de la NC falló (intento ${attempts}/${MAX_STAMPING_ATTEMPTS}). Se reintentará automáticamente.`,
-                }),
-              stamping_attempts: attempts,
-            }, "XML recovery"))
-          ) continue;
-          results.push({
-            invoice_id: ncId,
-            status: exhausted
-              ? "nc_stamped_xml_pending_manual"
-              : "nc_xml_pending",
-          });
-          continue;
-        }
-        if (
-          !(await persistNcState({
-            cfdi_status: "stamped",
-            status: "stamped",
-            cfdi_xml_url: xmlPath,
-            cfdi_pdf_url: pdfPath,
-            cfdi_error_message: null,
-            lookup_attempts: 0,
-            stamping_attempts: 0,
-            cfdi_xml_pending: false,
-          }, "finalize"))
-        ) continue;
-        results.push({ invoice_id: ncId, status: "nc_reconciled" });
-      } catch (err) {
-        const msg = err instanceof Error ? err.message : String(err);
-        console.error("[reconcile-stamping] NC unexpected", {
-          credit_note_id: ncId,
-          err: msg,
-        });
-        results.push({ invoice_id: ncId, status: "nc_exception", error: msg });
-      }
-    }
-    for (const nc of pdfPendingGrouped.groups.get(organizationId) ?? []) {
-      if (outOfBudget()) {
-        truncated = true;
-        break;
-      }
-      results.push(
-        await recoverCreditNotePdf(
-          admin as unknown as SupabaseLike,
-          client,
-          nc,
-          organizationId,
-          mode,
-          outOfBudget,
-        ),
-      );
-    }
+    if (
+      await processCreditNotes(
+        context,
+        ncs,
+        pdfPendingGrouped.groups.get(organizationId) ?? [],
+      )
+    ) truncated = true;
   } // fin del bloque por organización
 
   return json(
