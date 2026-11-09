@@ -99,7 +99,7 @@ test("acceso de empleados: carga, alterna contraseña y cambia de modo", async (
   baseURL,
 }, testInfo) => {
   const origin = new URL(baseURL!).origin;
-  const { blocked, blockedHostingScripts, problems, assets } = await guardReadOnlyApp(context, origin);
+  const { blocked, blockedHostingScripts, problems, assets, closeAndDrain } = await guardReadOnlyApp(context, origin);
   const published = testInfo.config.metadata.publishedSmoke === true;
   const { pageErrors, consoleErrors } = collectErrors(page, blocked, blockedHostingScripts, origin);
 
@@ -137,6 +137,7 @@ test("acceso de empleados: carga, alterna contraseña y cambia de modo", async (
   await page.getByRole("button", { name: "Mostrar contraseña" }).click();
   await expect(reloaded).toHaveAttribute("type", "text");
 
+  await closeAndDrain();
   expect(problems, "solo lecturas públicas y assets válidos").toEqual([]);
   expect([...assets].some((asset) => /\.m?js$/.test(asset)), "JavaScript del build cargado").toBe(true);
   expect([...assets].some((asset) => asset.endsWith(".css")), "CSS del build cargado").toBe(true);
@@ -150,7 +151,7 @@ test("portal de clientes: carga y navega entre modos del formulario", async ({
   baseURL,
 }, testInfo) => {
   const origin = new URL(baseURL!).origin;
-  const { blocked, blockedHostingScripts, problems, assets } = await guardReadOnlyApp(context, origin);
+  const { blocked, blockedHostingScripts, problems, assets, closeAndDrain } = await guardReadOnlyApp(context, origin);
   const published = testInfo.config.metadata.publishedSmoke === true;
   const { pageErrors, consoleErrors } = collectErrors(page, blocked, blockedHostingScripts, origin);
 
@@ -186,6 +187,7 @@ test("portal de clientes: carga y navega entre modos del formulario", async ({
   await expect(page.getByText("Portal de clientes", { exact: true })).toBeVisible();
   await expect(page.locator("#auth-password")).toBeVisible();
 
+  await closeAndDrain();
   expect(problems, "solo lecturas públicas y assets válidos").toEqual([]);
   expect([...assets].some((asset) => /\.m?js$/.test(asset)), "JavaScript del build cargado").toBe(true);
   expect([...assets].some((asset) => asset.endsWith(".css")), "CSS del build cargado").toBe(true);
