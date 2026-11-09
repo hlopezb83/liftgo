@@ -1,4 +1,5 @@
 import { act, renderHook, waitFor } from "@testing-library/react";
+import type { BusinessBlock } from "@/lib/rules/businessBlocks";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 // Only data-access hooks are replaced. Period projection, selection, quote
@@ -19,7 +20,7 @@ const data = vi.hoisted(() => {
       { description: "QA daily rent", quantity: 16, unit_price: 100, total: 1600, line_kind: "rental" },
     ], rental_meta: [{ modelId: "qa", quantity: 1, dailyRate: 100, weeklyRate: 700, monthlyRate: 3000, discount: 0 }] };
   const charges = { complete: true, quotes: [{ quote_id: quoteId, legacy_review_required: false, lines: [] }] };
-  return { extension: null as Record<string, unknown> | null, customerDetail: { data: null as Record<string, unknown> | null, isPending: false, isFetching: false, isError: false }, booking, bookings: [booking], forklifts: [forklift], quotes: [quote],
+  return { notifyWarning: vi.fn(), saveOptions: null as { onBusinessBlock?: (block: BusinessBlock) => void } | null, extension: null as Record<string, unknown> | null, customerDetail: { data: null as Record<string, unknown> | null, isPending: false, isFetching: false, isError: false }, booking, bookings: [booking], forklifts: [forklift], quotes: [quote],
     customers: [{ id: "qa", name: "QA", rfc: "XAXX010101000" }],
     returns: [{ booking_id: bookingId, forklift_id: forklift.id, inspected_at: "2026-10-10T18:00:00Z" }],
     empty: [], charges, refetch: vi.fn(), load: vi.fn().mockResolvedValue(charges), mutate: vi.fn() };
@@ -44,7 +45,10 @@ vi.mock("@/features/quotes", async () => ({
 }));
 vi.mock("../invoices/useInvoices", () => ({
   useInvoice: () => ({ data: undefined, isLoading: false }),
-  useSaveInvoiceWithBookings: () => ({ mutate: data.mutate, isPending: false }),
+  useSaveInvoiceWithBookings: (opts: { onBusinessBlock?: (block: BusinessBlock) => void }) => {
+    data.saveOptions = opts;
+    return { mutate: data.mutate, isPending: false };
+  },
 }));
 vi.mock("../invoices/useInvoiceBookings", () => ({ useInvoiceBookings: () => ({ data: data.empty, refetch: data.refetch }) }));
 vi.mock("../invoices/useBookingBillingEvidence", () => ({ useBookingBillingEvidence: () => ({
@@ -56,6 +60,9 @@ vi.mock("../invoices/useQuoteChargeAvailability", () => ({ useQuoteChargeAvailab
   data: data.charges, isError: false, isFetching: false, loadForQuotes: data.load, refetch: data.refetch,
 }) }));
 
+vi.mock("@/lib/ui/appFeedback", () => ({ notifyWarning: data.notifyWarning }));
+
+import { resolveBusinessBlock, describeBusinessBlock } from "@/lib/rules/businessBlocks";
 import { useInvoiceFormLogic } from "../useInvoiceFormLogic";
 
 describe("returned quote-backed monthly booking through the invoice form", () => {
@@ -88,6 +95,8 @@ describe("returned quote-backed monthly booking through the invoice form", () =>
 
 
 afterEach(() => {
+  data.notifyWarning.mockClear();
+  data.saveOptions = null;
   data.extension = null;
   data.customerDetail = { data: null, isPending: false, isFetching: false, isError: false };
   data.customers = [{ id: "qa", name: "QA", rfc: "XAXX010101000" }];
@@ -139,4 +148,23 @@ describe("extension customer readiness through invoice form submission guards", 
     expect(result.current.validateSelection(result.current.form.getValues())).toEqual({ field: "lineItems", message: result.current.chargeBlock });
   });
 
+});
+
+// Real form + submit hooks must forward every business block to visible feedback.
+describe("invoice save rejection feedback wiring", () => {
+  it("shows the sale duplicate explanation from the actual database message", () => {
+    renderHook(() => useInvoiceFormLogic({ fromQuoteId: null }));
+    const block = resolveBusinessBlock({ code: "23505", message: "Esta cotización de venta ya tiene una factura activa. Continúa el borrador existente o revisa su cancelación antes de crear otra." });
+    expect(block?.code).toBe("quote_sale_already_invoiced");
+    expect(data.saveOptions?.onBusinessBlock).toBeTypeOf("function");
+    act(() => data.saveOptions!.onBusinessBlock!(block!));
+    expect(data.notifyWarning).toHaveBeenCalledExactlyOnceWith(block!.action, { description: `${block!.reason} ${block!.nextStep}` });
+  });
+  it("preserves dedicated assignment UI rather than emitting a warning", () => {
+    const { result } = renderHook(() => useInvoiceFormLogic({ fromQuoteId: null }));
+    const block = describeBusinessBlock("quote_sale_assignment_incomplete");
+    act(() => data.saveOptions!.onBusinessBlock!(block));
+    expect(data.notifyWarning).not.toHaveBeenCalled();
+    expect(result.current.serverSaleAssignmentBlock).toEqual(block);
+  });
 });

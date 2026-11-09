@@ -27,6 +27,7 @@ export interface CatalogEntry {
  * disparar desde la UI.
  */
 export const CONSTRAINT_MESSAGES: Record<string, CatalogEntry> = {
+  sale_quote_active_invoice_unique: { message: "La cotización de venta ya tiene una factura activa. Abre la factura existente para continuar.", severity: "warning" },
   // --- Folios y numeración ---
   bookings_booking_number_key: { message: "Ya existe una reserva con ese número. Recarga la página para obtener el siguiente folio." },
   credit_notes_credit_note_number_key: { message: "Ya existe una nota de crédito con ese número. Recarga la página para obtener el siguiente folio." },

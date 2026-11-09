@@ -1,5 +1,5 @@
 import { render, screen, within } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { TotalsSummary } from "@/components/domain/TotalsSummary";
 
 describe("TotalsSummary — normalización de taxRate (R5)", () => {
@@ -27,5 +27,14 @@ describe("TotalsSummary — normalización de taxRate (R5)", () => {
   it("muestra IVA (8%) cuando taxRate es fracción 0.08 (frontera IVA)", () => {
     render(<TotalsSummary subtotal={100} taxRate={0.08} taxAmount={8} total={108} />);
     expect(screen.getByText("IVA (8%)")).toBeInTheDocument();
+  });
+});
+
+describe("TotalsSummary editable VAT", () => {
+  it.each([0, 8, 16])("displays the selected %s percent without changing it", (rate) => {
+    const onChange = vi.fn();
+    const view = render(<TotalsSummary subtotal={100} taxRate={rate} taxAmount={rate} total={100 + rate} onTaxRateChange={onChange} />);
+    expect(within(view.container).getByRole("combobox")).toHaveTextContent(`${rate}%`);
+    expect(onChange).not.toHaveBeenCalled();
   });
 });
