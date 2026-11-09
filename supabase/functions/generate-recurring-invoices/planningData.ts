@@ -6,6 +6,7 @@ import {
 import { recurringQuoteIssue } from "./quoteDiscountGuard.ts";
 import { recurringQuoteCharges } from "./quoteCharges.ts";
 import type { BookingSource, PlanningContext } from "./planTypes.ts";
+import type { RecurringPerformance } from "./performance.ts";
 
 export const PLANNING_BATCH_SIZE = 100;
 const PAGE_SIZE = 500;
@@ -13,6 +14,7 @@ const PAGE_SIZE = 500;
 export const MAX_PLANNING_ROWS = 50_000;
 export const MAX_PLANNING_PAGES = 1_000;
 type ReadBudget = { rows: number; pages: number };
+type ReadPhase = "bookings" | "fiscal" | "history_linked" | "history_direct";
 const BOOKING_FIELDS =
   "id, organization_id, booking_number, customer_id, customer_name, quote_id, start_date, end_date, last_billed_date, monthly_rate, currency, tipo_cambio, updated_at, forklifts(name, monthly_rate, serial_number), quotes(organization_id, line_items, rental_meta)";
 // History only needs coverage/cancellation metadata. Keep quote line_items and
@@ -32,6 +34,8 @@ async function readAll<T>(
   query: (last?: T) => PageQuery,
   budget: ReadBudget,
   key: (row: T) => string[],
+  phase: ReadPhase,
+  metrics?: RecurringPerformance,
 ): Promise<T[]> {
   const rows: T[] = [];
   let expected: number | undefined;
@@ -42,7 +46,11 @@ async function readAll<T>(
         "La vista previa supera el límite de lectura seguro; reduce el alcance",
       );
     }
-    const { data, error, count } = await query(last).range(0, PAGE_SIZE - 1);
+    metrics?.count("read_pages", 1);
+    const read = () => query(last).range(0, PAGE_SIZE - 1);
+    const { data, error, count } = metrics
+      ? await metrics.measure(phase, read)
+      : await read();
     if (error) throw error;
     if (!Array.isArray(data) || !Number.isSafeInteger(count) || count! < 0) {
       throw new Error(
@@ -88,6 +96,7 @@ async function readAll<T>(
     }
     rows.push(...data as T[]);
     budget.rows += data.length;
+    metrics?.count(`${phase}_rows`, data.length);
     last = rows.at(-1);
   } while (rows.length < expected);
   return rows;
@@ -109,6 +118,7 @@ function unique(values: Array<string | null>): string[] {
 export async function loadRecurringPlanningData(
   supabase: SupabaseClient,
   organizationId?: string | null,
+  metrics?: RecurringPerformance,
 ): Promise<PlanningContext[]> {
   const budget: ReadBudget = { rows: 0, pages: 0 };
   const bookings = await readAll<BookingSource>(
@@ -123,6 +133,8 @@ export async function loadRecurringPlanningData(
     },
     budget,
     (row) => [row.id],
+    "bookings",
+    metrics,
   );
   const contexts = new Map<string, PlanningContext>();
   const byOrganization = new Map<string, BookingSource[]>();
@@ -169,6 +181,8 @@ export async function loadRecurringPlanningData(
         },
         budget,
         (row) => [row.customer_id as string],
+        "fiscal",
+        metrics,
       );
       for (const row of rows) {
         const id = String(row.customer_id);
@@ -215,6 +229,8 @@ export async function loadRecurringPlanningData(
         },
         budget,
         (row) => [row.booking_id, row.invoice_id],
+        "history_linked",
+        metrics,
       );
       const direct = await readAll<ScopedInvoice>(
         (last) => {
@@ -228,6 +244,8 @@ export async function loadRecurringPlanningData(
         },
         budget,
         (row) => [row.id],
+        "history_direct",
+        metrics,
       );
       const linkedByBooking = new Map<string, LinkedInvoice[]>();
       const directByBooking = new Map<string, ScopedInvoice[]>();
@@ -272,11 +290,17 @@ export async function loadRecurringPlanningData(
       string,
       { snapshot: unknown; invalid: boolean }
     >();
+    metrics?.count("quote_ids", quoteIds.length);
     for (const ids of batches(quoteIds)) {
-      const { data, error } = await supabase.rpc(
-        "get_quote_charge_availability",
-        { p_quote_ids: ids },
-      );
+      metrics?.count("charge_batches", 1);
+      const readCharges = () =>
+        supabase.rpc(
+          "get_quote_charge_availability",
+          { p_quote_ids: ids },
+        );
+      const { data, error } = metrics
+        ? await metrics.measure("charges", readCharges)
+        : await readCharges();
       if (error) throw error;
       const response = data as {
         complete?: unknown;

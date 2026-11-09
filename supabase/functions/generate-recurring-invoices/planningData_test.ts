@@ -533,3 +533,50 @@ Deno.test("phase 2 projects both history reads without line items, preserving >5
     }`,
   );
 });
+
+Deno.test("optional diagnostics count actual scoped reads without changing context or failures", async () => {
+  const { createRecurringPerformance } = await import("./performance.ts");
+  const source = bookingFixture({
+    quote_id: quoteId(0),
+    quotes: { organization_id: "org-A", line_items: [], rental_meta: [] },
+  });
+  const tables = { bookings: [source], organization_customers: [fiscal] };
+  const plain = transport(tables);
+  const observed = transport(tables);
+  const snapshots: unknown[] = [];
+  const metrics = createRecurringPerformance({
+    emit: (snapshot) => snapshots.push(snapshot),
+  });
+  equal(
+    await loadRecurringPlanningData(observed.client, "org-A", metrics),
+    await loadRecurringPlanningData(plain.client, "org-A"),
+  );
+  equal(
+    observed.calls.map((call) => call.url.href),
+    plain.calls.map((call) => call.url.href),
+  );
+  metrics.finish("ok");
+  equal((snapshots[0] as { counts: unknown }).counts, {
+    bookings_rows: 1,
+    fiscal_rows: 1,
+    history_linked_rows: 0,
+    history_direct_rows: 0,
+    quote_ids: 1,
+    read_pages: 4,
+    charge_batches: 1,
+  });
+  equal(JSON.stringify(snapshots).includes("org-A"), false);
+  const failed = transport(tables, {
+    respond: ({ url }) =>
+      url.pathname.endsWith("/invoices")
+        ? Response.json({ message: "QA read failed" }, { status: 500 })
+        : undefined,
+  });
+  await rejects(() =>
+    loadRecurringPlanningData(
+      failed.client,
+      "org-A",
+      createRecurringPerformance({ emit: () => {} }),
+    )
+  );
+});
