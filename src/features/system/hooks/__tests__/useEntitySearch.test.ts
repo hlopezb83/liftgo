@@ -1,3 +1,4 @@
+const searchAccess = (invoices = true, quotes = false) => ({ invoices, quotes, customers: true, bookings: true, deliveries: true, returns: true });
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
 vi.mock("@/integrations/supabase/client", () => {
@@ -35,13 +36,22 @@ beforeEach(() => vi.clearAllMocks());
 describe("searchEntities", () => {
 
   it("regresa vacío con query < 2 chars", async () => {
-    const res = await searchEntities("a", "org-a");
+    const res = await searchEntities("a", "org-a", searchAccess());
+    expect(res).toEqual({ quotes: [], invoices: [], customers: [], bookings: [], deliveries: [], returns: [] });
+  });
+
+  it("sin secciones autorizadas no construye consultas ni inventa un fallo total", async () => {
+    const { supabase } = await import("@/integrations/supabase/client");
+    const res = await searchEntities("ACME", "org-a", {
+      invoices: false, quotes: false, customers: false, bookings: false, deliveries: false, returns: false,
+    });
+    expect(supabase.from).not.toHaveBeenCalled();
     expect(res).toEqual({ quotes: [], invoices: [], customers: [], bookings: [], deliveries: [], returns: [] });
   });
 
   it("omite la consulta de facturas y conserva entidades operativas cuando se restringen finanzas", async () => {
     const { supabase } = await import("@/integrations/supabase/client");
-    const res = await searchEntities("ACME", "org-a", false);
+    const res = await searchEntities("ACME", "org-a", searchAccess(false));
     expect(supabase.from).not.toHaveBeenCalledWith("invoices");
     expect(res.invoices).toEqual([]);
     expect(res.customers).toHaveLength(1);
@@ -50,7 +60,7 @@ describe("searchEntities", () => {
   });
 
   it("mapea facturas/clientes/reservas y sustituye null por —", async () => {
-    const res = await searchEntities("ACME", "org-a");
+    const res = await searchEntities("ACME", "org-a", searchAccess());
     expect(res.invoices).toHaveLength(2);
     expect(res.invoices[0]).toMatchObject({ label: "FAC-0001", url: "/invoices/i1" });
     expect(res.invoices[1].label).toBe("—");
@@ -65,7 +75,7 @@ describe("searchEntities — filtros M-3", () => {
     const inv = supabase.from("invoices") as unknown as Record<string, ReturnType<typeof vi.fn>>;
     const cust = supabase.from("organization_customers") as unknown as Record<string, ReturnType<typeof vi.fn>>;
     const book = supabase.from("bookings") as unknown as Record<string, ReturnType<typeof vi.fn>>;
-    await searchEntities("ACME", "org-a");
+    await searchEntities("ACME", "org-a", searchAccess());
     expect(inv.neq).toHaveBeenCalledWith("status", "cancelled");
     expect(book.neq).toHaveBeenCalledWith("status", "cancelled");
     expect(cust.eq).toHaveBeenCalledWith("organization_id", "org-a");
@@ -82,7 +92,7 @@ describe("searchEntities — organización verificada", () => {
   it("sin organización devuelve vacío y no consulta", async () => {
     const { supabase } = await import("@/integrations/supabase/client");
     const from = supabase.from as unknown as ReturnType<typeof vi.fn>;
-    const res = await searchEntities("ACME");
+    const res = await searchEntities("ACME", undefined, searchAccess());
     expect(res).toEqual({ quotes: [], invoices: [], customers: [], bookings: [], deliveries: [], returns: [] });
     if (typeof from === "function" && "mock" in from) {
       expect((from as { mock: { calls: unknown[] } }).mock.calls.length).toBe(0);
@@ -90,7 +100,7 @@ describe("searchEntities — organización verificada", () => {
   });
 
   it("parte de organization_customers y mapea el cliente global", async () => {
-    const res = await searchEntities("ACME", "org-a");
+    const res = await searchEntities("ACME", "org-a", searchAccess());
     expect(res.customers[0]).toMatchObject({ label: "Cliente Uno", url: "/customers/c1" });
   });
 });

@@ -5,8 +5,8 @@ import type { EntityResults } from "../../hooks/useEntitySearch";
 const state = vi.hoisted(() => ({
   quotes: true, routeQuotes: "read" as "none" | "read" | "full", financial: false,
   roleError: false, permissionsError: false, fetching: false, pending: false, error: false,
-  data: undefined as EntityResults | undefined, debounce: undefined as string | undefined,
-  navigate: vi.fn(), retry: vi.fn(),
+  canSearch: true, resolvingAccess: false, accessError: false, data: undefined as EntityResults | undefined, debounce: undefined as string | undefined,
+  navigate: vi.fn(), retry: vi.fn(), retryAccess: vi.fn(),
 }));
 vi.mock("@/features/users", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@/features/users")>();
@@ -23,7 +23,7 @@ vi.mock("@/app-routes/routes-config", () => ({ routeLoaders: {} }));
 vi.mock("@/hooks/useNavigateTransition", () => ({ useNavigateTransition: () => state.navigate }));
 vi.mock("@/hooks/useDebouncedValue", () => ({ useDebouncedValue: (value: string) => state.debounce ?? value }));
 vi.mock("@/features/system/hooks/useEntitySearch", () => ({
-  useEntitySearch: () => ({ data: state.data, isFetching: state.fetching, isPending: state.pending, isError: state.error, refetch: state.retry }),
+  useEntitySearch: () => ({ canSearchEntities: state.canSearch, isResolvingAccess: state.resolvingAccess, isAccessError: state.accessError, retryAccess: state.retryAccess, data: state.data, isFetching: state.fetching, isPending: state.pending, isError: state.error, refetch: state.retry }),
 }));
 // Command and Dialog are intentionally real: cmdk filters and sorts DOM items.
 import { GlobalSearch } from "../GlobalSearch";
@@ -41,8 +41,8 @@ function results(): EntityResults {
 beforeEach(() => {
   state.quotes = true; state.routeQuotes = "read"; state.financial = false;
   state.roleError = false; state.permissionsError = false; state.fetching = false; state.pending = false; state.error = false;
-  state.data = results(); state.debounce = undefined;
-  state.navigate.mockReset(); state.retry.mockReset();
+  state.canSearch = true; state.resolvingAccess = false; state.accessError = false; state.data = results(); state.debounce = undefined;
+  state.navigate.mockReset(); state.retry.mockReset(); state.retryAccess.mockReset();
 });
 
 async function search(term: string) {
@@ -160,4 +160,43 @@ describe("GlobalSearch cotizaciones con cmdk real", () => {
     await search("zz-no-match");
     expect(screen.getByText("Sin resultados.")).toBeInTheDocument();
   });
+});
+
+
+it("does not spin or show an entity error when no section is authorized", async () => {
+  state.canSearch = false; state.pending = true; state.error = true; state.data = empty();
+  render(<GlobalSearch />);
+  await search("zz-absent");
+  expect(screen.queryByText("Buscando…")).not.toBeInTheDocument();
+  expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+  expect(await screen.findByText("Sin resultados.")).toBeInTheDocument();
+});
+
+it("keeps access resolution distinct from a completed empty search", async () => {
+  state.canSearch = false; state.resolvingAccess = true; state.pending = true; state.data = undefined;
+  render(<GlobalSearch />);
+  await search("zz-absent");
+  expect(screen.getByText("Buscando…")).toBeInTheDocument();
+  expect(screen.queryByText("Sin resultados.")).not.toBeInTheDocument();
+});
+
+
+it("shows an access error and retries verification instead of searching protected entities", async () => {
+  state.canSearch = false; state.accessError = true; state.data = undefined;
+  const { rerender } = render(<GlobalSearch />);
+  await search("zz-absent");
+  expect(screen.getByRole("alert")).toHaveTextContent("No se pudo verificar tu acceso");
+  expect(screen.queryByText("Sin resultados.")).not.toBeInTheDocument();
+  expect(screen.queryByRole("button", { name: "Reintentar búsqueda" })).not.toBeInTheDocument();
+  fireEvent.click(screen.getByRole("button", { name: "Reintentar acceso" }));
+  expect(state.retryAccess).toHaveBeenCalledOnce();
+  expect(state.retry).not.toHaveBeenCalled();
+  state.resolvingAccess = true; rerender(<GlobalSearch />);
+  expect(screen.getByRole("button", { name: "Reintentar acceso" })).toBeDisabled();
+  expect(screen.queryByText("Sin resultados.")).not.toBeInTheDocument();
+  state.accessError = false; state.resolvingAccess = false; state.canSearch = true; state.data = results();
+  rerender(<GlobalSearch />);
+  expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+  fireEvent.change(screen.getByRole("combobox"), { target: { value: "445" } });
+  expect(await screen.findByRole("option", { name: "COT-0445 Cliente antiguo" })).toBeInTheDocument();
 });

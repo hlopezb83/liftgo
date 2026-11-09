@@ -1,3 +1,4 @@
+const searchAccess = (invoices = true, quotes = false) => ({ invoices, quotes, customers: true, bookings: true, deliveries: true, returns: true });
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 interface QuoteFixture { id: string; quote_number: string; customer_name: string | null; created_at?: string }
@@ -51,7 +52,7 @@ function quoteRequests() { return state.requests.filter((url) => url.pathname.en
 
 describe("cotizaciones — PostgREST real con transporte HTTP simulado", () => {
   it.each(["445", "0445", "COT-0445", "cot-445", "000445"])("normaliza %s y mantiene exacta antigua antes de cinco candidatas nuevas", async (query) => {
-    const result = await searchEntities(query, "org-a", false, true);
+    const result = await searchEntities(query, "org-a", searchAccess(false, true));
     expect(result.quotes.map((hit) => hit.id)).toEqual(["old", "recent-5", "recent-4", "recent-3", "recent-2"]);
     expect(result.quotes[0]).toEqual({ id: "old", label: "COT-0445", sub: "Cliente antiguo", url: "/quotes/old" });
     const requests = quoteRequests();
@@ -74,14 +75,14 @@ describe("cotizaciones — PostgREST real con transporte HTTP simulado", () => {
 
   it("deduplica por ID, conserva exacta primero y limita el conjunto a cinco", async () => {
     state.broad = [oldExact, { ...oldExact, customer_name: "Duplicado" }, ...recent.slice(0, 3)];
-    const result = await searchEntities("445", "org-a", true, true);
+    const result = await searchEntities("445", "org-a", searchAccess(true, true));
     expect(result.quotes).toHaveLength(4);
     expect(result.quotes.filter((hit) => hit.id === "old")).toEqual([expect.objectContaining({ sub: "Cliente antiguo" })]);
   });
 
   it("sin folio exacto devuelve las cinco más recientes con desempate por ID", async () => {
     state.exact = []; state.broad[4].created_at = state.broad[5].created_at;
-    const result = await searchEntities("Cliente", "org-b", true, true);
+    const result = await searchEntities("Cliente", "org-b", searchAccess(true, true));
     expect(quoteRequests()).toHaveLength(1);
     expect(quoteRequests()[0].searchParams.get("organization_id")).toBe("eq.org-b");
     expect(result.quotes.map((hit) => hit.id)).toEqual(["recent-5", "recent-4", "recent-3", "recent-2", "recent-1"]);
@@ -89,7 +90,7 @@ describe("cotizaciones — PostgREST real con transporte HTTP simulado", () => {
 
   it("escapa comodines y la gramática lógica sin perder el filtro E2E ni el tenant", async () => {
     const query = 'ACME, ("50%_\\")';
-    await searchEntities(query, "org-a", false, true);
+    await searchEntities(query, "org-a", searchAccess(false, true));
     const [url] = quoteRequests();
     expect(url.searchParams.get("quote_number")).toBeNull();
     // Unquote the PostgREST string to inspect the literal SQL LIKE pattern.
@@ -105,7 +106,7 @@ describe("cotizaciones — PostgREST real con transporte HTTP simulado", () => {
 
   it("busca estrellas literales sin el alias LIKE de PostgREST ni expresiones regulares activas", async () => {
     const query = 'ACME*(x|y).[a]+?^${}50%_\\"';
-    await searchEntities(query, "org-a", false, true);
+    await searchEntities(query, "org-a", searchAccess(false, true));
     const [url] = quoteRequests();
     expect(url.searchParams.getAll("or")).toEqual([
       "(is_e2e.is.null,is_e2e.eq.false)", `(${quoteSearchFilter(query)})`,
@@ -119,20 +120,20 @@ describe("cotizaciones — PostgREST real con transporte HTTP simulado", () => {
     expect(url.searchParams.get("organization_id")).toBe("eq.org-a");
   });
 
-  it("no consulta quotes por defecto ni cuando no está autorizado", async () => {
-    await searchEntities("445", "org-a");
-    await searchEntities("445", "org-a", true, false);
+  it("no consulta quotes cuando la máscara explícita las excluye", async () => {
+    await searchEntities("445", "org-a", searchAccess());
+    await searchEntities("445", "org-a", searchAccess(true, false));
     expect(quoteRequests()).toHaveLength(0);
   });
 
   it("no consulta sin organización verificada", async () => {
-    expect((await searchEntities("445", undefined, true, true)).quotes).toEqual([]);
+    expect((await searchEntities("445", undefined, searchAccess(true, true))).quotes).toEqual([]);
     expect(state.requests).toHaveLength(0);
   });
 
   it.each(["exact", "broad"] as const)("conserva éxito con error parcial de consulta %s", async (failed) => {
     state.failQuotes = failed; state.failOthers = true;
-    const result = await searchEntities("445", "org-a", false, true);
+    const result = await searchEntities("445", "org-a", searchAccess(false, true));
     expect(result.quotes).toHaveLength(failed === "broad" ? 1 : 5);
     expect(result.errors?.quotes).toBeTruthy();
     expect(result.errors?.quotes).not.toContain("private database error");
@@ -140,7 +141,7 @@ describe("cotizaciones — PostgREST real con transporte HTTP simulado", () => {
 
   it("conserva exacta y avisa también si el transporte de la amplia rechaza", async () => {
     state.rejectBroad = true;
-    const result = await searchEntities("445", "org-a", false, true);
+    const result = await searchEntities("445", "org-a", searchAccess(false, true));
     expect(result.quotes.map((hit) => hit.id)).toEqual(["old"]);
     expect(result.errors?.quotes).toBeTruthy();
   });
@@ -152,19 +153,19 @@ describe("cotizaciones — PostgREST real con transporte HTTP simulado", () => {
 
   it("un éxito vacío cuenta como éxito, no como error total", async () => {
     state.failQuotes = "broad"; state.failOthers = true; state.exact = [];
-    const result = await searchEntities("445", "org-a", false, true);
+    const result = await searchEntities("445", "org-a", searchAccess(false, true));
     expect(result.quotes).toEqual([]);
     expect(result.errors?.quotes).toBeTruthy();
   });
 
   it.each([true, false])("error total sólo cuando fallan todas las consultas efectivas (finanzas=%s)", async (financial) => {
     state.failQuotes = "both"; state.failOthers = true;
-    await expect(searchEntities("445", "org-a", financial, true)).rejects.toMatchObject({ message: "private database error" });
+    await expect(searchEntities("445", "org-a", searchAccess(financial, true))).rejects.toMatchObject({ message: "private database error" });
   });
 
   it("fallo de ambas consultas quotes conserva las demás secciones", async () => {
     state.failQuotes = "both";
-    const result = await searchEntities("445", "org-a", false, true);
+    const result = await searchEntities("445", "org-a", searchAccess(false, true));
     expect(result.errors).toEqual({ quotes: expect.any(String) });
     expect(result.quotes).toEqual([]);
   });

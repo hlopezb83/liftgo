@@ -142,6 +142,22 @@ function SearchFeedback({ isLoading, isError, errors, onRetry }: {
   </>;
 }
 
+function AccessAwareSearchFeedback({ query, isLoading, errors }: {
+  query: ReturnType<typeof useEntitySearch>; isLoading: boolean; errors?: EntityResults["errors"];
+}) {
+  if (query.isAccessError) return <div className="px-3 py-2 text-xs text-destructive" role="alert">
+    No se pudo verificar tu acceso. Intenta de nuevo.
+    <Button variant="ghost" size="sm" onClick={() => void query.retryAccess()} disabled={query.isResolvingAccess}>Reintentar acceso</Button>
+  </div>;
+  return <SearchFeedback isLoading={isLoading} isError={query.canSearchEntities && query.isError}
+    errors={errors} onRetry={() => void query.refetch()} />;
+}
+
+function searchIsLoading(input: string, debouncedInput: string, query: ReturnType<typeof useEntitySearch>): boolean {
+  return query.isResolvingAccess || (query.canSearchEntities &&
+    (query.isFetching || (input.trim().length >= 2 && (input !== debouncedInput || query.isPending))));
+}
+
 export function GlobalSearch() {
   const canSeeFinancials = useHasFinancialAccess();
   const canSearchQuotes = useHasModuleAccess("Cotizaciones", "read");
@@ -189,7 +205,7 @@ export function GlobalSearch() {
   const entityQuery = useEntitySearch(debouncedInput, open);
   // A role/permission switch must not retain links from a privileged query.
   const canVisit = (url: string) => getNavigationAccessLevel(perms, role ?? undefined, url) !== "none";
-  const isSearchLoading = entityQuery.isFetching || (input.trim().length >= 2 && (input !== debouncedInput || entityQuery.isPending));
+  const isSearchLoading = searchIsLoading(input, debouncedInput, entityQuery);
   const entities = authorizedResults(input === debouncedInput ? entityQuery.data : undefined, canVisit, canSeeFinancials, canSearchQuotes);
   const hasEntities = !!entities && (entities.quotes.length + entities.invoices.length + entities.customers.length + entities.bookings.length + entities.deliveries.length + entities.returns.length > 0);
 
@@ -239,7 +255,7 @@ export function GlobalSearch() {
           onValueChange={setInput}
         />
         <CommandList>
-          <SearchFeedback isLoading={!!isSearchLoading} isError={entityQuery.isError} errors={entities?.errors} onRetry={() => void entityQuery.refetch()} />
+          <AccessAwareSearchFeedback query={entityQuery} isLoading={!!isSearchLoading} errors={entities?.errors} />
 
           {hasEntities && (
             <EntitySearchResults entities={entities} query={input} isPending={isPending} onSelect={go} />
