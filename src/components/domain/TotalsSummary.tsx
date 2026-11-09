@@ -28,7 +28,7 @@ export function TotalsSummary({ subtotal, taxRate, taxAmount, total, onTaxRateCh
               <span className="text-muted-foreground">IVA</span>
               <Select value={String(taxRate)} onValueChange={(v) => onTaxRateChange(Number(v))}>
                 <SelectTrigger className="w-36 max-w-full h-8">
-                  <SelectValue>{taxRate === 11 ? "11% (Obsoleto)" : undefined}</SelectValue>
+                  <SelectValue>{taxRate === 11 ? "11% (Obsoleto)" : taxRate === 8 ? "8% (Configurado)" : undefined}</SelectValue>
                 </SelectTrigger>
                 <SelectContent>
                   {APP_CONFIG.TAX_RATE_OPTIONS.map((opt) => (

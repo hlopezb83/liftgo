@@ -31,6 +31,7 @@ export type BusinessBlockCode =
   | "prospect_stage_not_negotiation"
   | "quote_expired"
   | "quote_already_converted"
+  | "quote_sale_already_invoiced"
   | "quote_sale_assignment_incomplete"
   | "supplier_bill_self_approval"
   | "customer_outstanding_balance"
@@ -196,6 +197,12 @@ export const BUSINESS_BLOCKS: Record<BusinessBlockCode, BlockCopy> = {
     nextStep: "Actualiza la fecha de vigencia desde Editar y vuelve a aceptarla.",
     tone: "info",
   },
+  quote_sale_already_invoiced: {
+    action: "No puedes crear otra factura para esta venta",
+    reason: "La cotización de venta ya tiene una factura activa.",
+    nextStep: "Abre la factura existente para continuar; revisa su estado antes de intentar crear otra.",
+    tone: "info",
+  },
   quote_sale_assignment_incomplete: {
     action: "No puedes facturar esta cotización de venta",
     reason: "Faltan equipos del inventario por asignar en las partidas de venta.",
@@ -268,6 +275,8 @@ export const ERROR_PATTERNS: Array<{ pattern: RegExp; code: BusinessBlockCode }>
   // Guard `trg_guard_supplier_payment_delete` (BEFORE DELETE en supplier_payments).
   { pattern: /REP fiscal recibido/i, code: "supplier_payment_rep_received" },
   { pattern: /factura de proveedor est(á|a) cancelada/i, code: "supplier_bill_cancelled" },
+  // Guard de unicidad de factura activa por cotización de venta.
+  { pattern: /cotizaci(ó|o)n de venta ya tiene una factura activa/i, code: "quote_sale_already_invoiced" },
   // Guard `trg_guard_invoice_sale_assignment` (BEFORE INSERT en invoices).
   { pattern: /cotizaci(ó|o)n de venta tiene .*sin asignar/i, code: "quote_sale_assignment_incomplete" },
   // RPC `approve_supplier_bill`: segregación de funciones (quien registra no aprueba).
@@ -282,6 +291,7 @@ export const ERROR_PATTERNS: Array<{ pattern: RegExp; code: BusinessBlockCode }>
 
 /** Restricciones con nombre que corresponden a un bloqueo explicable. */
 export const CONSTRAINT_BLOCKS: Record<string, BusinessBlockCode> = {
+  sale_quote_active_invoice_unique: "quote_sale_already_invoiced",
   booking_extensions_invoice_id_uniq: "extension_already_billed",
 };
 

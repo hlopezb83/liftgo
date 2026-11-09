@@ -10,6 +10,7 @@ import type { LineItem } from "@/lib/domain/invoiceHelpers";
 import { hasLegacyVat } from "@/lib/fiscal/legacyVat";
 import { zodResolver } from "@/lib/forms/zodResolver";
 import type { BusinessBlock } from "@/lib/rules/businessBlocks";
+import { notifyWarning } from "@/lib/ui/appFeedback";
 import { nowMty } from "@/lib/utils";
 import { lateRecoverySelectionError } from "../lib/bookingCompatibility";
 import {
@@ -188,7 +189,11 @@ export function useInvoiceFormLogic({ id, fromQuoteId, extensionId = null }: Use
   const [serverSaleAssignmentBlock, setServerSaleAssignmentBlock] = useState<BusinessBlock | null>(null);
   const submit = useInvoiceFormSubmit({
     onBusinessBlock: (block) => {
-      if (block.code === "quote_sale_assignment_incomplete") setServerSaleAssignmentBlock(block);
+      if (block.code === "quote_sale_assignment_incomplete") {
+        setServerSaleAssignmentBlock(block);
+      } else {
+        notifyWarning(block.action, { description: `${block.reason} ${block.nextStep}` });
+      }
     },
   });
   const uniqueBookingQuoteIds = collectBookingQuoteIds(bookings);
