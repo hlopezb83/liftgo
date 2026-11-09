@@ -213,8 +213,6 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           persist-credentials: false
-      - name: Contrato de procedencia
-        run: node --test scripts/tests/vitest-blob-provenance.test.mjs
       - name: Excluir entorno local
         run: rm -f -- .env .env.* .dev.vars .dev.vars.*
       - name: Node del proyecto
@@ -236,6 +234,8 @@ jobs:
           lock_before=$(sha256sum bun.lock)
           bun install --frozen-lockfile
           test "$lock_before" = "$(sha256sum bun.lock)"
+      - name: Contrato de procedencia
+        run: node --test scripts/tests/vitest-blob-provenance.test.mjs
       - name: Aislar descarga y entradas de merge
         run: |
           merge_root=$(mktemp -d "$RUNNER_TEMP/vitest-$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT-merge-XXXXXX")

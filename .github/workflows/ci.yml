@@ -71,6 +71,7 @@ jobs:
         with:
           fail-on-severity: high
           comment-summary-in-pr: never
+          allow-licenses: MIT, Apache-2.0, BSD-2-Clause, BSD-3-Clause, ISC, 0BSD, CC0-1.0, Unlicense, Python-2.0, MPL-2.0, CC-BY-4.0, BlueOak-1.0.0
       - name: TypeScript
         run: |
           bun run typecheck
@@ -82,7 +83,7 @@ jobs:
       - name: Contratos de calidad
         run: |
           node --test scripts/tests/release-identity.test.mjs scripts/tests/eslint-guardrails.test.mjs scripts/tests/feature-imports.test.mjs scripts/tests/browser-typecheck.test.mjs scripts/tests/lint-migrations.test.mjs scripts/tests/quality-workflow.test.mjs
-          node --test scripts/tests/browser-test-*.test.mjs tests/offlineTeardown.test.mjs tests/design-group-c/artifactGuard.test.mjs
+          node --test tests/offlineTeardown.test.mjs tests/design-group-c/artifactGuard.test.mjs
           python3 -m unittest discover -s scripts/tests -p 'test_*.py'
       - name: Validar workflows
         uses: reviewdog/action-actionlint@619a81ec64ff8c0211cd6146eb2b21e8f1d7f440
@@ -209,6 +210,8 @@ jobs:
           key: ${{ runner.os }}-${{ runner.arch }}-chromium-v2-${{ hashFiles('bun.lock') }}
       - name: Preparar Chromium
         run: node node_modules/@playwright/test/cli.js install --with-deps chromium
+      - name: Contrato de aislamiento de navegador y Worker
+        run: node --test scripts/tests/browser-test-*.test.mjs
       - name: Arranque e interacción del Worker
         run: node node_modules/@playwright/test/cli.js test --config playwright.smoke.config.ts
       - name: Diagnóstico de fallo
