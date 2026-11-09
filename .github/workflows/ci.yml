@@ -157,12 +157,13 @@ jobs:
           save-cache: "true"
       - name: Compilar build ficticio independiente
         run: node scripts/browser-test-server.mjs --build-only
-      - name: Verificar aislamiento de navegador y Worker con destinos locales
-        run: node --test scripts/tests/browser-test-*.test.mjs
       - name: Preparar Chromium
         uses: ./.github/actions/setup-playwright
         with:
           save-cache: "true"
+
+      - name: Verificar aislamiento de navegador y Worker con destinos locales
+        run: node --test scripts/tests/browser-test-*.test.mjs
 
       - name: Smoke de arranque (build real)
         run: bunx playwright test --config playwright.smoke.config.ts
@@ -199,10 +200,11 @@ jobs:
       - uses: ./.github/actions/setup-bun-project
       - name: Compilar build ficticio independiente
         run: node scripts/browser-test-server.mjs --build-only
-      - name: Verificar aislamiento de navegador y Worker con destinos locales
-        run: node --test scripts/tests/browser-test-*.test.mjs
       - name: Preparar Chromium
         uses: ./.github/actions/setup-playwright
+
+      - name: Verificar aislamiento de navegador y Worker con destinos locales
+        run: node --test scripts/tests/browser-test-*.test.mjs
 
       - name: Ejecutar todas las suites en grupos internos aislados
         run: python3 scripts/run-browser-acceptance.py --lane b

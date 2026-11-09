@@ -47,6 +47,8 @@ test('each browser strips dotenv and preserves fake backend, isolation and evide
   const browser=job(`browser-${lane}`);
   assert.ok(browser.indexOf('rm -f -- .env .env.*')<browser.indexOf('uses: ./.github/actions/setup-bun-project'));
   assert.ok(browser.indexOf('--build-only')<browser.indexOf('run-browser-acceptance.py'));
+  assert.ok(browser.indexOf('uses: ./.github/actions/setup-playwright')>=0);
+  assert.ok(browser.indexOf('uses: ./.github/actions/setup-playwright')<browser.indexOf('node --test scripts/tests/browser-test-*.test.mjs'));
   assert.match(browser,/SMOKE_REUSE_BUILD: "1"/);
   assert.ok(browser.includes('node --test scripts/tests/browser-test-*.test.mjs'));
   const evidence=step(browser,'Subir evidencia del carril');
