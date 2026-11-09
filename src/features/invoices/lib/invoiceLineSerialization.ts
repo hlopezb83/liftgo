@@ -15,6 +15,7 @@ export function toLineItems(items: LineItemValues[]): LineItem[] {
     discount_type: i.discount_type,
     clave_prod_serv: i.clave_prod_serv,
     clave_unidad: i.clave_unidad,
+    ...(i.sat_selection_required === undefined ? {} : { sat_selection_required: i.sat_selection_required }),
     objeto_imp: i.objeto_imp,
     tax_rate: i.tax_rate,
   }));

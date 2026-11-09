@@ -19,6 +19,7 @@ import { InvoiceAvailabilityNotice } from "../components/invoice-form/InvoiceAva
 import { InvoiceDetailsCard } from "../components/invoice-form/InvoiceDetailsCard";
 import { InvoiceSourceNotice } from "../components/invoice-form/InvoiceSourceNotice";
 import { SaleAssignmentBlocked } from "../components/invoice-form/SaleAssignmentBlocked";
+import { invoiceLineItemSource } from "../hooks/invoiceForm/invoiceSatDefaults";
 import { useDamagePrefill } from "../hooks/useDamagePrefill";
 import { useInvoiceFormLogic } from "../hooks/useInvoiceFormLogic";
 import type { InvoiceFormValues } from "../lib/invoiceFormSchema";
@@ -202,7 +203,10 @@ function InvoiceFormSession() {
             onRetry={f.retryChargeAvailability}
           />
           <div className="grid items-start gap-6 xl:grid-cols-[minmax(0,1fr)_20rem]">
-            <EditableLineItemsTable />
+            <EditableLineItemsTable source={invoiceLineItemSource({
+              invoiceId: id, existing: f.existing, isLoadingInvoice: f.isLoadingInvoice,
+              quoteId: fromQuoteId, quote: f.sourceQuote, extensionId, damageId,
+            })} />
 
             <aside aria-label="Resumen de importes" className="min-w-0 space-y-3 xl:sticky xl:top-20">
               <h2 className="text-base font-semibold">Resumen de importes</h2>

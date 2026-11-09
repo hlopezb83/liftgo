@@ -8,6 +8,11 @@ import {
 } from "../_shared/regimenFiscal.ts";
 import { validateRfcOrMessage } from "../_shared/rfcChecksum.ts";
 import { checkStampFx } from "../_shared/fxGate.ts";
+import {
+  requiresExplicitSaleSat,
+  type SaleSatContext,
+  validateSaleSatCodes,
+} from "./saleSatCodes.ts";
 
 export type InvoicePayloadResult =
   | { ok: true; payload: Record<string, unknown> }
@@ -28,16 +33,20 @@ function invalid(
 
 /**
  * Pure CFDI-I mapping and validation of the already loaded invoice snapshot.
- * Keeps the existing validation order, wire defaults and per-line rounding.
+ * Keeps existing non-sale validation order, defaults and per-line rounding.
  * The caller owns auth, tenant, claim compensation, provider I/O and persistence.
  * Do not reuse for NC/REP: those documents have distinct fiscal contracts.
  */
 export function buildInvoicePayload(
-  { invoiceId, invoice: inv }: {
+  { invoiceId, invoice: inv, saleSatContext = {} }: {
     invoiceId: string;
     invoice: Readonly<Record<string, unknown>>;
+    saleSatContext?: SaleSatContext;
   },
 ): InvoicePayloadResult {
+  const saleSatCheck = validateSaleSatCodes(inv, saleSatContext);
+  if (!saleSatCheck.ok) return invalid(422, saleSatCheck.error);
+
   // BL-01: distinguir tasa cero legítima (0) de "no capturada" (null/undefined).
   const taxRatePct = typeof inv.tax_rate === "number" ? inv.tax_rate : 16;
 
@@ -58,6 +67,7 @@ export function buildInvoicePayload(
         discount_type?: "%" | "$";
       }
     >).map((li) => {
+      const explicitSat = requiresExplicitSaleSat(li, saleSatContext);
       const quantity = li.quantity || 1;
       const unitPrice = li.unit_price || 0;
       const objetoImp = li.objeto_imp ?? "02";
@@ -72,8 +82,10 @@ export function buildInvoicePayload(
       const item: Record<string, unknown> = {
         product: {
           description: li.description || "Servicio de renta",
-          product_key: li.clave_prod_serv || "78101803",
-          unit_key: li.clave_unidad || "E48",
+          product_key: explicitSat
+            ? li.clave_prod_serv
+            : li.clave_prod_serv || "78101803",
+          unit_key: explicitSat ? li.clave_unidad : li.clave_unidad || "E48",
           price: unitPrice,
           tax_included: false,
           // M19: ObjetoImp 01 = no objeto de impuesto → línea sin traslados.
