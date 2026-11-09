@@ -22,7 +22,7 @@ vi.mock("@/app-routes/routes-config", () => ({ routeLoaders: { "/users": state.p
 vi.mock("@/hooks/useNavigateTransition", () => ({ useNavigateTransition: () => state.navigate }));
 vi.mock("@/hooks/useDebouncedValue", () => ({ useDebouncedValue: (value: string) => value }));
 vi.mock("@/features/system/hooks/useEntitySearch", () => ({
-  useEntitySearch: () => ({ data: {
+  useEntitySearch: () => ({ canSearchEntities: true, isResolvingAccess: false, data: {
     invoices: [{ id: "i", label: "FAC-SECRET", sub: "Cliente financiero", url: "/invoices/i" }],
     customers: [{ id: "c", label: "Cliente operativo", url: "/customers/c" }],
     quotes: [], bookings: [], deliveries: [], returns: [], errors: { invoices: "Forbidden" },

@@ -75,7 +75,8 @@ export const ROUTE_TO_MODULE: Record<string, string> = {
   "/maintenance": "Mantenimiento",
   "/damage": "Daños",
   "/inventory": "Refacciones",
-  "/expenses": "Gastos",
+  // Legacy alias redirects to CxP; visibility follows the destination permission.
+  "/expenses": "Facturas de Proveedor",
   "/suppliers": "Proveedores",
   "/reports": "Reportes",
   "/mrr": "MRR",
