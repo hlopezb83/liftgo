@@ -33,3 +33,20 @@ Fixture artificial de 1.001 facturas por ruta con partidas voluminosas: bytes de
 La sesión publicada medida contiene pocos datos. Reducir payload y trabajo repetido mejora el caso de escala, pero por sí solo no demuestra eliminar la latencia actual. Los tiempos de red, SQL, SDK, arranque de función y render no son equivalentes; deben separarse mediante instrumentación antes de atribuir la espera.
 
 Sin despliegue, cambios de datos, ni prueba fiscal real desde esta fase. Los ensayos locales no sustituyen pruebas RLS reales ni CI del SHA final integrado.
+
+### Comparación independiente del planner puro
+
+Deno 2.9.6; seis pares de calentamiento y quince pares medidos por tamaño, alternando base/optimizado. Una reserva con historial desordenado/solapado anterior a 24 períodos pendientes. Preparación, comparación exacta de planes y comprobación de mutación fuera del cronómetro.
+
+| Historial | Períodos | Mediana base | Mediana optimizada |
+| --- | ---: | ---: | ---: |
+| 1.000 facturas | 24 | 110,664 ms | 17,223 ms |
+| 5.000 facturas | 24 | 457,364 ms | 47,794 ms |
+
+Todas las salidas coincidieron. Muestras y rangos completos en `recurring-planner-phase2-benchmark-2026-11-09.json`. Es una carga artificial y CPU/memoria de entorno compartido, sin GC forzado; no mide SQL, red, cold-start ni latencia productiva.
+
+### Diagnóstico opcional de lecturas
+
+Los hooks del loader reciben un colector por solicitud. Miden espera de consultas y RPC, páginas, filas y cantidad de cotizaciones por fases fijas. No serializan payloads ni incorporan identificadores, errores o datos fiscales a métricas. Sin colector, la secuencia de consultas es la misma. Prueba de paridad de contexto, URLs consultadas, contadores y fallo de lectura con diagnóstico activado.
+
+Con módulo de métricas y hooks del loader: 332 pruebas Deno focalizadas, incluida verificación de tipos, y 53 pruebas Vitest de historial, selección, modal y hooks. Es evidencia local de esos módulos; los hooks HTTP/CI del conjunto se verifican por separado antes de publicar.
