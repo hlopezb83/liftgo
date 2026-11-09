@@ -8,10 +8,11 @@ import { loginPortal } from "../e2e/fixtures/portalAuth";
 import { readAbContext, type AbSide } from "./fixtures/abSeed";
 import { assertLocalEphemeralBackend } from "./fixtures/localBackend";
 
-const ctx = readAbContext();
+let ctx: ReturnType<typeof readAbContext>;
 
 test.beforeAll(() => {
   assertLocalEphemeralBackend("portal-isolation");
+  ctx = readAbContext();
 });
 
 /**

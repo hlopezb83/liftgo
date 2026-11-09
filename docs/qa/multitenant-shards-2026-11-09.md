@@ -1,0 +1,7 @@
+# Two isolated A/B shards
+
+Baseline last successful job: 5m24s; database startup dominated (~2m40s), 99 tests took ~1m48s. Raising workers against the same deterministic seed is unsafe. This candidate uses two separate GitHub runners, each with its own ephemeral Supabase, guarded migration replay, seed and teardown. workers=1, fullyParallel=false and retries=0 remain unchanged.
+
+Playwright's file-level partition currently enumerates 57 and 42 cases. A complete 99-case manifest is generated with --list; three import-time seed reads are deferred to beforeAll without changing assertions. The two manifests must agree; a final gate rejects stale SHA/run/attempt, duplicate shards, overlapping/missing/additional IDs, skipped/failing/retried cases and runner errors. Six offline review-browser cases run only on shard1 and are required by its seal and the final gate. Only sanitized seals are consumed by the gate; fixture state and environment files are not uploaded.
+
+Validation before PR: complete enumeration99, partitions57+42 with disjoint exact union; nine evidence/gate negative tests; browser TypeScript; focal ESLint; independent review. No local database or browser was started. Runtime and total runner-minute cost need actual CI measurement. Two database bootstraps increase compute/download cost and could encounter registry throttling; no prefetch burst or shared database-volume cache is used.

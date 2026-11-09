@@ -4,13 +4,19 @@ import { readAbContext } from "./fixtures/abSeed";
 import { isStorageDenial } from "./fixtures/denialContract";
 import { createLocalUserClient } from "./fixtures/localBackend";
 
-const ctx = readAbContext();
 function folder(path: string): string { return path.split("/").slice(0, -1).join("/"); }
 
-for (const [label, own, foreign, slug] of [
-  ["A", ctx.A, ctx.B, AB_ORG_A.slug], ["B", ctx.B, ctx.A, AB_ORG_B.slug],
-] as const) {
+for (const [label, slug] of [["A", AB_ORG_A.slug], ["B", AB_ORG_B.slug]] as const) {
+  let own: ReturnType<typeof readAbContext>["A"];
+  let foreign: ReturnType<typeof readAbContext>["A"];
+
   test.describe(`storage ${label} → empresa ajena`, () => {
+    test.beforeAll(() => {
+      const ctx = readAbContext();
+      own = ctx[label];
+      foreign = ctx[label === "A" ? "B" : "A"];
+    });
+
     test("descarga propia tiene contenido exacto y el objeto ajeno existe para su dueño", async () => {
       const client = await createLocalUserClient(label, own.internal.email, own.internal.password);
       const result = await client.storage.from(AB_BUCKET).download(own.storagePath);
@@ -65,6 +71,7 @@ for (const [label, own, foreign, slug] of [
     });
 
     test("objeto legado sin prefijo sigue oculto sin aceptar fallos de infraestructura", async () => {
+      const ctx = readAbContext();
       const client = await createLocalUserClient(label, own.internal.email, own.internal.password);
       const download = await client.storage.from(AB_BUCKET).download(ctx.legacyObjectPath);
       expect(isStorageDenial(download.error, "read"), download.error?.message).toBe(true);

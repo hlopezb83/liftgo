@@ -3,10 +3,17 @@ import { expect, test } from "@playwright/test";
 import { readAbContext } from "./fixtures/abSeed";
 import { createLocalUserClient } from "./fixtures/localBackend";
 
-const ctx = readAbContext();
+for (const label of ["A", "B"] as const) {
+  let own: ReturnType<typeof readAbContext>["A"];
+  let foreign: ReturnType<typeof readAbContext>["A"];
 
-for (const [label, own, foreign] of [["A", ctx.A, ctx.B], ["B", ctx.B, ctx.A]] as const) {
   test.describe(`datos ${label} → empresa ajena`, () => {
+    test.beforeAll(() => {
+      const ctx = readAbContext();
+      own = ctx[label];
+      foreign = ctx[label === "A" ? "B" : "A"];
+    });
+
     test("el personal sólo lee sus propias facturas", async () => {
       const client = await createLocalUserClient(label, own.internal.email, own.internal.password);
       const result = await client.from("invoices").select("id, invoice_number, organization_id");
