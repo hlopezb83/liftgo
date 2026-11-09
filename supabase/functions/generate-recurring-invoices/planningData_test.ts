@@ -438,3 +438,145 @@ Deno.test("global page budget bounds a server that supplies one row per page", a
   );
   equal(calls.length, MAX_PLANNING_PAGES);
 });
+
+Deno.test("phase 2 projects both history reads without line items, preserving >500 coverage and quote payloads", async () => {
+  const source = bookingFixture({
+    quote_id: quoteId(0),
+    quotes: {
+      organization_id: "org-A",
+      line_items: [{
+        line_kind: "transport",
+        description: "QA source",
+        quantity: 1,
+        unit_price: 100,
+      }],
+      rental_meta: [],
+    },
+  });
+  const history = Array.from({ length: 1001 }, (_, i) => ({
+    ...invoiceFixture({
+      id: `projection-${String(i).padStart(5, "0")}`,
+      line_items: [{ description: "QA".repeat(2048) }],
+      billing_period_start: i === 1000 ? "2026-07-01" : "2026-06-01",
+      billing_period_end: i === 1000 ? "2026-07-31" : "2026-06-30",
+      cfdi_status: i === 1000 ? "stamped" : null,
+      cancellation_status: i === 1000 ? "pending" : null,
+    }),
+    organization_id: "org-A",
+    booking_id: source.id,
+  }));
+  const tables = {
+    bookings: [source],
+    organization_customers: [fiscal],
+    invoices: history,
+    invoice_bookings: history.map((invoices) => ({
+      booking_id: source.id,
+      invoice_id: invoices.id,
+      invoices,
+    })),
+  };
+  const full = transport(tables, { cap: 200 });
+  let rawBytes = 0;
+  let projectedBytes = 0;
+  const slim = transport(tables, {
+    cap: 200,
+    respond: ({ url }, rows, count) => {
+      const table = url.pathname.split("/").at(-1);
+      if (table !== "invoices" && table !== "invoice_bookings") return;
+      equal(url.searchParams.get("select")!.includes("line_items"), false);
+      const strip = (row: Row) => {
+        const copy = { ...row };
+        delete copy.line_items;
+        return copy;
+      };
+      const projected = rows.map((row) =>
+        table === "invoices"
+          ? strip(row)
+          : { ...row, invoices: strip(row.invoices as Row) }
+      );
+      rawBytes += new TextEncoder().encode(JSON.stringify(rows)).length;
+      projectedBytes +=
+        new TextEncoder().encode(JSON.stringify(projected)).length;
+      return Response.json(projected, {
+        headers: { "content-range": `0-${rows.length - 1}/${count}` },
+      });
+    },
+  });
+  const [fullContexts, slimContexts] = await Promise.all([
+    loadRecurringPlanningData(full.client, "org-A"),
+    loadRecurringPlanningData(slim.client, "org-A"),
+  ]);
+  equal(slimContexts[0].invoices.length, 1001);
+  equal(slimContexts[0].invoices.every((row) => !("line_items" in row)), true);
+  equal(slimContexts[0].booking.quotes, source.quotes);
+  equal(
+    slim.calls.find(({ url }) => url.pathname.endsWith("/bookings"))!.url
+      .searchParams.get("select")!.includes(
+        "quotes(organization_id,line_items,rental_meta)",
+      ),
+    true,
+  );
+  const options = { includeFuturePeriods: true, futureThroughMonth: "2026-09" };
+  const [fullPlan, slimPlan] = await Promise.all([
+    planRecurringInvoices(fullContexts, today, options),
+    planRecurringInvoices(slimContexts, today, options),
+  ]);
+  equal(slimPlan, fullPlan);
+  equal(slimPlan.lines.map((line) => line.periodStart), [
+    "2026-08-01",
+    "2026-09-01",
+  ]);
+  equal(projectedBytes < rawBytes / 5, true);
+  console.info(
+    `RECURRING_HISTORY_PAYLOAD ${
+      JSON.stringify({ rowsPerRoute: 1001, rawBytes, projectedBytes })
+    }`,
+  );
+});
+
+Deno.test("optional diagnostics count actual scoped reads without changing context or failures", async () => {
+  const { createRecurringPerformance } = await import("./performance.ts");
+  const source = bookingFixture({
+    quote_id: quoteId(0),
+    quotes: { organization_id: "org-A", line_items: [], rental_meta: [] },
+  });
+  const tables = { bookings: [source], organization_customers: [fiscal] };
+  const plain = transport(tables);
+  const observed = transport(tables);
+  const snapshots: unknown[] = [];
+  const metrics = createRecurringPerformance({
+    emit: (snapshot) => snapshots.push(snapshot),
+  });
+  equal(
+    await loadRecurringPlanningData(observed.client, "org-A", metrics),
+    await loadRecurringPlanningData(plain.client, "org-A"),
+  );
+  equal(
+    observed.calls.map((call) => call.url.href),
+    plain.calls.map((call) => call.url.href),
+  );
+  metrics.finish("ok");
+  equal((snapshots[0] as { counts: unknown }).counts, {
+    bookings_rows: 1,
+    fiscal_rows: 1,
+    history_linked_rows: 0,
+    history_direct_rows: 0,
+    quote_ids: 1,
+    read_pages: 4,
+    charge_batches: 1,
+  });
+  equal(JSON.stringify(snapshots).includes("org-A"), false);
+  const failed = transport(tables, {
+    respond: ({ url }) =>
+      url.pathname.endsWith("/invoices")
+        ? Response.json({ message: "QA read failed" }, { status: 500 })
+        : undefined,
+  });
+  await rejects(() =>
+    loadRecurringPlanningData(
+      failed.client,
+      "org-A",
+      createRecurringPerformance({ emit: () => {} }),
+    )
+  );
+});

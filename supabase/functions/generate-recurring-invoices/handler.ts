@@ -1,5 +1,9 @@
 import { fmtMx } from "./periods.ts";
 import { loadRecurringPlanningData } from "./planningData.ts";
+import {
+  createRecurringPerformance,
+  type RecurringPerformance,
+} from "./performance.ts";
 import { planRecurringInvoices } from "./planner.ts";
 import { fiscalSnapshot, previewFingerprint } from "./planFingerprint.ts";
 import type { PlanItem, RecurringPlan } from "./planTypes.ts";
@@ -62,13 +66,20 @@ export async function buildPlan(
   organizationId?: string | null,
   planningDate?: Date,
   futureOptions: FuturePeriodOptions = {},
+  metrics?: RecurringPerformance,
 ): Promise<RecurringPlan> {
-  const contexts = await loadRecurringPlanningData(supabase, organizationId);
-  return planRecurringInvoices(
-    contexts,
-    planningDate ?? nowInMonterrey(),
-    futureOptions,
+  const contexts = await loadRecurringPlanningData(
+    supabase,
+    organizationId,
+    metrics,
   );
+  const plan = () =>
+    planRecurringInvoices(
+      contexts,
+      planningDate ?? nowInMonterrey(),
+      futureOptions,
+    );
+  return metrics ? metrics.measure("plan", plan) : plan();
 }
 
 function errorMessage(error: unknown): string {
@@ -322,7 +333,23 @@ export type HandlerDependencies = {
   requireServiceOrRole?: typeof requireServiceOrRole;
   getAdminClient?: typeof getAdminClient;
   planningDate?: Date;
+  performance?: RecurringPerformance;
 };
+
+function attachPerformance(
+  response: Response,
+  metrics: RecurringPerformance,
+  outcome: "ok" | "error",
+) {
+  const { serverTiming, traceId } = metrics.finish(outcome);
+  response.headers.set("Server-Timing", serverTiming);
+  response.headers.set("X-Recurring-Trace", traceId);
+  response.headers.set(
+    "Access-Control-Expose-Headers",
+    "Server-Timing, X-Recurring-Trace",
+  );
+  return response;
+}
 
 /** Importable HTTP boundary; only index.ts registers the Edge listener. */
 export async function handleRequest(
@@ -331,14 +358,17 @@ export async function handleRequest(
 ): Promise<Response> {
   const corsRes = handleCors(req);
   if (corsRes) return corsRes;
+  const metrics = dependencies.performance ?? createRecurringPerformance();
+  let instrumentPreview = false;
 
   try {
     // Lote C · DIFF 8 rest: auth timing-safe compartida para cron/service.
-    const cronAuth =
-      await (dependencies.authenticateCronRequest ?? authenticateCronRequest)(
-        req,
-      );
-    let supabase;
+    const cronAuth = await metrics.measure(
+      "auth_cron",
+      () =>
+        (dependencies.authenticateCronRequest ?? authenticateCronRequest)(req),
+    );
+    let supabase: SupabaseClient;
     // Multiempresa Fase 1: ejecuciones manuales (usuario autenticado) se
     // acotan SIEMPRE a la organización del caller (nunca al payload). El
     // cron (y el bypass service_role interno) procesan todas las
@@ -348,17 +378,24 @@ export async function handleRequest(
     if (cronAuth.ok) {
       supabase = (dependencies.getAdminClient ?? getAdminClient)();
     } else {
-      const auth =
-        await (dependencies.requireServiceOrRole ?? requireServiceOrRole)(req, [
-          "admin",
-          "administrativo",
-        ]);
+      const auth = await metrics.measure(
+        "auth_user",
+        () =>
+          (dependencies.requireServiceOrRole ?? requireServiceOrRole)(req, [
+            "admin",
+            "administrativo",
+          ]),
+      );
       if (!auth.ok) return auth.response;
       supabase = auth.adminClient;
       if (auth.role !== "service_role") {
-        const callerOrg = await resolveCallerOrganization(
-          supabase,
-          auth.userId,
+        const callerOrg = await metrics.measure(
+          "auth_org",
+          () =>
+            resolveCallerOrganization(
+              supabase,
+              auth.userId,
+            ),
         );
         if (!callerOrg.ok) {
           return jsonError(req, callerOrg.status, callerOrg.message);
@@ -465,24 +502,38 @@ export async function handleRequest(
       });
     }
 
+    // Only a validated, tenant-scoped manual preview exposes diagnostics.
+    // Cron/service results can span organizations and must not emit these counts.
+    instrumentPreview = body.preview === true && !!scopeOrganizationId;
     const { lines, items: allItems, truncated, pendingCount } = await buildPlan(
       supabase,
       scopeOrganizationId,
       dependencies.planningDate,
       body,
+      instrumentPreview ? metrics : undefined,
     );
 
     const eligibleLines = lines.filter((l) => l.eligible);
     const periodMonth = eligibleLines[0]?.periodStart?.slice(0, 7) ?? null;
 
     if (body.preview) {
-      return jsonResponse(req, {
-        success: true,
-        period: periodMonth,
-        lines,
-        truncated,
-        pending_count: pendingCount,
-      });
+      const response = () =>
+        Promise.resolve(jsonResponse(req, {
+          success: true,
+          period: periodMonth,
+          lines,
+          truncated,
+          pending_count: pendingCount,
+        }));
+      if (!instrumentPreview) return response();
+      metrics.count("preview_lines", lines.length);
+      metrics.count("eligible_lines", eligibleLines.length);
+      metrics.count("pending_periods", pendingCount);
+      return attachPerformance(
+        await metrics.measure("serialize", response),
+        metrics,
+        "ok",
+      );
     }
 
     // R9-18 (fix fail-open): decisión centralizada en `selection.ts`. Si el
@@ -581,6 +632,9 @@ export async function handleRequest(
     });
   } catch (err) {
     console.error("[generate-recurring-invoices]", err);
-    return jsonError(req, 500, "Internal server error");
+    const response = jsonError(req, 500, "Internal server error");
+    return instrumentPreview
+      ? attachPerformance(response, metrics, "error")
+      : response;
   }
 }
