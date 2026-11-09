@@ -30,25 +30,31 @@ function bash(command, cwd, env = {}) {
     cwd, encoding: 'utf8', env: { ...process.env, ...env },
   });
 }
-const staticJob = job('quality-static');
+const staticScript = readFileSync('scripts/quality-static.sh', 'utf8');
+const buildScript = readFileSync('scripts/quality-build-smoke.sh', 'utf8');
+const producerScript = readFileSync('scripts/quality-producer.py', 'utf8');
+const staticJob = job('quality-build');
 const buildJob = job('quality-build');
-const browserJob = job('browser-acceptance');
+const browserJob = job('browser-a');
 const gate = job('quality');
 function assertAllSuites(workflow) {
   const build = job('quality-build', workflow);
-  const browser = job('browser-acceptance', workflow);
-  assert.match(build, /run: bunx playwright test --config playwright\.smoke\.config\.ts\n/);
-  assert.equal(workflow.split('run: python3 scripts/run-browser-acceptance.py\n').length - 1, 1);
-  const orchestration = step(browser, 'Ejecutar todas las suites en grupos internos aislados');
-  assert.doesNotMatch(orchestration, /if:|continue-on-error/);
-  assert.match(orchestration, /run: python3 scripts\/run-browser-acceptance\.py/);
+  const browser = job('browser-a', workflow);
+  assert.ok(buildScript.includes('bunx playwright test --config playwright.smoke.config.ts'));
+  for (const lane of ['a', 'b']) {
+    const consumer = job(`browser-${lane}`, workflow);
+    const orchestration = step(consumer, 'Ejecutar todas las suites en grupos internos aislados');
+    assert.doesNotMatch(orchestration, /if:|continue-on-error/);
+    assert.ok(orchestration.includes(`run: python3 scripts/run-browser-acceptance.py --lane ${lane}`));
+  }
+
 }
 
 test('quality has exactly four jobs including its stable gate, without a browser matrix', () => {
   assertAllSuites(source);
-  const qualitySection = source.slice(source.indexOf('  quality-static:'), source.indexOf('  tests:'));
+  const qualitySection = source.slice(source.indexOf('  quality-build:'), source.indexOf('  tests:'));
   const names = [...qualitySection.matchAll(/^  ([\w-]+):$/gm)].map(match => match[1]);
-  assert.deepEqual(names, ['quality-static', 'quality-build', 'browser-acceptance', 'quality']);
+  assert.deepEqual(names, ['quality-build', 'browser-a', 'browser-b', 'quality']);
   assert.doesNotMatch(browserJob, /strategy:|matrix:|continue-on-error/);
   assert.match(browserJob, /SMOKE_REUSE_BUILD: "1"/);
 });
@@ -62,15 +68,17 @@ test('static and build start independently, acceptance waits for the validated b
   for (const text of [staticJob, buildJob]) assert.doesNotMatch(text, /^    (?:needs|if):/m);
   assert.match(browserJob, /^    needs: quality-build$/m);
   assert.doesNotMatch(browserJob, /^    if:/m);
-  assert.equal(source.split('run: node scripts/browser-test-server.mjs --build-only\n').length - 1, 1);
+  assert.equal(buildScript.split('node scripts/browser-test-server.mjs --build-only\n').length - 1, 1);
+  assert.ok(producerScript.includes("BRANCHES = ('static', 'build-smoke')"));
+  assert.ok(producerScript.includes('supervisor.cleanup_descendants()'));
   for (const command of ['bun run lint --max-warnings=0', 'bun run typecheck', 'bun run typecheck:browser-tests', 'bash scripts/arch-check.sh']) {
-    assert.ok(staticJob.includes(`run: ${command}\n`), `Missing static control: ${command}`);
+    assert.ok(staticScript.includes(`${command}\n`), `Missing static control: ${command}`);
   }
   for (const name of ['release-identity', 'eslint-guardrails', 'feature-imports', 'vitest-blob-provenance', 'browser-typecheck', 'lint-migrations', 'quality-workflow']) {
-    assert.ok(staticJob.includes(`scripts/tests/${name}.test.mjs`), `Missing contract: ${name}`);
+    assert.ok(staticScript.includes(`scripts/tests/${name}.test.mjs`), `Missing contract: ${name}`);
   }
-  assert.ok(staticJob.includes('tests/offlineTeardown.test.mjs tests/design-group-c/artifactGuard.test.mjs'));
-  assert.ok(buildJob.includes('run: node --test scripts/tests/browser-test-*.test.mjs'));
+  assert.ok(staticScript.includes('tests/offlineTeardown.test.mjs tests/design-group-c/artifactGuard.test.mjs'));
+  assert.ok(buildScript.includes('node --test scripts/tests/browser-test-*.test.mjs'));
 });
 
 test('only the producer saves caches, and all consumers strip local dotenv before installing', () => {
@@ -89,7 +97,7 @@ test('artifact is run/attempt scoped, built only after smoke and checked before 
   const download = step(browserJob, 'Descargar sólo el build validado por el productor');
   assert.doesNotMatch(download, /github\.run_attempt/);
   assert.match(buildJob, /retention-days: 7/);
-  assert.ok(buildJob.indexOf('playwright.smoke.config.ts') < buildJob.indexOf('id: pack'));
+  assert.ok(buildJob.indexOf('python3 scripts/quality-producer.py') < buildJob.indexOf('id: pack'));
   assert.match(buildJob, /path: \$\{\{ runner\.temp \}\}\/browser-build\.tar\.gz/);
   assert.match(buildJob, /if-no-files-found: error/);
   const restore = shell(step(browserJob, 'Verificar bytes y restaurar build'));
@@ -101,21 +109,21 @@ test('artifact is run/attempt scoped, built only after smoke and checked before 
 test('all suite evidence is preserved on failure', () => {
   const evidence = step(browserJob, 'Subir evidencia del carril');
   assert.match(evidence, /if: always\(\)/);
-  assert.ok(evidence.includes('name: browser-acceptance-${{ github.run_id }}-${{ github.run_attempt }}'));
+  assert.ok(evidence.includes('name: browser-a-${{ github.run_id }}-${{ github.run_attempt }}'));
   assert.match(evidence, /playwright-report\/\n            test-results\//);
 });
 
 test('stable quality check explicitly requires all dependencies and cannot be skipped on failure', () => {
   assert.match(gate, /name: Calidad \(lint, tipos, build y arranque\)/);
-  assert.match(gate, /needs: \[quality-static, quality-build, browser-acceptance\]/);
+  assert.match(gate, /needs: \[quality-build, browser-a, browser-b\]/);
   assert.match(gate, /^    if: always\(\)$/m);
-  for (const [env, dependency] of [['STATIC_RESULT', 'quality-static'], ['BUILD_RESULT', 'quality-build'], ['BROWSER_RESULT', 'browser-acceptance']]) {
+  for (const [env, dependency] of [['A_RESULT', 'browser-a'], ['BUILD_RESULT', 'quality-build'], ['B_RESULT', 'browser-b']]) {
     assert.ok(gate.includes(`${env}: \${{ needs.${dependency}.result }}`));
   }
 });
 
 const gateShell = shell(step(gate, 'Exigir todos los controles de calidad'));
-const good = { STATIC_RESULT: 'success', BUILD_RESULT: 'success', BROWSER_RESULT: 'success' };
+const good = { A_RESULT: 'success', BUILD_RESULT: 'success', B_RESULT: 'success' };
 test('actual gate shell succeeds only when every result is success', () => {
   assert.equal(bash(gateShell, process.cwd(), good).status, 0);
   for (const variable of Object.keys(good)) {

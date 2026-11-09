@@ -40,6 +40,7 @@ GROUPS = {
     "group-c-components": ("group-c-components",),
 }
 
+LANES = {"a": ("mobile-invoice", "group-c-app"), "b": ("quotes-inventory-bookings", "group-c-components")}
 
 def suite_command(suite: str) -> list[str]:
     command = ["node", "node_modules/@playwright/test/cli.js", "test", "--config", CONFIGS[suite]]
@@ -232,7 +233,8 @@ def run_group(group: str, env: dict[str, str], log_dir: Path = LOG_DIR) -> int:
     return int(not clean or len(records) != len(suites) or any(row["exit_code"] != 0 for row in records))
 
 
-def run_all(env: dict[str, str]) -> int:
+def run_all(env: dict[str, str], lane: str | None = None) -> int:
+    groups = tuple(GROUPS) if lane is None else LANES[lane]
     # Validate build reuse before launching even one supervisor.
     for suite in CONFIGS:
         suite_environment(suite, env)
@@ -241,7 +243,7 @@ def run_all(env: dict[str, str]) -> int:
     results = {}
     with signal_handlers():
         try:
-            for group in GROUPS:
+            for group in groups:
                 if STOP_SIGNAL:
                     break
                 children[group] = subprocess.Popen(
@@ -264,15 +266,18 @@ def run_all(env: dict[str, str]) -> int:
                 child.wait(timeout=1)
     if STOP_SIGNAL:
         return 128 + STOP_SIGNAL
-    return int(not clean or len(results) != len(GROUPS) or any(code != 0 for code in results.values()))
+    return int(not clean or len(results) != len(groups) or any(code != 0 for code in results.values()))
 
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--group", choices=tuple(GROUPS), help=argparse.SUPPRESS)
+    parser.add_argument("--lane", choices=tuple(LANES))
     args = parser.parse_args(argv)
+    if args.group and args.lane:
+        parser.error("group and lane are mutually exclusive")
     try:
-        return run_group(args.group, dict(os.environ)) if args.group else run_all(dict(os.environ))
+        return run_group(args.group, dict(os.environ)) if args.group else run_all(dict(os.environ), args.lane)
     except (OSError, RuntimeError, ValueError, subprocess.SubprocessError) as error:
         print(f"::error::{error}", file=sys.stderr)
         return 1

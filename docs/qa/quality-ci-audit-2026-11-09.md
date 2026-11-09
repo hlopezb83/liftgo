@@ -125,3 +125,9 @@ navegador conserva sus siete suites en cuatro grupos internos con puertos y
 outputs aislados. No hay matriz oculta que incremente el número de jobs.
 Debe medirse nuevamente el tiempo total y la contención del runner compartido;
 el resultado intermedio no acredita el nuevo diseño.
+
+## Follow-up: four jobs with two browser runners
+
+The first four-job run passed the quality gate in about 7m48s, but browser acceptance alone took 6m02s on one runner with four internal groups. Global CI failed on a customer-search timeout and Supabase prefetch. This does not meet the five-minute target.
+
+The next candidate retains four total quality jobs: a producer that supervises static checks concurrently with build/smoke, two consumers each running two disjoint existing browser groups, and the historical aggregate gate. The producer reuses bounded subreaper cleanup. No suite, retry, worker setting, permission or production guard is removed. Supabase prefetch now exposes sanitized failure diagnostics and retries only observed transient failures once within one shared time budget. Remote measurements remain required.

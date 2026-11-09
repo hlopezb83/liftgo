@@ -89,9 +89,9 @@ bloquean la integración. Los avisos informativos de pruebas aprobadas se conser
 
 | Job | Corre | Qué protege |
 | --- | --- | --- |
-| `quality-static` | siempre | ESLint, tipos de app/navegador, arquitectura y contratos de los guardrails |
-| `quality-build` | siempre | Un build ficticio, aislamiento de red y **smoke de arranque real** |
-| `browser-acceptance` | tras build/smoke correcto | Cuatro grupos internos: móvil + factura; cotizaciones + inventario + reservas; Group C app; componentes. Todas las suites y viewports anteriores |
+| `quality-build` | siempre | Estático (lint/tipos/contratos) y build/smoke en dos ramas supervisadas en paralelo |
+| `browser-a` | tras productor correcto | Móvil + factura y Group C app en dos grupos aislados |
+| `browser-b` | tras productor correcto | Cotizaciones + inventario + reservas y componentes en dos grupos aislados |
 | `quality` | siempre, incluso con dependencias fallidas | Gate con el nombre histórico **Calidad (lint, tipos, build y arranque)**; exige estático, build/smoke y toda la aceptación verdes |
 | `tests` (matriz 1/6 … 6/6) | siempre | Suite completa de Vitest, repartida en seis shards |
 | `tests-merge` | siempre | Une los blobs y aplica los **umbrales de cobertura** |
@@ -141,10 +141,10 @@ espera todos los resultados y falla si cualquiera falla; sus procesos tienen
 limpieza y límites explícitos. Los outputs nunca usan la raíz compartida:
 móvil usa `test-results/mobile`, Group C separa aplicación/componentes, y cada
 suite conserva un log propio. El artifact
-`browser-acceptance-<run>-<intento>` incluye `playwright-report/` y
+`browser-a-<run>-<intento>` o `browser-b-<run>-<intento>` incluye `playwright-report/` y
 `test-results/`, incluso al fallar. Las capturas de factura se conservan también
 cuando pasan; smoke guarda su diagnóstico si falla. No se quitaron pruebas ni
-se enviaron a una ejecución nocturna. La contención de CPU de los cuatro grupos
+se enviaron a una ejecución nocturna. La contención de CPU de los dos grupos por runner
 se debe medir en Actions antes de acreditar el objetivo de cinco minutos.
 
 La auditoría y los tiempos anteriores están en
@@ -170,7 +170,7 @@ señal (archivos, dependencias, exports y tipos sin uso) se revisa en local con
 
 ### Integridad de los guardrails y pruebas de navegador
 
-`quality-static` prueba los controles mismos antes de usarlos: identidad de release,
+`quality-static.sh`, ejecutado por el productor, prueba los controles mismos antes de usarlos: identidad de release,
 configuración efectiva de ESLint, fronteras de imports, procedencia de blobs y
 alcance del proyecto TypeScript de navegador. Los sentinelas negativos deben
 rechazar entradas deliberadamente incorrectas; no sustituyen lint, typecheck,

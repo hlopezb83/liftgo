@@ -49,6 +49,21 @@ class RunnerContractTests(unittest.TestCase):
         with self.assertRaises(KeyError):
             runner.suite_command("mobile --grep skipped")
 
+    def test_two_lanes_partition_all_groups_once(self):
+        self.assertEqual(runner.LANES, {
+            "a": ("mobile-invoice", "group-c-app"),
+            "b": ("quotes-inventory-bookings", "group-c-components"),
+        })
+        groups = [group for lane in runner.LANES.values() for group in lane]
+        self.assertCountEqual(groups, runner.GROUPS)
+        self.assertEqual(len(groups), len(set(groups)))
+        for lane, expected in runner.LANES.items():
+            child = mock.Mock()
+            child.poll.return_value = 0
+            with mock.patch.object(runner, "enable_subreaper"), mock.patch.object(runner, "cleanup_descendants", return_value=True), mock.patch.object(runner.subprocess, "Popen", return_value=child) as launch:
+                self.assertEqual(runner.run_all(ENV, lane), 0)
+                self.assertEqual([call.args[0][-1] for call in launch.call_args_list], list(expected))
+
     def test_reuses_build_keeps_ci_and_has_no_evidence_collisions(self):
         roots = []
         for suite in EXPECTED:
