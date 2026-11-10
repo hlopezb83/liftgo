@@ -57,7 +57,7 @@ describe.each([false, true])("QuotesPage server list, mobile=%s", (mobile) => {
     fireEvent.click(screen.getByRole("button", { name: "Ir a la página siguiente" }));
     expect(await screen.findByText("26–50 de 501")).toBeInTheDocument();
     expect(state.requests.at(-1)?.pageIndex).toBe(1);
-    fireEvent.click(screen.getByRole("button", { name: "21" }));
+    fireEvent.click(screen.getByRole("button", { name: "Ir a la página 21" }));
     expect(await screen.findByText("501–501 de 501")).toBeInTheDocument();
     expect(screen.getByText("COT-0445")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Ir a la página siguiente" })).toBeDisabled();

@@ -24,7 +24,7 @@ describe.each([false, true])("inventory server UI mobile=%s", (mobile) => {
   it("reaches piece501 and displays global indicator on every page", async () => {
     mount(); expect(await screen.findByText("1–25 de 501")).toBeInTheDocument();
     expect(screen.getByText("Refacciones con stock bajo")).toBeInTheDocument();
-    fireEvent.click(screen.getByRole("button", { name: "21" }));
+    fireEvent.click(screen.getByRole("button", { name: "Ir a la página 21" }));
     expect(await screen.findByText("501–501 de 501")).toBeInTheDocument();
     expect(screen.getByText("TARGET")).toBeInTheDocument();
     expect(screen.queryByText(/Mostrando los primeros/)).toBeNull();
