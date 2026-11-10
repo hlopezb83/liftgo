@@ -17,6 +17,15 @@ const manifest = JSON.parse(readFileSync(new URL("../../package.json", import.me
 const coreRequire = createRequire(require.resolve("@esbuild-kit/core-utils"));
 const typographyRequire = createRequire(require.resolve("@tailwindcss/typography"));
 
+test("Vite's exact declaration, override and installed consumer copies stay aligned", () => {
+  assert.equal(manifest.devDependencies.vite, "8.3.6");
+  assert.equal(manifest.overrides.vite, manifest.devDependencies.vite);
+  for (const parent of [require, createRequire(require.resolve("vitest")),
+    createRequire(require.resolve("@lovable.dev/vite-tanstack-config"))]) {
+    assert.equal(parent("vite/package.json").version, manifest.devDependencies.vite);
+  }
+});
+
 test("flat overrides resolve patched copies without downgrading Wrangler or tsx", () => {
   assert.equal(coreRequire("esbuild/package.json").version,
     manifest.overrides.esbuild);

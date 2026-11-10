@@ -70,7 +70,7 @@ describe("public smoke read-only network policy", () => {
 });
 
 async function fixture(path = "/assets/app.js", method = "GET", status = 200, contentType = "application/javascript") {
-  const context = { route: vi.fn(), routeWebSocket: vi.fn() };
+  const context = { route: vi.fn(), routeWebSocket: vi.fn(), close: vi.fn() };
   const guard = await guardReadOnlyApp(context as unknown as BrowserContext, ORIGIN);
   const response = { status: () => status, headers: () => ({ "content-type": contentType }) };
   const route = {
@@ -113,7 +113,76 @@ describe("public smoke interception enforcement", () => {
     route.fetch.mockRejectedValue(new Error("connection failed"));
     await handler(route);
     expect(route.abort).toHaveBeenCalledOnce();
-    expect(guard.problems).toEqual(["Could not read /assets/app.js"]);
+    expect(guard.problems).toEqual(["Could not read /assets/app.js: network failure"]);
+  });
+
+  it.each(["Target page, context or browser has been closed", "Route is already handled!", "unknown secret payload"])("does not abort after fulfill rejection: %s", async (message) => {
+    const { route, handler, guard } = await fixture();
+    route.fulfill.mockRejectedValue(new Error(message));
+    await expect(handler(route)).resolves.toBeUndefined();
+    expect(route.fulfill).toHaveBeenCalledOnce();
+    expect(route.abort).not.toHaveBeenCalled();
+    expect(guard.assets.size).toBe(0);
+    expect(guard.problems).toHaveLength(1);
+    expect(guard.problems[0]).toMatch(/^Could not fulfill read-only route:/);
+    expect(guard.problems.join()).not.toContain("secret payload");
+  });
+
+  it.each([302, 404, 200])("retains the response problem when abort rejects (%s)", async (status) => {
+    const { route, handler, guard } = await fixture("/assets/app.js", "GET", status, "text/html");
+    route.abort.mockRejectedValue(new Error("Route is already handled!"));
+    await expect(handler(route)).resolves.toBeUndefined();
+    expect(route.abort).toHaveBeenCalledOnce();
+    expect(route.fulfill).not.toHaveBeenCalled();
+    expect(guard.problems).toEqual([
+      responseProblem(`${ORIGIN}/assets/app.js`, status, "text/html"),
+      "Could not abort read-only route: route already handled",
+    ]);
+  });
+
+  it("retains a sanitized fetch failure when teardown also rejects abort", async () => {
+    const { route, handler, guard } = await fixture();
+    route.fetch.mockRejectedValue(new Error("Timeout https://user:password@backend.invalid/?token=secret Authorization: secret"));
+    route.abort.mockRejectedValue(new Error("Target context closed token=secret"));
+    await expect(handler(route)).resolves.toBeUndefined();
+    expect(route.fetch).toHaveBeenCalledOnce();
+    expect(route.abort).toHaveBeenCalledOnce();
+    expect(route.fulfill).not.toHaveBeenCalled();
+    expect(guard.problems).toEqual([
+      "Could not read /assets/app.js: timeout",
+      "Could not abort read-only route: target closed",
+    ]);
+  });
+
+  it.each(["POST", "DELETE"])("never sends a blocked %s when abort rejects during teardown", async (method) => {
+    const { route, handler, guard } = await fixture("/assets/app.js", method);
+    route.abort.mockRejectedValue(new Error("Target closed"));
+    await expect(handler(route)).resolves.toBeUndefined();
+    expect(route.abort).toHaveBeenCalledOnce();
+    expect(route.fetch).not.toHaveBeenCalled();
+    expect(route.fulfill).not.toHaveBeenCalled();
+    expect(guard.problems).toEqual([
+      `Blocked ${method} /assets/app.js`, "Could not abort read-only route: target closed",
+    ]);
+  });
+
+  it("closes the guarded context and drains a late terminal rejection before final assertions", async () => {
+    const { context, route, handler, guard } = await fixture();
+    let rejectFulfill!: (error: Error) => void;
+    route.fulfill.mockImplementation(() => new Promise<void>((_resolve, reject) => { rejectFulfill = reject; }));
+    const operation = handler(route);
+    await vi.waitFor(() => expect(route.fulfill).toHaveBeenCalledOnce());
+    let drained = false;
+    const drain = guard.closeAndDrain().then(() => { drained = true; });
+    await Promise.resolve();
+    expect(context.close).toHaveBeenCalledOnce();
+    expect(drained).toBe(false);
+    expect(guard.problems).toEqual([]);
+    rejectFulfill(new Error("Target context has been closed"));
+    await Promise.all([operation, drain]);
+    expect(drained).toBe(true);
+    expect(route.abort).not.toHaveBeenCalled();
+    expect(guard.problems).toEqual(["Could not fulfill read-only route: target closed"]);
   });
 
   it("closes WebSockets without connecting to any server", async () => {

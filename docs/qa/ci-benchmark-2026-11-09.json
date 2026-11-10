@@ -1,0 +1,207 @@
+{
+  "date": "2026-11-09",
+  "timeZone": "America/Mexico_City",
+  "repository": "hlopezb83/liftgo",
+  "pullRequest": "https://github.com/hlopezb83/liftgo/pull/436",
+  "testedCommit": "993677d6607b4a99f452250f7daa6b3189f377b6",
+  "workflowSha256": {
+    ".github/workflows/ci.yml": "ded509c49293e790d553a51c78ee2f3b1efaf6ea69320e53e23578e93e161c66",
+    ".github/workflows/validaciones-manuales.yml": "a98f4169274f1408ae1fac1e64b1883223ea4e3e069d0343c614ad248b0f1893"
+  },
+  "automaticBlocks": [
+    "quality",
+    "tests",
+    "build-smoke"
+  ],
+  "vitestShards": 4,
+  "targetSeconds": 300,
+  "warmRunsRequested": 2,
+  "warmRunsPassed": 2,
+  "minWarmSeconds": 225,
+  "maxWarmSeconds": 234,
+  "durationDefinition": "GitHub run updated_at minus created_at, including queue/startup and post-job cleanup; not summed job durations.",
+  "warmRuns": [
+    {
+      "id": 42725910042,
+      "url": "https://github.com/hlopezb83/liftgo/actions/runs/42725910042",
+      "commit": "993677d6607b4a99f452250f7daa6b3189f377b6",
+      "conclusion": "success",
+      "createdAt": "2026-11-10T00:07:52Z",
+      "completedAt": "2026-11-10T00:11:46Z",
+      "totalSeconds": 234,
+      "packageCacheHit": true,
+      "chromiumCacheHit": true,
+      "jobs": [
+        {
+          "name": "Calidad",
+          "conclusion": "success",
+          "seconds": 166
+        },
+        {
+          "name": "Unitarias 2/4",
+          "conclusion": "success",
+          "seconds": 154
+        },
+        {
+          "name": "Unitarias 1/4",
+          "conclusion": "success",
+          "seconds": 216
+        },
+        {
+          "name": "Unitarias 4/4",
+          "conclusion": "success",
+          "seconds": 228
+        },
+        {
+          "name": "Build y smoke",
+          "conclusion": "success",
+          "seconds": 80
+        },
+        {
+          "name": "Unitarias 3/4",
+          "conclusion": "success",
+          "seconds": 205
+        }
+      ]
+    },
+    {
+      "id": 42726446260,
+      "url": "https://github.com/hlopezb83/liftgo/actions/runs/42726446260",
+      "commit": "993677d6607b4a99f452250f7daa6b3189f377b6",
+      "conclusion": "success",
+      "createdAt": "2026-11-10T00:12:00Z",
+      "completedAt": "2026-11-10T00:15:45Z",
+      "totalSeconds": 225,
+      "packageCacheHit": true,
+      "chromiumCacheHit": true,
+      "jobs": [
+        {
+          "name": "Build y smoke",
+          "conclusion": "success",
+          "seconds": 81
+        },
+        {
+          "name": "Unitarias 2/4",
+          "conclusion": "success",
+          "seconds": 141
+        },
+        {
+          "name": "Calidad",
+          "conclusion": "success",
+          "seconds": 146
+        },
+        {
+          "name": "Unitarias 1/4",
+          "conclusion": "success",
+          "seconds": 218
+        },
+        {
+          "name": "Unitarias 3/4",
+          "conclusion": "success",
+          "seconds": 204
+        },
+        {
+          "name": "Unitarias 4/4",
+          "conclusion": "success",
+          "seconds": 175
+        }
+      ]
+    }
+  ],
+  "earlierSupplement": {
+    "id": 42725383542,
+    "url": "https://github.com/hlopezb83/liftgo/actions/runs/42725383542",
+    "seconds": 232,
+    "cacheScope": "Repository package, Chromium and Gitleaks caches cleared; setup-bun runtime binary cache was warm.",
+    "classification": "dependencies-cold; not a fully cold runtime installation"
+  },
+  "manualValidation": {
+    "id": 42724426336,
+    "url": "https://github.com/hlopezb83/liftgo/actions/runs/42724426336",
+    "commit": "993677d6607b4a99f452250f7daa6b3189f377b6",
+    "conclusion": "success",
+    "successfulJobs": 15,
+    "totalJobs": 15,
+    "totalSeconds": 313,
+    "environment": "Disposable local databases and synthetic data; no production credentials or writes",
+    "jobs": [
+      {
+        "name": "Inventory tenant and paging contract",
+        "conclusion": "success",
+        "seconds": 23
+      },
+      {
+        "name": "Pruebas (Vitest shard 4/6)",
+        "conclusion": "success",
+        "seconds": 132
+      },
+      {
+        "name": "Analyze (javascript-typescript)",
+        "conclusion": "success",
+        "seconds": 121
+      },
+      {
+        "name": "Analyze (actions)",
+        "conclusion": "success",
+        "seconds": 38
+      },
+      {
+        "name": "RLS DB tests (Supabase local)",
+        "conclusion": "success",
+        "seconds": 250
+      },
+      {
+        "name": "Analyze (python)",
+        "conclusion": "success",
+        "seconds": 61
+      },
+      {
+        "name": "Pruebas (Vitest shard 5/6)",
+        "conclusion": "success",
+        "seconds": 159
+      },
+      {
+        "name": "Aceptación offline A (grupos aislados)",
+        "conclusion": "success",
+        "seconds": 261
+      },
+      {
+        "name": "Pruebas (Vitest shard 6/6)",
+        "conclusion": "success",
+        "seconds": 167
+      },
+      {
+        "name": "Pruebas (Vitest shard 2/6)",
+        "conclusion": "success",
+        "seconds": 145
+      },
+      {
+        "name": "Pruebas (Vitest shard 1/6)",
+        "conclusion": "success",
+        "seconds": 162
+      },
+      {
+        "name": "Gate A/B multiempresa (Supabase local efímero)",
+        "conclusion": "success",
+        "seconds": 306
+      },
+      {
+        "name": "Aceptación offline B (grupos aislados)",
+        "conclusion": "success",
+        "seconds": 207
+      },
+      {
+        "name": "Pruebas (Vitest shard 3/6)",
+        "conclusion": "success",
+        "seconds": 158
+      },
+      {
+        "name": "Pruebas (merge + cobertura)",
+        "conclusion": "success",
+        "seconds": 48
+      }
+    ]
+  },
+  "documentationBaseCommit": "b7e53ea133c4b14571b625ea301a696e608e6199",
+  "concurrentChangesNote": "After these measurements, main received unrelated release-generator/build/preview updates. Both workflow files remained byte-identical to the measured commit. The recorded timings and manual validation apply to the explicit testedCommit; no additional benchmark was launched."
+}

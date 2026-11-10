@@ -7,7 +7,7 @@ import { renderHook } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 const operatorState = vi.hoisted(() => ({ data: undefined as boolean | undefined }));
-const roleState = vi.hoisted(() => ({ role: "admin" }));
+const roleState = vi.hoisted(() => ({ role: "admin", roleError: false, permissionsError: false, loading: false }));
 
 vi.mock("@/features/platform", () => ({
   usePlatformOperatorStatus: () => operatorState,
@@ -21,8 +21,8 @@ vi.mock("@/features/users", async (importOriginal) => {
   );
   return {
     ...actual,
-    useUserRole: () => ({ data: roleState.role }),
-    useRolePermissions: () => ({ data: { admin: fullAccess, dispatcher: fullAccess } }),
+    useUserRole: () => ({ data: roleState.loading ? undefined : roleState.role, isError: roleState.roleError }),
+    useRolePermissions: () => ({ data: roleState.loading ? undefined : { admin: fullAccess, dispatcher: fullAccess }, isError: roleState.permissionsError }),
   };
 });
 
@@ -37,6 +37,9 @@ describe("useVisibleNavGroups — operación de plataforma", () => {
   afterEach(() => {
     operatorState.data = undefined;
     roleState.role = "admin";
+    roleState.roleError = false;
+    roleState.permissionsError = false;
+    roleState.loading = false;
   });
 
   it("oculta /platform mientras no hay confirmación del servidor", () => {
@@ -49,6 +52,17 @@ describe("useVisibleNavGroups — operación de plataforma", () => {
   it("oculta /platform a un admin que no es operador", () => {
     operatorState.data = false;
     expect(visibleUrls()).not.toContain("/platform");
+  });
+
+  it.each(["roleError", "permissionsError", "loading"] as const)("hides organization entries on %s", (field) => {
+    roleState[field] = true;
+    expect(visibleUrls()).toEqual([]);
+  });
+
+  it("keeps independently confirmed platform access when organization permissions fail", () => {
+    roleState.permissionsError = true;
+    operatorState.data = true;
+    expect(visibleUrls()).toEqual(["/platform"]);
   });
 
   it("muestra el centro sólo al operador y conserva el destino del Panel empresarial", () => {

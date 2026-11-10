@@ -5,6 +5,7 @@ const fs = require('node:fs');
 const net = require('node:net');
 const path = require('node:path');
 const { createRequire } = require('node:module');
+const { pathToFileURL } = require('node:url');
 const { before, after, mock, test } = require('node:test');
 const postgresFactory = require('../lib/postgres-factory.cjs');
 
@@ -20,14 +21,71 @@ before(() => {
   mock.method(net.Socket.prototype, 'connect', () => { throw new Error('Network forbidden in offline Postgres contracts'); });
   assert.equal(JSON.parse(fs.readFileSync(path.join(path.dirname(sessionFile), '../package.json'))).version, '0.45.4');
   const lock = JSON.parse(fs.readFileSync(path.join(root, 'bun.lock'), 'utf8').replace(/,(\s*[}\]])/g, '$1'));
-  assert.equal(lock.packages.postgres[0], 'postgres@4.0.0');
-  assert.equal(JSON.parse(fs.readFileSync(path.join(root, 'package.json'))).devDependencies.postgres, '4.0.0');
+  assert.equal(lock.packages.postgres[0], 'postgres@4.1.0');
+  assert.equal(JSON.parse(fs.readFileSync(path.join(root, 'package.json'))).devDependencies.postgres, '4.1.0');
   ({ PostgresJsSession } = installedRequire('drizzle-orm/postgres-js/session'));
   ({ PgDialect } = installedRequire('drizzle-orm/pg-core/dialect'));
   ({ sql } = installedRequire('drizzle-orm/sql'));
   ({ DrizzleQueryError } = installedRequire('drizzle-orm/errors'));
 });
 after(() => mock.restoreAll());
+
+test('installed Postgres 4.1 ESM and normalized CJS factories construct offline', async () => {
+  const entry = installedRequire.resolve('postgres');
+  const installed = JSON.parse(fs.readFileSync(path.join(path.dirname(entry), '../package.json')));
+  assert.equal(installed.version, '4.1.0');
+  const namespace = installedRequire('postgres');
+  const { default: esm } = await import(pathToFileURL(entry).href);
+  assert.equal(postgresFactory(namespace), esm);
+  const clients = [];
+  try {
+    for (const factory of [esm, postgresFactory(namespace)]) {
+      const sql = factory({ host: '127.0.0.1', port: 1, database: 'synthetic',
+        username: 'synthetic', password: '', ssl: false, max: 1 });
+      clients.push(sql);
+      assert.equal(sql.options.ssl, false);
+      assert.equal(sql.options.max, 1);
+      assert.equal(sql.options.prepare, true);
+      assert.equal(sql.options.query_timeout, 0);
+      assert.equal(sql.options.cancel_timeout, 5);
+      for (const method of ['unsafe', 'begin', 'reserve', 'end', 'json'])
+        assert.equal(typeof sql[method], 'function', method);
+      // The actual Drizzle CJS package accepts the preconstructed client.
+      const { drizzle } = installedRequire('drizzle-orm/postgres-js');
+      assert.equal(drizzle({ client: sql }).$client, sql);
+      for (const oid of ['1184', '1082', '1083', '1114', '1182', '1185', '1115', '1231']) {
+        assert.equal(sql.options.parsers[oid]('offline-value'), 'offline-value');
+        assert.equal(sql.options.serializers[oid]('offline-value'), 'offline-value');
+      }
+    }
+  } finally {
+    await Promise.all(clients.map(sql => sql.end({ timeout: 0 })));
+  }
+  assert.equal(net.Socket.prototype.connect.mock.callCount(), 0, 'No database connection attempted');
+});
+
+test('Postgres 4.1 honors PGSSLMODE without overriding explicit TLS options', async () => {
+  const original = process.env.PGSSLMODE;
+  const factory = postgresFactory(installedRequire('postgres'));
+  const clients = [];
+  const config = { host: '127.0.0.1', port: 1, database: 'synthetic', username: 'synthetic', password: '' };
+  const make = (options) => { const client = factory(options); clients.push(client); return client; };
+  try {
+    process.env.PGSSLMODE = 'verify-full';
+    assert.equal(make(config).options.ssl, 'verify-full');
+    assert.equal(make({ ...config, ssl: false }).options.ssl, false, 'Explicit local-only fixture option wins');
+    const tls = { rejectUnauthorized: true };
+    assert.equal(make({ ...config, ssl: tls }).options.ssl, tls, 'Do not disable certificate verification');
+    const fromUrl = factory('postgres://synthetic@127.0.0.1:1/synthetic?sslmode=verify-ca');
+    clients.push(fromUrl);
+    assert.equal(fromUrl.options.ssl, 'verify-ca', 'URL setting wins over environment');
+  } finally {
+    if (original === undefined) delete process.env.PGSSLMODE;
+    else process.env.PGSSLMODE = original;
+    await Promise.all(clients.map(sql => sql.end({ timeout: 0 })));
+  }
+  assert.equal(net.Socket.prototype.connect.mock.callCount(), 0, 'No database connection attempted');
+});
 
 function client(label = 'root', failure) {
   const calls = [];
@@ -55,7 +113,7 @@ function driver(postgresImport) {
 }
 
 test('v3 factory identity and attached helpers survive without eager client creation', t => {
-  t.diagnostic(`process.version=${process.version}; postgres.lock=4.0.0; drizzle=0.45.4; postgresRuntime=NOT_LOADED; postgres4=NOT_LOADED; DB=NOT_RUN`);
+  t.diagnostic(`process.version=${process.version}; postgres.lock=4.1.0; drizzle=0.45.4; fixture=MODELED_V3_FACTORY; DB=NOT_RUN`);
   let calls = 0;
   const result = Object.freeze({ synthetic: true });
   const factory = () => { calls++; return result; };

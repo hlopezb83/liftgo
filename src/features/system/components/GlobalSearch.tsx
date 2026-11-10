@@ -1,6 +1,6 @@
-import { useCallback, useEffect, useState, useMemo, useRef, useTransition, type ElementType } from "react";
+import { useCallback, useEffect, useState, useMemo, useRef, useTransition } from "react";
 import { routeLoaders } from "@/app-routes/routes-config";
-import { CalendarDays, FleetIcon, UsersIcon, DocumentIcon, BookOpen, ScrollText, DeliveryIcon, ClipboardCheck, InvoiceIcon, MaintenanceIcon, WarnIcon, InventoryIcon, SupplierIcon, ExpenseIcon, ChartIcon, ActivityIcon, HistoryIcon, SettingsIcon, CompanyIcon, SecurityIcon, HelpIcon, TargetIcon, DashboardIcon, SearchIcon, SpinnerIcon } from "@/components/icons";
+import { UsersIcon, DocumentIcon, BookOpen, DeliveryIcon, InvoiceIcon, SearchIcon, SpinnerIcon } from "@/components/icons";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -10,39 +10,10 @@ import { useEntitySearch, type EntityResults } from "@/features/system/hooks/use
 import { getNavigationAccessLevel, useHasFinancialAccess, useHasModuleAccess, useRolePermissions, useUserRole } from "@/features/users";
 import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";
+import { SEARCH_NAVIGATION_ITEMS, type SearchNavigationItem } from "@/lib/navigation/navigationCatalog";
 import { notifyError } from "@/lib/ui/appFeedback";
 import { restoreModalFocus } from "@/lib/ui/restoreModalFocus";
 import { normalizeQuoteNumber } from "../lib/quoteSearchTerm";
-
-type Item = { title: string; url: string; icon: ElementType; group: string; keywords?: string };
-
-const ITEMS: Item[] = [
-  { title: "Panel", url: "/", icon: DashboardIcon, group: "General" },
-  { title: "Calendario", url: "/calendar", icon: CalendarDays, group: "General", keywords: "gantt reservas" },
-  { title: "CRM", url: "/crm", icon: TargetIcon, group: "Comercial", keywords: "prospectos pipeline" },
-  { title: "Clientes", url: "/customers", icon: UsersIcon, group: "Comercial" },
-  { title: "Cotizaciones", url: "/quotes", icon: DocumentIcon, group: "Comercial" },
-  { title: "Reservas", url: "/bookings", icon: BookOpen, group: "Comercial" },
-  { title: "Contratos", url: "/contracts", icon: ScrollText, group: "Operaciones" },
-  { title: "Entregas", url: "/deliveries", icon: DeliveryIcon, group: "Operaciones" },
-  { title: "Devoluciones", url: "/returns", icon: ClipboardCheck, group: "Operaciones" },
-  { title: "Facturas", url: "/invoices", icon: InvoiceIcon, group: "Operaciones" },
-  { title: "Equipos", url: "/fleet", icon: FleetIcon, group: "Flota", keywords: "montacargas" },
-  { title: "Mantenimiento", url: "/maintenance", icon: MaintenanceIcon, group: "Flota" },
-  { title: "Daños", url: "/damage", icon: WarnIcon, group: "Flota" },
-  { title: "Refacciones", url: "/inventory", icon: InventoryIcon, group: "Flota" },
-  { title: "Proveedores", url: "/suppliers", icon: SupplierIcon, group: "Administración" },
-  { title: "Gastos operativos", url: "/expenses", icon: ExpenseIcon, group: "Administración" },
-  { title: "Estado de resultados", url: "/income-statement", icon: ChartIcon, group: "Administración" },
-  { title: "Reportes", url: "/reports", icon: ChartIcon, group: "Administración" },
-  { title: "Actividad", url: "/activity", icon: ActivityIcon, group: "Administración" },
-  { title: "Bitácora", url: "/audit", icon: HistoryIcon, group: "Administración", keywords: "auditoria audit trail" },
-  { title: "Configuración operativa", url: "/settings/operations", icon: SettingsIcon, group: "Administración" },
-  { title: "Datos fiscales", url: "/settings/company", icon: CompanyIcon, group: "Administración" },
-  { title: "Usuarios", url: "/users", icon: SecurityIcon, group: "Administración" },
-  { title: "Historial de cambios", url: "/changelog", icon: ScrollText, group: "Administración" },
-  { title: "Ayuda", url: "/help", icon: HelpIcon, group: "Administración" },
-];
 
 const SECTION_LABELS: Record<string, string> = {
   quotes: "Cotizaciones", invoices: "Facturas", customers: "Clientes", bookings: "Reservas", deliveries: "Entregas", returns: "Devoluciones",
@@ -193,8 +164,8 @@ export function GlobalSearch() {
   }, []);
 
   const groups = useMemo(() => {
-    const map = new Map<string, Item[]>();
-    ITEMS.filter((item) => getNavigationAccessLevel(perms, role ?? undefined, item.url) !== "none").forEach((i) => {
+    const map = new Map<string, SearchNavigationItem[]>();
+    SEARCH_NAVIGATION_ITEMS.filter((item) => getNavigationAccessLevel(perms, role ?? undefined, item.url) !== "none").forEach((i) => {
       const arr = map.get(i.group) ?? [];
       arr.push(i);
       map.set(i.group, arr);

@@ -125,7 +125,7 @@ function assertWorkflowMergeOrder(workflow) {
   assert.ok(verification < merge, 'Provenance verification must run before the Node Vitest merge');
 }
 test('workflow uses fresh directories, exact artifacts and verification before merge', () => {
-  const workflow = fs.readFileSync('.github/workflows/ci.yml', 'utf8');
+  const workflow = fs.readFileSync('.github/workflows/validaciones-manuales.yml', 'utf8');
   assert.match(workflow, /mktemp -d "\$RUNNER_TEMP\/vitest-\$GITHUB_RUN_ID-\$GITHUB_RUN_ATTEMPT-shard-/);
   for (let shard = 1; shard <= 6; shard++) assert.ok(workflow.includes(`name: vitest-blob-\${{ github.run_id }}-\${{ github.run_attempt }}-${shard}\n`));
   assertWorkflowMergeOrder(workflow);

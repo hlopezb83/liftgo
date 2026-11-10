@@ -1,0 +1,12 @@
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import {execFileSync} from 'node:child_process';
+const node=fs.readFileSync('.node-version','utf8').trim();
+const bun=fs.readFileSync('.bun-version','utf8').trim();
+const pkg=JSON.parse(fs.readFileSync('package.json','utf8'));
+assert.equal(process.versions.node,node);
+assert.equal(fs.readFileSync('.nvmrc','utf8').trim(),node);
+assert.equal(execFileSync('bun',['--version'],{encoding:'utf8'}).trim(),bun);
+assert.equal(pkg.engines.bun,bun);
+assert.equal(pkg.packageManager,'bun@'+bun);
+console.log('CI runtime: Node '+node+' / Bun '+bun);

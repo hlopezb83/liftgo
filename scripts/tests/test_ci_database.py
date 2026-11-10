@@ -1,3 +1,4 @@
+from workflow_source import workflow_job
 """Guardas que permiten quitar el reset sin aceptar una base restaurada o incompleta."""
 
 from importlib.util import module_from_spec, spec_from_file_location
@@ -535,7 +536,7 @@ class SourceAndWorkflowTests(unittest.TestCase):
     def test_workflows_pin_cli_registry_to_exact_owned_database_image(self):
         root = Path(__file__).parents[2]
         for filename in ("rls-db-tests.yml", "multi-tenant-ab.yml"):
-            text = (root / ".github/workflows" / filename).read_text(encoding="utf-8")
+            text = workflow_job({"rls-db-tests.yml": "rls", "multi-tenant-ab.yml": "multiempresa"}[filename])
             with self.subTest(workflow=filename):
                 self.assert_cli_image_registry_scope(text)
                 for invalid in (
@@ -568,7 +569,7 @@ class SourceAndWorkflowTests(unittest.TestCase):
 
     def test_ab_application_project_marker_cannot_override_cli_container_identity(self):
         root = Path(__file__).parents[2]
-        text = (root / ".github/workflows/multi-tenant-ab.yml").read_text(encoding="utf-8")
+        text = workflow_job("multiempresa")
         self.assert_ab_project_marker_scope(text)
         # Prove the old global setting and a future GITHUB_ENV leak are rejected.
         old_global = text.replace("          SUPABASE_PROJECT_ID: local-ab-ephemeral\n", "")
@@ -612,44 +613,28 @@ class SourceAndWorkflowTests(unittest.TestCase):
         check.assert_not_called()
 
     def assert_sensitive_gate_trigger_contract(self, text):
-        # Exact source contract deliberately avoids a YAML dependency in this
-        # pre-bootstrap stdlib suite. Actionlint validates the YAML/expression.
-        condition = ("    if: github.event_name == 'pull_request' || "
-                     "github.event_name == 'push' || "
-                     "(github.event_name == 'workflow_dispatch' && inputs.run_supabase == true)")
-        job_header = text.split("\njobs:\n", 1)[1].split("\n    env:\n", 1)[0]
-        self.assertIn(condition, job_header.splitlines())
-        self.assertIn("        default: false", text.split("  workflow_dispatch:\n", 1)[1].split("\npermissions:", 1)[0])
+        suite = "rls" if "\n  rls:" in text else "multiempresa"
+        condition = "    if: github.event_name == 'workflow_dispatch' && (inputs.suite == '" + suite + "' || inputs.suite == 'all')"
+        self.assertIn(condition, text.split("\njobs:\n", 1)[1].split("\n    env:\n", 1)[0].splitlines())
         events = text.split("\non:\n", 1)[1].split("\npermissions:\n", 1)[0]
-        self.assertNotIn("  schedule:", events)
-        paths_by_event = []
-        for event, following in (("pull_request", "push"), ("push", "workflow_dispatch")):
-            block = events.split("  " + event + ":\n", 1)[1].split("  " + following + ":\n", 1)[0]
-            self.assertIn("    branches: [main]", block)
-            paths = [line.strip()[3:-1] for line in block.splitlines() if line.strip().startswith('- "')]
-            self.assertIn("supabase/migrations/**", paths)
-            self.assertIn("drizzle/migrations/**", paths)
-            self.assertIn("supabase/config.toml", paths)
-            self.assertNotIn("**", paths)
-            self.assertNotIn("**/*", paths)
-            paths_by_event.append(paths)
-        self.assertEqual(paths_by_event[0], paths_by_event[1])
-        self.assertIn("cancel-in-progress: ${{ github.event_name == 'pull_request' }}", text)
+        self.assertIn("  workflow_dispatch:", events)
+        for event in ("  pull_request:", "  push:", "  schedule:"):
+            self.assertNotIn(event, events)
+        self.assertIn("        default: browser", events)
+        self.assertIn("cancel-in-progress: false", text)
         self.assertNotIn("${{ secrets.", text)
 
-    def test_sensitive_database_gates_run_on_filtered_pr_and_push(self):
-        root = Path(__file__).parents[2]
-        for filename, minutes in (("rls-db-tests.yml", 25), ("multi-tenant-ab.yml", 35)):
-            text = (root / ".github/workflows" / filename).read_text(encoding="utf-8")
-            with self.subTest(workflow=filename):
+    def test_sensitive_database_gates_require_manual_suite_selection(self):
+        for suite, minutes in (("rls", 25), ("multiempresa", 35)):
+            text = workflow_job(suite)
+            with self.subTest(suite=suite):
                 self.assert_sensitive_gate_trigger_contract(text)
                 self.assertIn(f"    timeout-minutes: {minutes}", text)
-                # Catch the previous manual-only regression and unbounded costs.
                 condition = next(line for line in text.splitlines() if line.startswith("    if:"))
                 for invalid in (
-                    text.replace(condition, "    if: github.event_name == 'workflow_dispatch' && inputs.run_supabase == true"),
-                    text.replace('      - "supabase/migrations/**"', '      - "**"'),
-                    text.replace("        default: false", "        default: true"),
+                    text.replace(condition, "    if: always()"),
+                    text.replace("  workflow_dispatch:", "  push:\n  workflow_dispatch:"),
+                    text.replace("default: browser", "default: all"),
                 ):
                     with self.assertRaises(AssertionError):
                         self.assert_sensitive_gate_trigger_contract(invalid)
@@ -657,7 +642,7 @@ class SourceAndWorkflowTests(unittest.TestCase):
     def test_workflows_wire_preflight_bootstrap_replay_and_cleanup_in_order(self):
         root = Path(__file__).parents[2]
         for filename, profile in (("rls-db-tests.yml", "rls"), ("multi-tenant-ab.yml", "ab")):
-            text = (root / ".github/workflows" / filename).read_text(encoding="utf-8")
+            text = workflow_job({"rls-db-tests.yml": "rls", "multi-tenant-ab.yml": "multiempresa"}[filename])
             with self.subTest(workflow=filename):
                 self.assertLess(text.index("ci_database.py preflight"), text.index("run: python3 scripts/patch_legacy_migrations.py"))
                 self.assertLess(text.index("ci_database.py prepare"), text.index("ci_database.py start-guarded --profile " + profile))
@@ -672,8 +657,8 @@ class SourceAndWorkflowTests(unittest.TestCase):
                 self.assertIn("bunx drizzle-kit migrate --config=drizzle.ci.config.ts", text)
                 self.assertIn("bun scripts/ci-drizzle-replay.mjs verify", text)
                 self.assertIn("supabase stop --no-backup || true", text)
-        rls = (root / ".github/workflows/rls-db-tests.yml").read_text(encoding="utf-8")
-        ab = (root / ".github/workflows/multi-tenant-ab.yml").read_text(encoding="utf-8")
+        rls = workflow_job("rls")
+        ab = workflow_job("multiempresa")
         self.assertIn("--mode strict", rls)
         self.assertIn("--mode smoke", rls)
         self.assertIn("bun run test:multitenant-ab", ab)

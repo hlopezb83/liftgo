@@ -163,3 +163,29 @@ describe("EditableLineItemsTable — persistent quote origins", () => {
     expect(lines[0].source_quote_line_id).toBeUndefined();
   });
 });
+
+
+describe("explicit equipment SAT catalog choices", () => {
+  it.each([
+    ["24101602", "24101602 - Montacargas"],
+    ["24101603", "24101603 - Elevadores forklift"],
+  ])("selects %s and H87 only after the user chooses them", async (code, label) => {
+    render(<Harness lines={[]} source={{ quoteId: "sale-quote", quoteType: "sale" }} />);
+    fireEvent.click(screen.getByRole("button", { name: "Agregar Fila" }));
+    const values = () => JSON.parse(screen.getByLabelText("Partidas conservadas").textContent ?? "[]")[0];
+    expect(values()).toMatchObject({ clave_prod_serv: "", clave_unidad: "" });
+    fireEvent.keyDown(screen.getByRole("combobox", { name: "Clave SAT partida 1" }), { key: "ArrowDown" });
+    expect(screen.getByRole("option", { name: "78181500 - Alquiler de equipo de manejo de materiales" })).toBeInTheDocument();
+    fireEvent.keyDown(screen.getByRole("listbox"), { key: "Escape" });
+    expect(values()).toMatchObject({ clave_prod_serv: "", clave_unidad: "" });
+    fireEvent.keyDown(screen.getByRole("combobox", { name: "Clave SAT partida 1" }), { key: "ArrowDown" });
+    fireEvent.click(screen.getByRole("option", { name: label }));
+    expect(values()).toMatchObject({ clave_prod_serv: code, clave_unidad: "" });
+    fireEvent.keyDown(screen.getByRole("combobox", { name: "Unidad SAT partida 1" }), { key: "ArrowDown" });
+    fireEvent.click(screen.getByRole("option", { name: "H87 - Pieza" }));
+    expect(values()).toMatchObject({ clave_prod_serv: code, clave_unidad: "H87", line_kind: "sale" });
+    fireEvent.click(screen.getByRole("button", { name: "Agregar Fila" }));
+    const lines = JSON.parse(screen.getByLabelText("Partidas conservadas").textContent ?? "[]");
+    expect(lines[1]).toMatchObject({ clave_prod_serv: "", clave_unidad: "" });
+  });
+});
