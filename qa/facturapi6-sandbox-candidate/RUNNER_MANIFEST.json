@@ -1,5 +1,5 @@
 {
-  "note": "Hashes del ejecutor (fuera del snapshot). Se recalculan con path:sha256\\n en este orden.",
+  "note": "Hashes del ejecutor (fuera del snapshot). Recalcular con path:sha256\\n en este orden.",
   "files": [
     {
       "path": ".gitignore",
