@@ -1,0 +1,7 @@
+{
+  "description": "Prepara la activación de Facturapi 6.0.0 con reversa exacta, guardas de ventana y guía paso a paso. Corrige el parche anterior, que no actualizaba el archivo de versiones fijas. Sin aplicar ni emitir documentos.",
+  "changes": [
+    "Activación y reversa sólo desde estados exactos revisados; 26 pruebas del kit.",
+    "1115 pruebas del backend con versiones congeladas pasan con Facturapi 6; la ventana real espera autorización."
+  ]
+}
