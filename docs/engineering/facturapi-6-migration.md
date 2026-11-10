@@ -6,7 +6,7 @@ This candidate replaces the dependency-only update proposed in #429. The SDK is
 pinned to `facturapi@6.0.0` in the functions import map and frozen Deno lock.
 
 Facturapi 6 retains `invoices.client.request` and `post`, but removes the transport
-`get`, `put` and `delete` helpers. The old compatibility fallbacks consequently
+`get`, `put` and `delete` helpers, including the PDF recovery lane. The old compatibility fallbacks consequently
 lost `AbortSignal` for retrieve, cancel and SAT refresh. Calling `post` directly
 also bypassed the resource method's response date-conversion plan.
 
@@ -17,6 +17,10 @@ It does not mutate the shared resource, transport, fetch or credentials. An
 unsupported abortable transport fails before sending a fiscal write; an already
 aborted signal also fails before sending. Creation and cancellation are not
 retried. A SAT refresh is never substituted by a cached retrieve.
+
+Credit-note PDF recovery uses the same scoped adapter for metadata retrieval and
+PDF download. Its existing 8-second timeout, 10 MiB bound, header/body abort,
+identity checks, attempt-owned upload path and compare-and-set rules are unchanged.
 
 ## Dates and binary downloads
 

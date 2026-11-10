@@ -424,6 +424,15 @@ export async function retrieveInvoiceWithSignal(
   return await invoicesWithSignal(client, opts.signal).retrieve(invoiceId);
 }
 
+/** Download a PDF while keeping the transport abortable through body consumption. */
+export async function downloadInvoicePdfWithSignal(
+  client: FacturapiClient,
+  invoiceId: string,
+  opts: { signal?: AbortSignal } = {},
+): Promise<unknown> {
+  return await invoicesWithSignal(client, opts.signal).downloadPdf(invoiceId);
+}
+
 /** Force the SAT refresh; never substitute a cached retrieve for this PUT. */
 export async function updateInvoiceStatusWithSignal(
   client: FacturapiClient,

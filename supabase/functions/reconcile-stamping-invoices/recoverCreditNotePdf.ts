@@ -1,3 +1,7 @@
+import {
+  downloadInvoicePdfWithSignal,
+  retrieveInvoiceWithSignal,
+} from "../_shared/facturapi/client.ts";
 import type { SupabaseLike } from "../_shared/types.ts";
 import { isUUID } from "../_shared/validate.ts";
 import { organizationStoragePath } from "../_shared/storagePath.ts";
@@ -9,7 +13,10 @@ const MAX_PDF_BYTES = 10 * 1024 * 1024;
 type PdfClient = {
   invoices: {
     client?: {
-      get: (path: string, options: { signal: AbortSignal }) => Promise<unknown>;
+      request: (
+        path: string,
+        options: Record<string, unknown>,
+      ) => Promise<unknown>;
     };
     retrieve: (id: string) => Promise<unknown>;
     downloadPdf: (id: string) => Promise<unknown>;
@@ -74,7 +81,7 @@ async function pdfBytes(
     typeof (value as AsyncIterable<unknown>)[Symbol.asyncIterator] ===
       "function"
   ) {
-    // Facturapi 5.2 returns a Node Readable when Buffer is available in Deno.
+    // Facturapi 6 returns a Node Readable when Buffer is available in Deno.
     // Bound accumulation and close the iterator on oversize/error/timeout.
     const iterator = (value as AsyncIterable<unknown>)[Symbol.asyncIterator]();
     const chunks: Uint8Array[] = [];
@@ -188,10 +195,7 @@ export async function recoverCreditNotePdf(
     // invoice or try another key. Require the exact provider document and mode.
     const remote = record(
       await sdkCallWithTimeout(
-        (signal) =>
-          client.invoices.client?.get
-            ? client.invoices.client.get(`/invoices/${pacId}`, { signal })
-            : client.invoices.retrieve(pacId),
+        (signal) => retrieveInvoiceWithSignal(client, pacId, { signal }),
         CALL_TIMEOUT_MS,
       ),
     );
@@ -215,11 +219,9 @@ export async function recoverCreditNotePdf(
         signal.addEventListener("abort", abort, { once: true });
         if (signal.aborted) abort();
         try {
-          const binary = await (client.invoices.client?.get
-            ? client.invoices.client.get(`/invoices/${pacId}/pdf`, {
-              signal: controller.signal,
-            })
-            : client.invoices.downloadPdf(pacId));
+          const binary = await downloadInvoicePdfWithSignal(client, pacId, {
+            signal: controller.signal,
+          });
           return await pdfBytes(binary, controller.signal);
         } finally {
           abort();

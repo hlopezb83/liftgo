@@ -10,6 +10,7 @@ import {
   createFacturapiClient,
   createInvoiceWithSignal,
   describeFacturapiError,
+  downloadInvoicePdfWithSignal,
   FacturapiError,
   retrieveInvoiceWithSignal,
   updateInvoiceStatusWithSignal,
@@ -315,9 +316,11 @@ Deno.test("Facturapi 6: descargas PDF y XML conservan bytes y serialización", a
   const pdf = new Uint8Array([37, 80, 68, 70, 45, 49, 46, 55, 10, 0, 128, 255]);
   const xml =
     '<?xml version="1.0" encoding="UTF-8"?><cfdi:Comprobante Nombre="Prueba México"/>';
-  globalThis.fetch = ((input: Request | string | URL) => {
+  const signal = new AbortController().signal;
+  globalThis.fetch = ((input: Request | string | URL, init?: RequestInit) => {
     const path = new URL(String(input)).pathname;
     if (path.endsWith("/pdf")) {
+      assertStrictEquals(init?.signal, signal);
       return Promise.resolve(
         new Response(pdf, { headers: { "Content-Type": "application/pdf" } }),
       );
@@ -332,7 +335,9 @@ Deno.test("Facturapi 6: descargas PDF y XML conservan bytes y serialización", a
   try {
     const client = createFacturapiClient("sk_test_contract");
     assertEquals(
-      await binaryToBytes(await client.invoices.downloadPdf("invoice")),
+      await binaryToBytes(
+        await downloadInvoicePdfWithSignal(client, "invoice", { signal }),
+      ),
       pdf,
     );
     assertEquals(
