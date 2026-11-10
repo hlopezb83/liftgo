@@ -1,0 +1,358 @@
+{
+ "create_invoice": {
+  "calls": [
+   {
+    "method": "POST",
+    "path": "/invoices",
+    "query": "",
+    "body": {
+     "customer": {
+      "legal_name": "CLIENTE FICTICIO",
+      "tax_id": "XAXX010101000",
+      "tax_system": "616",
+      "address": {
+       "zip": "01000"
+      }
+     },
+     "items": [
+      {
+       "quantity": 1,
+       "product": {
+        "description": "Servicio ficticio",
+        "product_key": "78101800",
+        "price": 100
+       }
+      }
+     ],
+     "payment_form": "03",
+     "use": "S01"
+    },
+    "hasSignal": true,
+    "auth": true
+   }
+  ],
+  "result": {
+   "id": "inv_FAKE1",
+   "uuid": "00000000-0000-4000-8000-000000000001",
+   "status": "valid",
+   "total": 116,
+   "folio_number": 1,
+   "series": "A",
+   "date": "2026-11-10T14:00:00.000Z"
+  },
+  "error": null
+ },
+ "create_credit_note": {
+  "calls": [
+   {
+    "method": "POST",
+    "path": "/invoices",
+    "query": "",
+    "body": {
+     "customer": {
+      "legal_name": "CLIENTE FICTICIO",
+      "tax_id": "XAXX010101000",
+      "tax_system": "616",
+      "address": {
+       "zip": "01000"
+      }
+     },
+     "items": [
+      {
+       "quantity": 1,
+       "product": {
+        "description": "Servicio ficticio",
+        "product_key": "78101800",
+        "price": 100
+       }
+      }
+     ],
+     "payment_form": "03",
+     "use": "S01",
+     "type": "E",
+     "related_documents": [
+      {
+       "relationship": "01",
+       "documents": [
+        "00000000-0000-4000-8000-000000000001"
+       ]
+      }
+     ]
+    },
+    "hasSignal": true,
+    "auth": true
+   }
+  ],
+  "result": {
+   "id": "inv_FAKE_NC",
+   "uuid": "00000000-0000-4000-8000-000000000001",
+   "status": "valid",
+   "total": 116,
+   "folio_number": 1,
+   "series": "A",
+   "date": "2026-11-10T14:00:00.000Z"
+  },
+  "error": null
+ },
+ "create_payment_rep": {
+  "calls": [
+   {
+    "method": "POST",
+    "path": "/invoices",
+    "query": "",
+    "body": {
+     "type": "P",
+     "customer": {
+      "legal_name": "CLIENTE FICTICIO",
+      "tax_id": "XAXX010101000",
+      "tax_system": "616",
+      "address": {
+       "zip": "01000"
+      }
+     },
+     "complements": [
+      {
+       "type": "pago",
+       "data": [
+        {
+         "payment_form": "03",
+         "related_documents": [
+          {
+           "uuid": "00000000-0000-4000-8000-000000000001",
+           "amount": 116,
+           "installment": 1,
+           "last_balance": 116
+          }
+         ]
+        }
+       ]
+      }
+     ]
+    },
+    "hasSignal": true,
+    "auth": true
+   }
+  ],
+  "result": {
+   "id": "inv_FAKE_REP",
+   "uuid": "00000000-0000-4000-8000-000000000001",
+   "status": "valid",
+   "total": 116,
+   "folio_number": 1,
+   "series": "A",
+   "date": "2026-11-10T14:00:00.000Z"
+  },
+  "error": null
+ },
+ "cancel_invoice": {
+  "calls": [
+   {
+    "method": "DELETE",
+    "path": "/invoices/inv_FAKE1",
+    "query": "motive=02",
+    "body": null,
+    "hasSignal": true,
+    "auth": true
+   }
+  ],
+  "result": {
+   "id": "inv_FAKE1",
+   "uuid": "00000000-0000-4000-8000-000000000001",
+   "status": "canceled",
+   "total": 116,
+   "folio_number": 1,
+   "series": "A",
+   "date": "2026-11-10T14:00:00.000Z",
+   "cancellation_status": "accepted"
+  },
+  "error": null
+ },
+ "cancel_with_substitute": {
+  "calls": [
+   {
+    "method": "DELETE",
+    "path": "/invoices/inv_FAKE1",
+    "query": "motive=01&substitution=inv_FAKE2",
+    "body": null,
+    "hasSignal": true,
+    "auth": true
+   }
+  ],
+  "result": {
+   "id": "inv_FAKE1",
+   "uuid": "00000000-0000-4000-8000-000000000001",
+   "status": "valid",
+   "total": 116,
+   "folio_number": 1,
+   "series": "A",
+   "date": "2026-11-10T14:00:00.000Z",
+   "cancellation_status": "pending"
+  },
+  "error": null
+ },
+ "retrieve_invoice": {
+  "calls": [
+   {
+    "method": "GET",
+    "path": "/invoices/inv_FAKE1",
+    "query": "",
+    "body": null,
+    "hasSignal": true,
+    "auth": true
+   }
+  ],
+  "result": {
+   "id": "inv_FAKE1",
+   "uuid": "00000000-0000-4000-8000-000000000001",
+   "status": "valid",
+   "total": 116,
+   "folio_number": 1,
+   "series": "A",
+   "date": "2026-11-10T14:00:00.000Z"
+  },
+  "error": null
+ },
+ "refresh_status": {
+  "calls": [
+   {
+    "method": "PUT",
+    "path": "/invoices/inv_FAKE1/status",
+    "query": "",
+    "body": null,
+    "hasSignal": true,
+    "auth": true
+   }
+  ],
+  "result": {
+   "id": "inv_FAKE1",
+   "uuid": "00000000-0000-4000-8000-000000000001",
+   "status": "valid",
+   "total": 116,
+   "folio_number": 1,
+   "series": "A",
+   "date": "2026-11-10T14:00:00.000Z",
+   "cancellation_status": "accepted"
+  },
+  "error": null
+ },
+ "download_pdf_sdk": {
+  "calls": [
+   {
+    "method": "GET",
+    "path": "/invoices/inv_FAKE1/pdf",
+    "query": "",
+    "body": null,
+    "hasSignal": false,
+    "auth": true
+   }
+  ],
+  "result": {
+   "bytes": [
+    37,
+    80,
+    68,
+    70
+   ]
+  },
+  "error": null
+ },
+ "download_xml_sdk": {
+  "calls": [
+   {
+    "method": "GET",
+    "path": "/invoices/inv_FAKE1/xml",
+    "query": "",
+    "body": null,
+    "hasSignal": false,
+    "auth": true
+   }
+  ],
+  "result": "<cfdi/>",
+  "error": null
+ },
+ "error_400": {
+  "calls": [
+   {
+    "method": "POST",
+    "path": "/invoices",
+    "query": "",
+    "body": {
+     "customer": {
+      "legal_name": "CLIENTE FICTICIO",
+      "tax_id": "XAXX010101000",
+      "tax_system": "616",
+      "address": {
+       "zip": "01000"
+      }
+     },
+     "items": [
+      {
+       "quantity": 1,
+       "product": {
+        "description": "Servicio ficticio",
+        "product_key": "78101800",
+        "price": 100
+       }
+      }
+     ],
+     "payment_form": "03",
+     "use": "S01"
+    },
+    "hasSignal": true,
+    "auth": true
+   }
+  ],
+  "result": null,
+  "error": {
+   "message": "RFC inválido (ficticio)",
+   "code": "invalid_tax_id",
+   "status": 400,
+   "detail": "{\"code\":\"invalid_tax_id\",\"message\":\"RFC inválido (ficticio)\"}"
+  }
+ },
+ "error_500": {
+  "calls": [
+   {
+    "method": "GET",
+    "path": "/invoices/inv_FAKE1",
+    "query": "",
+    "body": null,
+    "hasSignal": true,
+    "auth": true
+   }
+  ],
+  "result": null,
+  "error": {
+   "message": "Falla ficticia",
+   "code": null,
+   "status": 500,
+   "detail": "{\"message\":\"Falla ficticia\"}"
+  }
+ },
+ "error_404": {
+  "calls": [
+   {
+    "method": "GET",
+    "path": "/invoices/inv_NOPE",
+    "query": "",
+    "body": null,
+    "hasSignal": true,
+    "auth": true
+   }
+  ],
+  "result": null,
+  "error": {
+   "message": "No encontrado",
+   "code": null,
+   "status": 404,
+   "detail": "{\"message\":\"No encontrado\"}"
+  }
+ },
+ "retry_5xx_then_ok": {
+  "calls": [],
+  "result": {
+   "n": 2
+  },
+  "error": null
+ }
+}

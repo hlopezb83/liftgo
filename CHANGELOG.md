@@ -1,3 +1,7 @@
+## [8.52.1] - 2026-11-10
+
+- Compara con datos simulados Facturapi 5.2 y 6.0 en factura, pago, nota de crédito, cancelación, consulta y descargas: resultados idénticos. Sin despliegue ni documentos reales.
+
 ## [8.52.0] - 2026-11-10
 
 - Prepara, sin desplegar, el cambio de la facturación a Facturapi 6.0.0 y corrige la recuperación de PDF de notas de crédito, que habría dejado de funcionar con la versión nueva. Sin emisión de documentos.
