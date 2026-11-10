@@ -1,6 +1,6 @@
+import { gatedExclusivityVerifier, type ExclusivityRpc } from "./exclusivity.server";
 import { windowOpen, type PreviewWindow, type PreflightResult } from "./policy";
 import type { Caller, ReadDb } from "./core.server";
-import { gatedExclusivityVerifier, type ExclusivityRpc } from "./exclusivity.server";
 
 /** Injected edges of the real server-function wrapper (testable offline). */
 export interface WrapperDeps {

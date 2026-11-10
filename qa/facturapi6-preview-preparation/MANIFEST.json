@@ -2,7 +2,7 @@
   "base_commit": "c2cd0ac5a879f9c41fc1bbfc281816a72cfd81f1",
   "sdk": "facturapi@6.0.0",
   "closure_rule": "sorted path:sha256 LF",
-  "closure_sha256": "17dcf78fc7f1e962927ca83f94c4ef7601372e6260d8261caa68b507ba14d2af",
+  "closure_sha256": "a66f38a22c9467eec030ca6fabde258c18a8f8add3a38601ac4ba4ad846126c1",
   "files": [
     {
       "path": "bun.lock",
@@ -92,7 +92,7 @@
     {
       "path": "src/lib/qa/facturapi6-preview/wrapper.server.ts",
       "bytes": 2488,
-      "sha256": "816765d09aab6350944f4eda39470ddbafe2fe5af27f05e80c1087ecf09de539"
+      "sha256": "b880c363122db11955a1212293c98371c50fc63ca4480509171d7e1d6f50a7aa"
     },
     {
       "path": "src/routes/qa.facturapi6-preflight.tsx",
