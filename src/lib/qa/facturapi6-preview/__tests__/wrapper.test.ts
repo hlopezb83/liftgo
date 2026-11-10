@@ -61,3 +61,11 @@ describe("wrapper real del server function", () => {
     expect(d.loadSecretReader).not.toHaveBeenCalled(); expect(d.readIssuer).not.toHaveBeenCalled();
   });
 });
+describe("wiring del verificador", () => {
+  it("apagado: no llama verificador", async () => {
+    const verifyKeyExclusive = vi.fn(async () => true);
+    const d = deps({ window: PREVIEW_WINDOW, verifyKeyExclusive });
+    expect((await handlePreviewPreflight(d)).code).toBe("disabled");
+    expect(verifyKeyExclusive).not.toHaveBeenCalled(); untouched(d);
+  });
+});

@@ -11,6 +11,8 @@ export interface WrapperDeps {
   createCaller(url: string, key: string, authorization: string): Promise<Caller>;
   loadSecretReader(): Promise<ReadDb>;
   readIssuer(key: string, signal: AbortSignal): Promise<unknown>;
+  /** Boolean-only DB verifier (no params, no key); absent => fail closed. */
+  verifyKeyExclusive?: () => Promise<boolean>;
 }
 
 const fail = (status: number, code: PreflightResult["code"]): PreflightResult => ({ ok: false, status, code });
@@ -32,7 +34,7 @@ export async function handlePreviewPreflight(deps: WrapperDeps): Promise<Preflig
     return await runReadOnlyPreflight({
       now: deps.now, window: deps.window, development: deps.development, origin, token, caller,
       loadSecretReader: deps.loadSecretReader, readIssuer: deps.readIssuer,
-      // verifyKeyExclusive intentionally absent: no reviewed DB mechanism yet.
+      ...(deps.verifyKeyExclusive ? { verifyKeyExclusive: deps.verifyKeyExclusive } : {}),
     });
   } catch { return fail(503, "unavailable"); }
 }

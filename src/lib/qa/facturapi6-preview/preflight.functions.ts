@@ -33,6 +33,11 @@ export const previewIssuerPreflight = createServerFn({ method: "POST" })
           const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
           return supabaseAdmin as unknown as import("./core.server").ReadDb;
         },
+        verifyKeyExclusive: async () => {
+          const { verifyElogistixTestKeyExclusive } = await import("./exclusivity.server");
+          const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+          return verifyElogistixTestKeyExclusive(supabaseAdmin as unknown as import("./exclusivity.server").ExclusivityRpc);
+        },
         readIssuer: async (key, signal) => (await import("./sdk.server")).readSdk6Issuer(key, signal),
       });
     } catch { return { ok: false, status: 503, code: "unavailable" }; }
