@@ -49,6 +49,7 @@ export default tseslint.config(
       "src/integrations/supabase/auth-middleware.ts",
       "src/integrations/supabase/auth-attacher.ts",
       "supabase/functions/**",
+      "qa/facturapi6-sandbox-candidate/snapshot/**",
       "scripts/**",
       // Scripts locales de auditoría visual (no forman parte del bundle).
       "audit_*.ts",
