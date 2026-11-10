@@ -1,1 +1,4 @@
 node_modules/
+# El lock congelado del snapshot DEBE versionarse aunque el gitignore global
+# ignore deno.lock: sin él, un checkout fresco no valida el manifiesto.
+!snapshot/**/deno.lock
