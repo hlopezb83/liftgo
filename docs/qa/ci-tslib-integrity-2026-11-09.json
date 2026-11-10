@@ -1,0 +1,26 @@
+{
+  "date": "2026-11-09",
+  "package": "tslib",
+  "version": "2.8.1",
+  "specifier": "https://esm.sh/tslib@2.8.1/denonext/tslib.mjs",
+  "officialSource": "https://raw.githubusercontent.com/microsoft/tslib/d72d6f70b36286bc3f94a3dda1e64dcb568b1370/tslib.es6.mjs",
+  "officialSourceSha256": "0929993220938091ede542d688b0fdb87dad99a7e77678e1983c32d18a503339",
+  "verification": {
+    "esbuild": "0.28.2",
+    "typescript": "6.0.3",
+    "method": "Minify the official ES module, resolve lexical symbols with TypeScript, normalize local bindings and redundant parentheses around function expressions, then compare the entire printed AST including exports.",
+    "canonicalASTEqual": true,
+    "canonicalSha256": "ad78fcc2eff32a7025feecd146e8bdbe035d6caa8d1e5e5201d8b042116fe333"
+  },
+  "scope": "The offline Deno test harness derives a temporary import map from the current manifest and maps only the unstable tslib URL to the unchanged official ES module. The generator verifies its SHA-256. Production imports, Deno manifest and lock remain unchanged; every other remote module uses the original frozen lock.",
+  "observedCDNSha256": [
+    "c38da5dd6da6281964435002ce204cd586634fe3bdfb24a0ee116f48cf3292e9",
+    "ebce3cd5facb654623020337f867b426ba95f71596ba87acc9e6c6f4e55905ca"
+  ],
+  "matchingDownloads": 3,
+  "upstreamCommit": "d72d6f70b36286bc3f94a3dda1e64dcb568b1370",
+  "vendoredFile": "scripts/ci/vendor/tslib-2.8.1.mjs",
+  "vendoredSha256": "0929993220938091ede542d688b0fdb87dad99a7e77678e1983c32d18a503339",
+  "productionLockUnchanged": true,
+  "cdnBytes": 11220
+}

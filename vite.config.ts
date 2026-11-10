@@ -6,11 +6,11 @@
 import { defineConfig } from "@lovable.dev/vite-tanstack-config";
 import { sentryVitePlugin } from "@sentry/bundler-plugins/vite";
 import { visualizer } from "rollup-plugin-visualizer";
-import { validatedBuildIdentity } from "./scripts/release-identity.mjs";
+import { prepareBuildIdentity } from "./scripts/gen-version.mjs";
 
-// Every Vite entry point must match prebuild metadata to the actual tree.
-// This also protects direct `vite build` / `build:dev` without lifecycle hooks.
-const identity = await validatedBuildIdentity(process.cwd());
+// Every entry point generates current metadata, then validates the actual tree.
+// Direct `vite build` / `build:dev` cannot rely on package lifecycle hooks.
+const identity = await prepareBuildIdentity(process.cwd());
 const APP_VERSION = identity.version;
 const SENTRY_RELEASE = `liftgo@${APP_VERSION}`;
 const APP_SOURCE_ID = identity.sourceSha256;

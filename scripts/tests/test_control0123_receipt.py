@@ -1,3 +1,4 @@
+from workflow_source import workflow_job
 """Offline process/guard tests; these do not execute receipt SQL or a database."""
 
 from importlib.util import module_from_spec, spec_from_file_location
@@ -288,7 +289,7 @@ class ReceiptRunnerTests(unittest.TestCase):
         self.assertEqual(stdout.getvalue().splitlines().count(runner.COMPLETE), 1)
 
     def test_workflow_requires_receipt_after_replay_before_any_fixtures(self):
-        text = (runner.ROOT / ".github/workflows/rls-db-tests.yml").read_text(encoding="utf-8")
+        text = workflow_job("rls")
         name = "      - name: Verify exact control0123 receipt on full replayed schema"
         start = text.index(name)
         end = text.index("      - name:", start + len(name))
@@ -300,7 +301,7 @@ class ReceiptRunnerTests(unittest.TestCase):
         self.assertIn("python3 scripts/tests/run_control0123_receipt.py 2>&1 | tee reports/control0123-receipt.log", step)
         self.assertIn("grep -Fxc '" + runner.COMPLETE + "'", step)
         self.assertNotIn("continue-on-error", step)
-        self.assertEqual(text.count('      - "' + runner.RECEIPT.as_posix() + '"'), 2)
+        self.assertIn("inputs.suite == 'rls'", text)
         self.assertIn("python3 -m unittest discover -s scripts/tests -p test_control0123_receipt.py", text)
 
 

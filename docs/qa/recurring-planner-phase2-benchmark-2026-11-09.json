@@ -1,0 +1,235 @@
+{
+  "baselineCommit": "731a14e10cc45142f068de4234c5457c2057d99b",
+  "runtime": {
+    "deno": "2.9.6",
+    "v8": "15.0.245.2-rusty",
+    "typescript": "6.0.3"
+  },
+  "method": "Pure planner wall-clock only. Prepared in-memory histories; no DB/network, input construction or comparison inside timer. Six warmup pairs then fifteen timed pairs, alternating order. Historical intervals unsorted, overlapping, all before 24 future/current candidate months. No forced GC. Shared container; not a Supabase latency benchmark.",
+  "reports": [
+    {
+      "historyRows": 1000,
+      "periods": 24,
+      "warmupPairs": 6,
+      "measuredPairs": 15,
+      "baselineMedianMs": 110.664,
+      "optimizedMedianMs": 17.223,
+      "medianRatio": 0.156,
+      "reductionPercent": 84.437,
+      "baselineRangeMs": [
+        77.627,
+        128.828
+      ],
+      "optimizedRangeMs": [
+        9.101,
+        26.164
+      ],
+      "samples": [
+        {
+          "pair": 1,
+          "order": "baseline,optimized",
+          "baselineMs": 111.193,
+          "optimizedMs": 22.757
+        },
+        {
+          "pair": 2,
+          "order": "optimized,baseline",
+          "baselineMs": 118.259,
+          "optimizedMs": 11.324
+        },
+        {
+          "pair": 3,
+          "order": "baseline,optimized",
+          "baselineMs": 116.834,
+          "optimizedMs": 23.842
+        },
+        {
+          "pair": 4,
+          "order": "optimized,baseline",
+          "baselineMs": 107.739,
+          "optimizedMs": 13.191
+        },
+        {
+          "pair": 5,
+          "order": "baseline,optimized",
+          "baselineMs": 109.993,
+          "optimizedMs": 15.491
+        },
+        {
+          "pair": 6,
+          "order": "optimized,baseline",
+          "baselineMs": 110.664,
+          "optimizedMs": 26.164
+        },
+        {
+          "pair": 7,
+          "order": "baseline,optimized",
+          "baselineMs": 91.707,
+          "optimizedMs": 11.513
+        },
+        {
+          "pair": 8,
+          "order": "optimized,baseline",
+          "baselineMs": 109.327,
+          "optimizedMs": 17.591
+        },
+        {
+          "pair": 9,
+          "order": "baseline,optimized",
+          "baselineMs": 118.148,
+          "optimizedMs": 13.856
+        },
+        {
+          "pair": 10,
+          "order": "optimized,baseline",
+          "baselineMs": 126.914,
+          "optimizedMs": 17.419
+        },
+        {
+          "pair": 11,
+          "order": "baseline,optimized",
+          "baselineMs": 90.103,
+          "optimizedMs": 21.11
+        },
+        {
+          "pair": 12,
+          "order": "optimized,baseline",
+          "baselineMs": 92.375,
+          "optimizedMs": 17.223
+        },
+        {
+          "pair": 13,
+          "order": "baseline,optimized",
+          "baselineMs": 116.775,
+          "optimizedMs": 20.981
+        },
+        {
+          "pair": 14,
+          "order": "optimized,baseline",
+          "baselineMs": 128.828,
+          "optimizedMs": 13.229
+        },
+        {
+          "pair": 15,
+          "order": "baseline,optimized",
+          "baselineMs": 77.627,
+          "optimizedMs": 9.101
+        }
+      ],
+      "allPlansEqual": true,
+      "inputMutation": false
+    },
+    {
+      "historyRows": 5000,
+      "periods": 24,
+      "warmupPairs": 6,
+      "measuredPairs": 15,
+      "baselineMedianMs": 457.364,
+      "optimizedMedianMs": 47.794,
+      "medianRatio": 0.104,
+      "reductionPercent": 89.55,
+      "baselineRangeMs": [
+        356.446,
+        535.252
+      ],
+      "optimizedRangeMs": [
+        33.517,
+        68.633
+      ],
+      "samples": [
+        {
+          "pair": 1,
+          "order": "baseline,optimized",
+          "baselineMs": 394.543,
+          "optimizedMs": 63.422
+        },
+        {
+          "pair": 2,
+          "order": "optimized,baseline",
+          "baselineMs": 438.665,
+          "optimizedMs": 50.032
+        },
+        {
+          "pair": 3,
+          "order": "baseline,optimized",
+          "baselineMs": 356.446,
+          "optimizedMs": 47.554
+        },
+        {
+          "pair": 4,
+          "order": "optimized,baseline",
+          "baselineMs": 498.987,
+          "optimizedMs": 47.619
+        },
+        {
+          "pair": 5,
+          "order": "baseline,optimized",
+          "baselineMs": 399.096,
+          "optimizedMs": 48.886
+        },
+        {
+          "pair": 6,
+          "order": "optimized,baseline",
+          "baselineMs": 493.291,
+          "optimizedMs": 46.527
+        },
+        {
+          "pair": 7,
+          "order": "baseline,optimized",
+          "baselineMs": 533.397,
+          "optimizedMs": 44.085
+        },
+        {
+          "pair": 8,
+          "order": "optimized,baseline",
+          "baselineMs": 462.422,
+          "optimizedMs": 68.633
+        },
+        {
+          "pair": 9,
+          "order": "baseline,optimized",
+          "baselineMs": 379.345,
+          "optimizedMs": 59.482
+        },
+        {
+          "pair": 10,
+          "order": "optimized,baseline",
+          "baselineMs": 535.252,
+          "optimizedMs": 43.86
+        },
+        {
+          "pair": 11,
+          "order": "baseline,optimized",
+          "baselineMs": 478.926,
+          "optimizedMs": 47.794
+        },
+        {
+          "pair": 12,
+          "order": "optimized,baseline",
+          "baselineMs": 428.242,
+          "optimizedMs": 48.447
+        },
+        {
+          "pair": 13,
+          "order": "baseline,optimized",
+          "baselineMs": 460.362,
+          "optimizedMs": 54.697
+        },
+        {
+          "pair": 14,
+          "order": "optimized,baseline",
+          "baselineMs": 457.364,
+          "optimizedMs": 46.902
+        },
+        {
+          "pair": 15,
+          "order": "baseline,optimized",
+          "baselineMs": 372.694,
+          "optimizedMs": 33.517
+        }
+      ],
+      "allPlansEqual": true,
+      "inputMutation": false
+    }
+  ]
+}
