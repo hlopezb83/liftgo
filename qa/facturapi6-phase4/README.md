@@ -49,3 +49,5 @@ El usuario autorizó iniciar el 10/11/2026 a las 18:30 UTC; posteriormente confi
 Comprobaciones previas: kit íntegro, árbol en `estado=base`, manifiesto vigente y 26/26 pruebas puntuales offline. En la consulta inicial los jobs 18 y 19 estaban activos, con cero corridas registradas en curso; eso no garantiza su estado posterior. La confirmación de CI proviene del usuario, no de una consulta independiente a GitHub.
 
 Bloqueo adicional: el runbook depende de otra intervención para reanudar los jobs; no hay cierre automático preparado que garantice el máximo de 60 minutos si la conversación se interrumpe. Antes de pausarlos hace falta revisar ese mecanismo y abrir una ventana fresca. No se pausaron tareas, aplicó el kit, desplegó, emitió ni consultó al proveedor. El preflight de la vista previa sigue `enabled=false`, `shutdown=true`.
+
+La revisión posterior del plan aprobado confirmó que `pg_cron` permite preparar un respaldo SQL, pero no garantiza completar la restauración en 60 minutos. Se detuvo antes de cualquier pausa o activación, como exige el plan. Evidencia y alternativa pendiente de decisión en `RESTORATION_REVIEW.md`.

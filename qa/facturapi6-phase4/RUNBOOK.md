@@ -2,6 +2,8 @@
 
 Duración máxima: **60 minutos** desde el inicio del run-id. Si se excede, se revierte y se reanudan las tareas automáticas.
 
+**NO-GO actual:** este texto describe el objetivo operativo, no una garantía automática. La revisión `RESTORATION_REVIEW.md` no encontró garantía de restauración puntual en `pg_cron`. No ejecutar A2/A3 hasta resolver expresamente esa diferencia y revisar el procedimiento; no prometer reversa/despliegue automático al cumplirse el plazo.
+
 Analogía: es cambiar el motor del camión en una parada programada. Antes de salir a la calle damos cuatro vueltas de prueba con la empresa de pruebas (ELOGISTIX en modo test). Si algo suena raro, volvemos a poner el motor anterior, que está guardado y numerado en `rollback/`.
 
 ## Qué autorizas al abrir la ventana
