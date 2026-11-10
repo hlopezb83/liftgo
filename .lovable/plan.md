@@ -1,147 +1,94 @@
-# Prueba fiscal completa en Preview: arquitectura mínima y decisiones pendientes
+# Migrar el ERP a Facturapi 6.0.0
 
-Este documento sólo describe la investigación. No hay código, invocaciones, SQL, datos ni publicación. El preflight sigue apagado.
+## Qué es lo más nuevo
 
-## Resumen para el usuario
+- **Versión vigente:** la más reciente en npm es `facturapi@6.0.0`, publicada el 2 nov 2026 (`dist-tags.latest`).
+- **Versiones previas:** 5.2.0 (14 oct) y 5.0.0 (10 sep).
+- **Etiqueta del changelog:** el CHANGELOG del paquete todavía marca 6.0.0 como "Unreleased", aunque ya está publicada como `latest`.
+- **Situación actual del ERP:**
+  - Las funciones fiscales en producción usan **5.2.0**.
+  - Ya existe un candidato revisado con 6.0.0 (snapshot 967ac99), con pruebas de contrato SDK 6.
+  - En la vista previa, la lectura del emisor con 6.0.0 se confirmó una vez.
 
-Los manejadores fiscales reales del candidato (factura, REP, NC, cancelar, descargar) se pueden reutilizar desde la vista previa sin crear Edge Functions nuevas. No requieren cambiar su lógica: basta con adaptar cómo se conectan (imports, variables de entorno, cómo se crea el cliente del SDK).
+## Cambios de 6.0.0 que nos afectan
 
-Antes de una prueba real faltan cinco cosas y hay un riesgo que obliga a tomar una decisión:
+1. **Fechas como `Date`:** las fechas de respuesta llegan como `Date`, pero los sellos SAT y las fechas de calendario siguen como texto. Riesgo: guardar fechas con zona incorrecta o comparar texto contra `Date`.
+2. **Tipos más estrictos** en CFDI, complementos (REP), clientes y series. Puede romper la compilación de payloads de factura, REP y NC.
+3. **Estados de factura distinguidos** (draft, pending, failed, stamped). Conviene leer el UUID y el sello sólo cuando el estado es `stamped`.
+4. **Imports internos prohibidos:** ya no se permite `facturapi/dist/...`; sólo se importa desde `facturapi`.
+5. **Otros cambios menores:** borrar un certificado devuelve una fecha, la factura global puede devolver `null` y las series devuelven arreglos.
+6. **Novedades útiles:** chequeo de salud del API, `receipts.updateCustomer`, filtros `sat_imported` y la frescura de los ZIP.
+7. **Heredadas de v5 que ya debemos respetar:**
+   - Búsquedas sin conteos garantizados.
+   - Parámetros anidados en las consultas.
+   - URLs de descarga temporales.
+   - `invoices.paymentSummary` para REP.
+   - `FacturapiError` con `status`, `code` y `logId`.
 
-- **Faltan:**
-  1. Fixtures de 2 facturas, REP y NC.
-  2. Conectar las fases y los claims al punto de entrada.
-  3. Descargar el PDF; hoy sólo se descarga el XML.
-  4. El manejador de refresco de cancelación.
-  5. Un cierre exitoso explícito.
-- **Riesgo que exige decisión:** dos tareas automáticas cada 5 minutos (reintentos y reconciliación) recorren todas las empresas. Podrían tomar los documentos sandbox y procesarlos fuera del run.
-
-## Hallazgos verificados (sólo lectura)
-
-### Manejadores auténticos del snapshot 967ac99
-
-Rutas relativas a `qa/facturapi6-sandbox-candidate/snapshot/supabase/functions/`.
-
-| Operación | Manejador | Frontera |
-|---|---|---|
-| Factura | `stamp-cfdi/handler.ts` `handleStampCfdi(req, deps)` | Request/Response con deps |
-| REP | `stamp-payment-complement/handler.ts` `handleStampPaymentComplement` | igual |
-| NC | `stamp-credit-note/handler.ts` `handleStampCreditNote` | igual |
-| Cancelar | `cancel-cfdi/handler.ts` `handleCancelCfdi` | igual |
-| Descargar | `download-cfdi/handler.ts` `handleDownloadCfdi` | igual |
-
-- **Sin `Deno.serve` propio:** ningún manejador tiene `Deno.serve`. El único está en `runner/index.ts`.
-- **Imports directos:** todos son relativos. No hay imports `jsr:`, `npm:` ni de URL directamente en los handlers.
-- **Deno de nivel superior:** `_shared/cors.ts:10` lee `Deno.env.get("ALLOWED_ORIGINS")` al importarse.
-- **Cliente de base de datos:** `_shared/supabaseClients.ts` importa `https://esm.sh/@supabase/supabase-js@2.118.0` y lee `Deno.env` dentro de una función.
-- **SDK:** se importa como `"facturapi"` y se resuelve a `npm:facturapi@6.0.0` en el candidato. El operativo usa `npm:facturapi@5.2.0`. La app usa el alias `facturapi6-preview`, que no altera el SDK operativo.
-- **Web Crypto:** `crypto.randomUUID` y `crypto.subtle.digest` son estándar, no exclusivos de Deno.
-- **Idempotencia y persistencia ERP:** están dentro de cada manejador, mediante updates condicionales y RPCs de claim (`prepare_payment_complement`, `claim_credit_note_for_stamping`). Los claims del run en Storage (`runner/claims.ts`) son una segunda capa.
-
-### Estado del runner
-
-| Requisito | Estado |
-|---|---|
-| Tenant fijo ELOGISTIX, 116 MXN, cantidad 1, máximo 4 CFDI | Presente (`runner/policy.ts`) |
-| 2 facturas + REP + NC | Falta: el esquema de fixtures tiene una sola `invoice_id` |
-| Creación de fixtures ERP | Falta; el README lo documenta |
-| Validar renglones reales de la base | Falta: hoy sólo valida metadatos del fixture |
-| Claims durables en Storage (`upsert:false`, incierto lanza error) | Implementado, pero `DURABLE_CLAIMS_GUARANTEED=false` |
-| Sin reintento ante resultado incierto: el run se deshabilita | Implementado en `runWritePhase` |
-| Fases conectadas al punto de entrada | Falta: `index.ts` sólo llama al preflight |
-| Descarga PDF y XML | Parcial: sólo XML |
-| Refresco de cancelación | Falta en el candidato; existe en el operativo `refresh-cancellation-status/handler.ts` |
-| Cierre exitoso explícito | Falta; sólo existe `disabled.json` ante fallo |
-| `WRITE_PHASES_ENABLED` | `false` |
-
-### Interferencia operativa
-
-- El cron de reintentos y el de reconciliación de timbrado corren cada 5 minutos (migraciones `20260721000000_retry_queue_cron.sql` y `20260831203519_…`).
-- La reconciliación procesa todas las organizaciones e incluye facturas, REP y NC atascados.
-- El manejador de factura del candidato puede encolar en `cfdi_retry_queue` (`stamp-cfdi/handler.ts:415`). Eso contradice la afirmación del README de que las fases no encolan.
-- No pude leer el estado actual de cron: el acceso de lectura no tiene permiso sobre el esquema `cron`. Se infiere de las migraciones, sin verificarlo en vivo.
-
-## Arquitectura mínima viable soportada
+## Estrategia (mejores prácticas)
 
 ```text
-Pantalla QA (vista previa en vivo, una acción por clic)
-   -> createServerFn (patrón ya revisado: DEV, origen exacto, sesión/admin/tenant, TTL)
-      -> despachador de fases (portado de runner/phases.ts)
-         -> claim durable en Storage antes del efecto
-         -> manejador auténtico del snapshot, sin cambios de lógica
-              deps: cliente de sesión, cliente de servicio, env inyectado, cliente SDK 6 inyectado
-         -> deshabilitar el run ante resultado incierto, sin reintento
+Fase 0  Inventario y contrato     (sin efecto)
+Fase 1  Capa única SDK 6          (código, apagada)
+Fase 2  Pruebas de paridad        (sin red)
+Fase 3  Sandbox completo          (tenant ELOGISTIX en modo test, con autorización)
+Fase 4  Producción gradual        (por empresa, con reversa)
+Fase 5  Retiro de 5.2.0
 ```
 
-### Adaptaciones mecánicas, sin cambio de lógica
+### Fase 0: inventario
 
-1. Hacer una copia vendorizada del snapshot que conserve los manejadores byte a byte. Una prueba de manifiesto debe comparar las huellas con 967ac99.
-2. Reescribir sólo los imports: `facturapi` pasa al alias npm 6.0.0 y `esm.sh` supabase-js pasa al paquete npm de la app, con la misma versión o una equivalente documentada.
-3. Sustituir `cors.ts`, para quitar `Deno.env` de nivel superior, y `supabaseClients.ts` por adaptadores que reciban los valores por inyección. Las diferencias quedan listadas en un documento de adaptaciones.
+- Listar todas las llamadas al SDK en las funciones fiscales: 21 archivos usan la capa `_shared/facturapi/client.ts`.
+- Clasificar cada uso por riesgo de cambio: fechas, estados, tipos y búsquedas.
 
-### Requieren cambio semántico (decisión del revisor)
+### Fase 1: una sola puerta al SDK
 
-- **Fábrica de cliente SDK inyectable:** factura (`invoiceGateway.ts`), REP, NC y cancelar crean el cliente SDK internamente. Sin un parámetro de fábrica, el `guardedFetch` del runner no cubre esas llamadas.
-- **Política de reintentos:** el creador no reintenta y la descarga sí. Hay que conservar esa diferencia en lugar de imponer "sin reintentos" global.
-- **Validación de fixtures contra renglones reales** antes de cada efecto: cantidad 1, 116 MXN y tenant fijo.
+- Todo el ERP llama sólo a la capa `client.ts`; nada importa `facturapi` directamente. Partimos del `client.ts` del candidato.
+- **Normalización de fechas en la capa:** convertir a ISO UTC antes de guardar, y nunca convertir los sellos SAT ni las fechas de calendario. Mostrar las fechas en hora de México.
+- **Errores:** mapear `FacturapiError` a códigos internos y guardar sólo `logId` y `code`, nunca el payload ni la llave.
+- **Idempotencia y reintentos:**
+  - Mantener los claims en la base de datos y `idempotency_key` en la creación.
+  - En timbrado: sin reintento automático si el resultado es incierto; se resuelve con la reconciliación.
+  - En descargas y lecturas: los reintentos sí se permiten, con timeout y AbortSignal.
+- **Estados:** sólo persistir el UUID y el sello cuando el estado sea `stamped`; `pending` y `failed` pasan a la reconciliación.
 
-### Pruebas de paridad necesarias (offline)
+### Fase 2: pruebas sin red
 
-- Huellas de los manejadores iguales al snapshot.
-- Las mismas pruebas de contrato SDK 6 (`sdk6_contract_test.ts`) corriendo bajo Vitest con dobles.
-- Para cada manejador: con las mismas entradas y dobles, misma secuencia de llamadas a la base y al SDK y mismo estado y cuerpo de respuesta que bajo Deno.
-- Claims: conflicto, incierto y deshabilitado; con eso, cero llamadas al proveedor.
-- TTL revisado después de cada `await` antes de cualquier efecto.
+- Pruebas de contrato SDK 6: fechas, errores, abort y descargas.
+- Paridad 5.2 contra 6.0 por cada función, con los mismos dobles y la misma secuencia de efectos en base de datos.
+- Cobertura de las funciones de timbrar, cancelar y descargar factura, REP y NC, más el refresco de cancelación y la reconciliación.
 
-### Límite de evidencia
+### Fase 3: sandbox completo (requiere autorizaciones ya identificadas)
 
-Un éxito en este camino prueba los manejadores auténticos sobre el runtime de servidor de TanStack con SDK 6. **No** prueba el runtime Deno ni el despliegue Edge, y así debe quedar escrito en el README y en el registro de resultados.
+- Fixtures en el tenant ELOGISTIX: 2 facturas, REP y NC, máximo 4 CFDI, 116 MXN y cantidad 1.
+- **Decidir antes qué hacer con los crons globales** de reintentos y reconciliación: aceptar, pausar o excluir el tenant de prueba.
+- Una petición por fase, con un claim durable y sin reanudación. El límite de tiempo del servidor en vista previa no está documentado.
 
-## Decisiones y autorizaciones adicionales requeridas
+### Fase 4: producción gradual
 
-1. **Tareas automáticas globales (inevitable):** elegir una opción. B y C cambian algo operativo y requieren autorización expresa.
-   - **A. Sin cambios:** aceptar que la reconciliación y los reintentos pueden tocar los documentos sandbox. Hay que documentarlo y vigilarlo.
-   - **B. Pausar ambos crons durante la ventana:** es un cambio operativo temporal y afecta a todas las empresas.
-   - **C. Excluir el tenant sandbox en esas funciones:** cambia funciones operativas y requiere despliegue.
-2. **Fixtures:** crear 2 facturas, 1 pago y una NC de prueba en el tenant ELOGISTIX es escritura ERP y requiere autorización separada. También hay que definir si se crean por la interfaz normal o con un paso dedicado.
-3. **Refresco de cancelación:** incorporar al conjunto revisado una copia del manejador operativo. Requiere revisión nueva de ese archivo.
-4. **Inyección del SDK (punto anterior):** aceptar un cambio mínimo de firma en cuatro manejadores o rechazarlo. Si se rechaza, el filtro de hosts no se puede garantizar.
-5. **Claims durables:** pasar `DURABLE_CLAIMS_GUARANTEED` a true sólo después de verificar el bucket privado existente `cfdi-files` sin ampliar permisos.
+- **Interruptor por empresa:** una bandera en la configuración, con 5.2 por defecto. Requiere una migración aditiva que se revisará en su momento.
+- **Orden de activación:** primero una empresa interna, luego un grupo reducido y al final todas.
+- **Monitoreo:** errores de timbrado, cola de reintentos y diferencias de fechas, usando Sentry ya integrado.
+- **Reversa:** apagar la bandera, sin desplegar de nuevo.
 
-## Presupuesto de tiempo del servidor (diagnóstico)
+### Fase 5: retiro
 
-### Fuentes
+- Cuando todas las empresas lleven 2 semanas estables, retirar 5.2.0 del import map y el alias temporal `facturapi6-preview`.
+- Borrar la pantalla QA y archivar la función de exclusividad. Para eso ya existe la recuperación sin DROP.
 
-- **Documentación oficial de Lovable** ("Where your app's server code runs", "Traffic and scale"): no especifica límites de duración, CPU, wall-clock ni timeout por petición para `createServerFn`. Tampoco dice qué pasa si el navegador se desconecta. Sólo documenta un límite de tasa de 1 000 peticiones por proyecto cada 10 s en el plan Free.
-- **Proceso observado en el sandbox:** la vista previa en vivo corre en `vite dev` sobre Node (`node …/vite dev --port 8080`), detrás del proxy de `lovableproject.com`. No corre en workerd.
-- **Configuración del repositorio:** `wrangler.jsonc` y `vite.config.ts` (preset `cloudflare-module`) sólo aplican a la app publicada.
-- **Conexiones salientes:** la regla interna de la plataforma limita a 6 las conexiones salientes simultáneas por invocación en workerd. En dev (Node) no aplica.
+## Decisiones que necesito de ti
 
-### Límites
+1. **Crons durante el sandbox:** ¿aceptar, pausar o excluir el tenant de prueba?
+2. **Fixtures:** ¿autorizas crear los documentos de prueba en ELOGISTIX?
+3. **Interruptor por empresa:** ¿lo agregamos (lo recomiendo) o se cambia todo de una sola vez?
 
-| Límite | Vista previa en vivo | Garantizado |
-|---|---|---|
-| Wall-clock o timeout del proxy | Desconocido | Desconocido |
-| CPU | Desconocido; Node no impone tope propio | Desconocido |
-| Desconexión del navegador | Desconocido si aborta el handler | Desconocido |
-| Estabilidad del proceso | El dev server se reinicia al instalar paquetes o con eventos del sandbox | Ninguna garantía |
+## Detalles técnicos
 
-### Viabilidad de una sola petición
-
-No es viable de forma demostrable. La petición única incluiría 2 facturas, REP, NC, PDF/XML, cancelación y refresco: más de 8 llamadas al proveedor y decenas de lecturas y escrituras. Como no hay un tope documentado, un corte del proxy o un reinicio dejaría un CFDI emitido sin persistir, y en un solo paso no se puede distinguir en qué fase ocurrió.
-
-### Mecanismo soportado propuesto (sin Edge Functions nuevas)
-
-- **Una petición por fase**, todas con el mismo `createServerFn` revisado. El navegador pulsa cada fase manualmente; nada se envía al montar la pantalla y no hay encadenamiento automático.
-- **Antes del efecto:** cada fase lee el estado durable del run (un único objeto de claim en Storage, versionado por fase) y reserva su paso con escritura `upsert:false`.
-- **Resultado incierto:** si una fase termina con timeout, desconexión o respuesta inesperada, marca el run como deshabilitado y la siguiente petición se rechaza. No hay reanudación; la reconciliación es manual y queda documentada.
-- **Fase individual:** cada una hace como máximo una llamada de escritura al proveedor y se mide con su propio timeout menor de 15 s, como en el preflight.
-- **Límite de evidencia:** el éxito sólo prueba la vista previa en Node, no workerd ni Deno.
-
-## Fuera de alcance
-
-Edge Functions nuevas, reutilizar endpoints operativos, tocar despliegues, migraciones, permisos, publicación y activar el preflight.
-
-## Siguiente paso propuesto
-
-Si se aprueba este plan, el siguiente turno prepara sólo dos cosas: la copia vendorizada con adaptaciones mecánicas y las pruebas de paridad offline, todo apagado. Las decisiones 1 a 5 se resuelven antes de cualquier escritura.
+- **Fuentes:**
+  - Registro npm `facturapi` (`dist-tags.latest = 6.0.0`, publicada 2026-11-02).
+  - `CHANGELOG.md` del paquete 6.0.0, que incluye la guía de migración desde v3, v4 y v5 en su README.
+- **Archivos clave:**
+  - `supabase/functions/deno.json`: hoy mapea a 5.2.0.
+  - `supabase/functions/_shared/facturapi/client.ts`: la capa operativa.
+  - `qa/facturapi6-sandbox-candidate/snapshot/.../client.ts`: la capa del candidato, con unas 140 líneas de diferencia.
+- **Fuera de alcance de este plan:** publicar, invocar funciones fiscales o cambiar permisos sin autorización expresa.
