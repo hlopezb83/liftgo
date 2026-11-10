@@ -49,26 +49,26 @@ Secuencia por fase: compuertas → ventana y cierre durable → fixtures válido
 
 **Pendiente, fixtures:** la creación de cliente, factura y pago ficticios del run no está implementada. Sin manifiesto de fixtures, cada fase responde `fixtures_missing_or_invalid` antes de reservar. Requiere un diseño revisado de inserción acotada.
 
-## Claims durables: BLOQUEO
-`claims.ts` crea objetos `upsert:false` en el bucket privado existente `cfdi-files`, bajo `qa-fx6-sandbox/<RUN_ID>/claims/<acción>.json` y `.../disabled.json`; nunca sobrescribe ni borra. Lecturas pasivas del 2026-11-10:
+## Claims durables: pendiente de revisión independiente
+`claims.ts` crea objetos `upsert:false` en el bucket privado existente `cfdi-files`, bajo `qa-fx6-sandbox/<RUN_ID>/claims/<acción>.json` y `.../disabled.json`; nunca sobrescribe ni borra. Evidencia (lecturas pasivas, 2026-11-10):
 - Bucket privado con índice único sobre (bucket, nombre) del objeto vigente: crear con `upsert:false` es atómico (409 si existe).
-- El prefijo no lleva organización: la RLS de usuarios no lo alcanza.
-- **No es inmutable:** el cliente de servicio puede actualizar o borrar; con prefijo de organización, las políticas de `cfdi-files` dan UPDATE/DELETE a admin/administrativo; y `migrate-storage-org-prefix` borra objetos sin prefijo al migrarlos. Borrar un claim o el marcador permitiría repetir una acción o reabrir el run.
-- Por eso `DURABLE_CLAIMS_GUARANTEED` sigue en false. Garantizarlo requiere almacenamiento de sólo inserción (migración), que no se agregó.
+- El prefijo no lleva organización, así que la RLS de usuarios no lo alcanza (las políticas de `cfdi-files` exigen prefijo de la empresa del usuario).
+- `migrate-storage-org-prefix/index.ts` documenta que `apply` nunca borra la fuente, que `delete_sources` es una fase separada con bandera y confirmación propias, y que los huérfanos nunca se borran. No hay una ruta demostrada que borre estos claims.
+- El cliente de servicio puede borrar cualquier objeto: es un límite de confianza inherente, no una ruta demostrada.
+- Conclusión: la creación atómica durable podría bastar. `DURABLE_CLAIMS_GUARANTEED` sigue en `false` hasta la revisión independiente. No se afirma que haga falta una migración.
 
-## Cron y colas: BLOQUEO
-`cron.job` (lectura pasiva): `reconcile-stamping-invoices-5min` (`2-59/5`) y `process-cfdi-retry-queue-5min` (`*/5`) están activos y son globales. Si un handler deja un documento en `stamping` tras un timeout, el reconciliador puede tomarlo en ≤5 min; no existe mecanismo verificable para excluir fixtures. Mitigación: cada fase dura segundos y no encola; ante incertidumbre el run se cierra y el documento sólo se consulta por su ID.
+## Cron y colas: límite pendiente
+`cron.job` (lectura pasiva): `reconcile-stamping-invoices-5min` (`2-59/5`) y `process-cfdi-retry-queue-5min` (`*/5`) están activos y son globales. Según el README del reconciliador, las colas en `stamping` sólo se toman tras un corte estricto de 10 minutos, pero la recuperación de folio de REP (folio-only) no tiene corte. Una fase dura segundos y no encola. Si un documento queda en `stamping` más de 10 min, o un REP queda timbrado sin folio, el reconciliador global puede tocarlo. No hay mecanismo verificado que excluya las fixtures. Ante incertidumbre, el run se cierra y el documento sólo se consulta por su ID.
 
 ## Identidad para la ejecución futura
-Según la descripción de `supabase--curl_edge_functions` (no se llamó):
-- Con sesión del usuario en la vista previa, envía ese token.
-- Si sólo conoce la identidad, acuña un token corto con `sub`, email y rol `authenticated`, sin `session_id`, metadatos ni `aal`; no está verificado que `getClaims` lo acepte.
-- Sin sesión, la petición va sin autenticación (el ejecutor responde 401). Un `Authorization` propio sustituye al inyectado.
-- La herramienta no informa qué usuario usó; sólo se verifica por la respuesta del ejecutor (exige admin activo de ELOGISTIX), sin revelar el ID.
-- Mecanismo interno existente, sólo para revisión: la CLI de sesión del agente puede acuñar una sesión de un usuario existente con aprobación del usuario. No se usó; no crea usuarios ni cambia roles.
+- El ejecutor exige una sesión real: `getClaims` con `session_id` UUID y `auth.getUser(token)` con el mismo usuario. Si falta o hay error: 401 antes de leer `billing_secrets`.
+- Según la descripción de `supabase--curl_edge_functions` (no se llamó), envía la sesión de la vista previa si existe. Si no, acuña un token corto sin `session_id`, que este ejecutor rechaza con `session_required`; sin identidad, va sin autenticación.
+- La herramienta **no tiene parámetro** para exigir la reutilización de la sesión existente ni para desactivar el acuñado. La única forma de cambiar el comportamiento es pasar un `Authorization` propio, lo que requiere obtener un token, y eso no está autorizado.
+- Tampoco informa qué usuario usó.
+- Por eso no se invoca. Un 401 `session_required` en la ejecución futura indicaría que se usó un token acuñado.
 
 ## Pruebas locales sin red
-`deno test --config deno.json --frozen --allow-read=. --allow-env=ALLOWED_ORIGINS,SENTRY_DSN,SENTRY_ENVIRONMENT,DENO_DEPLOYMENT_ID,SB_EXECUTION_ID runner/ snapshot/supabase/functions/_shared/facturapi/sdk6_contract_test.ts` (sin `--allow-net`): 37/37. `manifest_test.ts` verifica los 39 archivos y `closure_sha256` desde el checkout, incluido `deno.lock`; `--frozen` falla si el lock no coincide.
+`deno test --config deno.json --frozen --allow-read=. --allow-env=ALLOWED_ORIGINS,SENTRY_DSN,SENTRY_ENVIRONMENT,DENO_DEPLOYMENT_ID,SB_EXECUTION_ID runner/ snapshot/supabase/functions/_shared/facturapi/sdk6_contract_test.ts` (sin `--allow-net`): 40/40. `manifest_test.ts` verifica los 39 archivos y `closure_sha256` desde el checkout, incluido `deno.lock`; `--frozen` falla si el lock no coincide.
 
 ## Plan de despliegue (aprobación aparte)
 1. Fijar la ventana en `policy.ts`; verificar ambos manifiestos y `git diff` vacío fuera de esta carpeta.

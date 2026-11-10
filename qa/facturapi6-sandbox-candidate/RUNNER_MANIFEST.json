@@ -11,44 +11,48 @@
     },
     {
       "path": "runner/claims.ts",
-      "sha256": "c986909b6314397b32bcf1f01a31104fff7ff7055187e7e5ac742722e7229b51"
+      "sha256": "d1a7a1d1210882bcdc46659ef73f88234cc8fdd6b7c91c86cd58f21c0faebd70"
+    },
+    {
+      "path": "runner/db.ts",
+      "sha256": "af8a44441480ae058892fd46366034ef88aeafd74d693a6b21d7440c117d9a55"
     },
     {
       "path": "runner/guards.ts",
-      "sha256": "714a7464750407e602e657218ded64028aae1f98dea5d525f53a0a4948b6c4de"
+      "sha256": "2104e123d3adec6c7d38ed0b3ef824c89102af5b0ac11e7d750cd5f03028ba2e"
     },
     {
       "path": "runner/index.ts",
-      "sha256": "0139829c2ff12c3334481e6bc90e65c72844de60bd15139d2293e605dfb84490"
+      "sha256": "368f71465309e529986b85b05d0ca972139dea331e1608b7b947ed9338474e4b"
     },
     {
       "path": "runner/manifest_test.ts",
-      "sha256": "6f75f4e9da1b88820432a9f1dcf3f9ac806634d5d4095ed0131cb2a57becb9e2"
+      "sha256": "6b3229a4f2c96b028e51144881838a1ab9598650a3ea5d7cdb156ac877f6fd0a"
     },
     {
       "path": "runner/phases.ts",
-      "sha256": "5cfab9504995ad6c368293bf61614e03568aa4c6eb4cfa054f92d99668061e49"
+      "sha256": "e0b29bb52051ae9411c356891762a1e03a4c6dd8337bd49e57b48707e5239204"
     },
     {
       "path": "runner/phases_test.ts",
-      "sha256": "473bf7d55393d4cb9dbc00c1c174ef87cf29a01eb81d840be7c749bd5d649130"
+      "sha256": "2f436f4e2dfe266d06af632667cc7e3940e9d936039fb25c0c1e884743ef14cb"
     },
     {
       "path": "runner/policy.ts",
-      "sha256": "de0d2b55858ee40a58488e9217f57b446c905d66d84fc3b3c03faceee55cd3cb"
+      "sha256": "2db14ded603a7662a05978fb34bb82f78d55b76f8227fbdd10c691bab5b6e0b4"
     },
     {
       "path": "runner/preflight.ts",
-      "sha256": "7b81186d36fd5d9ce70a23401a95c3d07581a2cecbed5ddf525c6108eb654080"
+      "sha256": "834fcb513881536fe77713f3a95cd3fc44acf5118f90eb16dba5f4b8c7508585"
     },
     {
       "path": "runner/preflight_test.ts",
-      "sha256": "7c79f0adb1cf6e8a4a072af55ab851f480063468cee48b57715af6f431b6f59a"
+      "sha256": "a984f033545a8b8572785baaf7f218f3a6b04040a30d514f95e7d503bb654c40"
     },
     {
       "path": "runner/sdk6_me_test.ts",
-      "sha256": "c0a9f53da42dde45e8f2e3cc497906d993f50f6fb46dcd03e51a7d48731cf009"
+      "sha256": "32b02a781236d1018bed13d7abcd81e2d501f1d83f79369e4bc847f88da8d40d"
     }
   ],
-  "runner_sha256": "f57caa4446fdffca153dab71ba4fba7726317b69a278b959dd86694ad9bbbd49"
+  "runner_sha256": "045104f2cbac125491d23686c4137d45e1086d8b644c2d0e3697b10a6c4796d0"
 }
