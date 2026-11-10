@@ -33,10 +33,11 @@ export const previewIssuerPreflight = createServerFn({ method: "POST" })
           const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
           return supabaseAdmin as unknown as import("./core.server").ReadDb;
         },
-        verifyKeyExclusive: async () => {
-          const { verifyElogistixTestKeyExclusive } = await import("./exclusivity.server");
-          const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-          return verifyElogistixTestKeyExclusive(supabaseAdmin as unknown as import("./exclusivity.server").ExclusivityRpc);
+        // Wrapper gates the window after each loader and right before the RPC.
+        exclusivity: {
+          loadVerifier: async () => (await import("./exclusivity.server")).verifyElogistixTestKeyExclusive,
+          loadClient: async () => (await import("@/integrations/supabase/client.server"))
+            .supabaseAdmin as unknown as import("./exclusivity.server").ExclusivityRpc,
         },
         readIssuer: async (key, signal) => (await import("./sdk.server")).readSdk6Issuer(key, signal),
       });

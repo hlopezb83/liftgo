@@ -1,3 +1,7 @@
+## [8.50.2] - 2026-11-10
+
+- Refuerza la pantalla temporal de revisión sandbox: si la ventana vence mientras se preparan las conexiones internas, ya no se envía la comprobación de exclusividad. Agrega pruebas sin red. La comprobación en la base sigue sin aplicarse y la pantalla sigue apagada.
+
 ## [8.50.1] - 2026-11-10
 
 - Corrige, sin aplicarla, la comprobación preparada para que sólo el servicio interno pueda ejecutarla: retira también el permiso heredado por un rol técnico y aborta todo si quedan permisos inesperados. El retiro seguro deja la función sin acceso para nadie salvo su dueño. Sin cambios en la base real ni publicación.

@@ -1,3 +1,4 @@
+import { gatedExclusivityVerifier, type ExclusivityRpc } from "./exclusivity.server";
 import { windowOpen, type PreviewWindow, type PreflightResult } from "./policy";
 import type { Caller, ReadDb } from "./core.server";
 
@@ -11,8 +12,11 @@ export interface WrapperDeps {
   createCaller(url: string, key: string, authorization: string): Promise<Caller>;
   loadSecretReader(): Promise<ReadDb>;
   readIssuer(key: string, signal: AbortSignal): Promise<unknown>;
-  /** Boolean-only DB verifier (no params, no key); absent => fail closed. */
-  verifyKeyExclusive?: () => Promise<boolean>;
+  /** Loaders of the boolean-only DB verifier (no params, no key); absent => fail closed. */
+  exclusivity?: {
+    loadVerifier(): Promise<(client: ExclusivityRpc) => Promise<boolean>>;
+    loadClient(): Promise<ExclusivityRpc>;
+  };
 }
 
 const fail = (status: number, code: PreflightResult["code"]): PreflightResult => ({ ok: false, status, code });
@@ -30,11 +34,14 @@ export async function handlePreviewPreflight(deps: WrapperDeps): Promise<Preflig
     if (!url || !publishableKey) return fail(503, "unavailable");
     const origin = deps.headers.get("origin") ?? "";
     const { runReadOnlyPreflight } = await import("./core.server");
+    if (!windowOpen(deps.window, deps.now())) return fail(410, "expired");
     const caller = await deps.createCaller(url, publishableKey, header);
+    if (!windowOpen(deps.window, deps.now())) return fail(410, "expired");
     return await runReadOnlyPreflight({
       now: deps.now, window: deps.window, development: deps.development, origin, token, caller,
       loadSecretReader: deps.loadSecretReader, readIssuer: deps.readIssuer,
-      ...(deps.verifyKeyExclusive ? { verifyKeyExclusive: deps.verifyKeyExclusive } : {}),
+      ...(deps.exclusivity ? { verifyKeyExclusive: gatedExclusivityVerifier({
+        window: deps.window, now: deps.now, ...deps.exclusivity }) } : {}),
     });
   } catch { return fail(503, "unavailable"); }
 }
