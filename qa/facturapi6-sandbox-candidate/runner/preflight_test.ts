@@ -7,12 +7,14 @@ import {
   compareIssuer,
   parseAction,
   RUN_EXPIRES_AT,
+  RUN_NOT_BEFORE,
   RUN_ID,
   TENANT_ORGANIZATION_ID,
 } from "./policy.ts";
 
 const OTHER_ORG = "00000000-0000-4000-8000-000000000000";
 const TEST_KEY = "sk_test_FAKE_NOT_A_SECRET";
+const USER_ID = "11111111-1111-4111-8111-111111111111";
 
 type Tables = Record<string, { data: unknown; error?: unknown }>;
 
@@ -59,6 +61,11 @@ interface Opts {
   meFails?: boolean;
   claims?: Record<string, unknown> | null;
   now?: number;
+  profiles?: unknown[];
+  profileError?: unknown;
+  orgActive?: boolean | null;
+  memberships?: unknown[];
+  onSecretsSelect?: (cols: string) => void;
 }
 
 function setup(o: Opts = {}) {
@@ -74,12 +81,12 @@ function setup(o: Opts = {}) {
   // con otherOwner, una fila ajena para simular llave duplicada.
   let secretsReads = 0;
   const db = fakeDb({
-    profiles: { data: [{ is_active: true }] },
+    profiles: { data: o.profiles ?? [{ is_active: true }], error: o.profileError },
+    organizations: { data: [{ id: TENANT_ORGANIZATION_ID, is_active: o.orgActive ?? true }] },
     user_roles: { data: [{ role: o.role ?? "admin" }] },
     organization_memberships: {
-      data: [{ organization_id: o.org ?? TENANT_ORGANIZATION_ID, member_type: "internal" }],
+      data: o.memberships ?? [{ organization_id: o.org ?? TENANT_ORGANIZATION_ID, member_type: "internal" }],
     },
-    organizations: { data: [{ id: TENANT_ORGANIZATION_ID, is_active: true }] },
     company_settings: {
       data: Array.from({ length: o.settingsRows ?? 1 }, () => settings),
     },
@@ -93,7 +100,10 @@ function setup(o: Opts = {}) {
       ? { facturapi_test_key: o.key === undefined ? TEST_KEY : o.key, facturapi_live_key: null }
       : (o.otherOwner ? { organization_id: OTHER_ORG } : null);
     const chain: any = {
-      select: () => chain,
+      select: (cols: string) => {
+        o.onSecretsSelect?.(cols);
+        return chain;
+      },
       eq: () => chain,
       neq: () => chain,
       maybeSingle: () => Promise.resolve({ data, error: null }),
@@ -105,14 +115,14 @@ function setup(o: Opts = {}) {
       auth: {
         getClaims: () =>
           Promise.resolve({
-            data: o.claims === null ? null : { claims: o.claims ?? { sub: "user-1", role: "authenticated" } },
+            data: o.claims === null ? null : { claims: o.claims ?? { sub: USER_ID, role: "authenticated" } },
             error: null,
           }),
       },
     }) as never,
     createServiceClient: () => db as never,
     env: () => undefined,
-    now: () => o.now ?? Date.parse("2026-11-10T05:00:00Z"),
+    now: () => o.now ?? RUN_NOT_BEFORE + 60_000,
     createIssuerReader: (k) => ({
       me: () => {
         meCalls.push(k === TEST_KEY ? "test-key" : "other-key");
@@ -193,7 +203,7 @@ Deno.test("bloquea caller no autorizado", async () => {
   assertEquals((await run({ role: "viewer" })).res.status, 403);
   assertEquals(
     (await run({ claims: { sub: "", role: "service_role" } })).json.error,
-    "service_role_not_allowed",
+    "caller_role_not_allowed",
   );
 });
 
@@ -243,4 +253,54 @@ Deno.test("segunda solicitud simultánea en el mismo isolate se rechaza", async 
   }
   release();
   throw new Error("no se observó rechazo concurrente");
+});
+
+Deno.test("identidad estricta: perfil ausente/error/inactivo/null fallan cerrado", async () => {
+  assertEquals((await run({ profiles: [] })).json.error !== undefined, true);
+  assertEquals((await run({ profiles: [] })).res.status, 403);
+  assertEquals((await run({ profileError: { message: "x" } })).res.status, 503);
+  assertEquals((await run({ profiles: [{ is_active: false }] })).res.status, 403);
+  const n = await run({ profiles: [{ is_active: null }] });
+  assertEquals([n.res.status, n.json.error], [403, "profile_not_active"]);
+  assertEquals(n.meCalls, []);
+});
+
+Deno.test("identidad estricta: sub vacío/no UUID, anon y cron se rechazan", async () => {
+  assertEquals((await run({ claims: { sub: "", role: "authenticated" } })).res.status, 401);
+  assertEquals((await run({ claims: { sub: "user-1", role: "authenticated" } })).res.status, 401);
+  assertEquals((await run({ claims: { sub: USER_ID, role: "anon" } })).json.error, "caller_role_not_allowed");
+  assertEquals((await run({ claims: { sub: USER_ID, role: "service_role" } })).json.error, "caller_role_not_allowed");
+});
+
+Deno.test("membresía ambigua/ausente/ajena y empresa inactiva se rechazan", async () => {
+  const two = [{ organization_id: TENANT_ORGANIZATION_ID, member_type: "internal" }, { organization_id: OTHER_ORG, member_type: "internal" }];
+  assertEquals((await run({ memberships: two })).res.status, 409);
+  assertEquals((await run({ memberships: [] })).res.status, 403);
+  assertEquals((await run({ org: OTHER_ORG })).json.error, "tenant_not_allowed");
+  assertEquals((await run({ orgActive: false })).res.status, 403);
+  assertEquals((await run({ orgActive: null })).res.status, 403);
+});
+
+Deno.test("modo live se rechaza ANTES de leer credenciales; la columna live nunca se pide", async () => {
+  const live: string[] = [];
+  const r = await run({ mode: "live", onSecretsSelect: (c) => live.push(c) });
+  assertEquals([r.res.status, r.json.error], [409, "mode_not_test"]);
+  assertEquals(live, []);
+  const seen: string[] = [];
+  await run({ onSecretsSelect: (c) => seen.push(c) });
+  assert(seen.length > 0);
+  for (const c of seen) assert(!c.includes("facturapi_live_key"), `select pidió columna live: ${c}`);
+});
+
+Deno.test("ventana corta: antes de NOT_BEFORE y al vencer responde 410; duración <= 6h", async () => {
+  assertEquals((await run({ now: RUN_NOT_BEFORE - 1 })).res.status, 410);
+  assertEquals((await run({ now: RUN_EXPIRES_AT })).res.status, 410);
+  assert(RUN_EXPIRES_AT - RUN_NOT_BEFORE <= 6 * 3600_000);
+});
+
+Deno.test("errores no contienen la llave ni fragmentos", async () => {
+  for (const o of [{ otherOwner: true }, { key: "sk_live_ABCDEF" }, { meFails: true }] as Opts[]) {
+    const t = JSON.stringify((await run(o)).json);
+    assert(!/sk_|ABCDEF|FAKE/.test(t), t);
+  }
 });
