@@ -159,3 +159,9 @@ Cloud, ensayo A/B, resultados de operación entre usuarios y evidencia de
 recuperación aislada. Confirma los datos de producción directamente en Lovable
 Cloud en el momento de la decisión.
 - V09 acciones móviles de reserva: implementado (Crear contrato/Extender visibles, resto en «Más acciones» con grupo de riesgo; foco vuelve a Más). Pruebas de componente 10/10. QA GUI 320/375/390 pendiente.
+
+## Facturapi 6 sandbox (PR #438, 10 nov 2026)
+
+- [x] Ejecutor temporal preparado en `qa/facturapi6-sandbox-candidate` (snapshot+manifiesto, sólo preflight, 20/20 pruebas sin red).
+- [ ] Revisión independiente; despliegue de `fx6-sandbox-probe` y preflight real (requiere aprobación y sesión admin del tenant).
+- [ ] Diseño/autorización de fases de escritura con datos ficticios del run (escriben en BD de producción).
