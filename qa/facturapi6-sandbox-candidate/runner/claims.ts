@@ -1,9 +1,8 @@
 // Claims durables del run en el bucket PRIVADO existente `cfdi-files`.
 // Objetos creados con upsert:false bajo un prefijo exclusivo del run; nunca se
-// sobrescriben ni se borran desde este código. Ver README, "Claims durables":
-// el almacenamiento existente NO garantiza inmutabilidad (service_role puede
-// actualizar/borrar y existe una herramienta de migración de prefijos), por eso
-// `DURABLE_CLAIMS_GUARANTEED` es false y las fases de escritura no se abren.
+// sobrescriben ni se borran desde este código. `DURABLE_CLAIMS_GUARANTEED`
+// sigue en false hasta revisión independiente (ver README, "Claims durables").
+import { isRecord } from "./db.ts";
 import { RUN_ID } from "./policy.ts";
 
 export const CLAIM_BUCKET = "cfdi-files";
@@ -25,15 +24,17 @@ export interface ClaimStore {
 
 export class ClaimUncertain extends Error {}
 
-interface StorageBucketLike {
-  upload(path: string, body: Blob, opts: { upsert: false; contentType: string }): Promise<{ error: any }>;
-  download(path: string): Promise<{ data: unknown; error: any }>;
+export interface StorageBucketLike {
+  upload(path: string, body: Blob, opts: { upsert: false; contentType: string }): Promise<{ error: unknown }>;
+  download(path: string): Promise<{ data: unknown; error: unknown }>;
 }
 
-const isConflict = (e: any) =>
-  String(e?.statusCode ?? e?.status ?? "") === "409" || /already exists|duplicate/i.test(String(e?.message ?? ""));
-const isNotFound = (e: any) =>
-  ["400", "404"].includes(String(e?.statusCode ?? e?.status ?? "")) && /not.?found/i.test(String(e?.message ?? ""));
+const field = (e: unknown, k: string) => (isRecord(e) ? String(e[k] ?? "") : "");
+const statusOf = (e: unknown) => field(e, "statusCode") || field(e, "status");
+const isConflict = (e: unknown) =>
+  statusOf(e) === "409" || /already exists|duplicate/i.test(field(e, "message"));
+const isNotFound = (e: unknown) =>
+  ["400", "404"].includes(statusOf(e)) && /not.?found/i.test(field(e, "message"));
 
 export class StorageClaimStore implements ClaimStore {
   constructor(private bucket: StorageBucketLike, private now: () => number) {}
@@ -51,9 +52,10 @@ export class StorageClaimStore implements ClaimStore {
   }
 
   private async create(path: string, payload: Record<string, unknown>): Promise<ReserveResult> {
-    const body = new Blob([JSON.stringify({ run_id: RUN_ID, at: new Date(this.now()).toISOString(), ...payload })], {
-      type: "application/json",
-    });
+    const body = new Blob(
+      [JSON.stringify({ run_id: RUN_ID, at: new Date(this.now()).toISOString(), ...payload })],
+      { type: "application/json" },
+    );
     let r;
     try {
       r = await this.bucket.upload(path, body, { upsert: false, contentType: "application/json" });
@@ -78,19 +80,41 @@ export class StorageClaimStore implements ClaimStore {
 export class MemoryClaimStore implements ClaimStore {
   objects = new Map<string, Record<string, unknown>>();
   failNext: "state" | "reserve" | "disable" | null = null;
-  async state() {
-    if (this.failNext === "state") { this.failNext = null; throw new ClaimUncertain("state_unreadable"); }
-    return this.objects.has(DISABLED_OBJECT) ? "disabled" as const : "open" as const;
+
+  private consumeFailure(kind: "state" | "reserve" | "disable", code: string) {
+    if (this.failNext !== kind) return;
+    this.failNext = null;
+    throw new ClaimUncertain(code);
   }
-  async reserve(action: string, payload: Record<string, unknown>): Promise<ReserveResult> {
-    if (this.failNext === "reserve") { this.failNext = null; throw new ClaimUncertain("claim_write_uncertain"); }
+
+  state() {
+    try {
+      this.consumeFailure("state", "state_unreadable");
+    } catch (e) {
+      return Promise.reject(e);
+    }
+    return Promise.resolve(this.objects.has(DISABLED_OBJECT) ? "disabled" as const : "open" as const);
+  }
+
+  reserve(action: string, payload: Record<string, unknown>): Promise<ReserveResult> {
+    try {
+      this.consumeFailure("reserve", "claim_write_uncertain");
+    } catch (e) {
+      return Promise.reject(e);
+    }
     const p = claimObject(action);
-    if (this.objects.has(p)) return "already_claimed";
+    if (this.objects.has(p)) return Promise.resolve("already_claimed");
     this.objects.set(p, payload);
-    return "reserved";
+    return Promise.resolve("reserved");
   }
-  async disable(reason: string) {
-    if (this.failNext === "disable") { this.failNext = null; throw new ClaimUncertain("claim_write_uncertain"); }
+
+  disable(reason: string) {
+    try {
+      this.consumeFailure("disable", "claim_write_uncertain");
+    } catch (e) {
+      return Promise.reject(e);
+    }
     if (!this.objects.has(DISABLED_OBJECT)) this.objects.set(DISABLED_OBJECT, { reason });
+    return Promise.resolve();
   }
 }
