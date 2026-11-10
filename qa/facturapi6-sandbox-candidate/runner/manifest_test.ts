@@ -4,7 +4,7 @@ import { assertEquals } from "@std/assert";
 
 const root = new URL("../", import.meta.url);
 
-async function sha256Hex(bytes: Uint8Array) {
+async function sha256Hex(bytes: Uint8Array<ArrayBuffer>) {
   const d = await crypto.subtle.digest("SHA-256", bytes);
   return [...new Uint8Array(d)].map((b) => b.toString(16).padStart(2, "0")).join("");
 }
@@ -17,7 +17,7 @@ Deno.test("manifiesto: cada archivo existe, hashes y closure_sha256 coinciden", 
   assertEquals(files.length, m.file_count);
   let joined = "";
   for (const f of files) {
-    const bytes = await Deno.readFile(new URL(`snapshot/${f.path}`, root));
+    const bytes = (await Deno.readFile(new URL(`snapshot/${f.path}`, root))) as Uint8Array<ArrayBuffer>;
     assertEquals(await sha256Hex(bytes), f.sha256, f.path);
     joined += `${f.path}:${f.sha256}\n`;
   }
