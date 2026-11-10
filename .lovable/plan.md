@@ -108,6 +108,36 @@ Un éxito en este camino prueba los manejadores auténticos sobre el runtime de 
 4. **Inyección del SDK (punto anterior):** aceptar un cambio mínimo de firma en cuatro manejadores o rechazarlo. Si se rechaza, el filtro de hosts no se puede garantizar.
 5. **Claims durables:** pasar `DURABLE_CLAIMS_GUARANTEED` a true sólo después de verificar el bucket privado existente `cfdi-files` sin ampliar permisos.
 
+## Presupuesto de tiempo del servidor (diagnóstico)
+
+### Fuentes
+
+- **Documentación oficial de Lovable** ("Where your app's server code runs", "Traffic and scale"): no especifica límites de duración, CPU, wall-clock ni timeout por petición para `createServerFn`. Tampoco dice qué pasa si el navegador se desconecta. Sólo documenta un límite de tasa de 1 000 peticiones por proyecto cada 10 s en el plan Free.
+- **Proceso observado en el sandbox:** la vista previa en vivo corre en `vite dev` sobre Node (`node …/vite dev --port 8080`), detrás del proxy de `lovableproject.com`. No corre en workerd.
+- **Configuración del repositorio:** `wrangler.jsonc` y `vite.config.ts` (preset `cloudflare-module`) sólo aplican a la app publicada.
+- **Conexiones salientes:** la regla interna de la plataforma limita a 6 las conexiones salientes simultáneas por invocación en workerd. En dev (Node) no aplica.
+
+### Límites
+
+| Límite | Vista previa en vivo | Garantizado |
+|---|---|---|
+| Wall-clock o timeout del proxy | Desconocido | Desconocido |
+| CPU | Desconocido; Node no impone tope propio | Desconocido |
+| Desconexión del navegador | Desconocido si aborta el handler | Desconocido |
+| Estabilidad del proceso | El dev server se reinicia al instalar paquetes o con eventos del sandbox | Ninguna garantía |
+
+### Viabilidad de una sola petición
+
+No es viable de forma demostrable. La petición única incluiría 2 facturas, REP, NC, PDF/XML, cancelación y refresco: más de 8 llamadas al proveedor y decenas de lecturas y escrituras. Como no hay un tope documentado, un corte del proxy o un reinicio dejaría un CFDI emitido sin persistir, y en un solo paso no se puede distinguir en qué fase ocurrió.
+
+### Mecanismo soportado propuesto (sin Edge Functions nuevas)
+
+- **Una petición por fase**, todas con el mismo `createServerFn` revisado. El navegador pulsa cada fase manualmente; nada se envía al montar la pantalla y no hay encadenamiento automático.
+- **Antes del efecto:** cada fase lee el estado durable del run (un único objeto de claim en Storage, versionado por fase) y reserva su paso con escritura `upsert:false`.
+- **Resultado incierto:** si una fase termina con timeout, desconexión o respuesta inesperada, marca el run como deshabilitado y la siguiente petición se rechaza. No hay reanudación; la reconciliación es manual y queda documentada.
+- **Fase individual:** cada una hace como máximo una llamada de escritura al proveedor y se mide con su propio timeout menor de 15 s, como en el preflight.
+- **Límite de evidencia:** el éxito sólo prueba la vista previa en Node, no workerd ni Deno.
+
 ## Fuera de alcance
 
 Edge Functions nuevas, reutilizar endpoints operativos, tocar despliegues, migraciones, permisos, publicación y activar el preflight.
