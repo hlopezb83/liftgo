@@ -1,5 +1,5 @@
-import type { Caller, ReadDb } from "./core.server";
 import { windowOpen, type PreviewWindow, type PreflightResult } from "./policy";
+import type { Caller, ReadDb } from "./core.server";
 
 /** Injected edges of the real server-function wrapper (testable offline). */
 export interface WrapperDeps {

@@ -50,11 +50,10 @@ describe("wrapper real del server function", () => {
       expect(d.loadSecretReader).not.toHaveBeenCalled(); expect(d.readIssuer).not.toHaveBeenCalled();
     });
   it("origen live exacto con DEV llega a validar sesión; sin lector ni proveedor", async () => {
-    const ok = { then: (f: (v: unknown) => unknown) => Promise.resolve({ data: true, error: null }).then(f) };
     const caller = {
       from: vi.fn(() => { throw new Error("no_db_in_this_test"); }),
       auth: { getClaims: vi.fn(async () => ({ data: null, error: "offline" })), getUser: vi.fn() },
-      rpc: vi.fn(() => ok),
+      rpc: vi.fn(async () => ({ data: true, error: null })),
     };
     const d = deps({ createCaller: vi.fn(async () => caller) });
     expect((await handlePreviewPreflight(d)).code).toBe("unauthorized");
