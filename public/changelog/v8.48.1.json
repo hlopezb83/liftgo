@@ -1,0 +1,12 @@
+{
+  "version": "8.48.1",
+  "date": "2026-11-10",
+  "type": "patch",
+  "category": "fix",
+  "title": "Compilación de vista previa con identidad actualizada",
+  "description": "La compilación directa actualiza la identidad de la versión antes de validarla, sin depender de pasos previos opcionales ni quitar controles de integridad.",
+  "changes": [
+    "Generación y validación compartidas para los puntos de entrada de Vite.",
+    "Pruebas de metadatos obsoletos, ausentes y entradas inválidas; sin publicación ni cambios de datos."
+  ]
+}

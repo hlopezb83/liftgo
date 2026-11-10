@@ -1,3 +1,7 @@
+## [8.48.1] - 2026-11-10
+
+- Corrige la compilación directa de la vista previa: genera la identidad de la versión antes de comprobarla contra las fuentes actuales, sin quitar la validación de integridad. Sin publicación ni cambios de datos.
+
 ## [Sin publicar] - 2026-11-09
 
 - Reconstruye GitHub Actions con un CI automático de calidad, unitarias completas sin cobertura y un build/smoke aislado. Consolida las validaciones pesadas en ejecución manual y retira las actions locales y las programaciones anteriores. Rendimiento pendiente de medición remota.

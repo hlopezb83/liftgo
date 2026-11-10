@@ -6,14 +6,10 @@
 import { readFile, writeFile } from "node:fs/promises";
 import { resolve, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
-import { sourceIdentity } from "./release-identity.mjs";
+import { sourceIdentity, validatedBuildIdentity } from "./release-identity.mjs";
 import { validateEntries } from "./changelog-entry.mjs";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const root = resolve(__dirname, "..");
-const changelogPath = resolve(root, "public/changelog.json");
-const outPath = resolve(root, "public/version.json");
-const recentPath = resolve(root, "public/changelog-recent.json");
 
 // YAGNI v7.397.0: `/changelog.json` pesa ~650 KB (925+ entradas). La página
 // solo necesita las versiones recientes en el primer render; el histórico
@@ -22,39 +18,39 @@ export const RECENT_COUNT = 60;
 
 // Fail-closed: una entrada inválida rompe el prebuild. Antes se escribía
 // `version: "unknown"` con código de salida 0 y el error llegaba a producción.
-let arr;
-try {
-  arr = JSON.parse(await readFile(changelogPath, "utf8"));
-} catch (err) {
-  console.error(`[gen-version] no se pudo leer/parsear ${changelogPath}: ${err.message}`);
-  process.exit(1);
-}
-
+export async function generateVersion(root) {
+const changelogPath = resolve(root, "public/changelog.json");
+const outPath = resolve(root, "public/version.json");
+const recentPath = resolve(root, "public/changelog-recent.json");
+const arr = JSON.parse(await readFile(changelogPath, "utf8"));
 const errors = validateEntries(arr);
-if (errors.length > 0) {
-  console.error("[gen-version] changelog inválido:");
-  for (const e of errors) console.error(`  - ${e}`);
-  process.exit(1);
-}
+if (errors.length > 0) throw new Error(`[gen-version] changelog inválido:\n${errors.join("\n")}`);
 
 const version = String(arr[0].version);
 // El índice y el detalle se publican por separado. Un detalle ausente puede
 // devolver el HTML de la app y fallar al expandir la versión en producción.
 // Validamos el archivo que consumirá la página antes de generar la versión.
-try {
   const detail = JSON.parse(await readFile(resolve(root, `public/changelog/v${version}.json`), "utf8"));
   if (typeof detail?.description !== "string" || !Array.isArray(detail?.changes)
     || !detail.changes.every((change) => typeof change === "string")) {
     throw new Error("description o changes inválidos");
   }
-} catch (err) {
-  console.error(`[gen-version] detalle de v${version} ausente o inválido: ${err.message}`);
-  process.exit(1);
-}
 const sourceSha256 = await sourceIdentity(root);
 const generatedAt = new Date().toISOString();
 await writeFile(outPath, JSON.stringify({ version, generatedAt, sourceSha256 }, null, 2) + "\n", "utf8");
 await writeFile(recentPath, JSON.stringify(arr.slice(0, RECENT_COUNT)) + "\n", "utf8");
+return { version, generatedAt, sourceSha256 };
+}
+
+// Vite puede ejecutarse directamente sin los hooks prebuild/predev.
+// Generar primero no sustituye la comprobación posterior contra las fuentes.
+export async function prepareBuildIdentity(root) {
+  await generateVersion(root);
+  return validatedBuildIdentity(root);
+}
+
+if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
+const { version } = await generateVersion(resolve(__dirname, ".."));
 console.log(`[gen-version] public/version.json → ${version}`);
 console.log(`[gen-version] public/changelog-recent.json → ${Math.min(RECENT_COUNT, arr.length)} entradas`);
 
@@ -62,3 +58,4 @@ console.log(`[gen-version] public/changelog-recent.json → ${Math.min(RECENT_CO
 
 // Consumible por CI: última línea de stdout.
 console.log(`version=${version}`);
+}

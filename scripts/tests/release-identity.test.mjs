@@ -1,9 +1,10 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { mkdtemp, mkdir, writeFile, rm, symlink } from 'node:fs/promises';
+import { mkdtemp, mkdir, readFile, writeFile, rm, symlink } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import { validatedBuildIdentity, sourceIdentity, SOURCE_DIRECTORIES, SOURCE_FILES, assertReleaseIdentity } from '../release-identity.mjs';
+import { prepareBuildIdentity } from '../gen-version.mjs';
 
 async function fixture(t) {
   const root = await mkdtemp(path.join(os.tmpdir(), 'liftgo-identity-'));
@@ -98,4 +99,42 @@ test('reports edits invalidate a previously generated manifest', async (t) => {
   await mkdir(path.join(root, 'src/features/reports'), { recursive: true });
   await writeFile(path.join(root, 'src/features/reports/report.ts'), 'new report');
   await assert.rejects(validatedBuildIdentity(root), /identities differ/);
+});
+
+async function buildFixture(t) {
+  const root = await fixture(t);
+  await writeFile(path.join(root, 'public/changelog.json'), JSON.stringify([
+    { version: '8.48.1', date: '2026-11-10', title: 'Build' },
+  ]));
+  await mkdir(path.join(root, 'public/changelog'));
+  await writeFile(path.join(root, 'public/changelog/v8.48.1.json'), JSON.stringify({ description: 'Build', changes: [] }));
+  return root;
+}
+
+test('direct build regenerates stale metadata and validates the current source', async (t) => {
+  const root = await buildFixture(t);
+  await writeFile(path.join(root, 'public/version.json'), JSON.stringify(old));
+  const identity = await prepareBuildIdentity(root);
+  assert.equal(identity.version, '8.48.1');
+  assert.equal(identity.sourceSha256, await sourceIdentity(root));
+  assert.deepEqual(JSON.parse(await readFile(path.join(root, 'public/version.json'), 'utf8')), identity);
+  await writeFile(path.join(root, 'src/money.ts'), 'new source');
+  const next = await prepareBuildIdentity(root);
+  assert.notEqual(next.sourceSha256, identity.sourceSha256);
+  assert.equal(next.sourceSha256, await sourceIdentity(root));
+});
+
+test('direct build generates missing metadata without requiring a lifecycle hook', async (t) => {
+  const root = await buildFixture(t);
+  const identity = await prepareBuildIdentity(root);
+  assert.equal(identity.sourceSha256, await sourceIdentity(root));
+  assert.deepEqual(await validatedBuildIdentity(root), identity);
+});
+
+test('direct build fails closed for an invalid changelog or missing detail', async (t) => {
+  const root = await buildFixture(t);
+  await rm(path.join(root, 'public/changelog/v8.48.1.json'));
+  await assert.rejects(prepareBuildIdentity(root), /ENOENT/);
+  await writeFile(path.join(root, 'public/changelog.json'), '[]');
+  await assert.rejects(prepareBuildIdentity(root), /changelog inválido/);
 });
