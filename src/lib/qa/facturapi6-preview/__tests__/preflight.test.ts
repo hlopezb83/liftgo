@@ -38,8 +38,9 @@ function fixture() {
     rpc: vi.fn(async () => ({ data: true, error: null })),
   };
   const deps = {
-    now: vi.fn(() => 2_000), window, development: true, origin: "http://localhost:8080", token: "offline-double",
+    now: vi.fn(() => 2_000), window, development: true, origin: "https://e25ace4a-172e-4082-a037-00473dacf2f2.lovableproject.com", token: "offline-double",
     caller, loadSecretReader: vi.fn(async () => db(true)),
+    verifyKeyExclusive: vi.fn(async () => true) as (() => Promise<boolean>) | undefined,
     readIssuer: vi.fn(async (_key: string, _signal: AbortSignal) => ({ legal: { legal_name: "ELOGISTIX SHIPPING", tax_id: "AAA010101AAA" } })),
   };
   return { deps, data, calls, secretData };
@@ -67,12 +68,25 @@ describe("ventana Preview cerrada", () => {
     expect((await runReadOnlyPreflight(deps)).code).toBe("disabled");
     expect(deps.readIssuer).not.toHaveBeenCalled();
   });
-  it.each(["https://liftgo.lovable.app", "https://attacker.invalid", "null", ""])("rechaza origen %s", async origin => {
+  it.each([
+    "https://liftgo.lovable.app", "https://attacker.invalid", "null", "",
+    "https://id-preview--e25ace4a-172e-4082-a037-00473dacf2f2.lovable.app",
+    "http://e25ace4a-172e-4082-a037-00473dacf2f2.lovableproject.com",
+    "https://e25ace4a-172e-4082-a037-00473dacf2f2.lovableproject.com:8443",
+    "https://e25ace4a-172e-4082-a037-00473dacf2f2.lovableproject.com/",
+    "https://x.e25ace4a-172e-4082-a037-00473dacf2f2.lovableproject.com",
+    "https://e25ace4a-172e-4082-a037-00473dacf2f2.lovableproject.com.attacker.invalid",
+    "https://E25ACE4A-172E-4082-A037-00473DACF2F2.LOVABLEPROJECT.COM",
+    "https://e25ace4a-172e-4082-a037-00473dacf2f3.lovableproject.com",
+    "https://e25ace4a-172e-4082-a037-00473dacf2f2.lovableproject-dev.com",
+  ])("rechaza origen %s", async origin => {
     const { deps } = fixture(); deps.origin = origin;
     expect((await runReadOnlyPreflight(deps)).code).toBe("preview_only"); expect(deps.loadSecretReader).not.toHaveBeenCalled();
   });
-  it("producción denegada aun con origen Preview", async () => {
-    const { deps } = fixture(); deps.development = false;
+  it.each([
+    "https://e25ace4a-172e-4082-a037-00473dacf2f2.lovableproject.com", "http://localhost:8080",
+  ])("compilación no DEV (static/producción) denegada aun con origen %s", async origin => {
+    const { deps } = fixture(); deps.development = false; deps.origin = origin;
     expect((await runReadOnlyPreflight(deps)).code).toBe("preview_only");
   });
 });
@@ -126,10 +140,26 @@ describe("sólo configuración test y GET", () => {
     expect((await runReadOnlyPreflight(deps)).code).toBe("configuration_rejected");
     expect(deps.readIssuer).not.toHaveBeenCalled();
   });
-  it("llave de otro dueño bloqueada sin GET", async () => {
-    const { deps, secretData } = fixture(); secretData.other = [{ organization_id: session }];
+  it("sin mecanismo de exclusividad: bloqueo explícito antes de leer llave", async () => {
+    const { deps } = fixture(); deps.verifyKeyExclusive = undefined;
+    expect(await runReadOnlyPreflight(deps)).toEqual({ ok: false, status: 409, code: "exclusivity_unavailable" });
+    expect(deps.loadSecretReader).not.toHaveBeenCalled(); expect(deps.readIssuer).not.toHaveBeenCalled();
+  });
+  it.each([false, undefined])("exclusividad %s bloquea sin leer llave", async value => {
+    const { deps } = fixture(); deps.verifyKeyExclusive = vi.fn(async () => value as boolean);
     expect((await runReadOnlyPreflight(deps)).code).toBe("configuration_rejected");
-    expect(deps.readIssuer).not.toHaveBeenCalled();
+    expect(deps.loadSecretReader).not.toHaveBeenCalled();
+  });
+  it("la llave nunca viaja como filtro de consulta", async () => {
+    const eqValues: unknown[] = []; const { deps } = fixture();
+    deps.loadSecretReader = vi.fn(async () => ({ from() {
+      const q: ReadQuery = { select() { return q; }, eq(_c, v) { eqValues.push(v); return q; },
+        neq(_c, v) { eqValues.push(v); return q; }, limit() { return q; },
+        then(f, r) { return Promise.resolve({ error: null, data: [{ facturapi_test_key: "sk_test_OFFLINE_FIXTURE" }] }).then(f, r); } };
+      return q;
+    } }));
+    expect((await runReadOnlyPreflight(deps)).code).toBe("verified");
+    expect(eqValues).toEqual([TENANT_ORGANIZATION_ID]);
   });
   it("dos filas de credenciales bloqueadas", async () => {
     const { deps, secretData } = fixture(); secretData.own = [...secretData.own, ...secretData.own];
@@ -156,7 +186,7 @@ describe("sólo configuración test y GET", () => {
   it("éxito sólo booleanos; sin llave, RFC ni IDs en respuesta", async () => {
     const { deps, calls } = fixture(); const result = await runReadOnlyPreflight(deps);
     expect(result).toEqual({ ok: true, status: 200, code: "verified", issuerMatches: true, sandboxConfirmed: true });
-    expect(calls.filter(c => c.includes("billing_secrets"))).toEqual(["billing_secrets:facturapi_test_key", "billing_secrets:organization_id"]);
+    expect(calls.filter(c => c.includes("billing_secrets"))).toEqual(["billing_secrets:facturapi_test_key"]);
     expect(deps.readIssuer).toHaveBeenCalledTimes(1);
   });
   it("emisor discordante se detiene", async () => {
