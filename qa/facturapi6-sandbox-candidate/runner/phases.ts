@@ -10,6 +10,7 @@ import { handleDownloadCfdi } from "../snapshot/supabase/functions/download-cfdi
 import { createInvoiceGateway } from "../snapshot/supabase/functions/stamp-cfdi/invoiceGateway.ts";
 import type { SupabaseLike } from "../snapshot/supabase/functions/_shared/types.ts";
 import { ClaimUncertain, type ClaimStore } from "./claims.ts";
+import type { Db } from "./db.ts";
 import { restrictEnv, restrictSecretsView } from "./guards.ts";
 import {
   checkExpiry,
@@ -63,7 +64,10 @@ export interface PhaseCtx {
  * `retrieve_and_update_status` no tiene handler en el cierre revisado
  * (vive en refresh-cancellation-status, fuera del snapshot): queda bloqueada.
  */
-export const PHASES: Record<Exclude<RunAction, "preflight">, { documents: number; call: HandlerCall | null }> = {
+export type WriteAction = Exclude<RunAction, "preflight">;
+export type PhasePlan = Record<WriteAction, { documents: number; call: HandlerCall | null }>;
+
+export const PHASES: PhasePlan = {
   stamp_invoice: {
     documents: 1,
     call: (f, c) => ({
@@ -140,6 +144,8 @@ export interface WritePhaseDeps {
   ctx: PhaseCtx;
   /** Overrides sólo para pruebas: nunca se exponen al caller. */
   gates?: { writeEnabled: boolean; claimsGuaranteed: boolean };
+  /** Sólo pruebas: sustituye el plan para no ejecutar handlers reales. */
+  phases?: PhasePlan;
 }
 
 export type PhaseOutcome = { status: number; body: Record<string, unknown> };
@@ -148,14 +154,14 @@ const out = (status: number, body: Record<string, unknown>): PhaseOutcome => ({ 
 
 /** Se llama DESPUÉS de strictIdentity. Cada efecto ocurre a lo sumo una vez. */
 export async function runWritePhase(
-  action: Exclude<RunAction, "preflight">,
+  action: WriteAction,
   authHeader: string,
   deps: WritePhaseDeps,
 ): Promise<PhaseOutcome> {
   const gates = deps.gates ?? { writeEnabled: WRITE_PHASES_ENABLED, claimsGuaranteed: DURABLE_CLAIMS_GUARANTEED };
   if (!gates.writeEnabled) return out(423, { error: "phase_not_enabled" });
   if (!gates.claimsGuaranteed) return out(423, { error: "durable_claim_unverified" });
-  const phase = PHASES[action];
+  const phase = (deps.phases ?? PHASES)[action];
   if (!phase?.call) return out(423, { error: "handler_not_in_reviewed_closure" });
 
   const open = async () => {
@@ -231,7 +237,7 @@ export function buildPhaseCtx(raw: {
   fetchImpl: typeof fetch;
 }): PhaseCtx {
   return {
-    serviceClient: () => restrictSecretsView(raw.serviceClient() as any) as SupabaseLike,
+    serviceClient: () => restrictSecretsView(raw.serviceClient() as unknown as Db) as unknown as SupabaseLike,
     callerClient: raw.callerClient,
     env: restrictEnv(raw.env),
     fetchImpl: guardedFetch(raw.fetchImpl, raw.env("SUPABASE_URL")),
