@@ -8145,6 +8145,7 @@ export type Database = {
       purge_e2e_data: { Args: never; Returns: Json }
       purge_expired_support_diagnostics: { Args: never; Returns: number }
       purge_old_notifications: { Args: never; Returns: number }
+      qa_fx6_elogistix_test_key_is_exclusive: { Args: never; Returns: boolean }
       quote_charge_consumed: {
         Args: {
           p_exclude_invoice_id?: string
