@@ -1,3 +1,7 @@
+## [8.52.0] - 2026-11-10
+
+- Prepara, sin desplegar, el cambio de la facturación a Facturapi 6.0.0 y corrige la recuperación de PDF de notas de crédito, que habría dejado de funcionar con la versión nueva. Sin emisión de documentos.
+
 ## [8.51.2] - 2026-11-10
 
 - Documenta el inventario para migrar la facturación a la versión más reciente de Facturapi (6.0.0). Sin cambios en el funcionamiento.

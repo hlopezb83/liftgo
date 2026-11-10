@@ -3,8 +3,8 @@
 ## Migración Facturapi 6.0.0 (10 de noviembre de 2026)
 
 - [x] Fase 0: inventario sin cambios (`docs/facturapi6-migracion-inventario.md`).
-- [ ] Fase 1: capa única SDK 6 (activación todo de una vez, sin interruptor) — siguiente; toca funciones operativas, requiere revisión independiente antes de desplegar.
-- [ ] Fase 2: pruebas de paridad sin red.
+- [x] Fase 1: capa SDK 6 preparada como parche sin desplegar (`qa/facturapi6-phase1/`); 1016 pruebas sin red pasan. Aplicarla despliega: espera revisión y tu autorización.
+- [ ] Fase 2: paridad 5.2 vs 6 por función (falta comparar secuencias de efectos lado a lado).
 - [ ] Fase 3: sandbox completo — autorizados fixtures y pausa de crons sólo en la ventana; falta Fase 1-2.
 - [ ] Fase 4: producción en un solo cambio con reversa por redeploy. Fase 5: retiro de 5.2.0.
 
