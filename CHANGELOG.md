@@ -1,3 +1,7 @@
+## [8.52.2] - 2026-11-10
+
+- Prepara por separado el plan de la Fase 3: dos facturas, un REP y una nota de crédito en modo test de ELOGISTIX, con límites, criterios de revisión y cierre. Sin ejecutar, desplegar ni cambiar datos.
+
 ## [8.52.1] - 2026-11-10
 
 - Compara con datos simulados Facturapi 5.2 y 6.0 en factura, pago, nota de crédito, cancelación, consulta y descargas: resultados idénticos. Sin despliegue ni documentos reales.

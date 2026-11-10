@@ -11,3 +11,4 @@
 - RPCs added by a not-yet-applied migration are called through a local typed contract (e.g. `quoteChargeLegacyRpc.ts`), never by editing generated Supabase types, so the preview compiles before the database catches up.
 - Vite entry points must prepare release metadata through the shared generator and then validate source identity; direct hosting builds do not guarantee package lifecycle hooks.
 - Temporary SDK preflight uses a disabled Preview-only server function with a separately pinned npm alias; this keeps operational Deno dependencies unchanged and secrets behind verified session, role and tenant reads.
+- Fiscal phase review packages stay outside runtime and deployment directories and contain no executable service entry point; this lets reviewers inspect plans without activating fiscal effects.

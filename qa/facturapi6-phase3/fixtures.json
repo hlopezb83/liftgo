@@ -1,0 +1,22 @@
+{
+  "status": "review_only",
+  "enabled": false,
+  "shutdown": true,
+  "run_id": null,
+  "starts_at": null,
+  "expires_at": null,
+  "tenant_id": "fc2c10e3-278b-4899-8aa1-f802752f1c38",
+  "mode": "test",
+  "currency": "MXN",
+  "max_cfdi": 4,
+  "max_document_mxn": 116,
+  "line_quantity": 1,
+  "documents": [
+    {"ref": "factura_a", "kind": "invoice", "method": "PPD", "base_mxn": 100, "vat_mxn": 16, "total_mxn": 116, "quantity": 1},
+    {"ref": "factura_b", "kind": "invoice", "method": "PUE", "base_mxn": 100, "vat_mxn": 16, "total_mxn": 116, "quantity": 1},
+    {"ref": "rep_a", "kind": "rep", "invoice_ref": "factura_a", "payment_amount_mxn": 58, "previous_balance_mxn": 116, "remaining_balance_mxn": 58, "installment": 1, "cfdi_total_mxn": 0},
+    {"ref": "nc_a", "kind": "credit_note", "invoice_ref": "factura_a", "base_mxn": 50, "vat_mxn": 8, "total_mxn": 58, "quantity": 1}
+  ],
+  "cancellation": {"invoice_ref": "factura_b", "motive": "02", "substitution": null},
+  "downloads": {"formats": ["pdf", "xml"], "document_refs": ["factura_a", "factura_b", "rep_a", "nc_a"]}
+}

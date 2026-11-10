@@ -1,0 +1,13 @@
+{
+  "status": "review_only_not_executed",
+  "date": "2026-11-10",
+  "source_commit": "18c8a81efd4e30bd34664d5ae11623a82c14c2d2",
+  "candidate_snapshot": "967ac99ce632c284fc35f9a7a62852ab4fd09dcf",
+  "files": {
+    "README.md": "2d53c9dfab11dd61bcb20d37e789e96a09ef9b5284252184a4cc310edb30bc5e",
+    "TEST_PLAN.md": "5a5c0564a8e69c5736079c310441cc10acb7ba568b65b9149f09c7b6ba8a9618",
+    "fixtures.json": "8a5db74411519f05716f530a3e344d6f8c6c0d81823b7f02a5acaaf880aeacb5",
+    "test_plan.py": "f8b12f44463023881e279f722c26d5309830e7f9bc67de4d3a667a2a91f3d690"
+  },
+  "closure_sha256": "fd61d973c903d4cfa25ed1658dcefa8d2739e68e6d9f350e01c40f0b620f8e4a"
+}

@@ -1,0 +1,7 @@
+{
+  "description": "Prepara dos facturas, un REP y una nota de crédito de prueba en ELOGISTIX, sin ejecutar ni desplegar.",
+  "changes": [
+    "Plan aislado con topes de cuatro CFDI, 116 MXN y cantidad uno, criterios de persistencia, cancelación y cierre.",
+    "Identifica bloqueos de handlers reales, ejecución secuencial, claims y tiempo de espera; preflight permanece apagado."
+  ]
+}
