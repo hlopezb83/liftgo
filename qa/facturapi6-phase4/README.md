@@ -1,5 +1,13 @@
 # Fase 4 · Kit de activación Facturapi 6.0.0 (preparado, NO aplicado)
 
+## Activación del 10/11/2026 · estado vigente
+
+El usuario indicó expresamente «Continua sin respaldo» tras conocer la limitación del cierre automático. Se aplicó el kit exacto en `fx6-prod-20261110T2025Z` y la herramienta oficial confirmó el despliegue de las 12 funciones del manifiesto. Antes de aplicar: jobs 18/19 activos, cero corridas registradas en curso. Se pausaron únicamente esos IDs y nombres; se restauraron durante esta misma intervención. Lectura final: ambos `active=true` a las 20:26 UTC aproximadamente. No se dejó restauración pendiente en segundo plano.
+
+Verificación local: `estado=applied`, manifiesto vigente, 26/26 pruebas puntuales. La herramienta reportó éxito de despliegue y hashes de fuentes enviadas; esto no demuestra arranque por petición, paridad Deno real ni emisión/persistencia sandbox. No se invocó ninguna función fiscal ni se leyó llave o proveedor. El usuario confirmó CI del kit anterior; CI del commit de activación queda pendiente.
+
+Pendiente: los cuatro documentos autorizados en ELOGISTIX y sus PDF/XML/cancelación/refresco; una ventana de pruebas con pausa requerirá nueva coordinación, pues las tareas ya están reanudadas. No repetir emisiones inciertas. Preflight sigue apagado. Fase 5 espera dos semanas estables. Las secciones siguientes conservan antecedentes previos a la activación.
+
 Estado al 10/11/2026: producción sigue en Facturapi **5.2.0**. Este kit deja la activación lista para una ventana supervisada; no cambió las funciones del backend, no desplegó, no ejecutó SQL ni emitió documentos.
 
 ## Qué contiene

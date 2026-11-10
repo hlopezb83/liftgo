@@ -1,3 +1,7 @@
+## [8.52.10] - 2026-11-10
+
+- Activa Facturapi 6.0.0 mediante el paquete revisado y despliega las 12 funciones existentes. Restaura las dos tareas fiscales tras una pausa breve autorizada sin respaldo automático. 26 pruebas focales pasan; verificación de documentos sandbox y CI del nuevo commit pendientes. Sin emisión por el agente.
+
 ## [8.52.9] - 2026-11-10
 
 - Prepara el kit de activación de Facturapi 6.0.0 con reversa exacta, guardas de ventana y guía paso a paso. Corrige el parche anterior, que no actualizaba el archivo de versiones fijas y habría fallado en la integración continua. Sin aplicar, desplegar, pausar tareas ni emitir documentos.

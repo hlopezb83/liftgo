@@ -1,0 +1,7 @@
+{
+  "description": "Actualiza y despliega las 12 funciones fiscales con el paquete revisado; restaura las tareas automáticas tras una pausa breve autorizada.",
+  "changes": [
+    "26 pruebas focales pasan y el paquete aplicado coincide con sus huellas.",
+    "Sin documentos emitidos por el agente; verificación sandbox y CI del nuevo commit pendientes."
+  ]
+}

@@ -1,5 +1,7 @@
 # Revisión de restauración · NO-GO antes de la pausa
 
+**Decisión posterior:** el usuario indicó «Continua sin respaldo». Se efectuó sólo el cambio de versión con pausa breve y cierre manual verificado dentro de la intervención `fx6-prod-20261110T2025Z`. No se preparó ni prometió respaldo automático; ambos jobs quedaron activos. La prueba de cuatro documentos continúa pendiente. El NO-GO descrito abajo corresponde a la exigencia anterior de garantía automática, no a una garantía nueva.
+
 ## Evidencia del 10 de noviembre de 2026
 
 - npm `https://registry.npmjs.org/facturapi/latest` devuelve `6.0.0`.

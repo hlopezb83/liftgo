@@ -139,15 +139,6 @@ async function withOfflineSdk(
   }
   try {
     const client = createFacturapiClient("sk_test_offline_contract");
-    const originalGet = client.invoices.client.get.bind(client.invoices.client);
-    client.invoices.client.get = async (
-      path: string,
-      options: { signal: AbortSignal },
-    ) => {
-      const value = await originalGet(path, options);
-      if (path.endsWith("/pdf")) state.binaries.push(value);
-      return value;
-    };
     const result = await recoverCreditNotePdf(
       state.admin,
       client,
@@ -181,7 +172,7 @@ function jsonMetadata() {
   });
 }
 
-Deno.test("NC PDF SDK 5.2: real Node-stream response recovers by GET ID only", async () => {
+Deno.test("NC PDF SDK 6: real binary response recovers by GET ID only", async () => {
   await withOfflineSdk(
     (path) =>
       path.endsWith("/pdf")
@@ -194,11 +185,6 @@ Deno.test("NC PDF SDK 5.2: real Node-stream response recovers by GET ID only", a
         "/v2/invoices/pac_contract/pdf",
       ]);
       strictEqual(state.uploads.length, 1);
-      const binary = state.binaries[0] as AsyncIterable<unknown> & {
-        destroy?: unknown;
-      };
-      strictEqual(typeof binary[Symbol.asyncIterator], "function");
-      strictEqual(typeof binary.destroy, "function");
       deepStrictEqual(state.uploads[0].bytes, PDF);
       strictEqual(state.uploads[0].options.upsert, false);
       ok(
@@ -212,7 +198,7 @@ Deno.test("NC PDF SDK 5.2: real Node-stream response recovers by GET ID only", a
 });
 
 for (const size of [MAX_BYTES, MAX_BYTES + 1]) {
-  Deno.test(`NC PDF SDK 5.2: ${size}-byte binary honors the 10 MiB limit`, async () => {
+  Deno.test(`NC PDF SDK 6: ${size}-byte binary honors the 10 MiB limit`, async () => {
     const bytes = new Uint8Array(size);
     bytes.set(PDF);
     await withOfflineSdk(
@@ -234,7 +220,7 @@ for (const size of [MAX_BYTES, MAX_BYTES + 1]) {
   });
 }
 
-Deno.test("NC PDF SDK 5.2: an oversized open body stops its underlying transport", async () => {
+Deno.test("NC PDF SDK 6: an oversized open body stops its underlying transport", async () => {
   let stopped = false;
   let bodyController: ReadableStreamDefaultController<Uint8Array> | undefined;
   const chunk = new Uint8Array(6 * 1024 * 1024);
@@ -269,7 +255,7 @@ Deno.test("NC PDF SDK 5.2: an oversized open body stops its underlying transport
       strictEqual(
         stopped,
         true,
-        "Rejecting an oversized Node stream must stop its underlying response body",
+        "Rejecting an oversized binary must stop its underlying response body",
       );
     });
   } finally {
@@ -281,7 +267,7 @@ Deno.test("NC PDF SDK 5.2: an oversized open body stops its underlying transport
 });
 
 for (const phase of ["retrieve", "pdf-headers", "pdf-body"]) {
-  Deno.test(`NC PDF SDK 5.2: timeout aborts ${phase} and never uploads late data`, async () => {
+  Deno.test(`NC PDF SDK 6: timeout aborts ${phase} and never uploads late data`, async () => {
     let transportAborted = false;
     await withOfflineSdk((path, signal) => {
       if (!path.endsWith("/pdf") && phase !== "retrieve") return jsonMetadata();

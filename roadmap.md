@@ -2,7 +2,7 @@
 
 ## Migración Facturapi 6.0.0 (10 de noviembre de 2026)
 
-- [ ] Solicitud del 10/11/2026 20:20 UTC: migrar a la versión más nueva; npm confirma 6.0.0. Plan aprobado exige detener antes de pausar si no hay garantía de restauración ≤60 minutos. Revisión documentada en `qa/facturapi6-phase4/RESTORATION_REVIEW.md`: pg_cron no ofrece esa garantía; sólo un respaldo de mejor esfuerzo. Bloqueo: decisión explícita sobre esa limitación y supervisión de ventana fresca, antes de preparar/revisar SQL y activar. No reutilizar la ventana vencida.
+- [x] Solicitud 20:20 UTC: npm confirma 6.0.0; tras revisión del límite, usuario indicó «Continua sin respaldo». Kit aplicado en `fx6-prod-20261110T2025Z`; herramienta oficial confirmó despliegue de las 12 funciones. Jobs 18/19 pausados brevemente y restaurados/verificados activos en la misma intervención. 26/26 focales y manifiesto vigentes; sin invocación ni emisión por el agente.
 - [x] Fase 0: inventario sin cambios (`docs/facturapi6-migracion-inventario.md`).
 - [x] Fase 1: capa SDK 6 preparada como parche sin desplegar (`qa/facturapi6-phase1/`); 1016 pruebas sin red pasan. Aplicarla despliega: espera revisión y tu autorización.
 - [x] Fase 2: paridad de capa SDK 5.2 vs 6 documentada (13/13 con transporte simulado); no demuestra todas las secuencias de persistencia de handlers.
@@ -15,7 +15,7 @@
 - [ ] En espera (ruta alternativa, sólo si se elige sandbox antes de producción): completar adaptación/paridad de la copia QA según `qa/facturapi6-phase3/adaptation/WIRING_REVIEW.md`. Aun terminada no prueba runtime Deno; queda sustituida por la ventana supervisada mientras no se elija esta ruta.
 - [x] Continuación: consumo Storage NC offline y log de error del proveedor con regresiones; 55 Bun + 4 Python y 85 Vitest de preflight; sin efectos reales.
 - [x] Fase 4 preparada en `qa/facturapi6-phase4/`: parche completo con `deno.lock` (la Fase 1 no lo traía y CI con `--frozen` lo rechazaba), reversa exacta, `activation.py` con guardas de estado/kit/ventana, SQL de pausa/reanudación y verificación sólo preparados, `RUNBOOK.md`. 26/26 pruebas del kit; 1115 pruebas Deno del script de CI con lock congelado, `deno check` de 241 archivos, fmt y lint limpios. ESLint excluye copias Deno de QA. No aplicado.
-- [ ] Ventana supervisada (activación + 4 CFDI ELOGISTIX en modo test, `qa/facturapi6-phase4/RUNBOOK.md`). Usuario autorizó iniciar el 10/11/2026 a las 18:30 UTC y confirmó CI verde de `2481ecf0f` y receptor ficticio listo. No se inició: al continuar tras sus confirmaciones eran las 20:16 UTC, fuera de la ventana original de 60 minutos. Además, no hay cierre automático preparado que garantice restaurar los crons si se interrumpe la conversación. Pendientes: mecanismo de cierre revisado y ventana fresca, sin extender la anterior. Pausa/despliegue/emisión no ejecutados.
+- [ ] Verificación sandbox posterior a activación: 4 CFDI ELOGISTIX, PDF/XML, cancelación de B/refresco y persistencia real pendientes del usuario; no probados end-to-end. Si se requiere pausa de tareas para pruebas, coordinar ventana nueva: ambas ya reanudadas. CI del nuevo commit pendiente; CI del kit anterior confirmado por el usuario. No extender ventana vencida de 18:30 UTC.
 - [ ] Fase 5 (2 semanas después de la ventana estable): retirar alias npm `facturapi6-preview`, pantalla QA de preflight, kits/copias QA y desactivar la función booleana con su recuperación sin DROP.
 
 ## Hallazgos Sentry de LiftGo (18 de octubre de 2026)
