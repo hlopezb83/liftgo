@@ -53,7 +53,7 @@ export async function generateVersion(root) {
     JSON.stringify(arr.slice(0, RECENT_COUNT)) + "\n",
     "utf8",
   );
-  return { version, generatedAt, sourceSha256 };
+  return { version, generatedAt, sourceSha256, recentCount: Math.min(RECENT_COUNT, arr.length) };
 }
 
 // Vite puede ejecutarse directamente sin los hooks prebuild/predev.
@@ -67,10 +67,10 @@ if (
   process.argv[1] &&
   resolve(process.argv[1]) === fileURLToPath(import.meta.url)
 ) {
-  const { version } = await generateVersion(resolve(__dirname, ".."));
+  const { version, recentCount } = await generateVersion(resolve(__dirname, ".."));
   console.log(`[gen-version] public/version.json → ${version}`);
   console.log(
-    `[gen-version] public/changelog-recent.json → ${Math.min(RECENT_COUNT, arr.length)} entradas`,
+    `[gen-version] public/changelog-recent.json → ${recentCount} entradas`,
   );
 
   // Consumible por CI: última línea de stdout.
