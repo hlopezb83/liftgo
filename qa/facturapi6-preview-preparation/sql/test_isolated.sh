@@ -8,7 +8,7 @@ TMP="$(mktemp -d /tmp/fx6-sqltest.XXXXXX)"
 SOCK="$TMP/sock"; mkdir -p "$SOCK"
 cleanup() { pg_ctl -D "$TMP/data" -m immediate stop >/dev/null 2>&1 || true; rm -rf "$TMP"; }
 trap cleanup EXIT
-RUNAS=""; if [ "$(id -u)" = "0" ]; then useradd -M fx6test 2>/dev/null || true; chown -R fx6test "$TMP"; RUNAS="runuser -u fx6test --"; fi
+RUNAS=""; if [ "$(id -u)" = "0" ]; then chown -R nobody "$TMP"; chmod 755 "$TMP"; RUNAS="runuser -u nobody --"; fi
 $RUNAS initdb -D "$TMP/data" -U fx6 --auth=trust >/dev/null
 $RUNAS pg_ctl -D "$TMP/data" -o "-k $SOCK -c listen_addresses=''" -l "$TMP/log" start >/dev/null
 P() { $RUNAS psql -h "$SOCK" -U fx6 -d postgres -v ON_ERROR_STOP=1 -Atq "$@"; }
