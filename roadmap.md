@@ -2,6 +2,7 @@
 
 ## Migración Facturapi 6.0.0 (10 de noviembre de 2026)
 
+- [ ] Solicitud del 10/11/2026 20:20 UTC: migrar a la versión más nueva; npm confirma 6.0.0. Resolver primero cierre independiente de la conversación y revisión del procedimiento, luego activar la versión y verificar los cuatro documentos autorizados. No reutilizar la ventana vencida.
 - [x] Fase 0: inventario sin cambios (`docs/facturapi6-migracion-inventario.md`).
 - [x] Fase 1: capa SDK 6 preparada como parche sin desplegar (`qa/facturapi6-phase1/`); 1016 pruebas sin red pasan. Aplicarla despliega: espera revisión y tu autorización.
 - [x] Fase 2: paridad de capa SDK 5.2 vs 6 documentada (13/13 con transporte simulado); no demuestra todas las secuencias de persistencia de handlers.
