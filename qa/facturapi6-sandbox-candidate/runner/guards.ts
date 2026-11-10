@@ -15,9 +15,14 @@ export type IdentityResult =
   | { ok: true; userId: string; supabase: SupabaseLike }
   | { ok: false; status: number; code: string };
 
-export const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+export const UUID_RE =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
-const fail = (status: number, code: string): IdentityResult => ({ ok: false, status, code });
+const fail = (status: number, code: string): IdentityResult => ({
+  ok: false,
+  status,
+  code,
+});
 
 /**
  * Sesión real: `getClaims` debe traer `session_id` UUID y `auth.getUser(token)`
@@ -27,7 +32,9 @@ const fail = (status: number, code: string): IdentityResult => ({ ok: false, sta
 async function verifySession(
   caller: CallerClientLike,
   token: string,
-): Promise<{ ok: true; sub: string } | { ok: false; status: number; code: string }> {
+): Promise<
+  { ok: true; sub: string } | { ok: false; status: number; code: string }
+> {
   let claims: Record<string, unknown> | null = null;
   try {
     const r = await caller.auth.getClaims(token);
@@ -36,11 +43,19 @@ async function verifySession(
     claims = null;
   }
   if (!claims) return { ok: false, status: 401, code: "unauthorized" };
-  if (claims.role !== "authenticated") return { ok: false, status: 403, code: "caller_role_not_allowed" };
+  if (claims.role !== "authenticated") {
+    return { ok: false, status: 403, code: "caller_role_not_allowed" };
+  }
   const sub = typeof claims.sub === "string" ? claims.sub : "";
-  if (!UUID_RE.test(sub)) return { ok: false, status: 401, code: "unauthorized" };
-  const sessionId = typeof claims.session_id === "string" ? claims.session_id : "";
-  if (!UUID_RE.test(sessionId)) return { ok: false, status: 401, code: "session_required" };
+  if (!UUID_RE.test(sub)) {
+    return { ok: false, status: 401, code: "unauthorized" };
+  }
+  const sessionId = typeof claims.session_id === "string"
+    ? claims.session_id
+    : "";
+  if (!UUID_RE.test(sessionId)) {
+    return { ok: false, status: 401, code: "session_required" };
+  }
   try {
     const u = await caller.auth.getUser(token);
     const id = u.data?.user?.id;
@@ -59,9 +74,14 @@ async function verifySession(
  * ausente/erróneo/duplicado o `is_active !== true`, rol distinto de admin,
  * membresía interna ausente/múltiple/ajena u organización inactiva.
  */
-export async function strictIdentity(req: Request, deps: IdentityDeps): Promise<IdentityResult> {
+export async function strictIdentity(
+  req: Request,
+  deps: IdentityDeps,
+): Promise<IdentityResult> {
   const header = req.headers.get("Authorization") ?? "";
-  if (!header.startsWith("Bearer ") || header.length <= 7) return fail(401, "unauthorized");
+  if (!header.startsWith("Bearer ") || header.length <= 7) {
+    return fail(401, "unauthorized");
+  }
   const caller = deps.createCallerClient(header);
   const session = await verifySession(caller, header.slice(7));
   if (!session.ok) return fail(session.status, session.code);
@@ -85,7 +105,8 @@ export async function strictIdentity(req: Request, deps: IdentityDeps): Promise<
 
   try {
     const db = auth.supabase as unknown as Db;
-    const p = await db.from("profiles").select("is_active").eq("user_id", sub).limit(2);
+    const p = await db.from("profiles").select("is_active").eq("user_id", sub)
+      .limit(2);
     if (p.error) return fail(503, "profile_unreadable");
     const rows = Array.isArray(p.data) ? p.data : [];
     if (rows.length !== 1 || !isRecord(rows[0]) || rows[0].is_active !== true) {
@@ -118,7 +139,9 @@ function guardFilters(builder: Query): Query {
       const v: unknown = Reflect.get(t, p, r);
       if (typeof v !== "function" || p === "then") return v;
       return (...args: unknown[]) => {
-        if (args.includes(LIVE_COLUMN)) throw new Error("live_key_column_blocked");
+        if (args.includes(LIVE_COLUMN)) {
+          throw new Error("live_key_column_blocked");
+        }
         const out: unknown = Reflect.apply(v, t, args);
         return wrappable(out) ? guardFilters(out) : out;
       };

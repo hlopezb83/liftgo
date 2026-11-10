@@ -22,10 +22,17 @@ export interface CallerClientLike {
   auth: {
     getClaims: (
       token: string,
-    ) => Promise<{ data: { claims?: Record<string, unknown> | null } | null; error: unknown }>;
+    ) => Promise<
+      {
+        data: { claims?: Record<string, unknown> | null } | null;
+        error: unknown;
+      }
+    >;
     getUser: (
       token: string,
-    ) => Promise<{ data: { user: { id?: unknown } | null } | null; error: unknown }>;
+    ) => Promise<
+      { data: { user: { id?: unknown } | null } | null; error: unknown }
+    >;
   };
 }
 

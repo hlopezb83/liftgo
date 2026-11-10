@@ -86,7 +86,9 @@ export function parseAction(body: unknown): RunAction | null {
   const keys = Object.keys(body as Record<string, unknown>);
   // Sólo se aceptan exactamente {action, run_id}; cualquier campo extra
   // (IDs, URLs, montos, organización) invalida la petición.
-  if (keys.length !== 2 || !keys.includes("action") || !keys.includes("run_id")) {
+  if (
+    keys.length !== 2 || !keys.includes("action") || !keys.includes("run_id")
+  ) {
     return null;
   }
   const b = body as { action?: unknown; run_id?: unknown };

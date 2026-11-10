@@ -3,7 +3,11 @@
 import { assert, assertEquals } from "@std/assert";
 import type { SupabaseLike } from "../snapshot/supabase/functions/_shared/types.ts";
 import type { CallerClientLike, Db, DbResult, Query } from "./db.ts";
-import { __resetInFlightForTests, handleRunner, type RunnerDeps } from "./preflight.ts";
+import {
+  __resetInFlightForTests,
+  handleRunner,
+  type RunnerDeps,
+} from "./preflight.ts";
 import {
   checkTestKey,
   compareIssuer,
@@ -28,7 +32,12 @@ type FakeQuery = Query & {
   delete(): FakeQuery;
 };
 
-function query(res: DbResult, writes: string[], table: string, onSelect?: (c: string) => void): FakeQuery {
+function query(
+  res: DbResult,
+  writes: string[],
+  table: string,
+  onSelect?: (c: string) => void,
+): FakeQuery {
   const self: FakeQuery = {
     select(c: string) {
       onSelect?.(c);
@@ -38,7 +47,10 @@ function query(res: DbResult, writes: string[], table: string, onSelect?: (c: st
     neq: () => self,
     limit: () => self,
     maybeSingle: () =>
-      Promise.resolve({ data: Array.isArray(res.data) ? res.data[0] ?? null : res.data, error: res.error }),
+      Promise.resolve({
+        data: Array.isArray(res.data) ? res.data[0] ?? null : res.data,
+        error: res.error,
+      }),
     then(ok, ko) {
       return Promise.resolve(res).then(ok, ko);
     },
@@ -60,7 +72,9 @@ interface Opts {
   issuer?: { legal_name?: string; tax_id?: string };
   meFails?: boolean;
   claims?: Record<string, unknown> | null;
-  getUser?: () => Promise<{ data: { user: { id?: unknown } | null } | null; error: unknown }>;
+  getUser?: () => Promise<
+    { data: { user: { id?: unknown } | null } | null; error: unknown }
+  >;
   now?: number | (() => number);
   profiles?: unknown[];
   profileError?: unknown;
@@ -73,39 +87,72 @@ function setup(o: Opts = {}) {
   const meCalls: string[] = [];
   const secretsSelects: string[] = [];
   const meSignals: AbortSignal[] = [];
-  const settings = { facturapi_mode: o.mode ?? "test", razon_social: "ELOGISTIX SHIPPING", rfc: "EKU9003173C9" };
+  const settings = {
+    facturapi_mode: o.mode ?? "test",
+    razon_social: "ELOGISTIX SHIPPING",
+    rfc: "EKU9003173C9",
+  };
   const tables: Record<string, DbResult> = {
-    profiles: { data: o.profiles ?? [{ is_active: true }], error: o.profileError ?? null },
+    profiles: {
+      data: o.profiles ?? [{ is_active: true }],
+      error: o.profileError ?? null,
+    },
     user_roles: { data: [{ role: o.role ?? "admin" }], error: null },
     organization_memberships: {
-      data: o.memberships ?? [{ organization_id: o.org ?? TENANT_ORGANIZATION_ID, member_type: "internal" }],
+      data: o.memberships ??
+        [{
+          organization_id: o.org ?? TENANT_ORGANIZATION_ID,
+          member_type: "internal",
+        }],
       error: null,
     },
     organizations: {
-      data: [{ id: TENANT_ORGANIZATION_ID, is_active: "orgActive" in o ? o.orgActive : true }],
+      data: [{
+        id: TENANT_ORGANIZATION_ID,
+        is_active: "orgActive" in o ? o.orgActive : true,
+      }],
       error: null,
     },
-    company_settings: { data: Array.from({ length: o.settingsRows ?? 1 }, () => settings), error: null },
+    company_settings: {
+      data: Array.from({ length: o.settingsRows ?? 1 }, () => settings),
+      error: null,
+    },
   };
   let secretsReads = 0;
   const db: Db & { rpc: (n: string) => Promise<DbResult> } = {
     from(t: string) {
-      if (t !== "billing_secrets") return query(tables[t] ?? { data: null, error: null }, writes, t);
+      if (t !== "billing_secrets") {
+        return query(tables[t] ?? { data: null, error: null }, writes, t);
+      }
       secretsReads++;
       const data = secretsReads % 2 === 1
         ? { facturapi_test_key: o.key === undefined ? TEST_KEY : o.key }
         : (o.otherOwner ? { organization_id: OTHER_ORG } : null);
-      return query({ data, error: null }, writes, t, (c) => secretsSelects.push(c));
+      return query(
+        { data, error: null },
+        writes,
+        t,
+        (c) => secretsSelects.push(c),
+      );
     },
-    rpc: (n: string) => (writes.push(`rpc:${n}`), Promise.resolve({ data: null, error: null })),
+    rpc: (
+      n: string,
+    ) => (writes.push(`rpc:${n}`),
+      Promise.resolve({ data: null, error: null })),
   };
   const claims = o.claims === undefined
     ? { sub: USER_ID, role: "authenticated", session_id: SESSION_ID }
     : o.claims;
   const caller: CallerClientLike = {
     auth: {
-      getClaims: () => Promise.resolve({ data: claims === null ? null : { claims }, error: null }),
-      getUser: o.getUser ?? (() => Promise.resolve({ data: { user: { id: USER_ID } }, error: null })),
+      getClaims: () =>
+        Promise.resolve({
+          data: claims === null ? null : { claims },
+          error: null,
+        }),
+      getUser: o.getUser ??
+        (() =>
+          Promise.resolve({ data: { user: { id: USER_ID } }, error: null })),
     },
   };
   const now = o.now ?? RUN_NOT_BEFORE + 60_000;
@@ -119,7 +166,10 @@ function setup(o: Opts = {}) {
         meCalls.push(k === TEST_KEY ? "test-key" : "other-key");
         meSignals.push(signal);
         if (o.meFails) return Promise.reject(new Error("boom"));
-        return Promise.resolve({ legal: o.issuer ?? { legal_name: "ELOGISTIX SHIPPING", tax_id: "EKU9003173C9" } });
+        return Promise.resolve({
+          legal: o.issuer ??
+            { legal_name: "ELOGISTIX SHIPPING", tax_id: "EKU9003173C9" },
+        });
       },
     }),
   };
@@ -151,7 +201,10 @@ Deno.test("preflight correcto: sólo booleanos, una lectura del emisor, cero esc
   assertEquals(writes, []);
   const text = JSON.stringify(json);
   assert(!text.includes("sk_"), "la respuesta no debe contener la llave");
-  assert(!text.includes("EKU9003173C9"), "la respuesta no debe contener el RFC");
+  assert(
+    !text.includes("EKU9003173C9"),
+    "la respuesta no debe contener el RFC",
+  );
 });
 
 Deno.test("bloquea otra empresa", async () => {
@@ -168,8 +221,14 @@ Deno.test("bloquea modo live y llave live", async () => {
 });
 
 Deno.test("bloquea configuración ambigua o ausente", async () => {
-  assertEquals((await run({ settingsRows: 2 })).json.error, "company_settings_ambiguous");
-  assertEquals((await run({ settingsRows: 0 })).json.error, "company_settings_ambiguous");
+  assertEquals(
+    (await run({ settingsRows: 2 })).json.error,
+    "company_settings_ambiguous",
+  );
+  assertEquals(
+    (await run({ settingsRows: 0 })).json.error,
+    "company_settings_ambiguous",
+  );
   assertEquals((await run({ key: null })).json.error, "key_not_test");
 });
 
@@ -180,11 +239,23 @@ Deno.test("bloquea llave compartida con otra empresa (código del PR)", async ()
 });
 
 Deno.test("bloquea emisor discordante", async () => {
-  const a = await run({ issuer: { legal_name: "OTRA SA", tax_id: "EKU9003173C9" } });
+  const a = await run({
+    issuer: { legal_name: "OTRA SA", tax_id: "EKU9003173C9" },
+  });
   assertEquals([a.res.status, a.json.issuer_legal_name_matches], [409, false]);
-  const b = await run({ issuer: { legal_name: "ELOGISTIX SHIPPING", tax_id: "XAXX010101000" } });
+  const b = await run({
+    issuer: { legal_name: "ELOGISTIX SHIPPING", tax_id: "XAXX010101000" },
+  });
   assertEquals([b.res.status, b.json.issuer_tax_id_matches], [409, false]);
-  assertEquals(compareIssuer({ providerLegalName: "", providerTaxId: "", erpRazonSocial: "", erpRfc: "" }).taxIdMatches, false);
+  assertEquals(
+    compareIssuer({
+      providerLegalName: "",
+      providerTaxId: "",
+      erpRazonSocial: "",
+      erpRfc: "",
+    }).taxIdMatches,
+    false,
+  );
 });
 
 Deno.test("bloquea caller no autorizado", async () => {
@@ -192,7 +263,9 @@ Deno.test("bloquea caller no autorizado", async () => {
   assertEquals((await run({ claims: null })).res.status, 401);
   assertEquals((await run({ role: "viewer" })).res.status, 403);
   assertEquals(
-    (await run({ claims: { sub: USER_ID, role: "service_role", session_id: SESSION_ID } })).json.error,
+    (await run({
+      claims: { sub: USER_ID, role: "service_role", session_id: SESSION_ID },
+    })).json.error,
     "caller_role_not_allowed",
   );
 });
@@ -201,8 +274,14 @@ Deno.test("sesión real: sin session_id, session_id inválido o getUser discorda
   const cases: Opts[] = [
     { claims: { sub: USER_ID, role: "authenticated" } },
     { claims: { sub: USER_ID, role: "authenticated", session_id: "no-uuid" } },
-    { getUser: () => Promise.resolve({ data: null, error: { message: "revoked" } }) },
-    { getUser: () => Promise.resolve({ data: { user: { id: OTHER_ORG } }, error: null }) },
+    {
+      getUser: () =>
+        Promise.resolve({ data: null, error: { message: "revoked" } }),
+    },
+    {
+      getUser: () =>
+        Promise.resolve({ data: { user: { id: OTHER_ORG } }, error: null }),
+    },
     { getUser: () => Promise.resolve({ data: { user: null }, error: null }) },
     { getUser: () => Promise.reject(new Error("network")) },
   ];
@@ -217,7 +296,14 @@ Deno.test("sesión real: sin session_id, session_id inválido o getUser discorda
 });
 
 Deno.test("rechaza acciones, campos extra, run_id ajeno y fases no habilitadas", async () => {
-  assertEquals(parseAction({ action: "preflight", run_id: RUN_ID, organization_id: OTHER_ORG }), null);
+  assertEquals(
+    parseAction({
+      action: "preflight",
+      run_id: RUN_ID,
+      organization_id: OTHER_ORG,
+    }),
+    null,
+  );
   assertEquals(parseAction({ action: "preflight", run_id: "otro" }), null);
   assertEquals(parseAction({ action: "delete_all", run_id: RUN_ID }), null);
   const r = await run({}, { action: "stamp_invoice", run_id: RUN_ID });
@@ -234,7 +320,9 @@ Deno.test("ejecución caducada responde 410 antes de autenticar", async () => {
 Deno.test("caducidad revalidada justo antes de GET organizations/me", async () => {
   let calls = 0;
   // Dentro de la ventana en la entrada; vencida en la consulta previa al proveedor.
-  const r = await run({ now: () => (calls++ === 0 ? RUN_NOT_BEFORE + 1000 : RUN_EXPIRES_AT) });
+  const r = await run({
+    now: () => (calls++ === 0 ? RUN_NOT_BEFORE + 1000 : RUN_EXPIRES_AT),
+  });
   assertEquals([r.res.status, r.json.error], [410, "run_expired"]);
   assertEquals(r.meCalls, []);
 });
@@ -263,7 +351,9 @@ Deno.test("segunda solicitud simultánea en el mismo isolate se rechaza", async 
   s.deps.createIssuerReader = () => ({
     me: async () => {
       await gate;
-      return { legal: { legal_name: "ELOGISTIX SHIPPING", tax_id: "EKU9003173C9" } };
+      return {
+        legal: { legal_name: "ELOGISTIX SHIPPING", tax_id: "EKU9003173C9" },
+      };
     },
   });
   const first = handleRunner(req(ok), s.deps);
@@ -286,16 +376,34 @@ Deno.test("segunda solicitud simultánea en el mismo isolate se rechaza", async 
 Deno.test("identidad estricta: perfil ausente/error/inactivo/null fallan cerrado", async () => {
   assertEquals((await run({ profiles: [] })).res.status, 403);
   assertEquals((await run({ profileError: { message: "x" } })).res.status, 503);
-  assertEquals((await run({ profiles: [{ is_active: false }] })).res.status, 403);
+  assertEquals(
+    (await run({ profiles: [{ is_active: false }] })).res.status,
+    403,
+  );
   const n = await run({ profiles: [{ is_active: null }] });
   assertEquals([n.res.status, n.json.error], [403, "profile_not_active"]);
   assertEquals(n.meCalls, []);
 });
 
 Deno.test("identidad estricta: sub vacío/no UUID, anon y cron se rechazan", async () => {
-  assertEquals((await run({ claims: { sub: "", role: "authenticated", session_id: SESSION_ID } })).res.status, 401);
-  assertEquals((await run({ claims: { sub: "user-1", role: "authenticated", session_id: SESSION_ID } })).res.status, 401);
-  assertEquals((await run({ claims: { sub: USER_ID, role: "anon", session_id: SESSION_ID } })).json.error, "caller_role_not_allowed");
+  assertEquals(
+    (await run({
+      claims: { sub: "", role: "authenticated", session_id: SESSION_ID },
+    })).res.status,
+    401,
+  );
+  assertEquals(
+    (await run({
+      claims: { sub: "user-1", role: "authenticated", session_id: SESSION_ID },
+    })).res.status,
+    401,
+  );
+  assertEquals(
+    (await run({
+      claims: { sub: USER_ID, role: "anon", session_id: SESSION_ID },
+    })).json.error,
+    "caller_role_not_allowed",
+  );
 });
 
 Deno.test("membresía ambigua/ausente/ajena y empresa inactiva se rechazan", async () => {
@@ -305,7 +413,10 @@ Deno.test("membresía ambigua/ausente/ajena y empresa inactiva se rechazan", asy
   ];
   assertEquals((await run({ memberships: two })).res.status, 409);
   assertEquals((await run({ memberships: [] })).res.status, 403);
-  assertEquals((await run({ org: OTHER_ORG })).json.error, "tenant_not_allowed");
+  assertEquals(
+    (await run({ org: OTHER_ORG })).json.error,
+    "tenant_not_allowed",
+  );
   assertEquals((await run({ orgActive: false })).res.status, 403);
   assertEquals((await run({ orgActive: null })).res.status, 403);
 });
@@ -316,7 +427,12 @@ Deno.test("modo live se rechaza ANTES de leer credenciales; la columna live nunc
   assertEquals(live.secretsSelects, []);
   const good = await run({});
   assert(good.secretsSelects.length > 0);
-  for (const c of good.secretsSelects) assert(!c.includes("facturapi_live_key"), `select pidió columna live: ${c}`);
+  for (const c of good.secretsSelects) {
+    assert(
+      !c.includes("facturapi_live_key"),
+      `select pidió columna live: ${c}`,
+    );
+  }
 });
 
 Deno.test("ventana corta: antes de NOT_BEFORE y al vencer responde 410; duración <= 6h", async () => {
@@ -326,7 +442,11 @@ Deno.test("ventana corta: antes de NOT_BEFORE y al vencer responde 410; duració
 });
 
 Deno.test("errores no contienen la llave ni fragmentos", async () => {
-  for (const o of [{ otherOwner: true }, { key: "sk_live_ABCDEF" }, { meFails: true }] as Opts[]) {
+  for (
+    const o of [{ otherOwner: true }, { key: "sk_live_ABCDEF" }, {
+      meFails: true,
+    }] as Opts[]
+  ) {
     const t = JSON.stringify((await run(o)).json);
     assert(!/sk_|ABCDEF|FAKE/.test(t), t);
   }

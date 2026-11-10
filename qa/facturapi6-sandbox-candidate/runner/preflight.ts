@@ -43,7 +43,10 @@ export function __resetInFlightForTests() {
 const reply = (status: number, body: Record<string, unknown>) =>
   new Response(JSON.stringify({ run_id: RUN_ID, ...body }), {
     status,
-    headers: { "Content-Type": "application/json", "Cache-Control": "no-store" },
+    headers: {
+      "Content-Type": "application/json",
+      "Cache-Control": "no-store",
+    },
   });
 
 interface ScopedTransport {
@@ -62,11 +65,15 @@ function sdkIssuerReader(apiKey: string): IssuerReader {
       // técnica del adapter revisado: vista aislada del transporte.
       const orgs = client.organizations as unknown as OrganizationsResource;
       const transport = orgs?.client;
-      if (typeof orgs?.me !== "function" || typeof transport?.request !== "function") {
+      if (
+        typeof orgs?.me !== "function" ||
+        typeof transport?.request !== "function"
+      ) {
         throw new Error("sdk6_organizations_me_unavailable");
       }
       const scopedTransport: ScopedTransport = Object.create(transport);
-      scopedTransport.request = (p, o = {}) => transport.request(p, { ...o, signal });
+      scopedTransport.request = (p, o = {}) =>
+        transport.request(p, { ...o, signal });
       const scoped: OrganizationsResource = Object.create(orgs);
       scoped.client = scopedTransport;
       return orgs.me.call(scoped);
@@ -79,7 +86,10 @@ const legalOf = (me: unknown) => {
   return { legalName: legal.legal_name, taxId: legal.tax_id };
 };
 
-export async function handleRunner(req: Request, deps: RunnerDeps): Promise<Response> {
+export async function handleRunner(
+  req: Request,
+  deps: RunnerDeps,
+): Promise<Response> {
   const expiry = checkExpiry(deps.now());
   if (!expiry.ok) return reply(expiry.status, { error: expiry.code });
   if (req.method !== "POST") return reply(405, { error: "method_not_allowed" });
@@ -118,7 +128,9 @@ export async function handleRunner(req: Request, deps: RunnerDeps): Promise<Resp
     const settings = co[0];
     // Modo explícito ANTES de resolver credenciales: live se rechaza sin
     // tocar billing_secrets.
-    if (settings.facturapi_mode !== "test") return reply(409, { error: "mode_not_test" });
+    if (settings.facturapi_mode !== "test") {
+      return reply(409, { error: "mode_not_test" });
+    }
 
     let cfg;
     try {
@@ -130,12 +142,16 @@ export async function handleRunner(req: Request, deps: RunnerDeps): Promise<Resp
       });
     } catch (e) {
       // Sólo el código de error; nunca mensaje ni valores.
-      return reply(409, { error: isFacturapiConfigError(e) ? e.code : "config_error" });
+      return reply(409, {
+        error: isFacturapiConfigError(e) ? e.code : "config_error",
+      });
     }
     const key = checkTestKey(cfg.mode, cfg.apiKey, cfg.fromEnvFallback);
     const apiKey = cfg.apiKey;
     if (!key.ok) return reply(key.status, { error: key.code });
-    if (typeof apiKey !== "string") return reply(409, { error: "key_not_test" });
+    if (typeof apiKey !== "string") {
+      return reply(409, { error: "key_not_test" });
+    }
 
     // Revalidar ventana justo antes del proveedor; el tiempo límite es el
     // menor entre 15 s y lo que resta. Sin margen, no se envía.
@@ -150,7 +166,9 @@ export async function handleRunner(req: Request, deps: RunnerDeps): Promise<Resp
       me = await reader.me(ac.signal);
     } catch {
       // Lectura: no hay efecto fiscal que reconciliar; se detiene sin reintento.
-      return reply(502, { error: ac.signal.aborted ? "issuer_read_timeout" : "issuer_read_failed" });
+      return reply(502, {
+        error: ac.signal.aborted ? "issuer_read_timeout" : "issuer_read_failed",
+      });
     } finally {
       clearTimeout(timer);
     }

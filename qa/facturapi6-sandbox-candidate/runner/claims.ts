@@ -9,7 +9,8 @@ export const CLAIM_BUCKET = "cfdi-files";
 /** Prefijo SIN organización: la RLS de usuarios no lo alcanza (sólo servicio). */
 export const CLAIM_PREFIX = `qa-fx6-sandbox/${RUN_ID}`;
 export const DISABLED_OBJECT = `${CLAIM_PREFIX}/disabled.json`;
-export const claimObject = (action: string) => `${CLAIM_PREFIX}/claims/${action}.json`;
+export const claimObject = (action: string) =>
+  `${CLAIM_PREFIX}/claims/${action}.json`;
 
 export type ReserveResult = "reserved" | "already_claimed";
 
@@ -17,7 +18,10 @@ export interface ClaimStore {
   /** "open" sólo si se confirmó que no existe el marcador de cierre. */
   state(): Promise<"open" | "disabled">;
   /** Reserva única. Lanza ante cualquier incertidumbre. */
-  reserve(action: string, payload: Record<string, unknown>): Promise<ReserveResult>;
+  reserve(
+    action: string,
+    payload: Record<string, unknown>,
+  ): Promise<ReserveResult>;
   /** Cierre irreversible. Idempotente: si ya existe, sigue cerrado. */
   disable(reason: string): Promise<void>;
 }
@@ -25,16 +29,25 @@ export interface ClaimStore {
 export class ClaimUncertain extends Error {}
 
 export interface StorageBucketLike {
-  upload(path: string, body: Blob, opts: { upsert: false; contentType: string }): Promise<{ error: unknown }>;
+  upload(
+    path: string,
+    body: Blob,
+    opts: { upsert: false; contentType: string },
+  ): Promise<{ error: unknown }>;
   download(path: string): Promise<{ data: unknown; error: unknown }>;
 }
 
-const field = (e: unknown, k: string) => (isRecord(e) ? String(e[k] ?? "") : "");
+const field = (
+  e: unknown,
+  k: string,
+) => (isRecord(e) ? String(e[k] ?? "") : "");
 const statusOf = (e: unknown) => field(e, "statusCode") || field(e, "status");
 const isConflict = (e: unknown) =>
-  statusOf(e) === "409" || /already exists|duplicate/i.test(field(e, "message"));
+  statusOf(e) === "409" ||
+  /already exists|duplicate/i.test(field(e, "message"));
 const isNotFound = (e: unknown) =>
-  ["400", "404"].includes(statusOf(e)) && /not.?found/i.test(field(e, "message"));
+  ["400", "404"].includes(statusOf(e)) &&
+  /not.?found/i.test(field(e, "message"));
 
 export class StorageClaimStore implements ClaimStore {
   constructor(private bucket: StorageBucketLike, private now: () => number) {}
@@ -51,14 +64,24 @@ export class StorageClaimStore implements ClaimStore {
     throw new ClaimUncertain("state_unreadable");
   }
 
-  private async create(path: string, payload: Record<string, unknown>): Promise<ReserveResult> {
+  private async create(
+    path: string,
+    payload: Record<string, unknown>,
+  ): Promise<ReserveResult> {
     const body = new Blob(
-      [JSON.stringify({ run_id: RUN_ID, at: new Date(this.now()).toISOString(), ...payload })],
+      [JSON.stringify({
+        run_id: RUN_ID,
+        at: new Date(this.now()).toISOString(),
+        ...payload,
+      })],
       { type: "application/json" },
     );
     let r;
     try {
-      r = await this.bucket.upload(path, body, { upsert: false, contentType: "application/json" });
+      r = await this.bucket.upload(path, body, {
+        upsert: false,
+        contentType: "application/json",
+      });
     } catch {
       throw new ClaimUncertain("claim_write_uncertain");
     }
@@ -93,10 +116,15 @@ export class MemoryClaimStore implements ClaimStore {
     } catch (e) {
       return Promise.reject(e);
     }
-    return Promise.resolve(this.objects.has(DISABLED_OBJECT) ? "disabled" as const : "open" as const);
+    return Promise.resolve(
+      this.objects.has(DISABLED_OBJECT) ? "disabled" as const : "open" as const,
+    );
   }
 
-  reserve(action: string, payload: Record<string, unknown>): Promise<ReserveResult> {
+  reserve(
+    action: string,
+    payload: Record<string, unknown>,
+  ): Promise<ReserveResult> {
     try {
       this.consumeFailure("reserve", "claim_write_uncertain");
     } catch (e) {
@@ -114,7 +142,9 @@ export class MemoryClaimStore implements ClaimStore {
     } catch (e) {
       return Promise.reject(e);
     }
-    if (!this.objects.has(DISABLED_OBJECT)) this.objects.set(DISABLED_OBJECT, { reason });
+    if (!this.objects.has(DISABLED_OBJECT)) {
+      this.objects.set(DISABLED_OBJECT, { reason });
+    }
     return Promise.resolve();
   }
 }
