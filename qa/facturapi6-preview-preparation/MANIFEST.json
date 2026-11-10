@@ -2,7 +2,7 @@
   "base_commit": "c2cd0ac5a879f9c41fc1bbfc281816a72cfd81f1",
   "sdk": "facturapi@6.0.0",
   "closure_rule": "sorted path:sha256 LF",
-  "closure_sha256": "9cf3c43be3c462948c2e2dd654edbdc4633691466503819dd0eed5283d02d0d4",
+  "closure_sha256": "4032cac3ec3d33a3bedbb481bae5c3a8e510a5f6844e9d58397ca12ed0f7f2c6",
   "files": [
     {
       "path": "bun.lock",
@@ -16,8 +16,8 @@
     },
     {
       "path": "qa/facturapi6-preview-preparation/README.md",
-      "bytes": 11429,
-      "sha256": "a252458a65d111f5e50da3340f9adc6e08c4a8eb54806b259ad28a1221f71a29"
+      "bytes": 12164,
+      "sha256": "b8067b2a578666ab1c336e45c833e3496017c61a67332407e110224fc232f72d"
     },
     {
       "path": "qa/facturapi6-preview-preparation/sql/0134_qa_fx6_test_key_exclusive.sql",
@@ -77,7 +77,7 @@
     {
       "path": "src/lib/qa/facturapi6-preview/policy.ts",
       "bytes": 1549,
-      "sha256": "0346d05d6ae08606c3c03cd4ba76850e5d81dcd07e5c8d838b869b9f5ca4ef10"
+      "sha256": "37d6e40dfbeabaab91ef86d397d20bc0ba0ebf777639de1953040a85dd7792b9"
     },
     {
       "path": "src/lib/qa/facturapi6-preview/preflight.functions.ts",

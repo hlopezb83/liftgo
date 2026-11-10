@@ -8,8 +8,8 @@ export interface PreviewWindow {
 }
 export const MAX_TTL_MS = 2 * 60 * 60 * 1000;
 export const PREVIEW_WINDOW: Readonly<PreviewWindow> = Object.freeze({
-  enabled: true,
-  shutdown: false,
+  enabled: false,
+  shutdown: true,
   runId: "fx6-preview-20261110T0623Z",
   startsAt: Date.parse("2026-11-10T06:23:00Z"),
   expiresAt: Date.parse("2026-11-10T07:23:00Z"),
