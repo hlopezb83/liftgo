@@ -40,13 +40,15 @@ function rows(result: ReadResult): Record<string, unknown>[] {
 }
 
 async function realSession(deps: PreflightDeps): Promise<string | null> {
-  const claimsResult = await deps.caller.auth.getClaims(deps.token);
-  const claims = claimsResult.data?.claims;
-  if (claimsResult.error || !record(claims) || claims.role !== "authenticated" ||
-    !uuid(claims.sub) || !uuid(claims.session_id)) return null;
-  const user = await deps.caller.auth.getUser(deps.token);
-  if (user.error || user.data?.user?.id !== claims.sub) return null;
-  return claims.sub;
+  try {
+    const claimsResult = await deps.caller.auth.getClaims(deps.token);
+    const claims = claimsResult.data?.claims;
+    if (claimsResult.error || !record(claims) || claims.role !== "authenticated" ||
+      !uuid(claims.sub) || !uuid(claims.session_id)) return null;
+    const user = await deps.caller.auth.getUser(deps.token);
+    if (user.error || user.data?.user?.id !== claims.sub) return null;
+    return claims.sub;
+  } catch { return null; }
 }
 
 async function authorized(deps: PreflightDeps): Promise<boolean> {

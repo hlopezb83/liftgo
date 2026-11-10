@@ -14,6 +14,7 @@ function fixture() {
     company_settings: [{ facturapi_mode: "test", razon_social: "ELOGISTIX SHIPPING", rfc: "AAA010101AAA" }],
   };
   const calls: string[] = [];
+  const secretData = { own: [{ facturapi_test_key: "sk_test_OFFLINE_FIXTURE" }], other: [] as Record<string, unknown>[] };
   function db(secret = false): ReadDb {
     return { from(table) {
       let other = false;
@@ -21,7 +22,7 @@ function fixture() {
         select(columns) { calls.push(`${table}:${columns}`); return q; },
         eq() { return q; }, neq() { other = true; return q; }, limit() { return q; },
         then(onfulfilled, onrejected) {
-          const value: ReadResult = { error: null, data: secret ? (other ? [] : [{ facturapi_test_key: "sk_test_OFFLINE_FIXTURE" }]) : data[table] };
+          const value: ReadResult = { error: null, data: secret ? (other ? secretData.other : secretData.own) : data[table] };
           return Promise.resolve(value).then(onfulfilled, onrejected);
         },
       };
@@ -41,7 +42,7 @@ function fixture() {
     caller, loadSecretReader: vi.fn(async () => db(true)),
     readIssuer: vi.fn(async (_key: string, _signal: AbortSignal) => ({ legal: { legal_name: "ELOGISTIX SHIPPING", tax_id: "AAA010101AAA" } })),
   };
-  return { deps, data, calls };
+  return { deps, data, calls, secretData };
 }
 afterEach(() => vi.unstubAllGlobals());
 describe("ventana Preview cerrada", () => {
@@ -93,6 +94,11 @@ describe("sesión y pertenencia antes de credenciales", () => {
     const { deps } = fixture(); vi.mocked(deps.caller.auth.getClaims).mockResolvedValue({ data: null, error: "offline" });
     expect((await runReadOnlyPreflight(deps)).status).toBe(401); expect(deps.caller.auth.getUser).not.toHaveBeenCalled();
   });
+  it.each(["getClaims", "getUser"] as const)("excepción de %s es 401 sin credenciales", async method => {
+    const { deps } = fixture(); vi.mocked(deps.caller.auth[method]).mockRejectedValue(new Error("offline"));
+    expect((await runReadOnlyPreflight(deps)).status).toBe(401);
+    expect(deps.loadSecretReader).not.toHaveBeenCalled();
+  });
   it.each([{ data: { user: { id: session } }, error: null }, { data: null, error: "offline" }])("getUser debe coincidir", async result => {
     const { deps } = fixture(); vi.mocked(deps.caller.auth.getUser).mockResolvedValue(result);
     expect((await runReadOnlyPreflight(deps)).status).toBe(401); expect(deps.loadSecretReader).not.toHaveBeenCalled();
@@ -115,6 +121,34 @@ describe("sesión y pertenencia antes de credenciales", () => {
   });
 });
 describe("sólo configuración test y GET", () => {
+  it.each(["sk_live_OFFLINE", "sk_test_", ""])("llave inválida no llega al proveedor", async key => {
+    const { deps, secretData } = fixture(); secretData.own = [{ facturapi_test_key: key }];
+    expect((await runReadOnlyPreflight(deps)).code).toBe("configuration_rejected");
+    expect(deps.readIssuer).not.toHaveBeenCalled();
+  });
+  it("llave de otro dueño bloqueada sin GET", async () => {
+    const { deps, secretData } = fixture(); secretData.other = [{ organization_id: session }];
+    expect((await runReadOnlyPreflight(deps)).code).toBe("configuration_rejected");
+    expect(deps.readIssuer).not.toHaveBeenCalled();
+  });
+  it("dos filas de credenciales bloqueadas", async () => {
+    const { deps, secretData } = fixture(); secretData.own = [...secretData.own, ...secretData.own];
+    expect((await runReadOnlyPreflight(deps)).code).toBe("configuration_rejected");
+    expect(deps.readIssuer).not.toHaveBeenCalled();
+  });
+  it("timeout limitado al tiempo restante, sin retry", async () => {
+    vi.useFakeTimers();
+    try {
+      const { deps } = fixture(); deps.now.mockReturnValue(7_200_950);
+      deps.readIssuer.mockImplementation((_key, signal) => new Promise((_resolve, reject) => {
+        signal.addEventListener("abort", () => reject(new Error("aborted")), { once: true });
+      }));
+      const result = runReadOnlyPreflight(deps);
+      await vi.advanceTimersByTimeAsync(49); expect(deps.readIssuer).toHaveBeenCalledTimes(1);
+      await vi.advanceTimersByTimeAsync(1); expect((await result).code).toBe("unavailable");
+      expect(deps.readIssuer).toHaveBeenCalledTimes(1);
+    } finally { vi.useRealTimers(); }
+  });
   it.each(["live", null, "ambiguous"])("modo %s antes de secretos", async mode => {
     const { deps, data } = fixture(); data.company_settings = [{ facturapi_mode: mode }];
     expect((await runReadOnlyPreflight(deps)).code).toBe("configuration_rejected"); expect(deps.loadSecretReader).not.toHaveBeenCalled();
