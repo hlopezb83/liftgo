@@ -1,0 +1,54 @@
+{
+  "note": "Hashes del ejecutor (fuera del snapshot). Recalcular con path:sha256\\n en este orden.",
+  "files": [
+    {
+      "path": ".gitignore",
+      "sha256": "1d2c441855739f09865ae2bff90af7720df4d498b8635d3323061ba6182347e8"
+    },
+    {
+      "path": "deno.json",
+      "sha256": "a2e5a864a5aa0a9acb373a5d69631c5606e491949de2b35963f8ee172c692af1"
+    },
+    {
+      "path": "runner/claims.ts",
+      "sha256": "c986909b6314397b32bcf1f01a31104fff7ff7055187e7e5ac742722e7229b51"
+    },
+    {
+      "path": "runner/guards.ts",
+      "sha256": "714a7464750407e602e657218ded64028aae1f98dea5d525f53a0a4948b6c4de"
+    },
+    {
+      "path": "runner/index.ts",
+      "sha256": "0139829c2ff12c3334481e6bc90e65c72844de60bd15139d2293e605dfb84490"
+    },
+    {
+      "path": "runner/manifest_test.ts",
+      "sha256": "6f75f4e9da1b88820432a9f1dcf3f9ac806634d5d4095ed0131cb2a57becb9e2"
+    },
+    {
+      "path": "runner/phases.ts",
+      "sha256": "5cfab9504995ad6c368293bf61614e03568aa4c6eb4cfa054f92d99668061e49"
+    },
+    {
+      "path": "runner/phases_test.ts",
+      "sha256": "473bf7d55393d4cb9dbc00c1c174ef87cf29a01eb81d840be7c749bd5d649130"
+    },
+    {
+      "path": "runner/policy.ts",
+      "sha256": "de0d2b55858ee40a58488e9217f57b446c905d66d84fc3b3c03faceee55cd3cb"
+    },
+    {
+      "path": "runner/preflight.ts",
+      "sha256": "7b81186d36fd5d9ce70a23401a95c3d07581a2cecbed5ddf525c6108eb654080"
+    },
+    {
+      "path": "runner/preflight_test.ts",
+      "sha256": "7c79f0adb1cf6e8a4a072af55ab851f480063468cee48b57715af6f431b6f59a"
+    },
+    {
+      "path": "runner/sdk6_me_test.ts",
+      "sha256": "c0a9f53da42dde45e8f2e3cc497906d993f50f6fb46dcd03e51a7d48731cf009"
+    }
+  ],
+  "runner_sha256": "f57caa4446fdffca153dab71ba4fba7726317b69a278b959dd86694ad9bbbd49"
+}
