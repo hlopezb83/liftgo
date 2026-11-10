@@ -1,8 +1,8 @@
 {
-  "base_commit": "a181ff4c1bc0ba82fb7f7e67c872671c32a0c1ff",
+  "base_commit": "8374f07f486e875c85c33a2987b415a40ca34892",
   "sdk": "facturapi@6.0.0",
   "closure_rule": "sorted path:sha256 LF",
-  "closure_sha256": "60f490d394a11313a234599aa3fc7917c6e88d3845546b44f8419c1831f8789e",
+  "closure_sha256": "4ed46a747bd0f5a356a54c64d3d5a3ba035d328287dce2b99227a973f5ec8f32",
   "files": [
     {
       "path": "bun.lock",
@@ -16,8 +16,8 @@
     },
     {
       "path": "qa/facturapi6-preview-preparation/README.md",
-      "bytes": 6670,
-      "sha256": "0ce8199ed6fb3017ccdc23857cb22f6d1774981ce24c8abe582e88909fe2c97a"
+      "bytes": 7225,
+      "sha256": "6f46e044cdfe91e8c34ac18f1b223b4b94bc06260b9a3035ccacfacfbb46cb0c"
     },
     {
       "path": "qa/facturapi6-sandbox-candidate/runner/policy.ts",
@@ -36,13 +36,18 @@
     },
     {
       "path": "src/lib/qa/facturapi6-preview/__tests__/preflight.test.ts",
-      "bytes": 13717,
-      "sha256": "55253a43fe70cd971df4029307b513897aebe45cb7d99d6072543cbae8d97852"
+      "bytes": 17676,
+      "sha256": "4915be0df28a0b0bf8431a7bc7c7bf8619b87f547f912150f117d6d9da94286e"
+    },
+    {
+      "path": "src/lib/qa/facturapi6-preview/__tests__/wrapper.test.ts",
+      "bytes": 3551,
+      "sha256": "58ba56d63b58d8f1344060a6f87595b95aa4acce264115cd7979e95f85ce735e"
     },
     {
       "path": "src/lib/qa/facturapi6-preview/core.server.ts",
-      "bytes": 7256,
-      "sha256": "bb07d0fcba872fb58ac4c0b7d3fc3f24ff27e4ee9abe83b8ac8d87b68937e386"
+      "bytes": 7924,
+      "sha256": "e5cbe89aefc0404bf9c0a8373d6da720fcc5f61552b0239d768825dab22b6017"
     },
     {
       "path": "src/lib/qa/facturapi6-preview/policy.ts",
@@ -51,13 +56,18 @@
     },
     {
       "path": "src/lib/qa/facturapi6-preview/preflight.functions.ts",
-      "bytes": 2317,
-      "sha256": "53f5acb6ebeb170d3b652d3a3f7b2a01c4a4d67c27d577102168553d0265fd3f"
+      "bytes": 2094,
+      "sha256": "2826d3165ddcbe524981e22c3f4399bc866dd6dde44e2ff008fe585379523595"
     },
     {
       "path": "src/lib/qa/facturapi6-preview/sdk.server.ts",
       "bytes": 1140,
       "sha256": "51e362c630d2c909a8a65cf86cb687a16939fbd796e81d9b75af3dbfc286696c"
+    },
+    {
+      "path": "src/lib/qa/facturapi6-preview/wrapper.server.ts",
+      "bytes": 1944,
+      "sha256": "64780423190ef2a2b47c6fb5e0e6b1704676620871ce416590dcff531d4d9b87"
     },
     {
       "path": "src/routes/qa.facturapi6-preflight.tsx",

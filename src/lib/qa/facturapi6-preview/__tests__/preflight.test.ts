@@ -221,3 +221,63 @@ describe("sólo configuración test y GET", () => {
     expect(double).not.toHaveBeenCalled();
   });
 });
+describe("ventana revalidada tras cada await", () => {
+  it("vence mientras resuelve el verificador: no lee secreto ni proveedor", async () => {
+    const { deps } = fixture(); let t = 2_000; deps.now.mockImplementation(() => t);
+    deps.verifyKeyExclusive = vi.fn(async () => { t = 7_201_000; return true; });
+    expect((await runReadOnlyPreflight(deps)).code).toBe("expired");
+    expect(deps.loadSecretReader).not.toHaveBeenCalled(); expect(deps.readIssuer).not.toHaveBeenCalled();
+  });
+  it("vence mientras carga el lector privilegiado: no consulta billing_secrets", async () => {
+    const { deps, calls } = fixture(); let t = 2_000; deps.now.mockImplementation(() => t);
+    const inner = deps.loadSecretReader;
+    deps.loadSecretReader = vi.fn(async () => { const r = await inner(); t = 7_201_000; return r; });
+    expect((await runReadOnlyPreflight(deps)).code).toBe("expired");
+    expect(calls.some(c => c.startsWith("billing_secrets"))).toBe(false);
+    expect(deps.readIssuer).not.toHaveBeenCalled();
+  });
+  it("vence durante la consulta de secreto: no llama proveedor", async () => {
+    const { deps } = fixture(); let t = 2_000; deps.now.mockImplementation(() => t);
+    deps.loadSecretReader = vi.fn(async () => ({ from() {
+      const q: ReadQuery = { select() { return q; }, eq() { return q; }, neq() { return q; }, limit() { return q; },
+        then(f, r) { t = 7_201_000; return Promise.resolve({ error: null, data: [{ facturapi_test_key: "sk_test_OFFLINE_FIXTURE" }] }).then(f, r); } };
+      return q;
+    } }));
+    expect((await runReadOnlyPreflight(deps)).code).toBe("expired"); expect(deps.readIssuer).not.toHaveBeenCalled();
+  });
+  it("vence tras consultar perfiles: no inicia rol ni membresía", async () => {
+    const { deps, calls } = fixture(); let t = 2_000; deps.now.mockImplementation(() => t);
+    vi.mocked(deps.caller.auth.getUser).mockImplementation(async () => { t = 7_201_000; return { data: { user: { id: user } }, error: null }; });
+    expect((await runReadOnlyPreflight(deps)).code).toBe("expired");
+    expect(calls).toEqual([]); expect(deps.caller.rpc).not.toHaveBeenCalled();
+  });
+});
+describe("consultas con select y filtros exactos del tenant", () => {
+  it("registra tabla, columnas y filtros", async () => {
+    const log: string[] = [];
+    const { deps, data } = fixture();
+    const recorder = (secret: boolean): ReadDb => ({ from(table) {
+      const q: ReadQuery = {
+        select(c) { log.push(`${table}.select(${c})`); return q; },
+        eq(c, v) { log.push(`${table}.eq(${c},${String(v)})`); return q; },
+        neq(c, v) { log.push(`${table}.neq(${c},${String(v)})`); return q; },
+        limit(n) { log.push(`${table}.limit(${n})`); return q; },
+        then(f, r) { return Promise.resolve({ error: null, data: secret ? [{ facturapi_test_key: "sk_test_OFFLINE_FIXTURE" }] : data[table] }).then(f, r); },
+      };
+      return q;
+    } });
+    deps.caller = { ...deps.caller, ...recorder(false) };
+    deps.loadSecretReader = vi.fn(async () => recorder(true));
+    expect((await runReadOnlyPreflight(deps)).code).toBe("verified");
+    const T = TENANT_ORGANIZATION_ID;
+    expect(log).toEqual([
+      "profiles.select(user_id,is_active)", `profiles.eq(user_id,${user})`, "profiles.limit(2)",
+      "organization_memberships.select(organization_id,member_type)", `organization_memberships.eq(auth_user_id,${user})`, "organization_memberships.limit(2)",
+      "organizations.select(id,is_active)", `organizations.eq(id,${T})`, "organizations.limit(2)",
+      "company_settings.select(facturapi_mode,razon_social,rfc)", `company_settings.eq(organization_id,${T})`, "company_settings.limit(2)",
+      "billing_secrets.select(facturapi_test_key)", `billing_secrets.eq(organization_id,${T})`, "billing_secrets.limit(2)",
+    ]);
+    expect(log.join("\n")).not.toContain("sk_test_");
+    expect(deps.caller.rpc).toHaveBeenCalledWith("has_role", { _user_id: user, _role: "admin" });
+  });
+});

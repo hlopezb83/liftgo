@@ -15,6 +15,8 @@ Tras revisión independiente, preparar un cambio explícito en `src/lib/qa/factu
 
 Apagado: mantener shutdown true o enabled false en fuente y verificar el cambio en Preview; vencimiento bloquea toda operación aunque se deje abierta una pestaña. Un cambio de fuente no garantiza revocar un request ya en vuelo: el GET tiene señal y timeout menor de 15 s (14 900 ms) o tiempo restante; la expiración se revisa antes de GET y después de respuesta. No hay retry.
 
+Vencimiento durante la ejecución: la ventana se revalida después de cada `await` y justo antes de cada consulta privilegiada, incluido después de resolver el verificador de exclusividad y el lector privilegiado; si venció, responde 410 y no inicia nuevas consultas. No se promete abortar una consulta de base ya enviada, porque esas lecturas no reciben una señal de cancelación efectiva; sólo el GET al proveedor tiene AbortSignal y timeout. El wrapper real (`wrapper.server.ts`) comprueba apagado, DEV y ventana antes de crear cualquier cliente.
+
 ## Controles y acceso mínimo
 
 Origen exacto `https://e25ace4a-172e-4082-a037-00473dacf2f2.lovableproject.com` (Preview en vivo del editor, servidor Vite dev) o `http://localhost:8080`, y compilación DEV. Las vistas `id-preview--…lovable.app` y la app publicada son compilaciones de producción (DEV=false) y quedan rechazadas (fail-closed). Claims verificados por backend, role authenticated, sub UUID, session_id UUID y getUser del mismo token con usuario coincidente. Perfil presente, único y activo; has_role(admin) con cliente del usuario bajo RLS, membresía única interna de tenant fijo, organización activa. Rechaza cron/service_role y cualquier ambigüedad. Tenant fijo: ELOGISTIX SHIPPING / Empresa Prueba.

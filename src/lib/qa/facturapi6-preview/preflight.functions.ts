@@ -12,33 +12,28 @@ export const previewIssuerPreflight = createServerFn({ method: "POST" })
     setResponseHeader("Cache-Control", "no-store");
     if (!PREVIEW_WINDOW.enabled || PREVIEW_WINDOW.shutdown) return { ok: false, status: 423, code: "disabled" };
     try {
-      const request = getRequest();
-      const header = request.headers.get("authorization") ?? "";
-      const token = header.startsWith("Bearer ") ? header.slice(7) : "";
-      if (!token) return { ok: false, status: 401, code: "unauthorized" };
-      const url = process.env['SUPABASE_URL'];
-      const key = process.env['SUPABASE_PUBLISHABLE_KEY'];
-      if (!url || !key) return { ok: false, status: 503, code: "unavailable" };
-      const { createClient } = await import("@supabase/supabase-js");
-      const caller = createClient(url, key, {
-        auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false },
-        global: { headers: { Authorization: header }, fetch: (input, init) => {
-          const headers = new Headers(init?.headers);
-          headers.set("apikey", key);
-          return fetch(input, { ...init, headers });
-        } },
-      });
-      const { runReadOnlyPreflight } = await import("./core.server");
-      const { readSdk6Issuer } = await import("./sdk.server");
-      return await runReadOnlyPreflight({
-        now: Date.now, window: PREVIEW_WINDOW, development: import.meta.env.DEV,
-        origin: request.headers.get("origin") ?? "", token,
-        caller: caller as unknown as import("./core.server").Caller,
+      const { handlePreviewPreflight } = await import("./wrapper.server");
+      return await handlePreviewPreflight({
+        window: PREVIEW_WINDOW, development: import.meta.env.DEV, now: Date.now,
+        headers: getRequest().headers,
+        env: { url: process.env['SUPABASE_URL'], publishableKey: process.env['SUPABASE_PUBLISHABLE_KEY'] },
+        createCaller: async (url, key, authorization) => {
+          const { createClient } = await import("@supabase/supabase-js");
+          const client = createClient(url, key, {
+            auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false },
+            global: { headers: { Authorization: authorization }, fetch: (input, init) => {
+              const headers = new Headers(init?.headers);
+              headers.set("apikey", key);
+              return fetch(input, { ...init, headers });
+            } },
+          });
+          return client as unknown as import("./core.server").Caller;
+        },
         loadSecretReader: async () => {
           const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
           return supabaseAdmin as unknown as import("./core.server").ReadDb;
         },
-        readIssuer: readSdk6Issuer,
+        readIssuer: async (key, signal) => (await import("./sdk.server")).readSdk6Issuer(key, signal),
       });
     } catch { return { ok: false, status: 503, code: "unavailable" }; }
   });

@@ -41,6 +41,11 @@ const record = (v: unknown): v is Record<string, unknown> =>
 const uuid = (v: unknown): v is string => typeof v === "string" &&
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(v);
 const denied = (status: number, code: PreflightResult["code"]): PreflightResult => ({ ok: false, status, code });
+/** Thrown when the window closes; no new query starts after it. */
+class WindowClosed extends Error {}
+function guard(deps: PreflightDeps): void {
+  if (!windowOpen(deps.window, deps.now())) throw new WindowClosed("expired");
+}
 function rows(result: ReadResult): Record<string, unknown>[] {
   if (result.error || !Array.isArray(result.data) || !result.data.every(record)) throw new Error("read_failed");
   return result.data;
@@ -52,46 +57,59 @@ async function realSession(deps: PreflightDeps): Promise<string | null> {
     const claims = claimsResult.data?.claims;
     if (claimsResult.error || !record(claims) || claims.role !== "authenticated" ||
       !uuid(claims.sub) || !uuid(claims.session_id)) return null;
+    guard(deps);
     const user = await deps.caller.auth.getUser(deps.token);
     if (user.error || user.data?.user?.id !== claims.sub) return null;
     return claims.sub;
-  } catch { return null; }
+  } catch (error) { if (error instanceof WindowClosed) throw error; return null; }
 }
 
 async function authorized(deps: PreflightDeps): Promise<boolean> {
   const sub = await realSession(deps);
+  guard(deps);
   if (!sub) return false;
   const profiles = rows(await deps.caller.from("profiles").select("user_id,is_active")
     .eq("user_id", sub).limit(2));
+  guard(deps);
   if (profiles.length !== 1 || profiles[0]?.user_id !== sub || profiles[0]?.is_active !== true) return false;
   const role = await deps.caller.rpc("has_role", { _user_id: sub, _role: "admin" });
+  guard(deps);
   if (role.error || role.data !== true) return false;
-  return await tenantAuthorized(deps.caller, sub);
+  return await tenantAuthorized(deps, sub);
 }
 
-async function tenantAuthorized(caller: Caller, sub: string): Promise<boolean> {
-  const memberships = rows(await caller.from("organization_memberships")
+async function tenantAuthorized(deps: PreflightDeps, sub: string): Promise<boolean> {
+  const memberships = rows(await deps.caller.from("organization_memberships")
     .select("organization_id,member_type").eq("auth_user_id", sub).limit(2));
+  guard(deps);
   if (memberships.length !== 1 || memberships[0]?.member_type !== "internal" ||
     memberships[0]?.organization_id !== TENANT_ORGANIZATION_ID) return false;
-  const orgs = rows(await caller.from("organizations").select("id,is_active")
+  const orgs = rows(await deps.caller.from("organizations").select("id,is_active")
     .eq("id", TENANT_ORGANIZATION_ID).limit(2));
+  guard(deps);
   return orgs.length === 1 && orgs[0]?.id === TENANT_ORGANIZATION_ID && orgs[0]?.is_active === true;
 }
 
 async function readConfiguration(deps: PreflightDeps) {
   const settings = rows(await deps.caller.from("company_settings")
     .select("facturapi_mode,razon_social,rfc").eq("organization_id", TENANT_ORGANIZATION_ID).limit(2));
+  guard(deps);
   const setting = settings[0];
   if (settings.length !== 1 || setting?.facturapi_mode !== "test") return null;
   // Privileged reader is loaded ONLY after real session, admin, membership,
   // active organization and explicit test mode; no live column or env fallback.
-  if (!windowOpen(deps.window, deps.now())) return null;
+  // Window is revalidated after every await and right before each privileged
+  // query. An already-sent query without an effective signal is NOT aborted.
   if (!deps.verifyKeyExclusive) return "exclusivity_unavailable" as const;
-  if (await deps.verifyKeyExclusive() !== true) return null;
+  guard(deps);
+  const exclusive = await deps.verifyKeyExclusive();
+  guard(deps);
+  if (exclusive !== true) return null;
   const reader = await deps.loadSecretReader();
+  guard(deps);
   const secrets = rows(await reader.from("billing_secrets").select("facturapi_test_key")
     .eq("organization_id", TENANT_ORGANIZATION_ID).limit(2));
+  guard(deps);
   const key = secrets[0]?.facturapi_test_key;
   if (secrets.length !== 1 || typeof key !== "string" || key === "sk_test_" ||
     !checkTestKey("test", key, false).ok) return null;
@@ -132,7 +150,8 @@ export async function runReadOnlyPreflight(deps: PreflightDeps): Promise<Preflig
     if (config === "exclusivity_unavailable") return denied(409, "exclusivity_unavailable");
     if (!config) return denied(409, "configuration_rejected");
     return await checkIssuer(deps, config);
-  } catch {
+  } catch (error) {
+    if (error instanceof WindowClosed) return denied(410, "expired");
     // No raw provider/auth/DB exceptions escape into global error reporting.
     return denied(503, "unavailable");
   }
