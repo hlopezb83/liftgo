@@ -52,6 +52,7 @@ import { Route as PlatformSecurityRouteImport } from './routes/platform.security
 import { Route as PlatformSupportRouteImport } from './routes/platform.support'
 import { Route as PlatformLoginRouteImport } from './routes/platform_.login'
 import { Route as PortalLoginRouteImport } from './routes/portal.login'
+import { Route as QaFacturapi6PreflightRouteImport } from './routes/qa.facturapi6-preflight'
 import { Route as MainBookingsIndexRouteImport } from './routes/_main/bookings.index'
 import { Route as MainBookingsIdRouteImport } from './routes/_main/bookings.$id'
 import { Route as MainBookingsNewRouteImport } from './routes/_main/bookings.new'
@@ -322,6 +323,11 @@ const PlatformLoginRoute = PlatformLoginRouteImport.update({
 const PortalLoginRoute = PortalLoginRouteImport.update({
   id: '/portal/login',
   path: '/portal/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const QaFacturapi6PreflightRoute = QaFacturapi6PreflightRouteImport.update({
+  id: '/qa/facturapi6-preflight',
+  path: '/qa/facturapi6-preflight',
   getParentRoute: () => rootRouteImport,
 } as any)
 const MainBookingsIndexRoute = MainBookingsIndexRouteImport.update({
@@ -668,6 +674,7 @@ export interface FileRoutesByFullPath {
   '/platform/support': typeof PlatformSupportRoute
   '/platform/login': typeof PlatformLoginRoute
   '/portal/login': typeof PortalLoginRoute
+  '/qa/facturapi6-preflight': typeof QaFacturapi6PreflightRoute
   '/platform/': typeof PlatformIndexRoute
   '/bookings/$id': typeof MainBookingsIdRoute
   '/bookings/new': typeof MainBookingsNewRoute
@@ -768,6 +775,7 @@ export interface FileRoutesByTo {
   '/platform/support': typeof PlatformSupportRoute
   '/platform/login': typeof PlatformLoginRoute
   '/portal/login': typeof PortalLoginRoute
+  '/qa/facturapi6-preflight': typeof QaFacturapi6PreflightRoute
   '/platform': typeof PlatformIndexRoute
   '/bookings/$id': typeof MainBookingsIdRoute
   '/bookings/new': typeof MainBookingsNewRoute
@@ -871,6 +879,7 @@ export interface FileRoutesById {
   '/platform/support': typeof PlatformSupportRoute
   '/platform_/login': typeof PlatformLoginRoute
   '/portal/login': typeof PortalLoginRoute
+  '/qa/facturapi6-preflight': typeof QaFacturapi6PreflightRoute
   '/_main/': typeof MainIndexRoute
   '/platform/': typeof PlatformIndexRoute
   '/_main/bookings/$id': typeof MainBookingsIdRoute
@@ -975,6 +984,7 @@ export interface FileRouteTypes {
     | '/platform/support'
     | '/platform/login'
     | '/portal/login'
+    | '/qa/facturapi6-preflight'
     | '/platform/'
     | '/bookings/$id'
     | '/bookings/new'
@@ -1075,6 +1085,7 @@ export interface FileRouteTypes {
     | '/platform/support'
     | '/platform/login'
     | '/portal/login'
+    | '/qa/facturapi6-preflight'
     | '/platform'
     | '/bookings/$id'
     | '/bookings/new'
@@ -1177,6 +1188,7 @@ export interface FileRouteTypes {
     | '/platform/support'
     | '/platform_/login'
     | '/portal/login'
+    | '/qa/facturapi6-preflight'
     | '/_main/'
     | '/platform/'
     | '/_main/bookings/$id'
@@ -1246,6 +1258,7 @@ export interface RootRouteChildren {
   PlatformRoute: typeof PlatformRouteWithChildren
   PlatformLoginRoute: typeof PlatformLoginRoute
   PortalLoginRoute: typeof PortalLoginRoute
+  QaFacturapi6PreflightRoute: typeof QaFacturapi6PreflightRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -1549,6 +1562,13 @@ declare module '@tanstack/react-router' {
       path: '/portal/login'
       fullPath: '/portal/login'
       preLoaderRoute: typeof PortalLoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/qa/facturapi6-preflight': {
+      id: '/qa/facturapi6-preflight'
+      path: '/qa/facturapi6-preflight'
+      fullPath: '/qa/facturapi6-preflight'
+      preLoaderRoute: typeof QaFacturapi6PreflightRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_main/bookings/': {
@@ -2186,6 +2206,7 @@ const rootRouteChildren: RootRouteChildren = {
   PlatformRoute: PlatformRouteWithChildren,
   PlatformLoginRoute: PlatformLoginRoute,
   PortalLoginRoute: PortalLoginRoute,
+  QaFacturapi6PreflightRoute: QaFacturapi6PreflightRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
