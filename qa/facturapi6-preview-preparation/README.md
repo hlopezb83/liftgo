@@ -43,7 +43,7 @@ Pruebas focales Vitest con dobles: estado apagado, TTL, origen, claims/sesión, 
 
 ## Verificador de exclusividad (preparado, NO aplicado)
 
-Autorización del usuario: crear la función mediante migración revisada. Gate pendiente: revisión independiente antes de aplicar.
+Autorización del usuario: crear la función mediante migración revisada. Aplicada 2026-11-10 tras PASE independiente como `drizzle/migrations/0134_qa_fx6_test_key_exclusive.sql` (bytes idénticos, sha256 `14fa5d91…eb374`). ACL verificada `postgres=X/postgres,service_role=X/postgres`; EXECUTE efectivo sólo service_role. No ejecutada. Gate pendiente: revisión TTL final antes de activar.
 
 - SQL: `sql/0134_qa_fx6_test_key_exclusive.sql`, fuera de `drizzle/migrations`. La herramienta oficial de migraciones crea y aplica en la misma llamada, así que no se usó todavía. Al aplicarse tras la revisión, debe pasarse byte por byte a la herramienta oficial; el número y el nombre finales los asigna la herramienta.
 - `public.qa_fx6_elogistix_test_key_is_exclusive()` no recibe parámetros: tenant fijo `fc2c10e3-…1c38` en SQL estático de sólo lectura, `SECURITY DEFINER`, `STABLE`, `search_path = pg_catalog, public`. Devuelve `true` sólo si hay exactamente una fila de secretos y una de configuración del tenant, el modo es `test`, la llave empieza con `sk_test_` y tiene contenido, y ninguna otra organización tiene la misma llave test. En cualquier otro caso (ausencia, duplicidad, modo distinto, nulo) devuelve `false`. Nunca devuelve llave, hash ni IDs; no lee `facturapi_live_key`; no incluye mensajes que puedan registrar la llave.

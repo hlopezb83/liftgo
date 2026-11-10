@@ -1,3 +1,7 @@
+## [8.51.0] - 2026-11-10
+
+- Aplica en la base la comprobación de sí o no sobre la exclusividad de la llave de prueba de la empresa sandbox, sólo accesible para el servicio interno. No se ejecutó; la pantalla temporal sigue apagada hasta la revisión final.
+
 ## [8.50.2] - 2026-11-10
 
 - Refuerza la pantalla temporal de revisión sandbox: si la ventana vence mientras se preparan las conexiones internas, ya no se envía la comprobación de exclusividad. Agrega pruebas sin red. La comprobación en la base sigue sin aplicarse y la pantalla sigue apagada.
