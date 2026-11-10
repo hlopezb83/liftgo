@@ -1,3 +1,7 @@
+## [8.49.1] - 2026-11-10
+
+- Ajusta la pantalla temporal de revisión sandbox al origen exacto de la vista previa en vivo, mantiene el bloqueo para la app publicada y deja de enviar la llave de prueba dentro de consultas. Sin mecanismo revisado de exclusividad la comprobación queda bloqueada antes de leer la llave. Sin publicación, consultas reales ni cambios de datos.
+
 ## [8.49.0] - 2026-11-10
 
 - Prepara una pantalla temporal de revisión de emisor sandbox, deshabilitada hasta revisión, con sesión real, administrador activo, empresa fija y ventana máxima de dos horas. SDK 6 aislado y pruebas sin red; sin publicación, consultas reales, documentos fiscales ni escrituras ERP.

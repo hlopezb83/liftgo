@@ -27,6 +27,13 @@ export interface PreflightDeps {
   token: string;
   caller: Caller;
   loadSecretReader(): Promise<ReadDb>;
+  /**
+   * Tenant-scoped exclusivity check performed INSIDE the database: receives no
+   * key and returns only a boolean. No reviewed mechanism exists yet, so the
+   * production wiring omits it and the preflight fails closed before reading
+   * any secret. The key must never be sent as a query filter (URL/logs).
+   */
+  verifyKeyExclusive?: () => Promise<boolean>;
   readIssuer(key: string, signal: AbortSignal): Promise<unknown>;
 }
 const record = (v: unknown): v is Record<string, unknown> =>
@@ -80,19 +87,19 @@ async function readConfiguration(deps: PreflightDeps) {
   // Privileged reader is loaded ONLY after real session, admin, membership,
   // active organization and explicit test mode; no live column or env fallback.
   if (!windowOpen(deps.window, deps.now())) return null;
+  if (!deps.verifyKeyExclusive) return "exclusivity_unavailable" as const;
+  if (await deps.verifyKeyExclusive() !== true) return null;
   const reader = await deps.loadSecretReader();
   const secrets = rows(await reader.from("billing_secrets").select("facturapi_test_key")
     .eq("organization_id", TENANT_ORGANIZATION_ID).limit(2));
   const key = secrets[0]?.facturapi_test_key;
   if (secrets.length !== 1 || typeof key !== "string" || key === "sk_test_" ||
     !checkTestKey("test", key, false).ok) return null;
-  // Existence only. No IDs or keys of other owners are returned or retained.
-  const others = rows(await reader.from("billing_secrets").select("organization_id")
-    .neq("organization_id", TENANT_ORGANIZATION_ID).eq("facturapi_test_key", key).limit(1));
-  return others.length === 0 ? { setting, key } : null;
+  return { setting, key };
 }
+type Configuration = { setting: Record<string, unknown>; key: string };
 
-async function checkIssuer(deps: PreflightDeps, config: NonNullable<Awaited<ReturnType<typeof readConfiguration>>>): Promise<PreflightResult> {
+async function checkIssuer(deps: PreflightDeps, config: Configuration): Promise<PreflightResult> {
   const now = deps.now();
   if (!windowOpen(deps.window, now)) return denied(410, "expired");
   const remaining = deps.window.expiresAt - now;
@@ -122,6 +129,7 @@ export async function runReadOnlyPreflight(deps: PreflightDeps): Promise<Preflig
   try {
     if (!await authorized(deps)) return denied(401, "unauthorized");
     const config = await readConfiguration(deps);
+    if (config === "exclusivity_unavailable") return denied(409, "exclusivity_unavailable");
     if (!config) return denied(409, "configuration_rejected");
     return await checkIssuer(deps, config);
   } catch {
