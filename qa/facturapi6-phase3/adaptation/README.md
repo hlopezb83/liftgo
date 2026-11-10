@@ -22,7 +22,7 @@ Fuente local verificable: `node_modules/facturapi6-preview/package.json` identif
 
 La capa candidata puede añadir `AbortSignal` mediante un recurso acotado (`invoicesWithSignal`), pero no inyectar fetch por instancia con una opción pública del SDK. El gateway todavía descarga PDF/XML sin señal; `deps.fetchImpl` no cubre esas llamadas. No reconstruir HTTP para fingir que es el SDK ni sobrescribir fetch global en servidor compartido. **`createFacturapiClient` en esta copia arroja `QA_TRANSPORT_BLOCKED` antes de crear un cliente.** La clase SDK permanece exportada por compatibilidad, por lo que el árbol no es una frontera ejecutable de seguridad y no debe conectarse directamente.
 
-Decisión pendiente: revisar una adaptación por llamada del transporte interno (API no pública, con contrato versionado), o permitir probar el SDK con su fetch nativo y gates/señales revisados en todas las operaciones. Ambas requieren revisión explícita; ninguna se implementó. Sin esa decisión se detiene la paridad fiscal completa y el wiring de ejecución.
+Decisión posterior del usuario: conservar SDK oficial. `officialCalls.ts` prepara gates/señales por llamada sin modificar el paquete, con métodos oficiales y request ficticio sólo en tests. Ver `OFFICIAL_TRANSPORT_REVIEW.md`. El patrón usa el recurso interno ya presente en la capa candidata; aún requiere revisión y conexión offline a los handlers, sin desbloquear la fábrica. No se implementó HTTP alternativo ni fetch global. Paridad fiscal completa y wiring de ejecución siguen pendientes.
 
 ## Evidencia focal y límites
 

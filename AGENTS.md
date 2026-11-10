@@ -14,3 +14,4 @@
 - Fiscal phase review packages stay outside runtime and deployment directories and contain no executable service entry point; this lets reviewers inspect plans without activating fiscal effects.
 - Static fiscal import audits only read literal local source dependencies and record hashes/locations; they must not import handlers or claim runtime/package closure, so offline inventory cannot trigger fiscal effects or overstate parity.
 - Offline fiscal adaptation copies retain handler provenance and fail closed at the SDK factory until per-request transport is reviewed; keeping them outside runtime prevents mock evidence from activating fiscal effects.
+- Fiscal QA call gates preserve official SDK methods and native fetch, with request-local resource views and versioned offline contracts; no SDK fork or global fetch replacement is allowed to simulate parity.

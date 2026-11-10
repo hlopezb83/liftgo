@@ -1,0 +1,7 @@
+{
+  "description": "Prepara gates por llamada y señal sin modificar SDK 6 ni activar ejecución fiscal.",
+  "changes": [
+    "Comparación de seis métodos oficiales con transporte ficticio y consumo tardío PDF/XML.",
+    "Diez pruebas nuevas; fábrica QA bloqueada y revisión de conexión pendiente."
+  ]
+}

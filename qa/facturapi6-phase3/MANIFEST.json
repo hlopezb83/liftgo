@@ -8,8 +8,9 @@
     "IMPORT_AUDIT.json": "4ebe0d2120f488291b37343c20c7dc6cc7c2f810f2d74e664c6578723bc3b188",
     "README.md": "dbfd30fab046f2c05a3e7efeae1e2d730751c5da279305cd864c5302acacbcbe",
     "TEST_PLAN.md": "184512b600f262436885a92741c96fa7234708cde8f186a63366c0f28890bb2a",
+    "adaptation/OFFICIAL_TRANSPORT_REVIEW.md": "03fc95523c9a258971c1cdbda882f94c6a56ae63b7892d88cf5902befe854385",
     "adaptation/PROVENANCE.json": "64060fe0989baaa57882245bf5a1b824383bda435a3a6cb05591c803748b4449",
-    "adaptation/README.md": "44da988384a8cdd8dacbe8c8040cb92dadb104a370a2f3f281ab7a7a6e2e2453",
+    "adaptation/README.md": "601eebbb638ef1324ba5ccbfcdfff4dd554bc964470a1ed998ed727d62f5f88c",
     "adaptation/candidate/_shared/authWithDeps.ts": "80e8eb74ed758a660b0fa655f01238e145a77e2698e6e067d5593ae8d91742c5",
     "adaptation/candidate/_shared/cfdiRetryQueue.ts": "ccd0b34118eb3295adcb2e0f1203e94500130d439c9812787f7d880065a317e1",
     "adaptation/candidate/_shared/cfdiUsoRegimen.ts": "16e64783293c3999ddeedd003f2ce0a390cf4cb5324cbf985ea533f7277e2ec5",
@@ -46,6 +47,9 @@
     "adaptation/candidate/stamp-payment-complement/decisions.ts": "9b427ca0ca393d483ee8a0fc37e20ee060f66f790d207237af85649b0cf6d90f",
     "adaptation/candidate/stamp-payment-complement/handler.ts": "e1e66d9594fa428041a53ff8898ec7d9edc1833f3554034235d82e1685951c09",
     "adaptation/candidate/stamp-payment-complement/taxBreakdown.ts": "f7edd12a09582ad6d4baa964674552a25a59e94da2134dc1224dedd1d818078a",
+    "adaptation/candidate.diff": "d96846521779e70141f804269e26414786a27605da8614b4f53542fa5db27ece",
+    "adaptation/officialCalls.test.ts": "90fe6ed46c18b12eab42e0b7446957e91fb8085a3d50eb1d6c5898f89b378b87",
+    "adaptation/officialCalls.ts": "369183cd9241f1c5430759bdf556ae31c82d6e048009034327bef885f4316951",
     "adaptation/offline.test.ts": "8d9335cf98604937c434753ee6825196ff2ff6e0b48b2a6146b91a7fec8c94d7",
     "adaptation/prepare_copy.py": "d8d9eb1dc4fd950d51230f6390dff1e285ea6360bed7b00408128d18d63b77a4",
     "adaptation/testConfig.ts": "84d530dda0a6d16a9ea7821ee8ae23761502ab1fbdbd8645f5d3932b82ab0f45",
@@ -53,10 +57,9 @@
     "audit_imports.py": "3820dea31d2d5431f553de668e44aa1699fbc072d112aef8816094157c10d92b",
     "fixtures.json": "8a5db74411519f05716f530a3e344d6f8c6c0d81823b7f02a5acaaf880aeacb5",
     "test_audit_imports.py": "55484ac14e25c7b54099571176231760f895554de0a5eecdf9bb87e316e49743",
-    "test_plan.py": "f8b12f44463023881e279f722c26d5309830e7f9bc67de4d3a667a2a91f3d690",
-    "adaptation/candidate.diff": "d96846521779e70141f804269e26414786a27605da8614b4f53542fa5db27ece"
+    "test_plan.py": "f8b12f44463023881e279f722c26d5309830e7f9bc67de4d3a667a2a91f3d690"
   },
-  "closure_sha256": "758daed0e1775a839ea2f869b05aa5c89d7643ae1e4f07d32be51bcaf41de6c4",
+  "closure_sha256": "4008d308f2d55e1809df6412bff63f019c3a57fe5a7b14862e54f97de28bdd69",
   "continuation_base_commit": "152a31045",
-  "adaptation_status": "partial_offline_transport_blocked"
+  "adaptation_status": "official_sdk_call_gates_offline_not_wired"
 }

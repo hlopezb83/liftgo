@@ -1,3 +1,7 @@
+## [8.52.5] - 2026-11-10
+
+- Prepara controles offline por llamada y señal conservando SDK oficial 6.0.0, con comparación de seis métodos y descargas tardías. Sin conexión fiscal, despliegue ni cambios de datos; fábrica QA sigue bloqueada.
+
 ## [8.52.4] - 2026-11-10
 
 - Prepara copia offline rastreable de seis funciones fiscales con resolver exclusivo de prueba y controles de vencimiento; bloquea transporte SDK pendiente de revisión. Sin despliegue, ejecución fiscal ni cambios de datos.
