@@ -3,76 +3,80 @@
 Estado: **preparado para revisión. No está desplegado.** Esta carpeta está fuera de `supabase/functions`, así que ningún despliegue la incluye.
 
 ## Qué contiene
-- `snapshot/`: copia byte a byte de los archivos de `hlopezb83/liftgo@967ac99ce632c284fc35f9a7a62852ab4fd09dcf` (PR #438). Incluye el cierre de imports locales de los handlers `stamp-cfdi`, `stamp-payment-complement`, `stamp-credit-note`, `cancel-cfdi` y `download-cfdi`, el adapter `_shared/facturapi/client.ts` y su `sdk6_contract_test.ts`, más el `deno.json`/`deno.lock` del commit.
-- `MANIFEST.json`: 39 archivos con su SHA-256, el SHA-256 del tarball de GitHub y `closure_sha256`. Para verificar, se recalcula con las líneas `path:sha256\n` en el orden del manifiesto.
-- `runner/`: el ejecutor. `policy.ts` es la política cerrada; `preflight.ts` contiene la fase 0, que ejecuta código auténtico del snapshot (`authenticateWithDeps`, `resolveCallerOrganization`, `getFacturapiConfigForOrganization`, `createFacturapiClient`); `index.ts` es la entrada.
-- `deno.json`: import map propio con `facturapi@6.0.0` y el lock congelado del snapshot. **No toca el `deno.json` común ni los 26 endpoints.**
+- `snapshot/`: copia byte a byte de `hlopezb83/liftgo@967ac99ce632c284fc35f9a7a62852ab4fd09dcf` (PR #438): el cierre de imports de `stamp-cfdi`, `stamp-payment-complement`, `stamp-credit-note`, `cancel-cfdi` y `download-cfdi`, el adapter Facturapi 6, `sdk6_contract_test.ts`, `deno.json` y `deno.lock`. No se modifica.
+- `MANIFEST.json`: 39 archivos con SHA-256, hash del tarball y `closure_sha256` (líneas `path:sha256\n` en orden).
+- `RUNNER_MANIFEST.json`: hashes del ejecutor (`runner/`, `deno.json`, `.gitignore`).
+- `.gitignore`: reincluye `snapshot/**/deno.lock`, que el gitignore global del entorno ignoraba (por eso faltó en 867c6f3e).
+- `runner/`: `policy.ts` (política cerrada), `guards.ts` (identidad estricta y vista restringida de secretos), `claims.ts` (claims durables), `phases.ts` (fases con efecto, cerradas), `preflight.ts` (fase 0), `index.ts` (entrada).
 
 ## Política cerrada
-- La petición acepta sólo `{action, run_id}`. Cualquier campo extra (ID, URL, monto o empresa) se rechaza con 400.
-- La empresa es fija: `fc2c10e3-278b-4899-8aa1-f802752f1c38`. El emisor esperado es `ELOGISTIX SHIPPING`, y su RFC debe coincidir con `company_settings.rfc`.
-- El modo debe ser `test` y la llave debe empezar con `sk_test_` y venir de `billing_secrets`. Se rechazan el respaldo por variables de entorno, las llaves live y las llaves de usuario. La regla de llave exclusiva aplica mediante el código del PR.
-- Se exige un JWT real con cuenta activa, rol `admin` y membresía interna en esa empresa. `service_role` se rechaza.
-- `RUN_ID = fx6-sbx-20261110-01`. La caducidad fail-closed es `2026-11-17T06:00Z`: después de esa hora, todo responde 410 antes de autenticar.
-- Topes para fases futuras: total de 116 MXN, cantidad 1 y 4 documentos por ejecución.
-- **Sólo está habilitada la acción `preflight`.** Las demás responden 423 `phase_not_enabled`.
+- La petición acepta sólo `{action, run_id}`; cualquier otro campo se rechaza con 400.
+- Empresa fija `fc2c10e3-278b-4899-8aa1-f802752f1c38`; emisor esperado `ELOGISTIX SHIPPING` con RFC igual a `company_settings.rfc`.
+- **Ventana fija y corta** (`policy.ts`): `RUN_NOT_BEFORE`–`RUN_EXPIRES_AT`, máximo 6 h, validada en cada petición y otra vez justo antes de cada efecto. El caller no puede renovarla. Valor propuesto: 2026-11-10 16:00–20:00 UTC; debe fijarse en el commit revisado justo antes del despliegue. Fuera de ella: 410 antes de autenticar.
+- Topes: 116 MXN por documento, cantidad 1, máximo 4 CFDI por run (el plan usa 3).
+- `WRITE_PHASES_ENABLED = false` y `DURABLE_CLAIMS_GUARANTEED = false`: sólo `preflight` puede ejecutarse.
 
-## Fase 0 (`preflight`): única que existe hoy
-1. Hace sólo lecturas en la base de datos.
-2. Hace una sola llamada al proveedor: `GET /v2/organizations/me`, con `organizations.me()` del SDK 6 y un tiempo límite de 15 s, sin reintento.
-3. Responde sólo con booleanos: no incluye la llave, el RFC ni la razón social.
+## Identidad estricta (`runner/guards.ts`)
+Envuelve `authenticateWithDeps` y `resolveCallerOrganization` sin modificarlos. Falla cerrado ante:
+- token ausente o error de `getClaims`; rol del JWT distinto de `authenticated` (rechaza `service_role`, `anon` y cron);
+- `sub` vacío, no UUID o distinto del usuario del snapshot;
+- perfil ausente, error, duplicado o `is_active !== true` (`null` también falla; el snapshot sólo rechazaba `false`);
+- rol no admin; membresía interna ausente, múltiple o ajena; empresa inactiva o con `is_active` nulo.
 
-## Pruebas locales sin red (ejecutadas)
-`deno test --config deno.json runner/ snapshot/supabase/functions/_shared/facturapi/sdk6_contract_test.ts` corre sin `--allow-net`, así que el entorno niega la red al ejecutarse.
-- Resultado: 20/20 pruebas pasan.
-- Los 8 contratos SDK6 del PR pasan sobre el snapshot.
-- La prueba con el SDK 6 real confirma que `me()` hace `GET /v2/organizations/me` y que el signal llega a `fetch`.
-- Las 11 pruebas de política cubren:
-  - caso correcto con cero escrituras;
-  - bloqueo de otra empresa, modo live, llave live, llave de usuario y respaldo por entorno;
-  - configuración ambigua o ausente, y llave duplicada;
-  - emisor discordante por nombre y por RFC;
-  - JWT ausente o inválido, rol no admin y `service_role`;
-  - campos extra, run_id ajeno y fases no habilitadas;
-  - caducidad, fallo del proveedor sin reintento y concurrencia en el mismo isolate.
+## Credenciales
+- Se lee `company_settings.facturapi_mode` primero; si no es `test`, 409 **sin tocar `billing_secrets`**.
+- El snapshot recibe una vista del cliente de servicio que reescribe todo `select` de `billing_secrets` a sólo `facturapi_test_key` y lanza si algo filtra por la columna live: la llave live nunca llega al isolate.
+- El entorno visible oculta toda variable `FACTURAPI*`.
+- Respuestas y errores sólo llevan códigos: ninguna llave, fragmento, RFC ni razón social.
 
-## Accesos que usará al ejecutarse
-- **Variables de entorno de la función** (ya existentes en el backend): `SUPABASE_URL`, `SUPABASE_ANON_KEY` o la publishable, y `SUPABASE_SERVICE_ROLE_KEY`, leídas por el `supabaseClients.ts` del snapshot. No usa `FACTURAPI_*_KEY`.
-- **Lecturas con el cliente de servicio:**
-  - `profiles` (is_active) y `user_roles` (role);
-  - `organization_memberships` y `organizations` (is_active);
-  - `company_settings` (facturapi_mode, razon_social, rfc);
-  - `billing_secrets` (facturapi_test_key y la verificación de exclusividad).
-- **Escrituras:** ninguna.
-- **Red:** sólo `https://www.facturapi.io/v2/organizations/me`.
-- **Identidad del caller:** sesión real de un administrador de la empresa. El agente puede usar la sesión del usuario que tenga abierta la vista previa (la herramienta `curl_edge_functions` la inyecta), sin crear usuarios ni tokens. **Bloqueo si nadie tiene sesión de administrador de esa empresa en la vista previa:** no hay modo autorizado y no se alterará el acceso.
+## Fase 0 (`preflight`)
+Sólo lecturas en la base y `GET /v2/organizations/me` (SDK 6, 15 s, sin reintento). Responde booleanos.
 
-## Plan de despliegue (requiere aprobación aparte)
-1. Verificar `MANIFEST.json` (`closure_sha256`) y `git diff` vacío fuera de esta carpeta.
-2. Copiar `runner/` y `snapshot/supabase/functions/**` a `supabase/functions/fx6-sandbox-probe/`, conservando las rutas relativas.
-   - Usar `deno.json` propio dentro de esa carpeta, con el lock del snapshot.
-   - Fijar `verify_jwt` por defecto. No editar `config.toml` global salvo la entrada mínima de esa función, si la plataforma la exige.
-3. Desplegar **sólo** `fx6-sandbox-probe` y registrar el recibo y el `source_sha256`.
-4. Hacer una sola invocación de `{"action":"preflight","run_id":"fx6-sbx-20261110-01"}` con la sesión real del administrador.
-5. Si `preflight_ok` no es `true`, detener.
+## Fases con efecto (`runner/phases.ts`): implementadas y CERRADAS
+Invocan los handlers auténticos del snapshot por sus interfaces de inyección; no hay flujo SDK alterno.
 
-## Plan de deshabilitación comprobable
-1. Borrar la función con la herramienta oficial de borrado de funciones.
-2. Retirar la carpeta `supabase/functions/fx6-sandbox-probe/`.
-3. Comprobar:
-   - que la lista de funciones desplegadas ya no la contiene;
-   - que una petición sin autenticación devuelve 404 de plataforma, no 401 del handler;
-   - que `git diff` no deja nada bajo `supabase/functions/`.
-4. Respaldo: la caducidad en el código responde 410 a partir de la fecha límite, aunque el borrado falle.
+| Acción | Handler | CFDI nuevos |
+|---|---|---|
+| `stamp_invoice` | `stamp-cfdi` | 1 |
+| `payment_and_rep` | `stamp-payment-complement` | 1 |
+| `credit_note` | `stamp-credit-note` | 1 |
+| `download_pdf_xml` | `download-cfdi` (xml) | 0 |
+| `cancel_run_invoice` | `cancel-cfdi`, motivo 02, sólo la factura del run | 0 |
+| `duplicate_request` | `stamp-cfdi` sobre la misma factura; éxito = rechazo 4xx | 0 |
+| `retrieve_and_update_status` | **bloqueada**: vive en `refresh-cancellation-status`, fuera del cierre revisado | 0 |
 
-## Fases de escritura: no implementadas, pendientes de diseño y revisión
-Corresponden a CFDI-I, pago y REP, nota de crédito, cancelación de un documento del propio run, retrieve/updateStatus, PDF/XML y la prueba de solicitud doble.
-- **Límite real:** los handlers del PR leen y escriben `invoices`, `payments`, `credit_notes`, sus partidas, claims y storage en la **base de producción**, aunque sea con un tenant en modo test.
-- Para ejercitarlos de forma auténtica primero hay que crear filas ficticias del run (cliente, factura y pago marcados con `RUN_ID`). Eso es una escritura de datos de negocio que requiere una autorización explícita aparte.
-- Ninguna fase podrá recibir IDs: el ejecutor creará y recordará sólo sus propios documentos.
-- **Exclusión entre isolates:** el candidato sólo excluye dentro de un mismo isolate. La protección contra duplicados entre isolates depende de los claims de los handlers del PR (estado `stamping`) y no está probada aquí. Una ejecución robusta requeriría un candado persistente en la base (una migración), que queda fuera de este alcance.
-- **Distinción:** la fase 0 prueba el SDK y el proveedor más la autenticación y la configuración del ERP. **No prueba** la persistencia de los handlers ni la emisión.
-- **Ante un timeout en una escritura futura:** consultar al proveedor por ID o por external_id del run y detener la ejecución. No reemitir.
+Secuencia por fase: compuertas → ventana y cierre durable → fixtures válidos (tenant, run_id, montos ≤116, cantidad 1) → claim único → revalidar ventana y cierre → una sola llamada al handler. Excepción, timeout o estado inesperado ⇒ marcador de cierre irreversible y 409, sin reintento. El `fetch` del handler sólo permite `https://www.facturapi.io` y el propio backend; los handlers reciben la misma vista restringida de secretos y entorno.
+
+**Pendiente, fixtures:** la creación de cliente, factura y pago ficticios del run no está implementada. Sin manifiesto de fixtures, cada fase responde `fixtures_missing_or_invalid` antes de reservar. Requiere un diseño revisado de inserción acotada.
+
+## Claims durables: BLOQUEO
+`claims.ts` crea objetos `upsert:false` en el bucket privado existente `cfdi-files`, bajo `qa-fx6-sandbox/<RUN_ID>/claims/<acción>.json` y `.../disabled.json`; nunca sobrescribe ni borra. Lecturas pasivas del 2026-11-10:
+- Bucket privado con índice único sobre (bucket, nombre) del objeto vigente: crear con `upsert:false` es atómico (409 si existe).
+- El prefijo no lleva organización: la RLS de usuarios no lo alcanza.
+- **No es inmutable:** el cliente de servicio puede actualizar o borrar; con prefijo de organización, las políticas de `cfdi-files` dan UPDATE/DELETE a admin/administrativo; y `migrate-storage-org-prefix` borra objetos sin prefijo al migrarlos. Borrar un claim o el marcador permitiría repetir una acción o reabrir el run.
+- Por eso `DURABLE_CLAIMS_GUARANTEED` sigue en false. Garantizarlo requiere almacenamiento de sólo inserción (migración), que no se agregó.
+
+## Cron y colas: BLOQUEO
+`cron.job` (lectura pasiva): `reconcile-stamping-invoices-5min` (`2-59/5`) y `process-cfdi-retry-queue-5min` (`*/5`) están activos y son globales. Si un handler deja un documento en `stamping` tras un timeout, el reconciliador puede tomarlo en ≤5 min; no existe mecanismo verificable para excluir fixtures. Mitigación: cada fase dura segundos y no encola; ante incertidumbre el run se cierra y el documento sólo se consulta por su ID.
+
+## Identidad para la ejecución futura
+Según la descripción de `supabase--curl_edge_functions` (no se llamó):
+- Con sesión del usuario en la vista previa, envía ese token.
+- Si sólo conoce la identidad, acuña un token corto con `sub`, email y rol `authenticated`, sin `session_id`, metadatos ni `aal`; no está verificado que `getClaims` lo acepte.
+- Sin sesión, la petición va sin autenticación (el ejecutor responde 401). Un `Authorization` propio sustituye al inyectado.
+- La herramienta no informa qué usuario usó; sólo se verifica por la respuesta del ejecutor (exige admin activo de ELOGISTIX), sin revelar el ID.
+- Mecanismo interno existente, sólo para revisión: la CLI de sesión del agente puede acuñar una sesión de un usuario existente con aprobación del usuario. No se usó; no crea usuarios ni cambia roles.
+
+## Pruebas locales sin red
+`deno test --config deno.json --frozen --allow-read=. --allow-env=ALLOWED_ORIGINS,SENTRY_DSN,SENTRY_ENVIRONMENT,DENO_DEPLOYMENT_ID,SB_EXECUTION_ID runner/ snapshot/supabase/functions/_shared/facturapi/sdk6_contract_test.ts` (sin `--allow-net`): 37/37. `manifest_test.ts` verifica los 39 archivos y `closure_sha256` desde el checkout, incluido `deno.lock`; `--frozen` falla si el lock no coincide.
+
+## Plan de despliegue (aprobación aparte)
+1. Fijar la ventana en `policy.ts`; verificar ambos manifiestos y `git diff` vacío fuera de esta carpeta.
+2. Copiar `runner/` y `snapshot/supabase/functions/**` a `supabase/functions/fx6-sandbox-probe/` con `deno.json` y lock propios.
+3. Desplegar sólo `fx6-sandbox-probe`, registrar el recibo e invocar una vez `preflight`. Si `preflight_ok` no es `true`, detener.
+
+## Deshabilitación comprobable
+Borrar la función con la herramienta oficial, retirar la carpeta copiada y comprobar que no aparece y que una petición recibe 404 de plataforma. Respaldo: la ventana responde 410 al vencer.
 
 ## Fuera de alcance
-Sin cron, colas globales, correos ni dinero, y sin cambios en RLS, roles, JWT o la configuración de seguridad.
+Sin cron, colas, correos ni dinero; sin cambios en RLS, roles, JWT, bucket ni configuración de seguridad.
