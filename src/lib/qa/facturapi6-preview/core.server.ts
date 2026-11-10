@@ -57,11 +57,15 @@ async function authorized(deps: PreflightDeps): Promise<boolean> {
   if (profiles.length !== 1 || profiles[0]?.user_id !== sub || profiles[0]?.is_active !== true) return false;
   const role = await deps.caller.rpc("has_role", { _user_id: sub, _role: "admin" });
   if (role.error || role.data !== true) return false;
-  const memberships = rows(await deps.caller.from("organization_memberships")
+  return await tenantAuthorized(deps.caller, sub);
+}
+
+async function tenantAuthorized(caller: Caller, sub: string): Promise<boolean> {
+  const memberships = rows(await caller.from("organization_memberships")
     .select("organization_id,member_type").eq("auth_user_id", sub).limit(2));
   if (memberships.length !== 1 || memberships[0]?.member_type !== "internal" ||
     memberships[0]?.organization_id !== TENANT_ORGANIZATION_ID) return false;
-  const orgs = rows(await deps.caller.from("organizations").select("id,is_active")
+  const orgs = rows(await caller.from("organizations").select("id,is_active")
     .eq("id", TENANT_ORGANIZATION_ID).limit(2));
   return orgs.length === 1 && orgs[0]?.id === TENANT_ORGANIZATION_ID && orgs[0]?.is_active === true;
 }

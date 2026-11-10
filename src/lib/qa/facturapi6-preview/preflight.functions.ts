@@ -4,7 +4,7 @@ import { PREVIEW_WINDOW, type PreflightResult } from "./policy";
 
 /** No loader calls this. Browser uses existing authAttacher; no mint/fallback. */
 export const previewIssuerPreflight = createServerFn({ method: "POST" })
-  .inputValidator((input: unknown) => {
+  .validator((input: unknown) => {
     if (input !== null) throw new Error("invalid_input");
     return null;
   })
