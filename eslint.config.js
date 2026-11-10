@@ -50,6 +50,13 @@ export default tseslint.config(
       "src/integrations/supabase/auth-attacher.ts",
       "supabase/functions/**",
       "qa/facturapi6-sandbox-candidate/snapshot/**",
+      // Código Deno de QA Facturapi 6 (copias revisadas y sondas); no es parte de la app web.
+      "qa/facturapi6-sandbox-candidate/runner/**",
+      "qa/facturapi6-phase1/staged/**",
+      "qa/facturapi6-phase2/parity_probe.ts",
+      "qa/facturapi6-phase3/adaptation/candidate/**",
+      "qa/facturapi6-phase4/staged/**",
+      "qa/facturapi6-phase4/rollback/**",
       "scripts/**",
       // Scripts locales de auditoría visual (no forman parte del bundle).
       "audit_*.ts",

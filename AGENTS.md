@@ -18,3 +18,4 @@
 - Optional fiscal QA factories live only in isolated copies and compose run/call abort signals, rejecting incompatible signals; defaults remain blocked so offline wiring cannot activate traffic.
 - QA effect guards wrap supplied clients only and reject unreviewed response streams/clones; post-await rejection never implies rollback of an already dispatched effect.
 - QA cached downloads materialize Storage Blobs through the supplied client's consumption scope before returning bytes; this makes the pre/post-consumption gate explicit without relying on Blob proxies or promising response withdrawal.
+- Facturapi 6 production activation goes only through the digest-guarded Phase 4 kit (`activation.py` apply/rollback, exact base/applied states) and ships `deno.lock` with `deno.json`; CI caches Deno with `--frozen`, so a stale lock breaks the release.

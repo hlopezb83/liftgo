@@ -1,5 +1,7 @@
 # Fase 1 — capa Facturapi 6.0.0 (preparada, NO desplegada)
 
+> **Actualización 10/11/2026 (Fase 4):** este parche no actualiza `deno.lock`; la integración continua usa caché `--frozen` y lo rechazaría. Para activar usar `qa/facturapi6-phase4/` (mismos archivos más el lock verificado). Este directorio queda como antecedente.
+
 Plan: `.lovable/plan/migrar-el-erp-a-facturapi-6-0-0-2026-11-10.md`.
 
 ## Por qué está aquí y no en las funciones

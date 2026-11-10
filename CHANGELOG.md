@@ -1,3 +1,7 @@
+## [8.52.9] - 2026-11-10
+
+- Prepara el kit de activación de Facturapi 6.0.0 con reversa exacta, guardas de ventana y guía paso a paso. Corrige el parche anterior, que no actualizaba el archivo de versiones fijas y habría fallado en la integración continua. Sin aplicar, desplegar, pausar tareas ni emitir documentos.
+
 ## [8.52.8] - 2026-11-10
 
 - Cierra consumo tardío de archivos almacenados y sanea un log de error del proveedor en la copia QA. Pruebas focales con NC auténtica y datos ficticios; sin ejecución fiscal, SQL, activación ni publicación. Paridad integral y CI pendientes.

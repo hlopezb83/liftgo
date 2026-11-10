@@ -1,0 +1,73 @@
+{
+  "kit": "facturapi6-phase4",
+  "facturapi_version": "6.0.0",
+  "facturapi_integrity": "sha512-A/aQnB0MgesKKrOOcHlJqmX4JMxWuHagihu9YSPao8OvXbdDKxFmAgb7IbuBz1iz14LT0SZJakrJo96XUe9w1Q==",
+  "functions_dir": "supabase/functions",
+  "files": [
+    {
+      "path": "deno.json",
+      "base_sha256": "84a682d8183c90f10fe8afc9ef705c04412a623366c63663f1da2d650a77e66c",
+      "result_sha256": "b8c81b759a3412d508935390af4feffcd8389f937df7a32a899e335ff4d39ea7"
+    },
+    {
+      "path": "deno.lock",
+      "base_sha256": "7c0ff3dcc1e72289e8487129aa89f3a0ddec17dfa343dc12bfe6fcd6ad43a02f",
+      "result_sha256": "87dbec17a1122949ad25424e8a0605c046a1e04415b053ff7304b4b116e9d2c0"
+    },
+    {
+      "path": "_shared/facturapi/client.ts",
+      "base_sha256": "113f4cbf2b14a53f8b540ea746737ec175743a530c1d6ee8f40e0f1523cb97f1",
+      "result_sha256": "4af4b27a63e3cb928ea6e9cd61ea10a7ae92aa5d15efd7e8e5b04d53be92886d"
+    },
+    {
+      "path": "_shared/facturapi/withTimeout.ts",
+      "base_sha256": "ab719a12f2342f9d79be8b2326de53a8dc0a7e6dbca47798ccff13b0ec5e8164",
+      "result_sha256": "656adadc31aca5e45425f78c0afdf4f154fc56da2faa5c5df27c01d32bca54c5"
+    },
+    {
+      "path": "_shared/facturapi/sdk5_contract_test.ts",
+      "base_sha256": "9d27c08adc659ce14593696a08e1a93c323bdc72e457f1b65abee7eacd776bad",
+      "result_sha256": null
+    },
+    {
+      "path": "_shared/facturapi/sdk6_contract_test.ts",
+      "base_sha256": null,
+      "result_sha256": "c358c74c4c7e3821a471b6553a8b1dbf056c94b10a1369ff3a49d83bb757e170"
+    },
+    {
+      "path": "reconcile-stamping-invoices/recoverCreditNotePdf.ts",
+      "base_sha256": "c6bcfc0d98c8e3b2d94c634ca16d6b2a902ce0a8bd6979f7c7ee84c796fc0549",
+      "result_sha256": "7ab0a69947b9b8ae9b4f6de669ea6ef34fbcdfd927d83e1c7845b2615f71160e"
+    },
+    {
+      "path": "reconcile-stamping-invoices/recoverCreditNotePdf_sdk_test.ts",
+      "base_sha256": "7c559ed3ba72e0a75b746150cfda0af01129392459546fde9defa26ee61b0370",
+      "result_sha256": "9835bb513043bf34641d61a8d6a4bc1fc8a4ae7b1faeaaa16a2716d8745ee684"
+    }
+  ],
+  "activation_patch_sha256": "c85cf01d5b6b162683af7cdc799d90cd5cd12b2bb165876787fde6bc59652aee",
+  "phase1_patch_sha256": "c760592ad568929f1b6e30a186b062b2cadbfac12255eabee2aef1d747c6f4c0",
+  "deploy_functions": [
+    "cancel-cfdi",
+    "cancel-credit-note",
+    "cancel-payment-complement",
+    "download-cfdi",
+    "process-cfdi-retry-queue",
+    "reconcile-stamping-invoices",
+    "refresh-cancellation-status",
+    "stamp-cfdi",
+    "stamp-credit-note",
+    "stamp-payment-complement",
+    "validate-customers-tax-info",
+    "validate-receptor-tax-info"
+  ],
+  "fiscal_cron_jobs": [
+    "process-cfdi-retry-queue-5min",
+    "reconcile-stamping-invoices-5min"
+  ],
+  "test_tenant": "fc2c10e3-278b-4899-8aa1-f802752f1c38",
+  "window_minutes": {
+    "before": 10,
+    "after": 60
+  }
+}
