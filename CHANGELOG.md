@@ -1,3 +1,7 @@
+## [8.51.1] - 2026-11-10
+
+- Cierra la ventana temporal de revisión sandbox tras una única comprobación exitosa del emisor de prueba. La pantalla vuelve a quedar apagada. Sin emisión de documentos fiscales ni publicación.
+
 ## [8.51.0] - 2026-11-10
 
 - Aplica en la base la comprobación de sí o no sobre la exclusividad de la llave de prueba de la empresa sandbox, sólo accesible para el servicio interno. No se ejecutó; la pantalla temporal sigue apagada hasta la revisión final.

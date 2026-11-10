@@ -52,3 +52,11 @@ Autorización del usuario: crear la función mediante migración revisada. Aplic
 - Pruebas aisladas: `sql/test_isolated.sh` levanta un clúster local desechable, limpia las variables PG* (no puede alcanzar la base del proyecto) y usa datos ficticios. Cubre exclusividad, llave compartida, ausencia, nulo, `sk_test_` vacío, prefijo live, duplicados, modo live/nulo, otro tenant, live ignorada, reproducción de la ACL por defecto actual antes de CREATE, aborto+rollback ante grant extra inesperado, anon/authenticated/rol técnico sin EXECUTE, ACL cruda exacta `owner=X,service_role=X` y recuperación que deja sólo owner. Se ejecuta con `-1` (una transacción), como la herramienta oficial. Resultado: 31/31.
 - Recuperación (no ejecutada): `sql/recovery_disable_not_executed.sql` retira EXECUTE a PUBLIC/anon/authenticated/service_role y al rol técnico (si existe), afirma que la ACL queda sólo con owner (si no, rollback) y marca la función como DEPRECATED, sin DROP. Requiere otra migración revisada.
 - TOCTOU: la función y la lectura posterior de la llave son dos operaciones separadas. Una modificación concurrente de `billing_secrets` entre ambas no se detecta, y no hay transacción ni bloqueo compartido; no se promete atomicidad. La mitigación es sólo parcial: ventana corta, tenant fijo, una sola llamada GET de lectura y la revisión del emisor por `organizations.me()`.
+
+## Resultado del run `fx6-preview-20261110T0623Z` (cerrado)
+
+- Ventana 2026-11-10 06:23–07:23 UTC; un solo clic ~06:27 UTC desde la vista previa en vivo del editor. Sin reintento ni emisión.
+- Pantalla: Emisor = Coincide; Modo sandbox = Confirmado; "Emisor sandbox verificado."; botón bloqueado tras el resultado.
+- Cerrado en fuente (`enabled=false`, `shutdown=true`), conservando runId y fechas; no se extendió.
+- Alcance: sólo confirma lectura del emisor con SDK 6 (`facturapi@6.0.0`) en el runtime TanStack de Preview. NO es prueba integral del runtime Deno ni del flujo fiscal (sin timbrado, cancelación ni documentos).
+- La función booleana interna sigue creada sin invocador activo; la recuperación SQL no se aplicó.
