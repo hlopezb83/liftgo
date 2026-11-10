@@ -100,6 +100,7 @@
     "date-fns-tz": "^3.2.0",
     "dompurify": "3.4.17",
     "embla-carousel-react": "^8.6.0",
+    "facturapi6-preview": "npm:facturapi@6.0.0",
     "fflate": "0.8.3",
     "html-to-image": "^1.11.13",
     "input-otp": "^1.4.2",
