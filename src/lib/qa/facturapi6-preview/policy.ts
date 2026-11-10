@@ -16,7 +16,9 @@ export const PREVIEW_WINDOW: Readonly<PreviewWindow> = Object.freeze({
 });
 export const PREVIEW_ORIGINS = [
   "http://localhost:8080",
-  "https://id-preview--e25ace4a-172e-4082-a037-00473dacf2f2.lovable.app",
+  // Live Preview (editor iframe, Vite dev server, DEV=true). Static id-preview
+  // builds are production bundles (DEV=false) and are intentionally excluded.
+  "https://e25ace4a-172e-4082-a037-00473dacf2f2.lovableproject.com",
 ] as const;
 export function windowOpen(window: PreviewWindow, now: number): boolean {
   return window.enabled === true && window.shutdown === false &&
@@ -30,7 +32,7 @@ export interface PreflightResult {
   ok: boolean;
   status: number;
   code: "disabled" | "preview_only" | "unauthorized" | "forbidden" |
-    "configuration_rejected" | "expired" | "issuer_mismatch" | "unavailable" | "verified";
+    "configuration_rejected" | "exclusivity_unavailable" | "expired" | "issuer_mismatch" | "unavailable" | "verified";
   issuerMatches?: boolean;
   sandboxConfirmed?: boolean;
 }
