@@ -51,8 +51,11 @@ export function handleCors(_req: Request): Response | null { return null; }
             text = text.replace('  fetchImpl: typeof fetch;', '  createQaClient?: typeof createFacturapiClient;\n  fetchImpl: typeof fetch;', 1)
             text = text.replace('const client = createFacturapiClient(apiKey);', 'const client = (deps.createQaClient ?? createFacturapiClient)(apiKey);')
         if relative == "stamp-cfdi/invoiceGateway.ts":
+            text = 'import { consumeForClient } from "../../effectGuards.ts";\n' + text
             text = text.replace('export function createInvoiceGateway(apiKey: string): InvoiceGateway {', 'export function createInvoiceGateway(apiKey: string, factory: typeof createFacturapiClient = createFacturapiClient): InvoiceGateway {')
             text = text.replace('const client = createFacturapiClient(apiKey);', 'const client = factory(apiKey);')
+            text = text.replace('await binaryToText(\n        await retryOnFacturapi5xx(() => client.invoices.downloadXml(id)),\n      )', 'await consumeForClient(client,\n        await retryOnFacturapi5xx(() => client.invoices.downloadXml(id)), binaryToText\n      )')
+            text = text.replace('await binaryToBytes(\n        await retryOnFacturapi5xx(() => client.invoices.downloadPdf(id)),\n      )', 'await consumeForClient(client,\n        await retryOnFacturapi5xx(() => client.invoices.downloadPdf(id)), binaryToBytes\n      )')
         destination = target / relative
         destination.parent.mkdir(parents=True, exist_ok=True)
         destination.write_text(text)

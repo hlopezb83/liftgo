@@ -14,13 +14,21 @@ El request delegado combina señal de run y timeout por llamada con `AbortSignal
 
 38 pruebas TypeScript focales y 3 de procedencia; CI completo pendiente. No acredita servicios reales, autorización alojada, SQL/triggers, abort efectivo del socket/cuerpo, bundle workerd ni runtime Deno integral.
 
-## Hallazgos de revisión independiente que mantienen el bloqueo
+## Continuación 8.52.7 — evidencia focal adicional
+
+Gateway conecta `consumeForClient` en PDF/XML auténticos: cuerpos ficticios diferidos que vencen no retornan archivos. `guardOfflineEffects` se conecta al admin ficticio del refresco y de descarga NC; `guardOfflineFetch` al fetch existente de esa descarga, sólo dentro de tests. NC confirma bytes/filtros/proyección tenant y persistencia abierta; vencimiento al consumir da 502, sin upload/UPDATE; durante upload da 500, sin UPDATE. Conserva traducciones históricas y no promete revertir efectos enviados. El retry histórico puede esperar nuevamente tras un error TTL, pero el gate bloquea nuevas peticiones; no se afirma cero esperas.
+
+Resultado local: 50/50 pruebas TypeScript en cuatro archivos afectados y 4/4 de procedencia Python. ESLint focal sin errores; validación completa queda en CI. No equivale a flujo fiscal alojado ni Deno integral.
+
+Revisión independiente confirma alcance parcial: clientes originales fuera del proxy no quedan protegidos, resultados Blob/stream de Storage no se envuelven, thenables reales y persistencia universal no están acreditados. Response.body/clone quedan bloqueados fail-closed y Request.signal se conserva. No hay conexión a endpoint ni runtime operativo.
+
+## Hallazgos anteriores y pendientes que mantienen el bloqueo
 
 - Señales de otro realm no deben sustituirse silenciosamente: ahora fail-closed y regresión focal. La combinación a través del wrapper auténtico se prueba en gateway; no hay evidencia de todos los runtimes.
-- Gateway PDF/XML sí pasa por `invoices.client.request` de la vista inyectada, pero **decodificar después no pasa por `consume`**. Falta gate tras consumo y antes de persistencia. No declarar downloads integralmente protegidos.
+- Gateway PDF/XML ahora valida consumo antes/después; falta conectar y acreditar persistencia en todos sus consumidores. No declarar downloads integralmente protegidos.
 - `download-cfdi/handler.ts:242–270` usa fetch directo inyectado y Storage; no se convirtió a SDK alternativo ni está conectado a este helper. Falta adaptación explícita de fetch/consumo y pruebas auténticas.
 - Sólo refresh pending se compara lado a lado; inyección no demuestra paridad de factura/REP/NC/cancelación/descarga, folios, saldo, claims, fechas, idempotencia y fallas parciales. Las pruebas de procedencia verifican que las cuatro fábricas se generaron y que no cambiaron otras instrucciones.
-- Mock DB de refresh verifica ventana antes de UPDATE; **no es un guard desplegado** ni protección universal de consultas. Falta gate tras cada await y antes de cada operación ERP/Storage real.
+- Admin ficticio de refresh usa ahora el helper de efectos, no un checkpoint exclusivo del doble; **no es un guard desplegado** ni protección universal de consultas. Falta gate tras cada await y antes de cada operación ERP/Storage real en restantes handlers.
 - Error tras escritura enviada significa incierto; falta diario durable conectado y cierre sin retry, saneamiento de logs, TOCTOU configuración y contención/pausa de crons. No liberar reservas para repetir ni prometer abort/rollback de efectos enviados.
 
 No conectar ejecutor/UI ni abrir ventana hasta resolver estos hallazgos y revisión independiente. Preflight conserva run/fechas cerrados, `enabled=false`, `shutdown=true`. Sin SQL/migraciones/permisos/datos/publicación.

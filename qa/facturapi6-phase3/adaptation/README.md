@@ -6,7 +6,7 @@
 
 - `candidate/`: cierre local de seis funciones auténticas. Factura y descarga conservan bytes; NC/REP/cancelar/refresh añaden sólo fábrica opcional. El refresco usa los shared SDK 6 del snapshot sólo en esta copia. Ver `WIRING_REVIEW.md` para evidencia y bloqueos.
 - `PROVENANCE.json`: origen y SHA-256 de cada archivo, más digest de su copia. `prepare_copy.py` reproduce el árbol mediante lectura local; no importa ni ejecuta funciones fiscales.
-- Cambian CORS sin entorno al cargar, cliente shared con resolver QA, cuatro handlers y gateway sólo por fábrica opcional. Default sigue bloqueado. CORS interno vacío no autentica ni autoriza.
+- Cambian CORS sin entorno al cargar, cliente shared con resolver QA, cuatro handlers y gateway por fábrica opcional y consumo acotado PDF/XML. Default sigue bloqueado. CORS interno vacío no autentica ni autoriza.
 - `testConfig.ts`: scope por objeto cliente, sin credenciales ni fetch global. Falta scope = bloqueo. Tenant fijo, modo test releído aunque exista override, verificador booleano sin parámetros secretos y proyección sólo `facturapi_test_key`. Sin fallback de entorno ni comparación de la llave en URL. `checkpoint` se ejecuta antes/después de awaits; una operación ya enviada no se aborta mágicamente.
 - El scope es dependencia offline, **no frontera de seguridad desplegada**. La futura función debe verificar sesión real, perfil/admin activo, pertenencia, origen exacto, DEV y ventana antes de cargar privilegios. No se creó esa función.
 
@@ -39,6 +39,12 @@ python3 -B -m unittest discover -s qa/facturapi6-phase3/adaptation -p 'test_*.py
 Los paths internos contienen imports `.ts`; Bun los resuelve localmente. No se certifica bundle de publicación, cierre de paquete ni integración `createServerFn`. Los logs históricos permanecen: antes de habilitar hay que sanear errores sin ocultar resultados inciertos, y comparar persistencia/colas auténticas. No se cambiaron handlers para silenciar esos efectos.
 
 ## Diario y cierre propuestos, no implementados
+
+### Continuación 8.52.7: consumo y efectos offline parciales
+
+`effectGuards.ts` valida llamadas/resoluciones de builders y Storage suministrados, sin reintentos ni sustitución HTTP. Se conecta al admin ficticio del refresh y al handler auténtico de descarga de NC en pruebas. Fetch directo sigue siendo el inyectado del handler, no un SDK alternativo; señales Request/run/timeout se combinan. Consumo tardío bloquea upload; upload enviado que termina tarde bloquea UPDATE, pero no se revierte. Streams y clones de Response se rechazan explícitamente hasta revisión; resultados de clientes no son envueltos recursivamente, por lo que Blob/stream obtenido de Storage no tiene gate de consumo universal.
+
+Gateway auténtico usa `consumeForClient` antes/después de decodificar PDF/XML. Es adaptación semántica intencional de seguridad, no cambio del SDK/serialización. Las fábricas predeterminadas siguen bloqueadas y ningún endpoint importa estos helpers. No se conectaron todos los handlers: paridad de emisión/REP/NC/cancelación, consumo Storage y diario siguen pendientes.
 
 Un claim raíz inmutable del run; reservas deterministas create-once para cada etapa; resultado confirmado antes de admitir la siguiente. Reserva sin resultado durable = incierto, cierre y prohibición de retry/reanudación. Cierre consume el run; no cancela efectos ya enviados. Las reservas son escrituras técnicas adicionales y necesitan autorización/revisión del mecanismo existente: Storage simulado no demuestra exclusión atómica real.
 

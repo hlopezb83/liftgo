@@ -1,3 +1,4 @@
+import { attachConsumptionScope } from "./effectGuards";
 import { prepareOfficialCalls, type CallScope, type OfficialClient } from "./officialCalls";
 
 /** Inyectable sólo en copias QA. No crea SDK, lee llaves ni crea servicio. */
@@ -8,6 +9,7 @@ export function offlineSdkFactory(client: OfficialClient, scope: CallScope) {
     const calls = prepareOfficialCalls(client, scope);
     const view = Object.create(client) as OfficialClient;
     view.invoices = calls.invoices;
+    attachConsumptionScope(view, scope);
     return view;
   };
 }

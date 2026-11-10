@@ -176,7 +176,7 @@
   "stamp-cfdi/invoiceGateway.ts": {
     "source": "qa/facturapi6-sandbox-candidate/snapshot/supabase/functions/stamp-cfdi/invoiceGateway.ts",
     "source_sha256": "60265694d138525ccb471ec380c8e3bfc642851b9bd9eeb551365dd7f852b984",
-    "candidate_sha256": "e684e7063c8b4c61b24000660b7e2cfe333b409c51023eec847626f2154db860",
+    "candidate_sha256": "be58d0a72ac0aaf3034eb4b3ee66e96ac3e3d8a905b3c2e18efb6fcb10b0a73a",
     "changed": true
   },
   "stamp-cfdi/invoicePayload.ts": {

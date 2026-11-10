@@ -1,3 +1,4 @@
+import { consumeForClient } from "../../effectGuards.ts";
 import {
   binaryToBytes,
   binaryToText,
@@ -32,12 +33,12 @@ export function createInvoiceGateway(apiKey: string, factory: typeof createFactu
     create: (payload, options) =>
       createInvoiceWithSignal(client, payload, options),
     downloadXml: async (id) =>
-      await binaryToText(
-        await retryOnFacturapi5xx(() => client.invoices.downloadXml(id)),
+      await consumeForClient(client,
+        await retryOnFacturapi5xx(() => client.invoices.downloadXml(id)), binaryToText
       ),
     downloadPdf: async (id) =>
-      await binaryToBytes(
-        await retryOnFacturapi5xx(() => client.invoices.downloadPdf(id)),
+      await consumeForClient(client,
+        await retryOnFacturapi5xx(() => client.invoices.downloadPdf(id)), binaryToBytes
       ),
   };
 }

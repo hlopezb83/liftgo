@@ -1,3 +1,7 @@
+## [8.52.7] - 2026-11-10
+
+- Conecta consumo PDF/XML del gateway QA y guardas offline de efectos/fetch a pruebas de refresco y descarga NC auténticos. Bloquea escrituras posteriores al vencimiento; no revierte operaciones enviadas ni habilita ejecución. Paridad completa y CI pendientes.
+
 ## [8.52.6] - 2026-11-10
 
 - Conecta parcialmente controles SDK a fábricas inyectadas de la copia QA; compara refresco autenticado ficticio y gateway con señales de ventana y timeout. Sin servicios reales ni activación; paridad fiscal completa pendiente.

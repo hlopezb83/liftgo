@@ -5,6 +5,7 @@ import { createInvoiceGateway } from "./candidate/stamp-cfdi/invoiceGateway";
 import { offlineSdkFactory } from "./offlineWiring";
 import { attachOfflineConfigScope, TENANT } from "./testConfig";
 import type { OfficialClient } from "./officialCalls";
+import { guardOfflineEffects } from "./effectGuards";
 
 const USER = "00000000-0000-4000-8000-000000000001";
 const DOC = "00000000-0000-4000-8000-000000000002";
@@ -45,7 +46,7 @@ function scenario(options: { guarded?: boolean; prior?: string; returned?: strin
         select(value?: string) { db.push(["select", value]); return q; },
         eq(column: string, value: unknown) { db.push(["eq", column, value]); return q; },
         limit(value: number) { db.push(["limit", value]); return q; },
-        update(value: Record<string, unknown>) { scope.checkpoint(); patch = value; db.push(["update", value]); return q; },
+        update(value: Record<string, unknown>) { patch = value; db.push(["update", value]); return q; },
         async single() { return result(); }, async maybeSingle() { return result(); },
         then(resolve: (v: ReturnType<typeof result>) => unknown, reject?: (e: unknown) => unknown) { return Promise.resolve(result()).then(resolve, reject); },
       };
@@ -53,9 +54,10 @@ function scenario(options: { guarded?: boolean; prior?: string; returned?: strin
     },
     storage: { from: forbidden },
   };
-  if (!options.missingScope) attachOfflineConfigScope(admin, { ...scope, async loadVerifier() { return async () => true; } });
+  const scopedAdmin = guardOfflineEffects(admin, scope);
+  if (!options.missingScope) attachOfflineConfigScope(scopedAdmin, { ...scope, async loadVerifier() { return async () => true; } });
   const deps = {
-    createCallerClient: () => admin, createServiceClient: () => admin,
+    createCallerClient: () => scopedAdmin, createServiceClient: () => scopedAdmin,
     createQaClient: options.guarded === false ? () => client : offlineSdkFactory(client, scope),
     fetchImpl: forbidden, env: forbidden,
   };

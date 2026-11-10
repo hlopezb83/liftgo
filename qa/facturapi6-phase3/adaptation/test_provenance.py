@@ -34,6 +34,16 @@ class ProvenanceTests(unittest.TestCase):
             "cancel-cfdi/handler.ts", "refresh-cancellation-status/handler.ts",
         })
 
+    def test_gateway_normaliza_solo_fabrica_y_consumo(self):
+        entry = json.loads((BASE / "PROVENANCE.json").read_text())["stamp-cfdi/invoiceGateway.ts"]
+        copy = (BASE / "candidate/stamp-cfdi/invoiceGateway.ts").read_text()
+        copy = copy.replace('import { consumeForClient } from "../../effectGuards.ts";\n', '')
+        copy = copy.replace('export function createInvoiceGateway(apiKey: string, factory: typeof createFacturapiClient = createFacturapiClient): InvoiceGateway {', 'export function createInvoiceGateway(apiKey: string): InvoiceGateway {')
+        copy = copy.replace('const client = factory(apiKey);', 'const client = createFacturapiClient(apiKey);')
+        for method, decoder in [("Xml", "Text"), ("Pdf", "Bytes")]:
+            copy = copy.replace(f'await consumeForClient(client,\n        await retryOnFacturapi5xx(() => client.invoices.download{method}(id)), binaryTo{decoder}\n      )', f'await binaryTo{decoder}(\n        await retryOnFacturapi5xx(() => client.invoices.download{method}(id)),\n      )')
+        self.assertEqual(copy, (ROOT / entry["source"]).read_text())
+
 
 if __name__ == "__main__":
     unittest.main()

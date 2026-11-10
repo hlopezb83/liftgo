@@ -1,0 +1,7 @@
+{
+  "description": "Pruebas de archivos tardíos y bloqueo de escrituras posteriores; sin activación fiscal.",
+  "changes": [
+    "Gateway PDF/XML conectado a consumo acotado; refresco y descarga NC auténticos con dobles.",
+    "Sin reversa de efectos enviados; paridad completa, diario y CI pendientes."
+  ]
+}
