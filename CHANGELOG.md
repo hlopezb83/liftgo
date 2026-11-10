@@ -1,3 +1,7 @@
+## [8.51.2] - 2026-11-10
+
+- Documenta el inventario para migrar la facturación a la versión más reciente de Facturapi (6.0.0). Sin cambios en el funcionamiento.
+
 ## [8.51.1] - 2026-11-10
 
 - Cierra la ventana temporal de revisión sandbox tras una única comprobación exitosa del emisor de prueba. La pantalla vuelve a quedar apagada. Sin emisión de documentos fiscales ni publicación.
