@@ -1,13 +1,6 @@
 // Pruebas sin red: se ejecutan sin --allow-net, por lo que cualquier fetch
 // real fallaría. Todo el proveedor y la BD son dobles.
 import { assert, assertEquals } from "@std/assert";
-import type { SupabaseLike } from "../snapshot/supabase/functions/_shared/types.ts";
-import type { CallerClientLike, Db, DbResult, Query } from "./db.ts";
-import {
-  __resetInFlightForTests,
-  handleRunner,
-  type RunnerDeps,
-} from "./preflight.ts";
 import {
   checkTestKey,
   compareIssuer,
@@ -19,6 +12,13 @@ import {
   RUN_NOT_BEFORE,
   TENANT_ORGANIZATION_ID,
 } from "./policy.ts";
+import {
+  __resetInFlightForTests,
+  handleRunner,
+  type RunnerDeps,
+} from "./preflight.ts";
+import type { CallerClientLike, Db, DbResult, Query } from "./db.ts";
+import type { SupabaseLike } from "../snapshot/supabase/functions/_shared/types.ts";
 
 const OTHER_ORG = "00000000-0000-4000-8000-000000000000";
 const TEST_KEY = "sk_test_FAKE_NOT_A_SECRET";

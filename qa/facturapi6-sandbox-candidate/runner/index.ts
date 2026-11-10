@@ -4,9 +4,9 @@ import {
   getAdminClient,
   getCallerClient,
 } from "../snapshot/supabase/functions/_shared/supabaseClients.ts";
-import type { SupabaseLike } from "../snapshot/supabase/functions/_shared/types.ts";
-import type { CallerClientLike } from "./db.ts";
 import { handleRunner } from "./preflight.ts";
+import type { CallerClientLike } from "./db.ts";
+import type { SupabaseLike } from "../snapshot/supabase/functions/_shared/types.ts";
 
 Deno.serve((req) =>
   handleRunner(req, {

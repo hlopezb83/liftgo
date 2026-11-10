@@ -7,7 +7,6 @@ import {
   getFacturapiConfigForOrganization,
   isFacturapiConfigError,
 } from "../snapshot/supabase/functions/_shared/facturapi/client.ts";
-import type { SupabaseLike } from "../snapshot/supabase/functions/_shared/types.ts";
 import { type CallerClientLike, type Db, isRecord } from "./db.ts";
 import { restrictEnv, restrictSecretsView, strictIdentity } from "./guards.ts";
 import {
@@ -20,6 +19,7 @@ import {
   RUN_ID,
   TENANT_ORGANIZATION_ID,
 } from "./policy.ts";
+import type { SupabaseLike } from "../snapshot/supabase/functions/_shared/types.ts";
 
 export interface IssuerReader {
   me(signal: AbortSignal): Promise<unknown>;

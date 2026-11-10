@@ -2,15 +2,13 @@
 // SDK alterno). Permanecen cerradas: WRITE_PHASES_ENABLED y
 // DURABLE_CLAIMS_GUARANTEED son false. Ninguna fase acepta IDs del caller;
 // los documentos salen del manifiesto de fixtures del propio run.
-import { handleStampCfdi } from "../snapshot/supabase/functions/stamp-cfdi/handler.ts";
-import { handleStampPaymentComplement } from "../snapshot/supabase/functions/stamp-payment-complement/handler.ts";
-import { handleStampCreditNote } from "../snapshot/supabase/functions/stamp-credit-note/handler.ts";
 import { handleCancelCfdi } from "../snapshot/supabase/functions/cancel-cfdi/handler.ts";
 import { handleDownloadCfdi } from "../snapshot/supabase/functions/download-cfdi/handler.ts";
+import { handleStampCfdi } from "../snapshot/supabase/functions/stamp-cfdi/handler.ts";
 import { createInvoiceGateway } from "../snapshot/supabase/functions/stamp-cfdi/invoiceGateway.ts";
-import type { SupabaseLike } from "../snapshot/supabase/functions/_shared/types.ts";
+import { handleStampCreditNote } from "../snapshot/supabase/functions/stamp-credit-note/handler.ts";
+import { handleStampPaymentComplement } from "../snapshot/supabase/functions/stamp-payment-complement/handler.ts";
 import { type ClaimStore, ClaimUncertain } from "./claims.ts";
-import type { Db } from "./db.ts";
 import { restrictEnv, restrictSecretsView } from "./guards.ts";
 import {
   checkExpiry,
@@ -23,6 +21,8 @@ import {
   TENANT_ORGANIZATION_ID,
   WRITE_PHASES_ENABLED,
 } from "./policy.ts";
+import type { Db } from "./db.ts";
+import type { SupabaseLike } from "../snapshot/supabase/functions/_shared/types.ts";
 
 /** Documentos ficticios creados por el run (nunca IDs del caller). */
 export interface RunFixtures {

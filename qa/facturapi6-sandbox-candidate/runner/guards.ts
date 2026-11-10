@@ -2,9 +2,9 @@
 // No modifican el snapshot: sólo envuelven sus dependencias inyectadas.
 import { authenticateWithDeps } from "../snapshot/supabase/functions/_shared/authWithDeps.ts";
 import { resolveCallerOrganization } from "../snapshot/supabase/functions/_shared/orgContext.ts";
-import type { SupabaseLike } from "../snapshot/supabase/functions/_shared/types.ts";
 import { type CallerClientLike, type Db, isRecord, type Query } from "./db.ts";
 import { checkTenant } from "./policy.ts";
+import type { SupabaseLike } from "../snapshot/supabase/functions/_shared/types.ts";
 
 export interface IdentityDeps {
   createCallerClient: (authHeader: string) => CallerClientLike;

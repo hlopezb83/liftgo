@@ -1,8 +1,12 @@
 // Pruebas sin red de las fases con efecto. Los handlers reales NO se ejecutan:
 // se sustituye el plan por dobles mediante `deps.phases`.
 import { assert, assertEquals } from "@std/assert";
-import { claimObject, DISABLED_OBJECT, MemoryClaimStore, StorageClaimStore } from "./claims.ts";
-import type { Db, Query } from "./db.ts";
+import {
+  claimObject,
+  DISABLED_OBJECT,
+  MemoryClaimStore,
+  StorageClaimStore,
+} from "./claims.ts";
 import { restrictSecretsView } from "./guards.ts";
 import {
   guardedFetch,
@@ -23,6 +27,7 @@ import {
   TENANT_ORGANIZATION_ID,
   WRITE_PHASES_ENABLED,
 } from "./policy.ts";
+import type { Db, Query } from "./db.ts";
 
 const fixtures = {
   run_id: RUN_ID,
@@ -43,7 +48,10 @@ const ctx: PhaseCtx = {
   fetchImpl: fetch,
 };
 
-function deps(over: Partial<WritePhaseDeps> = {}, handler?: (r: Request) => Promise<Response>) {
+function deps(
+  over: Partial<WritePhaseDeps> = {},
+  handler?: (r: Request) => Promise<Response>,
+) {
   const calls: string[] = [];
   const claims = new MemoryClaimStore();
   const realStamp = PHASES.stamp_invoice.call;
@@ -75,33 +83,58 @@ function deps(over: Partial<WritePhaseDeps> = {}, handler?: (r: Request) => Prom
 const okHandler = () => Promise.resolve(new Response("{}", { status: 200 }));
 
 Deno.test("por defecto las fases de escritura están cerradas", async () => {
-  assertEquals([WRITE_PHASES_ENABLED, DURABLE_CLAIMS_GUARANTEED], [false, false]);
+  assertEquals([WRITE_PHASES_ENABLED, DURABLE_CLAIMS_GUARANTEED], [
+    false,
+    false,
+  ]);
   const { d } = deps({ gates: undefined });
-  assertEquals((await runWritePhase("stamp_invoice", "Bearer x", d)).body.error, "phase_not_enabled");
+  assertEquals(
+    (await runWritePhase("stamp_invoice", "Bearer x", d)).body.error,
+    "phase_not_enabled",
+  );
   const e = deps({ gates: { writeEnabled: true, claimsGuaranteed: false } });
-  assertEquals((await runWritePhase("stamp_invoice", "Bearer x", e.d)).body.error, "durable_claim_unverified");
+  assertEquals(
+    (await runWritePhase("stamp_invoice", "Bearer x", e.d)).body.error,
+    "durable_claim_unverified",
+  );
 });
 
 Deno.test("plan respeta tope de documentos y retrieve/updateStatus queda bloqueado por cierre", async () => {
   assert(TOTAL_PLANNED_DOCUMENTS <= MAX_DOCUMENTS_PER_RUN);
   const { d } = deps();
-  assertEquals((await runWritePhase("retrieve_and_update_status", "Bearer x", d)).body.error, "handler_not_in_reviewed_closure");
+  assertEquals(
+    (await runWritePhase("retrieve_and_update_status", "Bearer x", d)).body
+      .error,
+    "handler_not_in_reviewed_closure",
+  );
 });
 
 Deno.test("fixtures inválidas o ajenas no reservan ni ejecutan", async () => {
   assertEquals(validateFixtures({ ...fixtures, organization_id: "x" }), false);
-  assertEquals(validateFixtures({ ...fixtures, invoice_total_mxn: 116.01 }), false);
+  assertEquals(
+    validateFixtures({ ...fixtures, invoice_total_mxn: 116.01 }),
+    false,
+  );
   assertEquals(validateFixtures({ ...fixtures, max_line_quantity: 2 }), false);
   assertEquals(validateFixtures({ ...fixtures, run_id: "otro" }), false);
   const s = deps({ loadFixtures: () => Promise.resolve(null) }, okHandler);
-  assertEquals((await runWritePhase("stamp_invoice", "Bearer x", s.d)).body.error, "fixtures_missing_or_invalid");
+  assertEquals(
+    (await runWritePhase("stamp_invoice", "Bearer x", s.d)).body.error,
+    "fixtures_missing_or_invalid",
+  );
   assertEquals([s.calls.length, s.claims.objects.size], [0, 0]);
 });
 
 Deno.test("cada acción se ejecuta una sola vez; segunda vez 409 sin llamar al handler", async () => {
   const s = deps({}, okHandler);
-  assertEquals((await runWritePhase("stamp_invoice", "Bearer x", s.d)).status, 200);
-  assertEquals((await runWritePhase("stamp_invoice", "Bearer x", s.d)).body.error, "action_already_claimed");
+  assertEquals(
+    (await runWritePhase("stamp_invoice", "Bearer x", s.d)).status,
+    200,
+  );
+  assertEquals(
+    (await runWritePhase("stamp_invoice", "Bearer x", s.d)).body.error,
+    "action_already_claimed",
+  );
   assertEquals(s.calls.length, 1);
   assertEquals(JSON.parse(s.calls[0]), { invoice_id: fixtures.invoice_id });
 });
@@ -117,18 +150,27 @@ Deno.test("timeout/excepción/5xx del handler: cierre irreversible y sin reinten
     assertEquals(r.status, 409);
     assert(s.claims.objects.has(DISABLED_OBJECT));
     assertEquals(s.calls.length, 1);
-    assertEquals((await runWritePhase("payment_and_rep", "Bearer x", s.d)).body.error, "run_disabled");
+    assertEquals(
+      (await runWritePhase("payment_and_rep", "Bearer x", s.d)).body.error,
+      "run_disabled",
+    );
   }
 });
 
 Deno.test("estado no verificable o claim incierto: falla cerrado sin efecto", async () => {
   const a = deps({}, okHandler);
   a.claims.failNext = "state";
-  assertEquals((await runWritePhase("stamp_invoice", "Bearer x", a.d)).body.error, "run_state_unverifiable");
+  assertEquals(
+    (await runWritePhase("stamp_invoice", "Bearer x", a.d)).body.error,
+    "run_state_unverifiable",
+  );
   assertEquals(a.calls.length, 0);
   const b = deps({}, okHandler);
   b.claims.failNext = "reserve";
-  assertEquals((await runWritePhase("stamp_invoice", "Bearer x", b.d)).body.error, "claim_uncertain_run_disabled");
+  assertEquals(
+    (await runWritePhase("stamp_invoice", "Bearer x", b.d)).body.error,
+    "claim_uncertain_run_disabled",
+  );
   assertEquals(b.calls.length, 0);
   assert(b.claims.objects.has(DISABLED_OBJECT));
 });
@@ -142,7 +184,10 @@ Deno.test("caducidad se revalida justo antes del efecto", async () => {
     t = RUN_EXPIRES_AT;
     return r;
   };
-  assertEquals((await runWritePhase("stamp_invoice", "Bearer x", s.d)).status, 410);
+  assertEquals(
+    (await runWritePhase("stamp_invoice", "Bearer x", s.d)).status,
+    410,
+  );
   assertEquals(s.calls.length, 0);
   assert(s.claims.objects.has(claimObject("stamp_invoice")));
 });
@@ -153,28 +198,48 @@ Deno.test("StorageClaimStore: upsert:false, 409 = ya reclamado, errores = incier
     upload: (path, _b, opts) => {
       seen.push([path, opts.upsert]);
       return Promise.resolve({
-        error: seen.length > 1 ? { statusCode: "409", message: "The resource already exists" } : null,
+        error: seen.length > 1
+          ? { statusCode: "409", message: "The resource already exists" }
+          : null,
       });
     },
-    download: () => Promise.resolve({ data: null, error: { statusCode: "404", message: "Object not found" } }),
+    download: () =>
+      Promise.resolve({
+        data: null,
+        error: { statusCode: "404", message: "Object not found" },
+      }),
   }, () => 0);
   assertEquals(await store.state(), "open");
   assertEquals(await store.reserve("stamp_invoice", {}), "reserved");
   assertEquals(await store.reserve("stamp_invoice", {}), "already_claimed");
-  assertEquals(seen, [[claimObject("stamp_invoice"), false], [claimObject("stamp_invoice"), false]]);
+  assertEquals(seen, [[claimObject("stamp_invoice"), false], [
+    claimObject("stamp_invoice"),
+    false,
+  ]]);
   const bad = new StorageClaimStore({
-    upload: () => Promise.resolve({ error: { statusCode: "500", message: "boom" } }),
-    download: () => Promise.resolve({ data: null, error: { statusCode: "500", message: "boom" } }),
+    upload: () =>
+      Promise.resolve({ error: { statusCode: "500", message: "boom" } }),
+    download: () =>
+      Promise.resolve({
+        data: null,
+        error: { statusCode: "500", message: "boom" },
+      }),
   }, () => 0);
   let threw = 0;
   await bad.state().catch(() => threw++);
   await bad.reserve("x", {}).catch(() => threw++);
   assertEquals(threw, 2);
-  assert(!claimObject("x").startsWith(TENANT_ORGANIZATION_ID), "prefijo sin organización: fuera del alcance RLS de usuarios");
+  assert(
+    !claimObject("x").startsWith(TENANT_ORGANIZATION_ID),
+    "prefijo sin organización: fuera del alcance RLS de usuarios",
+  );
 });
 
 Deno.test("fetch del handler sólo permite Facturapi y el propio backend", async () => {
-  const f = guardedFetch(() => Promise.resolve(new Response("ok")), "https://backend.example");
+  const f = guardedFetch(
+    () => Promise.resolve(new Response("ok")),
+    "https://backend.example",
+  );
   assertEquals((await f("https://www.facturapi.io/v2/invoices")).status, 200);
   assertEquals((await f("https://backend.example/rest/v1/x")).status, 200);
   let blocked = 0;
@@ -200,11 +265,17 @@ Deno.test("vista de secretos: reescribe select y bloquea filtros por columna liv
   };
   const db: Db = { from: () => builder };
   const v = restrictSecretsView(db);
-  v.from("billing_secrets").select("facturapi_test_key, facturapi_live_key").eq("organization_id", "x");
+  v.from("billing_secrets").select("facturapi_test_key, facturapi_live_key").eq(
+    "organization_id",
+    "x",
+  );
   assertEquals(cols, ["facturapi_test_key"]);
   let threw = false;
   try {
-    v.from("billing_secrets").select("organization_id").eq("facturapi_live_key", "k");
+    v.from("billing_secrets").select("organization_id").eq(
+      "facturapi_live_key",
+      "k",
+    );
   } catch {
     threw = true;
   }
