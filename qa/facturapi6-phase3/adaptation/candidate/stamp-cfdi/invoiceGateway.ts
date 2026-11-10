@@ -26,8 +26,8 @@ export interface InvoiceGateway {
 }
 
 /** Preserve SDK signal forwarding, binary decoding and existing download retries. */
-export function createInvoiceGateway(apiKey: string): InvoiceGateway {
-  const client = createFacturapiClient(apiKey);
+export function createInvoiceGateway(apiKey: string, factory: typeof createFacturapiClient = createFacturapiClient): InvoiceGateway {
+  const client = factory(apiKey);
   return {
     create: (payload, options) =>
       createInvoiceWithSignal(client, payload, options),

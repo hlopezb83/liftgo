@@ -117,3 +117,10 @@ test("comparación lado a lado: mismas opciones SDK salvo señal añadida", asyn
   expect(normalized).toEqual(baseline.calls);
   expect(baseline.calls.every((c) => !Object.hasOwn(c.options, "signal"))).toBe(true);
 });
+
+test("señal desconocida no se ignora silenciosamente", async () => {
+  const f = setup();
+  const gate = prepareOfficialCalls(f.client, f.scope);
+  await expect(gate.invoices.client.request("/invoices", { signal: { aborted: false } })).rejects.toThrow("QA_SIGNAL_INCOMPATIBLE");
+  expect(f.calls.length).toBe(0);
+});

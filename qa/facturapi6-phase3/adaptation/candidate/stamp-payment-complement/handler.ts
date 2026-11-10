@@ -41,6 +41,7 @@ export type { SupabaseLike };
 export interface StampPaymentComplementDeps {
   createCallerClient: (authHeader: string) => SupabaseLike;
   createServiceClient: () => SupabaseLike;
+  createQaClient?: typeof createFacturapiClient;
   fetchImpl: typeof fetch;
   env: (k: string) => string | undefined;
 }
@@ -492,7 +493,7 @@ export async function handleStampPaymentComplement(
       complements: [{ type: "pago", data: [dataEntry] }],
     };
 
-    const client = createFacturapiClient(apiKey);
+    const client = (deps.createQaClient ?? createFacturapiClient)(apiKey);
     let repInvoice: {
       id: string;
       uuid?: string;

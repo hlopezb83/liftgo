@@ -152,8 +152,8 @@
   "cancel-cfdi/handler.ts": {
     "source": "qa/facturapi6-sandbox-candidate/snapshot/supabase/functions/cancel-cfdi/handler.ts",
     "source_sha256": "65608b8607efd7630a7ce116b6f2fc2fa6751c9d8aa2ab6c13145a5d7db8ab58",
-    "candidate_sha256": "65608b8607efd7630a7ce116b6f2fc2fa6751c9d8aa2ab6c13145a5d7db8ab58",
-    "changed": false
+    "candidate_sha256": "88b0b2756035d425f29e4d611e483d2a2e42c387c19c009d6cd67a1826c06685",
+    "changed": true
   },
   "download-cfdi/handler.ts": {
     "source": "qa/facturapi6-sandbox-candidate/snapshot/supabase/functions/download-cfdi/handler.ts",
@@ -164,8 +164,8 @@
   "refresh-cancellation-status/handler.ts": {
     "source": "supabase/functions/refresh-cancellation-status/handler.ts",
     "source_sha256": "d8e04365ebbe9c32bb76529173f8b92662d1106ea93e82ba9b277ce0ae89c8d1",
-    "candidate_sha256": "d8e04365ebbe9c32bb76529173f8b92662d1106ea93e82ba9b277ce0ae89c8d1",
-    "changed": false
+    "candidate_sha256": "3d429e7126cd75c38488b1b13046d8872473c380ca9cd939ccbde0b8a223ad61",
+    "changed": true
   },
   "stamp-cfdi/handler.ts": {
     "source": "qa/facturapi6-sandbox-candidate/snapshot/supabase/functions/stamp-cfdi/handler.ts",
@@ -176,8 +176,8 @@
   "stamp-cfdi/invoiceGateway.ts": {
     "source": "qa/facturapi6-sandbox-candidate/snapshot/supabase/functions/stamp-cfdi/invoiceGateway.ts",
     "source_sha256": "60265694d138525ccb471ec380c8e3bfc642851b9bd9eeb551365dd7f852b984",
-    "candidate_sha256": "60265694d138525ccb471ec380c8e3bfc642851b9bd9eeb551365dd7f852b984",
-    "changed": false
+    "candidate_sha256": "e684e7063c8b4c61b24000660b7e2cfe333b409c51023eec847626f2154db860",
+    "changed": true
   },
   "stamp-cfdi/invoicePayload.ts": {
     "source": "qa/facturapi6-sandbox-candidate/snapshot/supabase/functions/stamp-cfdi/invoicePayload.ts",
@@ -194,8 +194,8 @@
   "stamp-credit-note/handler.ts": {
     "source": "qa/facturapi6-sandbox-candidate/snapshot/supabase/functions/stamp-credit-note/handler.ts",
     "source_sha256": "9efe256e40f32289d9e83616beca6e4014dac2bae93864a31fb0c0c103ecff42",
-    "candidate_sha256": "9efe256e40f32289d9e83616beca6e4014dac2bae93864a31fb0c0c103ecff42",
-    "changed": false
+    "candidate_sha256": "eb0d13b14818418ec826cd40ff1da8dd97e4afa65786eddd508e43088f96f011",
+    "changed": true
   },
   "stamp-payment-complement/decisions.ts": {
     "source": "qa/facturapi6-sandbox-candidate/snapshot/supabase/functions/stamp-payment-complement/decisions.ts",
@@ -206,8 +206,8 @@
   "stamp-payment-complement/handler.ts": {
     "source": "qa/facturapi6-sandbox-candidate/snapshot/supabase/functions/stamp-payment-complement/handler.ts",
     "source_sha256": "e1e66d9594fa428041a53ff8898ec7d9edc1833f3554034235d82e1685951c09",
-    "candidate_sha256": "e1e66d9594fa428041a53ff8898ec7d9edc1833f3554034235d82e1685951c09",
-    "changed": false
+    "candidate_sha256": "a0d900714e19eb6dd19a0b262571eea0ac9bd1e46851b57453f5e164b5a655ee",
+    "changed": true
   },
   "stamp-payment-complement/taxBreakdown.ts": {
     "source": "qa/facturapi6-sandbox-candidate/snapshot/supabase/functions/stamp-payment-complement/taxBreakdown.ts",

@@ -34,6 +34,7 @@ const CANCELLATION_WARNINGS: Record<string, string> = {
 export interface CancelCfdiDeps {
   createCallerClient: (authHeader: string) => SupabaseLike;
   createServiceClient: () => SupabaseLike;
+  createQaClient?: typeof createFacturapiClient;
   fetchImpl: typeof fetch;
   env: (key: string) => string | undefined;
 }
@@ -274,7 +275,7 @@ export async function handleCancelCfdi(
       // R5-14: marcar pacAttempted DESPUÉS de construir el cliente (patrón
       // cancel-payment-complement): si createFacturapiClient lanza, el catch
       // externo aún puede liberar el claim.
-      const client = createFacturapiClient(apiKey);
+      const client = (deps.createQaClient ?? createFacturapiClient)(apiKey);
       pacAttempted = true;
       const params: Record<string, string> = { motive };
       if (motive === "01" && substitution_uuid) {

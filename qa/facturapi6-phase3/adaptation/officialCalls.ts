@@ -28,8 +28,16 @@ export function prepareOfficialCalls(client: OfficialClient, scope: CallScope) {
   const scopedTransport = Object.create(transport) as Resource["client"];
   scopedTransport.request = async (path, options = {}) => {
     check();
-    const response = await transport.request(path, { ...options, signal: scope.signal });
+    // Nunca ignorar una señal desconocida/cross-realm: fail-closed.
+    if (options.signal !== undefined && !(options.signal instanceof AbortSignal)) {
+      throw new Error("QA_SIGNAL_INCOMPATIBLE");
+    }
+    const signal = options.signal instanceof AbortSignal
+      ? AbortSignal.any([scope.signal, options.signal]) : scope.signal;
+    signal.throwIfAborted();
+    const response = await transport.request(path, { ...options, signal });
     check();
+    signal.throwIfAborted();
     return response;
   };
   const invoices = Object.create(original) as Resource;
@@ -41,6 +49,8 @@ export function prepareOfficialCalls(client: OfficialClient, scope: CallScope) {
     return result;
   };
   return {
+    /** Únicamente para conectar una vista local a la copia QA, sin crear SDK. */
+    invoices,
     create: (payload: Record<string, unknown>) => call(() => invoices.create(payload)),
     cancel: (id: string, params: Record<string, unknown>) => call(() => invoices.cancel(id, params)),
     retrieve: (id: string) => call(() => invoices.retrieve(id)),

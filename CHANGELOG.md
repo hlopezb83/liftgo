@@ -1,3 +1,7 @@
+## [8.52.6] - 2026-11-10
+
+- Conecta parcialmente controles SDK a fábricas inyectadas de la copia QA; compara refresco autenticado ficticio y gateway con señales de ventana y timeout. Sin servicios reales ni activación; paridad fiscal completa pendiente.
+
 ## [8.52.5] - 2026-11-10
 
 - Prepara controles offline por llamada y señal conservando SDK oficial 6.0.0, con comparación de seis métodos y descargas tardías. Sin conexión fiscal, despliegue ni cambios de datos; fábrica QA sigue bloqueada.

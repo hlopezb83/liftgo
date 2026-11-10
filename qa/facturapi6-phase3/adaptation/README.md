@@ -4,9 +4,9 @@
 
 ## Preparado
 
-- `candidate/`: cierre local de las seis funciones auténticas. Los seis `handler.ts` conservan sus bytes; el refresco actual utiliza ahora, sólo en esta copia, los shared del snapshot SDK 6.
+- `candidate/`: cierre local de seis funciones auténticas. Factura y descarga conservan bytes; NC/REP/cancelar/refresh añaden sólo fábrica opcional. El refresco usa los shared SDK 6 del snapshot sólo en esta copia. Ver `WIRING_REVIEW.md` para evidencia y bloqueos.
 - `PROVENANCE.json`: origen y SHA-256 de cada archivo, más digest de su copia. `prepare_copy.py` reproduce el árbol mediante lectura local; no importa ni ejecuta funciones fiscales.
-- Sólo cambian `_shared/cors.ts` (sin lectura de entorno al cargar, sin allowlist heredada) y `_shared/facturapi/client.ts` (alias 6.0.0 existente, resolver QA y transporte bloqueado). CORS interno vacío no autentica ni autoriza.
+- Cambian CORS sin entorno al cargar, cliente shared con resolver QA, cuatro handlers y gateway sólo por fábrica opcional. Default sigue bloqueado. CORS interno vacío no autentica ni autoriza.
 - `testConfig.ts`: scope por objeto cliente, sin credenciales ni fetch global. Falta scope = bloqueo. Tenant fijo, modo test releído aunque exista override, verificador booleano sin parámetros secretos y proyección sólo `facturapi_test_key`. Sin fallback de entorno ni comparación de la llave en URL. `checkpoint` se ejecuta antes/después de awaits; una operación ya enviada no se aborta mágicamente.
 - El scope es dependencia offline, **no frontera de seguridad desplegada**. La futura función debe verificar sesión real, perfil/admin activo, pertenencia, origen exacto, DEV y ventana antes de cargar privilegios. No se creó esa función.
 

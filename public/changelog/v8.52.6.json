@@ -1,0 +1,7 @@
+{
+  "description": "Compara refresco autenticado ficticio y gateway; sin servicios reales ni activación.",
+  "changes": [
+    "Inyección opcional sólo en copias QA, con señales de run y timeout combinadas.",
+    "Siete pruebas de wiring y regresión de señal desconocida; descarga, persistencia integral y revisión pendientes."
+  ]
+}

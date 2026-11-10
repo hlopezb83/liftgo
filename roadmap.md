@@ -9,7 +9,8 @@
 - [x] Continuación Fase 3: inventario estático de 46 archivos y matriz de adaptación/paridad preparados; 14/14 pruebas locales. Sin ejecutor/activación. Bloqueos: configuración heredada lee livekey/compara secreto en URL, transporte SDK, diario durable y paridad completa; ver `qa/facturapi6-phase3/ADAPTATION_REVIEW.md`.
 - [x] Avance parcial: copia QA de seis handlers auténticos, resolver test-only y 23 pruebas focales; sin desplegar ni ejecutar sandbox.
 - [x] Continuación: SDK oficial conservado; controles por llamada/señal/descargas preparados y comparados offline (10 pruebas nuevas); fábrica QA bloqueada, sin conexión a ejecutor.
-- [ ] Completar adaptación/paridad fiscal autenticada: pendiente revisión y wiring offline del gate por llamada en handlers reales, logs y exclusión durable; ver `qa/facturapi6-phase3/adaptation/OFFICIAL_TRANSPORT_REVIEW.md`. No conectar ejecutor hasta revisión.
+- [x] Conexión offline parcial: fábricas opcionales, 7 pruebas de refresh autenticado ficticio y gateway; default bloqueado. Revisión encontró faltantes de consumo/persistencia/otros handlers.
+- [ ] Completar adaptación/paridad fiscal autenticada: faltan emisiones/cancelación/descarga completas, gates consumo/persistencia, logs y exclusión durable; revisar `qa/facturapi6-phase3/adaptation/WIRING_REVIEW.md`. No conectar ejecutor hasta revisión.
 - [ ] Fase 3 ejecución: bloqueada por revisión independiente de adaptación de handlers reales/refresh, persistencia, claim/diario secuencial, timeout, pausa/cierre y nueva ventana. No activa el preflight cerrado.
 - [ ] Fase 4: producción en un solo cambio con reversa por redeploy. Fase 5: retiro de 5.2.0.
 

@@ -34,6 +34,7 @@ export type { SupabaseLike };
 export interface StampCreditNoteDeps {
   createCallerClient: (authHeader: string) => SupabaseLike;
   createServiceClient: () => SupabaseLike;
+  createQaClient?: typeof createFacturapiClient;
   fetchImpl: typeof fetch;
   env: (k: string) => string | undefined;
 }
@@ -360,7 +361,7 @@ export async function handleStampCreditNote(
       );
     }
 
-    const client = createFacturapiClient(apiKey);
+    const client = (deps.createQaClient ?? createFacturapiClient)(apiKey);
 
     const items = sourceValidation.lines.map((li) => {
       const item: Record<string, unknown> = {

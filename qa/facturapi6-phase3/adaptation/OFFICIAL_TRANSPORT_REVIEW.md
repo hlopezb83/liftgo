@@ -1,6 +1,6 @@
 # SDK oficial conservado: controles por llamada preparados
 
-10/11/2026. **Sólo offline, sin activar ni conectar handlers a este helper.**
+10/11/2026. **Sólo offline, sin activar.** Conexión parcial posterior en copias mediante fábricas opcionales: ver `WIRING_REVIEW.md`, sin servicios reales.
 
 ## Decisión y alcance
 
@@ -22,7 +22,7 @@ No se implementa transporte HTTP alternativo ni se reconstruyen payloads. Los m�
 
 Esto prueba delegación y opciones hasta `request`, **no su envío HTTP, conversión real de fechas, abort efectivo del fetch/cuerpo, persistencia ERP ni flujo fiscal autenticado**. La fuente local `node_modules/facturapi6-preview/dist/index.mjs:2433–2441` muestra que las opciones restantes se pasan a fetch; la prueba no sustituye validación integral del transporte. No se ejecutó red proveedor ni prueba de duración.
 
-10 pruebas nuevas; 20 anteriores de copia/resolver; 3 de procedencia. Suite completa pendiente de CI. La fábrica de la copia sigue arrojando `QA_TRANSPORT_BLOCKED`; el helper no la desbloquea, ni crea endpoint o SDK fuera de tests.
+Evidencia inicial: 10 pruebas nuevas; 20 anteriores de copia/resolver; 3 de procedencia. La continuación agrega wiring parcial y regresión de señal; ver informe. Suite completa pendiente de CI. La fábrica por defecto sigue `QA_TRANSPORT_BLOCKED`; la inyección offline no la desbloquea ni crea endpoint o SDK fuera de tests.
 
 ## Pendientes antes de ejecución
 

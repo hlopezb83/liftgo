@@ -43,6 +43,16 @@ export function handleCors(_req: Request): Response | null { return null; }
             text = text.replace('  return new Facturapi(apiKey);', '''  void apiKey;
   // SDK 6 no ofrece fetch por instancia: no conectar hasta revisar transporte.
   throw new Error("QA_TRANSPORT_BLOCKED");''')
+        if relative in {
+            "stamp-credit-note/handler.ts", "stamp-payment-complement/handler.ts",
+            "cancel-cfdi/handler.ts", "refresh-cancellation-status/handler.ts",
+        }:
+            # Sólo dependencia opcional; fábrica por defecto permanece bloqueada.
+            text = text.replace('  fetchImpl: typeof fetch;', '  createQaClient?: typeof createFacturapiClient;\n  fetchImpl: typeof fetch;', 1)
+            text = text.replace('const client = createFacturapiClient(apiKey);', 'const client = (deps.createQaClient ?? createFacturapiClient)(apiKey);')
+        if relative == "stamp-cfdi/invoiceGateway.ts":
+            text = text.replace('export function createInvoiceGateway(apiKey: string): InvoiceGateway {', 'export function createInvoiceGateway(apiKey: string, factory: typeof createFacturapiClient = createFacturapiClient): InvoiceGateway {')
+            text = text.replace('const client = createFacturapiClient(apiKey);', 'const client = factory(apiKey);')
         destination = target / relative
         destination.parent.mkdir(parents=True, exist_ok=True)
         destination.write_text(text)

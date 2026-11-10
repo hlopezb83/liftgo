@@ -52,20 +52,11 @@
 +export function handleCors(_req: Request): Response | null { return null; }
 --- qa/facturapi6-sandbox-candidate/snapshot/supabase/functions/_shared/facturapi/client.ts
 +++ qa/facturapi6-phase3/adaptation/candidate/_shared/facturapi/client.ts
-@@ -8,7 +8,8 @@
- // - Mantenido oficialmente por Facturapi (v6.0.0).
- //
- // deno-lint-ignore-file no-explicit-any
+@@ -11 +11,2 @@
 -import * as FacturapiPkg from "facturapi";
 +import * as FacturapiPkg from "facturapi6-preview";
 +import { readQaTestConfig, QaConfigError } from "../../../testConfig.ts";
- 
- // El SDK se publica como módulo dual ESM/CJS. La interop de Deno expone la
- // clase como `default.default` (CJS) o `default` (ESM), así que resolvemos
-@@ -154,123 +155,14 @@
-   organizationId: string | null | undefined;
-   modeOverride?: string | null | undefined;
- }): Promise<OrgFacturapiConfig> {
+@@ -157,22 +158,5 @@
 -  const { admin, env, organizationId } = input;
 -  if (!organizationId) {
 -    throw new FacturapiConfigError(
@@ -93,7 +84,7 @@
 +  } catch (error) {
 +    if (error instanceof QaConfigError) {
 +      throw new FacturapiConfigError(error.code, error.message, input.organizationId ?? null);
-     }
+@@ -180,94 +164,2 @@
 -    modeRaw = (co?.facturapi_mode as string | undefined) ?? null;
 -  }
 -  if (modeRaw === null) {
@@ -190,17 +181,43 @@
 -  };
 +    throw error;
 +  }
- }
- 
- /**
-@@ -352,7 +244,9 @@
- 
- /** Crea una instancia del SDK con la API key resuelta. */
- export function createFacturapiClient(apiKey: string): FacturapiClient {
+@@ -355 +247,3 @@
 -  return new Facturapi(apiKey);
 +  void apiKey;
 +  // SDK 6 no ofrece fetch por instancia: no conectar hasta revisar transporte.
 +  throw new Error("QA_TRANSPORT_BLOCKED");
- }
- 
- /**
+--- qa/facturapi6-sandbox-candidate/snapshot/supabase/functions/cancel-cfdi/handler.ts
++++ qa/facturapi6-phase3/adaptation/candidate/cancel-cfdi/handler.ts
+@@ -36,0 +37 @@
++  createQaClient?: typeof createFacturapiClient;
+@@ -277 +278 @@
+-      const client = createFacturapiClient(apiKey);
++      const client = (deps.createQaClient ?? createFacturapiClient)(apiKey);
+--- supabase/functions/refresh-cancellation-status/handler.ts
++++ qa/facturapi6-phase3/adaptation/candidate/refresh-cancellation-status/handler.ts
+@@ -30,0 +31 @@
++  createQaClient?: typeof createFacturapiClient;
+@@ -148 +149 @@
+-    const client = createFacturapiClient(apiKey);
++    const client = (deps.createQaClient ?? createFacturapiClient)(apiKey);
+--- qa/facturapi6-sandbox-candidate/snapshot/supabase/functions/stamp-cfdi/invoiceGateway.ts
++++ qa/facturapi6-phase3/adaptation/candidate/stamp-cfdi/invoiceGateway.ts
+@@ -29,2 +29,2 @@
+-export function createInvoiceGateway(apiKey: string): InvoiceGateway {
+-  const client = createFacturapiClient(apiKey);
++export function createInvoiceGateway(apiKey: string, factory: typeof createFacturapiClient = createFacturapiClient): InvoiceGateway {
++  const client = factory(apiKey);
+--- qa/facturapi6-sandbox-candidate/snapshot/supabase/functions/stamp-credit-note/handler.ts
++++ qa/facturapi6-phase3/adaptation/candidate/stamp-credit-note/handler.ts
+@@ -36,0 +37 @@
++  createQaClient?: typeof createFacturapiClient;
+@@ -363 +364 @@
+-    const client = createFacturapiClient(apiKey);
++    const client = (deps.createQaClient ?? createFacturapiClient)(apiKey);
+--- qa/facturapi6-sandbox-candidate/snapshot/supabase/functions/stamp-payment-complement/handler.ts
++++ qa/facturapi6-phase3/adaptation/candidate/stamp-payment-complement/handler.ts
+@@ -43,0 +44 @@
++  createQaClient?: typeof createFacturapiClient;
+@@ -495 +496 @@
+-    const client = createFacturapiClient(apiKey);
++    const client = (deps.createQaClient ?? createFacturapiClient)(apiKey);

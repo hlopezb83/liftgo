@@ -28,6 +28,7 @@ const TERMINAL_STATUSES = new Set(["accepted", "rejected", "expired"]);
 export interface RefreshCancellationDeps {
   createCallerClient: (authHeader: string) => SupabaseLike;
   createServiceClient: () => SupabaseLike;
+  createQaClient?: typeof createFacturapiClient;
   fetchImpl: typeof fetch;
   env: (key: string) => string | undefined;
 }
@@ -145,7 +146,7 @@ export async function handleRefreshCancellation(
 
     const fid = facturapiId;
 
-    const client = createFacturapiClient(apiKey);
+    const client = (deps.createQaClient ?? createFacturapiClient)(apiKey);
     let facturApiInv: Record<string, unknown> = {};
     try {
       // ARQ2-A1: ambas llamadas al PAC con timeout (SDK sin signal → race).
