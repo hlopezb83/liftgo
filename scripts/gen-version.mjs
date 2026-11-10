@@ -19,27 +19,41 @@ export const RECENT_COUNT = 60;
 // Fail-closed: una entrada inválida rompe el prebuild. Antes se escribía
 // `version: "unknown"` con código de salida 0 y el error llegaba a producción.
 export async function generateVersion(root) {
-const changelogPath = resolve(root, "public/changelog.json");
-const outPath = resolve(root, "public/version.json");
-const recentPath = resolve(root, "public/changelog-recent.json");
-const arr = JSON.parse(await readFile(changelogPath, "utf8"));
-const errors = validateEntries(arr);
-if (errors.length > 0) throw new Error(`[gen-version] changelog inválido:\n${errors.join("\n")}`);
+  const changelogPath = resolve(root, "public/changelog.json");
+  const outPath = resolve(root, "public/version.json");
+  const recentPath = resolve(root, "public/changelog-recent.json");
+  const arr = JSON.parse(await readFile(changelogPath, "utf8"));
+  const errors = validateEntries(arr);
+  if (errors.length > 0)
+    throw new Error(`[gen-version] changelog inválido:\n${errors.join("\n")}`);
 
-const version = String(arr[0].version);
-// El índice y el detalle se publican por separado. Un detalle ausente puede
-// devolver el HTML de la app y fallar al expandir la versión en producción.
-// Validamos el archivo que consumirá la página antes de generar la versión.
-  const detail = JSON.parse(await readFile(resolve(root, `public/changelog/v${version}.json`), "utf8"));
-  if (typeof detail?.description !== "string" || !Array.isArray(detail?.changes)
-    || !detail.changes.every((change) => typeof change === "string")) {
+  const version = String(arr[0].version);
+  // El índice y el detalle se publican por separado. Un detalle ausente puede
+  // devolver el HTML de la app y fallar al expandir la versión en producción.
+  // Validamos el archivo que consumirá la página antes de generar la versión.
+  const detail = JSON.parse(
+    await readFile(resolve(root, `public/changelog/v${version}.json`), "utf8"),
+  );
+  if (
+    typeof detail?.description !== "string" ||
+    !Array.isArray(detail?.changes) ||
+    !detail.changes.every((change) => typeof change === "string")
+  ) {
     throw new Error("description o changes inválidos");
   }
-const sourceSha256 = await sourceIdentity(root);
-const generatedAt = new Date().toISOString();
-await writeFile(outPath, JSON.stringify({ version, generatedAt, sourceSha256 }, null, 2) + "\n", "utf8");
-await writeFile(recentPath, JSON.stringify(arr.slice(0, RECENT_COUNT)) + "\n", "utf8");
-return { version, generatedAt, sourceSha256 };
+  const sourceSha256 = await sourceIdentity(root);
+  const generatedAt = new Date().toISOString();
+  await writeFile(
+    outPath,
+    JSON.stringify({ version, generatedAt, sourceSha256 }, null, 2) + "\n",
+    "utf8",
+  );
+  await writeFile(
+    recentPath,
+    JSON.stringify(arr.slice(0, RECENT_COUNT)) + "\n",
+    "utf8",
+  );
+  return { version, generatedAt, sourceSha256 };
 }
 
 // Vite puede ejecutarse directamente sin los hooks prebuild/predev.
@@ -49,13 +63,16 @@ export async function prepareBuildIdentity(root) {
   return validatedBuildIdentity(root);
 }
 
-if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
-const { version } = await generateVersion(resolve(__dirname, ".."));
-console.log(`[gen-version] public/version.json → ${version}`);
-console.log(`[gen-version] public/changelog-recent.json → ${Math.min(RECENT_COUNT, arr.length)} entradas`);
+if (
+  process.argv[1] &&
+  resolve(process.argv[1]) === fileURLToPath(import.meta.url)
+) {
+  const { version } = await generateVersion(resolve(__dirname, ".."));
+  console.log(`[gen-version] public/version.json → ${version}`);
+  console.log(
+    `[gen-version] public/changelog-recent.json → ${Math.min(RECENT_COUNT, arr.length)} entradas`,
+  );
 
-
-
-// Consumible por CI: última línea de stdout.
-console.log(`version=${version}`);
+  // Consumible por CI: última línea de stdout.
+  console.log(`version=${version}`);
 }
