@@ -64,7 +64,7 @@ export const MONEDA = [
   { code: "EUR", label: "EUR - Euro" },
 ] as const;
 
-/** Common SAT product/service codes for equipment rental */
+/** Common SAT product/service codes; choices only, never automatic defaults. */
 export const CLAVE_PROD_SERV = [
   { code: "78181500", label: "78181500 - Alquiler de equipo de manejo de materiales" },
   { code: "78181501", label: "78181501 - Alquiler de montacargas" },
@@ -72,6 +72,8 @@ export const CLAVE_PROD_SERV = [
   { code: "81141601", label: "81141601 - Servicios de entrega" },
   
   { code: "81112100", label: "81112100 - Servicios de mantenimiento de equipo" },
+  { code: "24101602", label: "24101602 - Montacargas" },
+  { code: "24101603", label: "24101603 - Elevadores forklift" },
 ] as const;
 
 export const CLAVE_UNIDAD = [
@@ -81,6 +83,7 @@ export const CLAVE_UNIDAD = [
   { code: "MON", label: "MON - Mes" },
   { code: "HUR", label: "HUR - Hora" },
   { code: "ACT", label: "ACT - Actividad" },
+  { code: "H87", label: "H87 - Pieza" },
 ] as const;
 
 export const CANCELLATION_REASONS = [

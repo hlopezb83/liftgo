@@ -36,7 +36,7 @@
     "knip": "knip",
     "knip:deep": "knip --files --dependencies --exports --include-entry-exports",
     "format": "prettier --write .",
-    "test:dependencies": "node --test scripts/tests/dependency-security.test.mjs scripts/tests/happy-dom-security.test.mjs scripts/tests/supabase-sdk-contracts.test.mjs scripts/tests/postgres-compat-offline.test.cjs scripts/tests/postgres-import-guard.test.mjs"
+    "test:dependencies": "node --test scripts/tests/dependency-security.test.mjs scripts/tests/happy-dom-security.test.mjs scripts/tests/supabase-sdk-contracts.test.mjs scripts/tests/postgres-compat-offline.test.cjs scripts/tests/postgres-import-guard.test.mjs scripts/tests/sentry-sourcemaps-offline.test.mjs"
   },
   "overrides": {
     "zod-validation-error": "^4.0.2",

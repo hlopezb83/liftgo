@@ -1,0 +1,387 @@
+{
+  "sidebar": [
+    {
+      "label": "General",
+      "items": [
+        {
+          "title": "Panel",
+          "url": "/",
+          "icon": "DashboardIcon"
+        },
+        {
+          "title": "Calendario",
+          "url": "/calendar",
+          "icon": "CalendarDays"
+        }
+      ]
+    },
+    {
+      "label": "Operación diaria",
+      "items": [
+        {
+          "title": "Reservas",
+          "url": "/bookings",
+          "icon": "BookOpen"
+        },
+        {
+          "title": "Entregas",
+          "url": "/deliveries",
+          "icon": "DeliveryIcon",
+          "badgeKey": "deliveries_today"
+        },
+        {
+          "title": "Devoluciones",
+          "url": "/returns",
+          "icon": "ClipboardCheck",
+          "badgeKey": "returns_today"
+        }
+      ]
+    },
+    {
+      "label": "Ventas",
+      "collapsible": true,
+      "defaultOpen": true,
+      "items": [
+        {
+          "title": "CRM",
+          "url": "/crm",
+          "icon": "TargetIcon"
+        },
+        {
+          "title": "Clientes",
+          "url": "/customers",
+          "icon": "UsersIcon"
+        },
+        {
+          "title": "Cotizaciones",
+          "url": "/quotes",
+          "icon": "DocumentIcon"
+        },
+        {
+          "title": "Contratos",
+          "url": "/contracts",
+          "icon": "ScrollText"
+        }
+      ]
+    },
+    {
+      "label": "Flota",
+      "items": [
+        {
+          "title": "Equipos",
+          "url": "/fleet",
+          "icon": "FleetIcon"
+        },
+        {
+          "title": "Mantenimiento",
+          "url": "/maintenance",
+          "icon": "MaintenanceIcon",
+          "badgeKey": "maintenance_open"
+        },
+        {
+          "title": "Daños",
+          "url": "/damage",
+          "icon": "WarnIcon"
+        },
+        {
+          "title": "Refacciones",
+          "url": "/inventory",
+          "icon": "InventoryIcon"
+        }
+      ]
+    },
+    {
+      "label": "Finanzas",
+      "collapsible": true,
+      "items": [
+        {
+          "title": "Facturas",
+          "url": "/invoices",
+          "icon": "InvoiceIcon",
+          "badgeKey": "intents_pending"
+        },
+        {
+          "title": "Conciliación CFDI",
+          "url": "/invoices/reconciliation",
+          "icon": "GitCompareArrows"
+        },
+        {
+          "title": "Flujo de caja",
+          "url": "/flujo-de-caja",
+          "icon": "TrendingUpIcon"
+        },
+        {
+          "title": "Cuentas bancarias",
+          "url": "/cuentas-bancarias",
+          "icon": "BankIcon"
+        },
+        {
+          "title": "Conciliación bancaria",
+          "url": "/conciliacion-bancaria",
+          "icon": "ArrowLeftRight"
+        },
+        {
+          "title": "Estado de resultados",
+          "url": "/income-statement",
+          "icon": "ChartIcon"
+        }
+      ]
+    },
+    {
+      "label": "Compras",
+      "collapsible": true,
+      "items": [
+        {
+          "title": "Proveedores",
+          "url": "/suppliers",
+          "icon": "SupplierIcon"
+        },
+        {
+          "title": "Facturas de proveedor",
+          "url": "/cuentas-por-pagar",
+          "icon": "FileClock"
+        }
+      ]
+    },
+    {
+      "label": "Análisis",
+      "items": [
+        {
+          "title": "Reportes",
+          "url": "/reports",
+          "icon": "ChartIcon"
+        },
+        {
+          "title": "Métricas de renta",
+          "url": "/mrr",
+          "icon": "TrendingUpIcon"
+        }
+      ]
+    },
+    {
+      "label": "Auditoría",
+      "items": [
+        {
+          "title": "Actividad",
+          "url": "/activity",
+          "icon": "ActivityIcon"
+        },
+        {
+          "title": "Bitácora",
+          "url": "/audit",
+          "icon": "HistoryIcon"
+        }
+      ]
+    },
+    {
+      "label": "Administración",
+      "items": [
+        {
+          "title": "Usuarios",
+          "url": "/users",
+          "icon": "SecurityIcon"
+        },
+        {
+          "title": "Configuración",
+          "url": "/settings/operations",
+          "icon": "SettingsIcon"
+        },
+        {
+          "title": "Centro de Plataforma",
+          "url": "/platform",
+          "icon": "SecurityIcon",
+          "platformOperatorOnly": true
+        }
+      ]
+    },
+    {
+      "label": "Soporte",
+      "collapsible": true,
+      "defaultOpen": false,
+      "items": [
+        {
+          "title": "Ayuda",
+          "url": "/help",
+          "icon": "HelpIcon"
+        },
+        {
+          "title": "Historial de cambios",
+          "url": "/changelog",
+          "icon": "ScrollText",
+          "badgeKey": "changelog_new"
+        },
+        {
+          "title": "Mis reportes",
+          "url": "/mis-reportes",
+          "icon": "MessageSquare"
+        },
+        {
+          "title": "Tabla de honor",
+          "url": "/leaderboard",
+          "icon": "TrophyIcon"
+        },
+        {
+          "title": "Gestión de reportes",
+          "url": "/feedback",
+          "icon": "Megaphone"
+        }
+      ]
+    }
+  ],
+  "search": [
+    {
+      "title": "Panel",
+      "url": "/",
+      "icon": "DashboardIcon",
+      "group": "General"
+    },
+    {
+      "title": "Calendario",
+      "url": "/calendar",
+      "icon": "CalendarDays",
+      "group": "General",
+      "keywords": "gantt reservas"
+    },
+    {
+      "title": "CRM",
+      "url": "/crm",
+      "icon": "TargetIcon",
+      "group": "Comercial",
+      "keywords": "prospectos pipeline"
+    },
+    {
+      "title": "Clientes",
+      "url": "/customers",
+      "icon": "UsersIcon",
+      "group": "Comercial"
+    },
+    {
+      "title": "Cotizaciones",
+      "url": "/quotes",
+      "icon": "DocumentIcon",
+      "group": "Comercial"
+    },
+    {
+      "title": "Reservas",
+      "url": "/bookings",
+      "icon": "BookOpen",
+      "group": "Comercial"
+    },
+    {
+      "title": "Contratos",
+      "url": "/contracts",
+      "icon": "ScrollText",
+      "group": "Operaciones"
+    },
+    {
+      "title": "Entregas",
+      "url": "/deliveries",
+      "icon": "DeliveryIcon",
+      "group": "Operaciones"
+    },
+    {
+      "title": "Devoluciones",
+      "url": "/returns",
+      "icon": "ClipboardCheck",
+      "group": "Operaciones"
+    },
+    {
+      "title": "Facturas",
+      "url": "/invoices",
+      "icon": "InvoiceIcon",
+      "group": "Operaciones"
+    },
+    {
+      "title": "Equipos",
+      "url": "/fleet",
+      "icon": "FleetIcon",
+      "group": "Flota",
+      "keywords": "montacargas"
+    },
+    {
+      "title": "Mantenimiento",
+      "url": "/maintenance",
+      "icon": "MaintenanceIcon",
+      "group": "Flota"
+    },
+    {
+      "title": "Daños",
+      "url": "/damage",
+      "icon": "WarnIcon",
+      "group": "Flota"
+    },
+    {
+      "title": "Refacciones",
+      "url": "/inventory",
+      "icon": "InventoryIcon",
+      "group": "Flota"
+    },
+    {
+      "title": "Proveedores",
+      "url": "/suppliers",
+      "icon": "SupplierIcon",
+      "group": "Administración"
+    },
+    {
+      "title": "Gastos operativos",
+      "url": "/expenses",
+      "icon": "ExpenseIcon",
+      "group": "Administración"
+    },
+    {
+      "title": "Estado de resultados",
+      "url": "/income-statement",
+      "icon": "ChartIcon",
+      "group": "Administración"
+    },
+    {
+      "title": "Reportes",
+      "url": "/reports",
+      "icon": "ChartIcon",
+      "group": "Administración"
+    },
+    {
+      "title": "Actividad",
+      "url": "/activity",
+      "icon": "ActivityIcon",
+      "group": "Administración"
+    },
+    {
+      "title": "Bitácora",
+      "url": "/audit",
+      "icon": "HistoryIcon",
+      "group": "Administración",
+      "keywords": "auditoria audit trail"
+    },
+    {
+      "title": "Configuración operativa",
+      "url": "/settings/operations",
+      "icon": "SettingsIcon",
+      "group": "Administración"
+    },
+    {
+      "title": "Datos fiscales",
+      "url": "/settings/company",
+      "icon": "CompanyIcon",
+      "group": "Administración"
+    },
+    {
+      "title": "Usuarios",
+      "url": "/users",
+      "icon": "SecurityIcon",
+      "group": "Administración"
+    },
+    {
+      "title": "Historial de cambios",
+      "url": "/changelog",
+      "icon": "ScrollText",
+      "group": "Administración"
+    },
+    {
+      "title": "Ayuda",
+      "url": "/help",
+      "icon": "HelpIcon",
+      "group": "Administración"
+    }
+  ]
+}

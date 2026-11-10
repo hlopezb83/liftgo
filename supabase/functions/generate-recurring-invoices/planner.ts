@@ -10,8 +10,12 @@ import {
   futurePeriodLimit,
   type FuturePeriodOptions,
 } from "./futurePeriods.ts";
-import { periodCoverage } from "./invoiceHistory.ts";
-import { pendingCanonicalPeriods } from "./coverage.ts";
+import {
+  type InvoicePeriods,
+  mergedInvoicePeriods,
+  periodCoverageFromIntervals,
+} from "./invoiceHistory.ts";
+import { pendingCanonicalPeriodsFromCoverage } from "./coverage.ts";
 import { fiscalSnapshot, previewFingerprint } from "./planFingerprint.ts";
 import type {
   PlanItem,
@@ -51,11 +55,17 @@ export async function planRecurringInvoices(
       ? new Date(booking.updated_at as string)
       : null;
 
-    const pending = pendingCanonicalPeriods(
+    // One lazy coverage union per booking; no work for out-of-scope dates.
+    let coverageIntervals: InvoicePeriods | undefined;
+    const getCoverage = () =>
+      coverageIntervals === undefined
+        ? (coverageIntervals = mergedInvoicePeriods(invoices))
+        : coverageIntervals;
+    const pending = pendingCanonicalPeriodsFromCoverage(
       booking.start_date,
       booking.end_date,
       planningLimit,
-      invoices,
+      getCoverage,
     );
     const coverageSnapshot = invoices.map((invoice) => ({
       id: invoice.id,
@@ -63,6 +73,8 @@ export async function planRecurringInvoices(
       end: invoice.billing_period_end,
     })).sort((a, b) => a.id.localeCompare(b.id));
     let emitted = 0;
+    // Invocation-local and lazy: no cached fiscal state survives a new plan.
+    let fiscalFingerprint: string | undefined;
     for (const candidateStart of pending.starts) {
       // B5-01: la tarifa se recalcula EN CADA iteración del catch-up (antes se
       // calculaba una sola vez fuera del loop y todos los periodos atrasados
@@ -143,7 +155,11 @@ export async function planRecurringInvoices(
         isBookingEnded(booking.end_date, billingStart) ||
         billingStart > planningLimit
       ) break;
-      const coverage = periodCoverage(invoices, startStr, endStr);
+      const coverage = periodCoverageFromIntervals(
+        getCoverage(),
+        startStr,
+        endStr,
+      );
       emitted++;
       if (coverage === "covered") continue;
       if (coverage !== "uncovered") {
@@ -200,14 +216,15 @@ export async function planRecurringInvoices(
         rateWarning,
       });
       lines.push(baseLine);
+      if (
+        futureOptions.includeFuturePeriods && fiscalFingerprint === undefined
+      ) {
+        fiscalFingerprint = await previewFingerprint(fiscalSnapshot(fiscal));
+      }
       items.push({
         ...(futureOptions.includeFuturePeriods
           ? {
-            fiscalFingerprint: await previewFingerprint(
-              fiscalSnapshot(
-                fiscal,
-              ),
-            ),
+            fiscalFingerprint,
           }
           : {}),
         bookingId: booking.id,
