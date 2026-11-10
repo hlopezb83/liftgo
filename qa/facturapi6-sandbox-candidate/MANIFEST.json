@@ -1,0 +1,219 @@
+{
+  "repository": "hlopezb83/liftgo",
+  "pr": 438,
+  "commit": "967ac99ce632c284fc35f9a7a62852ab4fd09dcf",
+  "tarball_sha256": "2ef51a15003955f7f926016cab2ba1f65022f742d74d295f932a636101004f34",
+  "entries": [
+    "supabase/functions/stamp-cfdi/handler.ts",
+    "supabase/functions/stamp-cfdi/invoiceGateway.ts",
+    "supabase/functions/stamp-payment-complement/handler.ts",
+    "supabase/functions/stamp-credit-note/handler.ts",
+    "supabase/functions/cancel-cfdi/handler.ts",
+    "supabase/functions/download-cfdi/handler.ts",
+    "supabase/functions/_shared/authWithDeps.ts",
+    "supabase/functions/_shared/orgContext.ts",
+    "supabase/functions/_shared/supabaseClients.ts",
+    "supabase/functions/_shared/facturapi/client.ts",
+    "supabase/functions/_shared/facturapi/sdk6_contract_test.ts"
+  ],
+  "file_count": 39,
+  "closure_sha256": "efb05f5ac1f3f1233c2500eb3e700074843c46bd75231c9f93ceca7b603794b4",
+  "closure_rule": "sha256 of lines \"path:sha256\\n\" sorted as listed",
+  "files": [
+    {
+      "path": "supabase/functions/_shared/authWithDeps.ts",
+      "bytes": 5093,
+      "sha256": "80e8eb74ed758a660b0fa655f01238e145a77e2698e6e067d5593ae8d91742c5"
+    },
+    {
+      "path": "supabase/functions/_shared/cfdiRetryQueue.ts",
+      "bytes": 2868,
+      "sha256": "ccd0b34118eb3295adcb2e0f1203e94500130d439c9812787f7d880065a317e1"
+    },
+    {
+      "path": "supabase/functions/_shared/cfdiUsoRegimen.ts",
+      "bytes": 2142,
+      "sha256": "16e64783293c3999ddeedd003f2ce0a390cf4cb5324cbf985ea533f7277e2ec5"
+    },
+    {
+      "path": "supabase/functions/_shared/cors.ts",
+      "bytes": 1702,
+      "sha256": "8fb85fca8faba1314fa4f4548f5d8d8dd54fbeb7ec0dfc84f4c69ff3c3245890"
+    },
+    {
+      "path": "supabase/functions/_shared/creditNoteDiscount.ts",
+      "bytes": 1704,
+      "sha256": "0a17ec85e6071f4d2723e486fbdff6cd689f92207d6addce7d265703babe89c0"
+    },
+    {
+      "path": "supabase/functions/_shared/creditNoteSourceValidation.ts",
+      "bytes": 9471,
+      "sha256": "c035d24a4138d66547c6a436a0b4f3545492cf3508c9f72494e2707f3e80f84a"
+    },
+    {
+      "path": "supabase/functions/_shared/edgeDiagnostics.ts",
+      "bytes": 1160,
+      "sha256": "517b1b73867ec4eeebff355a121fb678bfe7c8d27cea9be746899479f906104d"
+    },
+    {
+      "path": "supabase/functions/_shared/facturapi/cancellationResult.ts",
+      "bytes": 870,
+      "sha256": "2e6274026b8ef5d770da979cae4de6af209f8fec57d1ca8ab7eed89c92aef691"
+    },
+    {
+      "path": "supabase/functions/_shared/facturapi/client.ts",
+      "bytes": 21731,
+      "sha256": "4af4b27a63e3cb928ea6e9cd61ea10a7ae92aa5d15efd7e8e5b04d53be92886d"
+    },
+    {
+      "path": "supabase/functions/_shared/facturapi/invoiceRecovery.ts",
+      "bytes": 2678,
+      "sha256": "3ccc0205dbb54651c834778b308ff20cc3ae00bc98f30293979853ad52dd4beb"
+    },
+    {
+      "path": "supabase/functions/_shared/facturapi/notesSection.ts",
+      "bytes": 847,
+      "sha256": "f0ed2af168759f58c07776b1de7aacdb9cfd1dcc493c50d4b5a944426ebe7cda"
+    },
+    {
+      "path": "supabase/functions/_shared/facturapi/retryContext.ts",
+      "bytes": 4672,
+      "sha256": "716c8f435f6aeb56858343c87b899e045ed646452102a4376b6094cf9c52b4e5"
+    },
+    {
+      "path": "supabase/functions/_shared/facturapi/sdk6_contract_test.ts",
+      "bytes": 11902,
+      "sha256": "c358c74c4c7e3821a471b6553a8b1dbf056c94b10a1369ff3a49d83bb757e170"
+    },
+    {
+      "path": "supabase/functions/_shared/facturapi/withTimeout.ts",
+      "bytes": 2358,
+      "sha256": "656adadc31aca5e45425f78c0afdf4f154fc56da2faa5c5df27c01d32bca54c5"
+    },
+    {
+      "path": "supabase/functions/_shared/fxGate.ts",
+      "bytes": 3973,
+      "sha256": "815f702c6e8cff4331caef9dc9156cbb9f2a0b6273ffaa16963d01594f8543af"
+    },
+    {
+      "path": "supabase/functions/_shared/http.ts",
+      "bytes": 840,
+      "sha256": "20f9e025ee693fb7908988e0a4d36e70354748ea258857b902840768800170e5"
+    },
+    {
+      "path": "supabase/functions/_shared/legacyVat.ts",
+      "bytes": 935,
+      "sha256": "b30983d8bd762c6f905d01bcbe16666f059ba4f6eb5583956db2af991581bfe9"
+    },
+    {
+      "path": "supabase/functions/_shared/money.ts",
+      "bytes": 5208,
+      "sha256": "b5c50ce7c6ff65d6763705275a56f7d74596ddd1b0cad3635d08d050e72316a5"
+    },
+    {
+      "path": "supabase/functions/_shared/orgContext.ts",
+      "bytes": 9699,
+      "sha256": "f561f96994772ed4a44341cda632ff0afc8081878c8403398b2189e7a535e925"
+    },
+    {
+      "path": "supabase/functions/_shared/regimenFiscal.ts",
+      "bytes": 2142,
+      "sha256": "dde279288cabe411bb09c346ba58082e3abe9647706057d5af3392eaddc5032f"
+    },
+    {
+      "path": "supabase/functions/_shared/repFolio.ts",
+      "bytes": 5020,
+      "sha256": "7aad6ffb8c244da2bfe638034744ea5c5343369c8c6fdeb7cd26cf7b669ace62"
+    },
+    {
+      "path": "supabase/functions/_shared/rfcChecksum.ts",
+      "bytes": 1994,
+      "sha256": "957acad3e0821dc811ff5007dee68ed07c7fac5a406ef263d357d820f626c5d0"
+    },
+    {
+      "path": "supabase/functions/_shared/sanitizeLegalName.ts",
+      "bytes": 910,
+      "sha256": "7caaa57cec6323f21329598db781b6f93fd3dad64ee2dcde7b832a5068f53576"
+    },
+    {
+      "path": "supabase/functions/_shared/storagePath.ts",
+      "bytes": 1461,
+      "sha256": "a843ba0c913e5a28b031617960f30c18e813eec3ee7b465f49824e50a4e28e39"
+    },
+    {
+      "path": "supabase/functions/_shared/supabaseClients.ts",
+      "bytes": 1292,
+      "sha256": "428ccb7aebd17ef2df894fb5be92a6a83b001ffdcde37344ec6ba6c9e478e53c"
+    },
+    {
+      "path": "supabase/functions/_shared/types.ts",
+      "bytes": 1895,
+      "sha256": "99252b757f32b367561eca8d10df07c1dc45db0727f532ad72428e99e8663d37"
+    },
+    {
+      "path": "supabase/functions/_shared/validate.ts",
+      "bytes": 1287,
+      "sha256": "17e9437d178553df923f0fcf6fc718c34c8ac0a93677110665d36e8e2c5d6503"
+    },
+    {
+      "path": "supabase/functions/cancel-cfdi/handler.ts",
+      "bytes": 14042,
+      "sha256": "65608b8607efd7630a7ce116b6f2fc2fa6751c9d8aa2ab6c13145a5d7db8ab58"
+    },
+    {
+      "path": "supabase/functions/download-cfdi/handler.ts",
+      "bytes": 28844,
+      "sha256": "60c0aa047f87de3c46f06c5b9c0a951908273c90ce0f1c34caf4d42ac9b2773c"
+    },
+    {
+      "path": "supabase/functions/stamp-cfdi/handler.ts",
+      "bytes": 24385,
+      "sha256": "cb5beecf9ee61e9238e6d4e8a18dea92058fc2994d12bc4714c57a78d31dbc6e"
+    },
+    {
+      "path": "supabase/functions/stamp-cfdi/invoiceGateway.ts",
+      "bytes": 1275,
+      "sha256": "60265694d138525ccb471ec380c8e3bfc642851b9bd9eeb551365dd7f852b984"
+    },
+    {
+      "path": "supabase/functions/stamp-cfdi/invoicePayload.ts",
+      "bytes": 10910,
+      "sha256": "cf82efddd0288c2b9fe7a3a093c4907d08c8fec267ef2a723176ff803849dfaf"
+    },
+    {
+      "path": "supabase/functions/stamp-cfdi/saleSatCodes.ts",
+      "bytes": 4704,
+      "sha256": "7747701dfce3a9cf2fba652d478cc06dad77fec2d93d4e1c5b2bbf23442e13d2"
+    },
+    {
+      "path": "supabase/functions/stamp-credit-note/handler.ts",
+      "bytes": 30305,
+      "sha256": "9efe256e40f32289d9e83616beca6e4014dac2bae93864a31fb0c0c103ecff42"
+    },
+    {
+      "path": "supabase/functions/stamp-payment-complement/decisions.ts",
+      "bytes": 8269,
+      "sha256": "9b427ca0ca393d483ee8a0fc37e20ee060f66f790d207237af85649b0cf6d90f"
+    },
+    {
+      "path": "supabase/functions/stamp-payment-complement/handler.ts",
+      "bytes": 23126,
+      "sha256": "e1e66d9594fa428041a53ff8898ec7d9edc1833f3554034235d82e1685951c09"
+    },
+    {
+      "path": "supabase/functions/stamp-payment-complement/taxBreakdown.ts",
+      "bytes": 2615,
+      "sha256": "f7edd12a09582ad6d4baa964674552a25a59e94da2134dc1224dedd1d818078a"
+    },
+    {
+      "path": "supabase/functions/deno.json",
+      "bytes": 275,
+      "sha256": "b8c81b759a3412d508935390af4feffcd8389f937df7a32a899e335ff4d39ea7"
+    },
+    {
+      "path": "supabase/functions/deno.lock",
+      "bytes": 12113,
+      "sha256": "87dbec17a1122949ad25424e8a0605c046a1e04415b053ff7304b4b116e9d2c0"
+    }
+  ]
+}
