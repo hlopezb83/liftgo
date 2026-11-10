@@ -3,8 +3,24 @@
 // acción de la lista cerrada y nunca aporta IDs, URLs, montos ni empresa.
 
 export const RUN_ID = "fx6-sbx-20261110-01";
-/** Caducidad fail-closed: pasada esta hora el ejecutor responde 410 a todo. */
-export const RUN_EXPIRES_AT = Date.parse("2026-11-17T06:00:00Z");
+/**
+ * Ventana fija y corta. Se fija en el commit revisado justo antes del despliegue
+ * (el caller no puede renovarla). Fuera de [NOT_BEFORE, EXPIRES_AT) todo
+ * responde 410 antes de autenticar. Duración máxima: MAX_WINDOW_MS.
+ * Valor actual: propuesta para revisión; debe reajustarse al aprobar despliegue.
+ */
+export const RUN_NOT_BEFORE = Date.parse("2026-11-10T16:00:00Z");
+export const RUN_EXPIRES_AT = Date.parse("2026-11-10T20:00:00Z");
+export const MAX_WINDOW_MS = 6 * 60 * 60 * 1000;
+
+/**
+ * Interruptores de fase. Ambos permanecen false hasta revisión explícita.
+ * - WRITE_PHASES_ENABLED: abre acciones con efecto fiscal/ERP.
+ * - DURABLE_CLAIMS_GUARANTEED: sólo puede ponerse en true si el claim
+ *   durable cumple inmutabilidad verificada (hoy NO; ver README).
+ */
+export const WRITE_PHASES_ENABLED = false;
+export const DURABLE_CLAIMS_GUARANTEED = false;
 
 export const TENANT_ORGANIZATION_ID = "fc2c10e3-278b-4899-8aa1-f802752f1c38";
 export const TENANT_ORGANIZATION_NAME = "Empresa Prueba";
@@ -44,7 +60,13 @@ const deny = (status: number, code: string): Gate => ({
 });
 
 export function checkExpiry(nowMs: number): Gate {
-  if (!Number.isFinite(RUN_EXPIRES_AT) || nowMs >= RUN_EXPIRES_AT) {
+  if (
+    !Number.isFinite(RUN_NOT_BEFORE) || !Number.isFinite(RUN_EXPIRES_AT) ||
+    !Number.isFinite(nowMs) ||
+    RUN_EXPIRES_AT <= RUN_NOT_BEFORE ||
+    RUN_EXPIRES_AT - RUN_NOT_BEFORE > MAX_WINDOW_MS ||
+    nowMs < RUN_NOT_BEFORE || nowMs >= RUN_EXPIRES_AT
+  ) {
     return deny(410, "run_expired");
   }
   return { ok: true };

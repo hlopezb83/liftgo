@@ -132,7 +132,7 @@ function guardFilters(builder: any): any {
       return (...args: unknown[]) => {
         if (args[0] === LIVE_COLUMN) throw new Error("live_key_column_blocked");
         const out = v.apply(t, args);
-        return out && typeof out === "object" && out !== t ? guardFilters(out) : out === t ? guardFilters(t) : out;
+        return out && typeof out === "object" ? guardFilters(out) : out;
       };
     },
   });
