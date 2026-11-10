@@ -2,18 +2,16 @@
 // autenticación, empresa del usuario y resolución de llave por empresa.
 // La única llamada al proveedor es GET /v2/organizations/me (SDK 6
 // `organizations.me()`), de solo lectura. Nunca devuelve ni registra la llave.
-import { authenticateWithDeps } from "../snapshot/supabase/functions/_shared/authWithDeps.ts";
-import { resolveCallerOrganization } from "../snapshot/supabase/functions/_shared/orgContext.ts";
 import {
   createFacturapiClient,
   getFacturapiConfigForOrganization,
   isFacturapiConfigError,
 } from "../snapshot/supabase/functions/_shared/facturapi/client.ts";
+import { restrictEnv, restrictSecretsView, strictIdentity } from "./guards.ts";
 import type { SupabaseLike } from "../snapshot/supabase/functions/_shared/types.ts";
 import {
   checkActionEnabled,
   checkExpiry,
-  checkTenant,
   checkTestKey,
   compareIssuer,
   parseAction,
@@ -84,21 +82,13 @@ export async function handleRunner(req: Request, deps: RunnerDeps): Promise<Resp
   const enabled = checkActionEnabled(action);
   if (!enabled.ok) return reply(enabled.status, { error: enabled.code });
 
-  // Usuario real: JWT válido, cuenta activa y rol admin (código del PR).
-  const auth = await authenticateWithDeps({
-    req,
+  // Usuario real con identidad estricta (wrapper sobre el código del PR).
+  const id = await strictIdentity(req, {
     createCallerClient: (h) => deps.createCallerClient(h) as never,
     createServiceClient: deps.createServiceClient,
-    allowedRoles: ["admin"],
-    logTag: "[fx6-sandbox]",
   });
-  if (!auth.ok) return reply(auth.status, { error: "unauthorized" });
-  if (auth.isServiceRole) return reply(403, { error: "service_role_not_allowed" });
-
-  const org = await resolveCallerOrganization(auth.supabase as never, auth.userId);
-  if (!org.ok) return reply(org.status, { error: "membership_check_failed" });
-  const tenant = checkTenant(org.organizationId);
-  if (!tenant.ok) return reply(tenant.status, { error: tenant.code });
+  if (!id.ok) return reply(id.status, { error: id.code });
+  const auth = { supabase: id.supabase, userId: id.userId };
 
   if (inFlight) return reply(409, { error: "run_in_progress" });
   inFlight = true;
@@ -113,11 +103,15 @@ export async function handleRunner(req: Request, deps: RunnerDeps): Promise<Resp
       return reply(409, { error: "company_settings_ambiguous" });
     }
 
+    // Modo explícito ANTES de resolver credenciales: live se rechaza sin
+    // tocar billing_secrets.
+    if (co[0].facturapi_mode !== "test") return reply(409, { error: "mode_not_test" });
+
     let cfg;
     try {
       cfg = await getFacturapiConfigForOrganization({
-        admin: auth.supabase as never,
-        env: deps.env,
+        admin: restrictSecretsView(auth.supabase as any) as never,
+        env: restrictEnv(deps.env),
         organizationId: TENANT_ORGANIZATION_ID,
         modeOverride: co[0].facturapi_mode ?? null,
       });
