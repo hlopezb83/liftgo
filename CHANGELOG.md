@@ -1,3 +1,7 @@
+## [8.52.4] - 2026-11-10
+
+- Prepara copia offline rastreable de seis funciones fiscales con resolver exclusivo de prueba y controles de vencimiento; bloquea transporte SDK pendiente de revisión. Sin despliegue, ejecución fiscal ni cambios de datos.
+
 ## [8.52.3] - 2026-11-10
 
 - Amplía la preparación aislada de Fase 3 con inventario de dependencias y matriz de adaptación de funciones fiscales reales; identifica bloqueos de lectura test-only, transporte y exclusión entre etapas. Sin ejecutar, desplegar ni modificar datos.

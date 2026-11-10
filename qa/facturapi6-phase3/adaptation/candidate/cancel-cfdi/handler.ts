@@ -1,0 +1,378 @@
+import { cancellationResult } from "../_shared/facturapi/cancellationResult.ts";
+// Pure handler for cancel-cfdi, deps-injected for testability.
+import { handleCors } from "../_shared/cors.ts";
+import { jsonError, jsonResponse } from "../_shared/http.ts";
+import { isNonEmptyString, isUUID } from "../_shared/validate.ts";
+import type { SupabaseLike } from "../_shared/types.ts";
+import { authenticateWithDeps } from "../_shared/authWithDeps.ts";
+import {
+  cancelInvoiceWithSignal,
+  createFacturapiClient,
+  describeFacturapiError,
+} from "../_shared/facturapi/client.ts";
+import { resolveDocumentOrganization } from "../_shared/orgContext.ts";
+import { loadRetryAwareFacturapiConfig } from "../_shared/facturapi/retryContext.ts";
+import {
+  isFacturapiTimeout,
+  sdkCallWithTimeout,
+} from "../_shared/facturapi/withTimeout.ts";
+import {
+  enqueueCfdiRetry,
+  isTransientFacturapiError,
+} from "../_shared/cfdiRetryQueue.ts";
+
+const VALID_MOTIVES = new Set(["01", "02", "03", "04"]);
+const CANCELLATION_WARNINGS: Record<string, string> = {
+  pending:
+    "El SAT marcó la cancelación como pendiente. El receptor tiene 72 horas para aceptar o rechazar.",
+  rejected:
+    "La solicitud de cancelación fue rechazada. La factura sigue vigente.",
+  expired:
+    "La solicitud de cancelación venció. La factura sigue vigente; consulta su estado antes de solicitar nuevamente la cancelación.",
+};
+
+export interface CancelCfdiDeps {
+  createCallerClient: (authHeader: string) => SupabaseLike;
+  createServiceClient: () => SupabaseLike;
+  fetchImpl: typeof fetch;
+  env: (key: string) => string | undefined;
+}
+
+export async function handleCancelCfdi(
+  req: Request,
+  deps: CancelCfdiDeps,
+): Promise<Response> {
+  const corsRes = handleCors(req);
+  if (corsRes) return corsRes;
+  const json = (body: unknown, status: number) =>
+    jsonResponse(req, body, { status });
+  const err = (status: number, message: string) =>
+    jsonError(req, status, message);
+
+  // S2-2.4: refs para poder liberar el claim de cancelación ante cualquier
+  // salida temprana o excepción inesperada.
+  let supabaseRef: SupabaseLike | null = null;
+  let invoiceIdRef: string | null = null;
+  let claimedRef = false;
+  let pacAttempted = false;
+  const releaseCancelClaim = async () => {
+    if (!claimedRef || !supabaseRef || !invoiceIdRef) return;
+    claimedRef = false;
+    await supabaseRef
+      .from("invoices")
+      .update({ cancellation_status: "none" })
+      .eq("id", invoiceIdRef)
+      // R5-13: liberar solo si el claim sigue 'pending' (patrón
+      // cancel-credit-note): evita pisar un estado ya reconciliado.
+      .eq("cancellation_status", "pending");
+  };
+
+  try {
+    const auth = await authenticateWithDeps({
+      req,
+      createCallerClient: (h) => deps.createCallerClient(h),
+      createServiceClient: () => deps.createServiceClient(),
+      allowedRoles: ["admin", "administrativo"],
+      logTag: "[cancel-cfdi]",
+    });
+    if (!auth.ok) return json({ error: auth.message }, auth.status);
+    const supabase = auth.supabase;
+    supabaseRef = supabase;
+
+    const body = await req.json().catch(() => ({}));
+    const { invoice_id, motive, substitution_uuid, cancellation_reason } =
+      (body ?? {}) as Record<string, unknown>;
+
+    if (!isUUID(invoice_id)) {
+      return json({ error: "invoice_id must be a valid UUID" }, 400);
+    }
+    invoiceIdRef = invoice_id as string;
+
+    if (typeof motive !== "string" || !VALID_MOTIVES.has(motive)) {
+      return json({ error: "motive must be one of 01,02,03,04" }, 400);
+    }
+    if (motive === "01" && !isUUID(substitution_uuid)) {
+      return json(
+        {
+          error:
+            "substitution_uuid (UUID de factura sustituta) es requerido para motivo 01",
+        },
+        400,
+      );
+    }
+    if (
+      cancellation_reason &&
+      !isNonEmptyString(cancellation_reason as string, 1000)
+    ) {
+      return json({ error: "cancellation_reason too long" }, 400);
+    }
+
+    const { data: invoice, error: invErr } = await supabase
+      .from("invoices")
+      .select(
+        "cfdi_status, total, facturapi_invoice_id, is_e2e, customer_id, organization_id",
+      )
+      .eq("id", invoice_id as string)
+      .single();
+    if (invErr || !invoice) return json({ error: "Invoice not found" }, 404);
+    const inv = invoice as Record<string, unknown>;
+
+    // Multiempresa · Fase 1: organización derivada del servidor, validada
+    // ANTES de cualquier claim, update o llamada al PAC.
+    const orgCheck = await resolveDocumentOrganization({
+      admin: supabase,
+      userId: auth.userId,
+      isServiceRole: auth.isServiceRole,
+      documentOrganizationId: inv.organization_id as string | null | undefined,
+    });
+    if (!orgCheck.ok) {
+      return json({ error: orgCheck.message }, orgCheck.status);
+    }
+    const organizationId = orgCheck.organizationId;
+
+    if (inv.is_e2e === true) {
+      return json({ error: "E2E invoices cannot be cancelled at SAT" }, 403);
+    }
+    if (inv.cfdi_status !== "stamped") {
+      return json({ error: "Only stamped invoices can be cancelled" }, 400);
+    }
+
+    // BL-A4: no permitir cancelar si hay pagos aplicados. El admin debe
+    // revertir/eliminar los pagos primero para evitar saldos huérfanos y
+    // complementos REP colgando de una factura cancelada.
+    if (typeof supabase.rpc === "function") {
+      const cancellableRes = await supabase.rpc("assert_invoice_cancellable", {
+        p_invoice_id: invoice_id as string,
+      });
+      const rpcData = (cancellableRes as { data: unknown }).data;
+      const rpcErr = (cancellableRes as { error: unknown }).error;
+      if (rpcErr) {
+        return json(
+          { error: "No se pudo validar cancelabilidad de la factura" },
+          500,
+        );
+      }
+      if (typeof rpcData === "string" && rpcData.length > 0) {
+        return json({ error: rpcData }, 409);
+      }
+    }
+
+    // BL-A4: para motivo 01 ("Comprobante emitido con errores con relación"),
+    // el UUID sustituto debe corresponder a una factura timbrada vigente del
+    // mismo cliente. Sin esta validación el SAT rechaza el trámite y la app
+    // queda en un estado ambiguo.
+    if (motive === "01" && substitution_uuid) {
+      const subRes = await supabase
+        .from("invoices")
+        .select("id, cfdi_status, customer_id, cfdi_uuid")
+        .eq("cfdi_uuid", substitution_uuid as string)
+        .maybeSingle();
+      const sub = (subRes as { data: unknown }).data as
+        | { cfdi_status: string; customer_id: string | null; cfdi_uuid: string }
+        | null;
+      if (!sub) {
+        return json(
+          {
+            error:
+              "No se encontró una factura con el UUID sustituto proporcionado.",
+          },
+          400,
+        );
+      }
+      if (sub.cfdi_status !== "stamped") {
+        return json(
+          { error: "La factura sustituta debe estar timbrada y vigente." },
+          400,
+        );
+      }
+      if (
+        inv.customer_id != null && sub.customer_id != null &&
+        inv.customer_id !== sub.customer_id
+      ) {
+        return json(
+          { error: "La factura sustituta debe pertenecer al mismo cliente." },
+          400,
+        );
+      }
+    }
+
+    // S2-2.4: claim atómico pending — evita que dos requests concurrentes
+    // manden dos cancelaciones al SAT. Solo la primera cambia
+    // cancellation_status → 'pending' sobre una factura timbrada.
+    // N-11: se admiten también 'rejected' y 'expired' (estados terminales de
+    // un intento previo) para permitir reintentar la cancelación.
+    const claimRes = await supabase
+      .from("invoices")
+      .update({
+        cancellation_status: "pending",
+        // R4-14: timestamp dedicado de la solicitud — el reset stale de 72 h
+        // (refresh-cancellation-status) ya no depende de updated_at.
+        cancellation_requested_at: new Date().toISOString(),
+      })
+      .eq("id", invoice_id as string)
+      .eq("cfdi_status", "stamped")
+      .in("cancellation_status", ["none", "rejected", "expired"])
+      .select("id")
+      .maybeSingle();
+    if (!(claimRes as { data: unknown }).data) {
+      return json(
+        {
+          error:
+            "Ya hay una cancelación en proceso o la factura no está timbrada",
+          // FIX R6-08: código explícito para que process-cfdi-retry-queue
+          // distinga este 409 (claim propio pendiente → aplazable) del 409
+          // de "factura no cancelable" (terminal).
+          code: "CANCELLATION_IN_PROGRESS",
+        },
+        409,
+      );
+    }
+
+    claimedRef = true;
+
+    const cfgOutcome = await loadRetryAwareFacturapiConfig({
+      admin: supabase,
+      env: deps.env,
+      organizationId,
+      body,
+      isServiceRole: auth.isServiceRole,
+      documentId: invoice_id as string,
+      operation: "cancel",
+    });
+    if (!cfgOutcome.ok) {
+      // 8.8.7: configuración no resoluble ⇒ liberar el claim y responder
+      // error explícito; jamás una cancelación stub "aceptada".
+      await releaseCancelClaim();
+      return json(
+        { error: cfgOutcome.message, code: cfgOutcome.code },
+        cfgOutcome.status,
+      );
+    }
+    const { apiKey, mode } = cfgOutcome;
+    const facturApiId = inv.facturapi_invoice_id as string | null | undefined;
+
+    let satStatus = "accepted";
+    const isStub = !apiKey || !facturApiId;
+
+    if (isStub && mode === "live") {
+      // C-2: en modo live NUNCA marcamos "aceptada" una cancelación stub.
+      // Un stub en live significa (a) API key faltante o (b) factura sin
+      // facturapi_invoice_id (probablemente timbrada como stub en test y
+      // migrada a live). Cancelarla fake dejaría el SAT y la BD divergentes.
+      await releaseCancelClaim();
+      return json(
+        {
+          error: !apiKey
+            ? "Facturapi API key no configurada para modo live. No se puede cancelar sin llamar al SAT."
+            : "La factura no tiene facturapi_invoice_id (no fue timbrada realmente). No se puede cancelar en modo live.",
+        },
+        400,
+      );
+    }
+
+    if (apiKey && facturApiId) {
+      // R5-14: marcar pacAttempted DESPUÉS de construir el cliente (patrón
+      // cancel-payment-complement): si createFacturapiClient lanza, el catch
+      // externo aún puede liberar el claim.
+      const client = createFacturapiClient(apiKey);
+      pacAttempted = true;
+      const params: Record<string, string> = { motive };
+      if (motive === "01" && substitution_uuid) {
+        params.substitution = substitution_uuid as string;
+      }
+      try {
+        const cancelJson = await sdkCallWithTimeout((signal) =>
+          cancelInvoiceWithSignal(client, facturApiId, params, { signal })
+        );
+        const result = cancellationResult(cancelJson);
+        if (!result.ok) {
+          return jsonResponse(req, {
+            error:
+              "El PAC no confirmó el estado de cancelación. Consulta su estado antes de reintentar.",
+            code: "PAC_UNCERTAIN",
+          }, { status: 502 });
+        }
+        satStatus = result.status;
+      } catch (err) {
+        // ARQ2-A1: timeout PAC → no cambiar estado local, 504 transient.
+        if (isFacturapiTimeout(err)) {
+          console.warn("[cancel-cfdi] facturapi timeout", { invoice_id });
+          return jsonResponse(req, {
+            error: "PAC no respondió a tiempo, reintenta",
+            code: "TIMEOUT",
+            transient: true,
+          }, { status: 504 });
+        }
+        const desc = describeFacturapiError(err);
+        // BL-44: encolar reintento solo si el error es transitorio (5xx / red /
+        // 429) — la cancelación NO llegó al SAT, así que reintentar es seguro.
+        // El payload va plano: el consumer de la cola lo esparce tal cual al
+        // reinvocar esta función (junto con invoice_id) y `motive` es
+        // obligatorio en cada llamada.
+        if (isTransientFacturapiError(desc)) {
+          await enqueueCfdiRetry(supabase, {
+            operation: "cancel",
+            fiscalConfig: { apiKey, mode },
+            invoiceId: invoice_id as string,
+            payload: {
+              motive,
+              ...(motive === "01" && substitution_uuid
+                ? { substitution_uuid }
+                : {}),
+              ...(cancellation_reason ? { cancellation_reason } : {}),
+            },
+            errorMessage: `${desc.code ?? ""} ${desc.message}`.trim(),
+          });
+        }
+        // La cancelación NO llegó al SAT: liberamos el claim para que el
+        // reintento (manual o vía cola) pueda volver a tomarlo.
+        await releaseCancelClaim();
+        return json(
+          {
+            error: `Facturapi cancel error: ${desc.status}`,
+            detail: desc.detail,
+            transient: isTransientFacturapiError(desc),
+          },
+          502,
+        );
+      }
+    }
+
+    const isAccepted = satStatus === "accepted";
+    const update: Record<string, unknown> = {
+      cancellation_status: satStatus,
+      cancellation_motive: motive,
+      substitution_uuid: motive === "01" ? substitution_uuid : null,
+      cancellation_reason: cancellation_reason ?? null,
+    };
+    if (isAccepted) {
+      update.cfdi_status = "cancelled";
+      update.status = "cancelled";
+      update.cancelled_at = new Date().toISOString();
+    }
+    const updRes = await supabase.from("invoices").update(update).eq(
+      "id",
+      invoice_id as string,
+    );
+    if ((updRes as { error: unknown }).error) {
+      return json({ error: "Failed to update invoice" }, 500);
+    }
+    claimedRef = false;
+
+    return json(
+      {
+        success: true,
+        stub: isStub,
+        cancellation_status: satStatus,
+        accepted: isAccepted,
+        warning: CANCELLATION_WARNINGS[satStatus],
+      },
+      200,
+    );
+  } catch (_err) {
+    // Solo liberamos el claim si nunca se contactó al PAC; si ya se llamó, el
+    // estado 'pending' es correcto hasta que se reconcilie con el SAT.
+    if (!pacAttempted) await releaseCancelClaim();
+    return err(500, "Internal server error");
+  }
+}

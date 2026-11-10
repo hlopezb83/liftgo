@@ -2,7 +2,7 @@
 
 Fecha: 10/11/2026. **No ejecutada, no activada, no desplegada.**
 
-Esta carpeta sólo contiene un plan, datos propuestos sin IDs reales y comprobaciones locales. No contiene ejecutor, pantalla, endpoint, SQL ni instrucciones de invocación. No se conecta al proveedor ni a la base. No copiar el runner anterior a una nueva Edge Function: esa ruta está prohibida.
+Esta carpeta contiene el plan, datos propuestos sin IDs reales, comprobaciones locales y una copia parcial de adaptación offline. No contiene ejecutor, pantalla, endpoint, SQL ni instrucciones de invocación. No se conecta al proveedor ni a la base. No copiar el runner anterior a una nueva Edge Function: esa ruta está prohibida.
 
 ## Alcance autorizado
 
@@ -20,6 +20,7 @@ Esta carpeta sólo contiene un plan, datos propuestos sin IDs reales y comprobac
 - `ADAPTATION_REVIEW.md`: cierre de arquitectura, matriz de paridad y bloqueos concretos antes de crear un ejecutor.
 - `audit_imports.py` / `IMPORT_AUDIT.json`: inventario estático local con digests y líneas; no carga TypeScript ni consulta servicios.
 - `test_audit_imports.py`: pruebas del inventario con archivos ficticios; no sustituye pruebas de handlers.
+- `adaptation/`: copia rastreable de seis handlers auténticos, resolver sólo test y 23 pruebas focales; transporte bloqueado explícitamente. Ver su README para la decisión pendiente, diferencias y límites de evidencia.
 
 ## Evidencia anterior y límites
 

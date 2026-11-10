@@ -1,0 +1,7 @@
+{
+  "description": "Prepara copia auténtica de seis funciones y resolver sólo test; sin despliegue ni ejecución.",
+  "changes": [
+    "Procedencia verificable y pruebas focales de tenant, exclusividad ficticia y vencimiento.",
+    "Transporte SDK pendiente de revisión; no demuestra paridad fiscal ni persistencia completa."
+  ]
+}

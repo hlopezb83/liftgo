@@ -13,3 +13,4 @@
 - Temporary SDK preflight uses a disabled Preview-only server function with a separately pinned npm alias; this keeps operational Deno dependencies unchanged and secrets behind verified session, role and tenant reads.
 - Fiscal phase review packages stay outside runtime and deployment directories and contain no executable service entry point; this lets reviewers inspect plans without activating fiscal effects.
 - Static fiscal import audits only read literal local source dependencies and record hashes/locations; they must not import handlers or claim runtime/package closure, so offline inventory cannot trigger fiscal effects or overstate parity.
+- Offline fiscal adaptation copies retain handler provenance and fail closed at the SDK factory until per-request transport is reviewed; keeping them outside runtime prevents mock evidence from activating fiscal effects.

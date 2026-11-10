@@ -1,0 +1,206 @@
+--- qa/facturapi6-sandbox-candidate/snapshot/supabase/functions/_shared/cors.ts
++++ qa/facturapi6-phase3/adaptation/candidate/_shared/cors.ts
+@@ -1,46 +1,3 @@
+-// Allowlist explícita. Para agregar dominios sin redeploy, configurar el secret
+-// ALLOWED_ORIGINS como CSV (ej: "https://foo.com,https://bar.com").
+-const STATIC_ALLOWED_ORIGINS = [
+-  "https://liftgo.lovable.app",
+-  "https://id-preview--e25ace4a-172e-4082-a037-00473dacf2f2.lovable.app",
+-  "http://localhost:5173",
+-  "http://localhost:8080",
+-];
+-
+-const envOrigins = (Deno.env.get("ALLOWED_ORIGINS") || "")
+-  .split(",")
+-  .map((s) => s.trim())
+-  .filter(Boolean);
+-
+-const ALLOWED_ORIGINS = new Set([...STATIC_ALLOWED_ORIGINS, ...envOrigins]);
+-
+-// Sandbox/preview de Lovable usa subdominios efímeros con el project id.
+-// Permitimos exclusivamente los que contengan nuestro project id.
+-const PROJECT_ID = "e25ace4a-172e-4082-a037-00473dacf2f2";
+-const PREVIEW_REGEX = new RegExp(
+-  `^https:\\/\\/[a-z0-9-]*${PROJECT_ID}[a-z0-9.-]*\\.lovable(project)?\\.(app|com)$`,
+-);
+-
+-function isAllowedOrigin(origin: string): boolean {
+-  if (!origin) return false;
+-  if (ALLOWED_ORIGINS.has(origin)) return true;
+-  if (PREVIEW_REGEX.test(origin)) return true;
+-  return false;
+-}
+-
+-export function getCorsHeaders(req: Request): Record<string, string> {
+-  const origin = req.headers.get("origin") || "";
+-  return {
+-    "Access-Control-Allow-Origin": isAllowedOrigin(origin) ? origin : "",
+-    "Vary": "Origin",
+-    "Access-Control-Allow-Headers":
+-      "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
+-  };
+-}
+-
+-export function handleCors(req: Request): Response | null {
+-  if (req.method === "OPTIONS") {
+-    return new Response(null, { headers: getCorsHeaders(req) });
+-  }
+-  return null;
+-}
++// CORS interno sin env/top-level Deno; NO es autorización.
++export function getCorsHeaders(_req: Request): Record<string, string> { return {}; }
++export function handleCors(_req: Request): Response | null { return null; }
+--- qa/facturapi6-sandbox-candidate/snapshot/supabase/functions/_shared/facturapi/client.ts
++++ qa/facturapi6-phase3/adaptation/candidate/_shared/facturapi/client.ts
+@@ -8,7 +8,8 @@
+ // - Mantenido oficialmente por Facturapi (v6.0.0).
+ //
+ // deno-lint-ignore-file no-explicit-any
+-import * as FacturapiPkg from "facturapi";
++import * as FacturapiPkg from "facturapi6-preview";
++import { readQaTestConfig, QaConfigError } from "../../../testConfig.ts";
+ 
+ // El SDK se publica como módulo dual ESM/CJS. La interop de Deno expone la
+ // clase como `default.default` (CJS) o `default` (ESM), así que resolvemos
+@@ -154,123 +155,14 @@
+   organizationId: string | null | undefined;
+   modeOverride?: string | null | undefined;
+ }): Promise<OrgFacturapiConfig> {
+-  const { admin, env, organizationId } = input;
+-  if (!organizationId) {
+-    throw new FacturapiConfigError(
+-      "organization_required",
+-      "No se puede resolver la configuración fiscal sin empresa (organization_id).",
+-      null,
+-    );
+-  }
+-
+-  let modeRaw: string | null | undefined = input.modeOverride;
+-  if (modeRaw === undefined) {
+-    const { data: co, error: coErr } = await admin
+-      .from("company_settings")
+-      .select("facturapi_mode")
+-      .eq("organization_id", organizationId)
+-      .maybeSingle();
+-    if (coErr) {
+-      throw new FacturapiConfigError(
+-        "config_read_error",
+-        "No se pudo leer la configuración fiscal de la empresa. Reintenta en unos segundos.",
+-        organizationId,
+-      );
++  try {
++    return await readQaTestConfig(input);
++  } catch (error) {
++    if (error instanceof QaConfigError) {
++      throw new FacturapiConfigError(error.code, error.message, input.organizationId ?? null);
+     }
+-    modeRaw = (co?.facturapi_mode as string | undefined) ?? null;
+-  }
+-  if (modeRaw === null) {
+-    throw new FacturapiConfigError(
+-      "config_missing",
+-      "La empresa no tiene configuración fiscal (facturapi_mode). Configúrala antes de operar.",
+-      organizationId,
+-    );
+-  }
+-  if (modeRaw !== "test" && modeRaw !== "live") {
+-    throw new FacturapiConfigError(
+-      "config_invalid_mode",
+-      `Modo de facturación inválido para la empresa: ${String(modeRaw)}.`,
+-      organizationId,
+-    );
+-  }
+-  const mode: FacturapiMode = modeRaw;
+-
+-  const { data: secrets, error: secErr } = await admin
+-    .from("billing_secrets")
+-    .select("facturapi_test_key, facturapi_live_key")
+-    .eq("organization_id", organizationId)
+-    .maybeSingle();
+-  if (secErr) {
+-    throw new FacturapiConfigError(
+-      "config_read_error",
+-      "No se pudieron leer las credenciales fiscales de la empresa. Reintenta en unos segundos.",
+-      organizationId,
+-    );
+-  }
+-  const sec = (secrets ?? {}) as Record<string, unknown>;
+-  const dbTestKey = sec.facturapi_test_key as string | null | undefined;
+-  const dbLiveKey = sec.facturapi_live_key as string | null | undefined;
+-
+-  const dbKey = resolveFacturapiKey({ mode, dbTestKey, dbLiveKey });
+-  if (dbKey) {
+-    assertFacturapiKeyMode(dbKey, mode, organizationId);
+-    // Una llave de Facturapi identifica a una sola organización emisora. Si
+-    // aparece en dos empresas del ERP, usarla mezclaría sus recursos fiscales
+-    // aunque la factura y el secreto se hayan leído con organization_id.
+-    const keyColumn = mode === "test"
+-      ? "facturapi_test_key"
+-      : "facturapi_live_key";
+-    const { data: otherOwner, error: ownersErr } = await admin
+-      .from("billing_secrets")
+-      .select("organization_id")
+-      .neq("organization_id", organizationId)
+-      .eq(keyColumn, dbKey)
+-      .maybeSingle();
+-    if (ownersErr) {
+-      throw new FacturapiConfigError(
+-        "config_read_error",
+-        "No se pudo verificar la exclusividad de la llave fiscal. Reintenta en unos segundos.",
+-        organizationId,
+-      );
+-    }
+-    if (
+-      (otherOwner as { organization_id?: string } | null)
+-        ?.organization_id
+-    ) {
+-      throw new FacturapiConfigError(
+-        "config_duplicate_key",
+-        "La llave de Facturapi está configurada en otra empresa. Usa una llave propia de esta organización emisora.",
+-        organizationId,
+-      );
+-    }
+-    return { mode, apiKey: dbKey, organizationId, fromEnvFallback: false };
+-  }
+-
+-  // 8.8.8: lector ESTRICTO. `isSoleLegacyOrganization` devuelve false ante
+-  // error (fail-closed booleano, útil para otros consumidores), pero en el
+-  // camino fiscal eso confundiría "hay más de una empresa" con "no pudimos
+-  // leer `organizations`". Aquí el error de lectura se propaga como
+-  // FacturapiConfigError(config_read_error): sin llave, sin entorno, sin stub.
+-  const legacyAllowed = await readSoleLegacyOrganizationStrict(
+-    admin,
+-    organizationId,
+-  );
+-  if (!legacyAllowed) {
+-    return { mode, apiKey: null, organizationId, fromEnvFallback: false };
+-  }
+-
+-  const envKey = resolveFacturapiKey({
+-    mode,
+-    envTestKey: env("FACTURAPI_TEST_KEY"),
+-    envLiveKey: env("FACTURAPI_LIVE_KEY"),
+-  });
+-  if (envKey) assertFacturapiKeyMode(envKey, mode, organizationId);
+-  return {
+-    mode,
+-    apiKey: envKey,
+-    organizationId,
+-    fromEnvFallback: envKey !== null,
+-  };
++    throw error;
++  }
+ }
+ 
+ /**
+@@ -352,7 +244,9 @@
+ 
+ /** Crea una instancia del SDK con la API key resuelta. */
+ export function createFacturapiClient(apiKey: string): FacturapiClient {
+-  return new Facturapi(apiKey);
++  void apiKey;
++  // SDK 6 no ofrece fetch por instancia: no conectar hasta revisar transporte.
++  throw new Error("QA_TRANSPORT_BLOCKED");
+ }
+ 
+ /**

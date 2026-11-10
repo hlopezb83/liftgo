@@ -61,3 +61,9 @@ Antes de ejecutar faltan: paridad completa de adaptadores; lectura test-only y t
 Contraste independiente local: 39/39 archivos del manifiesto snapshot y 13/13 del runner coinciden con sus digests. Esto prueba consistencia local, no autentica el archivo upstream. El informe externo de revisión sugirió un update optimista en refresh; el archivo local revisado realmente actualiza sólo por `id` (:263–266), sin compare-and-swap por `updated_at`: no atribuirle esa protección. La semántica completa de RPC/triggers permanece pendiente de auditoría acotada de código SQL, sin ejecutar consultas ni migraciones.
 
 Ninguno de estos puntos autoriza nuevas Edge Functions, SQL/permisos, cambios operativos ni activación. Una ejecución en Preview demostraría ERP + SDK 6 en ese entorno, **no runtime Deno integral ni producción**. Activación productiva posterior: todo de una vez, sin bandera por empresa y con reversa por redeploy.
+
+## 6. Avance parcial posterior — 10/11/2026
+
+`adaptation/` prepara la copia local y el resolver QA conectado a la capa auténtica. Los seis handlers conservan bytes; refresh remapea sus shared a SDK 6. CORS deja de leer entorno al cargar. 20/20 pruebas focales TypeScript y 3/3 de procedencia pasan; no demuestran paridad fiscal autenticada ni persistencia completa. La matriz anterior describe todavía los criterios pendientes.
+
+Inspección del paquete 6.0.0 confirma fetch global sin opción por instancia. Se detuvo ese punto según el plan: fábrica de cliente QA bloqueada antes de red, sin alternativa SDK/HTTP ni monkeypatch global. El resolver ya no lee livekey ni compara secretos en URL; esto no resuelve TOCTOU, logs, diario durable ni transporte. Ver `adaptation/README.md` para fuentes y decisión necesaria antes de continuar.
