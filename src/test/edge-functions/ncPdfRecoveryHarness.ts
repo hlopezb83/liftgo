@@ -48,6 +48,26 @@ vi.mock("../../../supabase/functions/_shared/repFolio.ts", () => ({
 vi.mock("../../../supabase/functions/_shared/facturapi/client.ts", () => ({
   getFacturapiConfigForOrganization: mocks.config,
   createFacturapiClient: mocks.createClient,
+  // SDK transport/abort behavior is covered by the real-SDK Deno contracts.
+  // These orchestration doubles still require the processor to pass its signal.
+  retrieveInvoiceWithSignal: (
+    client: { invoices: { retrieve: (id: string) => Promise<unknown> } },
+    id: string,
+    options: { signal: AbortSignal },
+  ) => {
+    expect(options.signal).toBeInstanceOf(AbortSignal);
+    options.signal.throwIfAborted();
+    return client.invoices.retrieve(id);
+  },
+  downloadInvoicePdfWithSignal: (
+    client: { invoices: { downloadPdf: (id: string) => Promise<unknown> } },
+    id: string,
+    options: { signal: AbortSignal },
+  ) => {
+    expect(options.signal).toBeInstanceOf(AbortSignal);
+    options.signal.throwIfAborted();
+    return client.invoices.downloadPdf(id);
+  },
   binaryToText: async (value: unknown) => value,
   binaryToBytes: async (value: unknown) => value,
   retryOnFacturapi5xx: (fn: () => unknown) => fn(),

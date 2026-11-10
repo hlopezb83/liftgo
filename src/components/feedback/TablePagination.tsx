@@ -64,6 +64,7 @@ export function TablePagination({ page, totalPages, onPageChange }: TablePaginat
             <PaginationItem key={p} className="hidden sm:block">
               <PaginationLink
                 isActive={p === page}
+                aria-label={p === page ? `Página ${p}` : `Ir a la página ${p}`}
                 onClick={() => onPageChange(p)}
               >
                 {p}
