@@ -1,8 +1,8 @@
 {
-  "base_commit": "8374f07f486e875c85c33a2987b415a40ca34892",
+  "base_commit": "c2cd0ac5a879f9c41fc1bbfc281816a72cfd81f1",
   "sdk": "facturapi@6.0.0",
   "closure_rule": "sorted path:sha256 LF",
-  "closure_sha256": "4ed46a747bd0f5a356a54c64d3d5a3ba035d328287dce2b99227a973f5ec8f32",
+  "closure_sha256": "ac6d6c179f25fea6155732a1ee692a68289f4e868012d397c336f4df2535f9b4",
   "files": [
     {
       "path": "bun.lock",
@@ -16,8 +16,23 @@
     },
     {
       "path": "qa/facturapi6-preview-preparation/README.md",
-      "bytes": 7225,
-      "sha256": "6f46e044cdfe91e8c34ac18f1b223b4b94bc06260b9a3035ccacfacfbb46cb0c"
+      "bytes": 9973,
+      "sha256": "8f8b838759b2a2f651151da7c14f636c6c8ce08ca1f9d1e565d0cf0114e67091"
+    },
+    {
+      "path": "qa/facturapi6-preview-preparation/sql/0134_qa_fx6_test_key_exclusive.sql",
+      "bytes": 2195,
+      "sha256": "03dafba89d3282a31e78f0b7557f2fc71686ae457c0467a620bd588f8a6245b7"
+    },
+    {
+      "path": "qa/facturapi6-preview-preparation/sql/recovery_disable_not_executed.sql",
+      "bytes": 484,
+      "sha256": "78594ddd52adafcfe3ba4ff628826a6c0174bbc6225d54bc5c36f5d03311232a"
+    },
+    {
+      "path": "qa/facturapi6-preview-preparation/sql/test_isolated.sh",
+      "bytes": 5080,
+      "sha256": "8326798809406efbe0e6ee49fad2887acbd12ac82f93d65a185516c2c736b9f7"
     },
     {
       "path": "qa/facturapi6-sandbox-candidate/runner/policy.ts",
@@ -35,19 +50,29 @@
       "sha256": "bb1a2531aeca0cd03685e33d37a1de81906993f90c5587a1e43c5ff05316badb"
     },
     {
+      "path": "src/lib/qa/facturapi6-preview/__tests__/exclusivity.test.ts",
+      "bytes": 989,
+      "sha256": "9920e3932f88caa06fdb372fcb6b55c8df3ddc25ed7243374d6ee0f55eba4c42"
+    },
+    {
       "path": "src/lib/qa/facturapi6-preview/__tests__/preflight.test.ts",
       "bytes": 17676,
       "sha256": "4915be0df28a0b0bf8431a7bc7c7bf8619b87f547f912150f117d6d9da94286e"
     },
     {
       "path": "src/lib/qa/facturapi6-preview/__tests__/wrapper.test.ts",
-      "bytes": 3551,
-      "sha256": "58ba56d63b58d8f1344060a6f87595b95aa4acce264115cd7979e95f85ce735e"
+      "bytes": 3918,
+      "sha256": "6da1032b9e817a2e5cffb9e6d54e02fd9b350c614d9c706b098110abccd4c867"
     },
     {
       "path": "src/lib/qa/facturapi6-preview/core.server.ts",
       "bytes": 7924,
       "sha256": "e5cbe89aefc0404bf9c0a8373d6da720fcc5f61552b0239d768825dab22b6017"
+    },
+    {
+      "path": "src/lib/qa/facturapi6-preview/exclusivity.server.ts",
+      "bytes": 771,
+      "sha256": "0d0b23c92bf2fc88e37db6e53a11f96b9f22c0c15ed7d7fadb21c87bd087cf6a"
     },
     {
       "path": "src/lib/qa/facturapi6-preview/policy.ts",
@@ -56,8 +81,8 @@
     },
     {
       "path": "src/lib/qa/facturapi6-preview/preflight.functions.ts",
-      "bytes": 2094,
-      "sha256": "2826d3165ddcbe524981e22c3f4399bc866dd6dde44e2ff008fe585379523595"
+      "bytes": 2455,
+      "sha256": "a9a31be4a60e0c434a61b7c5c44c2c49bd35fb8e40fa3af78e2e29f0b8fb9d1c"
     },
     {
       "path": "src/lib/qa/facturapi6-preview/sdk.server.ts",
@@ -66,8 +91,8 @@
     },
     {
       "path": "src/lib/qa/facturapi6-preview/wrapper.server.ts",
-      "bytes": 1944,
-      "sha256": "64780423190ef2a2b47c6fb5e0e6b1704676620871ce416590dcff531d4d9b87"
+      "bytes": 2080,
+      "sha256": "c810a2b409cc9dd3f41ce51536a9b72f9b420f39cabdbd745f74f4de9d6690af"
     },
     {
       "path": "src/routes/qa.facturapi6-preflight.tsx",

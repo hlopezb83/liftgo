@@ -1,3 +1,7 @@
+## [8.50.0] - 2026-11-10
+
+- Prepara, sin aplicarla, una comprobación en la base que responde sólo sí o no sobre si la llave de prueba de la empresa sandbox es exclusiva. Incluye permisos restringidos al servicio interno, pruebas aisladas con datos ficticios y un retiro seguro preparado. La pantalla temporal sigue apagada hasta la revisión independiente. Sin cambios en la base real, publicación ni consultas fiscales.
+
 ## [8.49.2] - 2026-11-10
 
 - Refuerza la pantalla temporal de revisión sandbox: revisa el vencimiento después de cada paso y antes de cada consulta privilegiada, y no crea conexiones cuando está apagada o fuera de la vista previa. Agrega pruebas sin red; sigue bloqueada hasta tener una comprobación segura de exclusividad. Sin publicación, consultas reales ni cambios de datos.
