@@ -87,7 +87,7 @@ describe("CustomersSatValidationPage", () => {
     expect(screen.getByText("Mostrando 1–25 de 1,100 clientes")).toBeInTheDocument();
     expect(screen.getAllByRole("article")).toHaveLength(25);
 
-    fireEvent.click(screen.getByRole("button", { name: "44" }));
+    fireEvent.click(screen.getByRole("button", { name: "Ir a la página 44" }));
     expect(screen.getByText("Mostrando 1,076–1,100 de 1,100 clientes")).toBeInTheDocument();
     expect(screen.getByRole("article", { name: "Cliente Empresa 1099" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Validar pendientes (1)" })).toBeEnabled();

@@ -76,6 +76,28 @@ export function SearchBar({
     inputRef.current?.focus();
   };
 
+  const handleEscape = useEffectEvent((event: KeyboardEvent) => {
+    if (
+      event.key === "Escape" &&
+      !event.isComposing &&
+      event.target === inputRef.current &&
+      local
+    ) {
+      event.preventDefault();
+      event.stopPropagation();
+      handleClear();
+    }
+  });
+
+  useEffect(() => {
+    // Radix procesa Escape en captura de document. Interceptarlo antes, sólo
+    // para este input con texto, evita cerrar el contenedor al limpiar.
+    // Vacío no lo consumimos: el diálogo conserva su cierre y restauración de foco.
+    const ownerWindow = inputRef.current?.ownerDocument.defaultView;
+    ownerWindow?.addEventListener("keydown", handleEscape, { capture: true });
+    return () => ownerWindow?.removeEventListener("keydown", handleEscape, { capture: true });
+  }, []);
+
   const prClass = captureCtrlK
     ? local ? "pr-24" : "pr-16"
     : local ? "pr-9" : "pr-3";

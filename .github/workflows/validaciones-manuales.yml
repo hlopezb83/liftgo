@@ -305,7 +305,7 @@ jobs:
           python3 -m unittest discover -s scripts/tests -p test_ci_database.py
           python3 -m unittest discover -s scripts/tests -p test_control0123_receipt.py
       - name: Setup Supabase CLI
-        uses: supabase/setup-cli@d239d1052f6f024a8d746d7e5aeddead63b9cb53 # v3.1.0
+        uses: supabase/setup-cli@689adcfb80d947100a1eab127289b97d1fb07b13 # v3.2.0
         with:
           version: 2.34.0
       - name: Verificar historial canonico antes de parches locales
@@ -599,7 +599,7 @@ jobs:
       - name: Probar guard de base antes de arrancar la BD
         run: python3 -m unittest discover -s scripts/tests -p test_ci_database.py
       - name: Setup Supabase CLI
-        uses: supabase/setup-cli@d239d1052f6f024a8d746d7e5aeddead63b9cb53 # v3.1.0
+        uses: supabase/setup-cli@689adcfb80d947100a1eab127289b97d1fb07b13 # v3.2.0
         with:
           version: 2.34.0
       - name: Excluir entorno local
