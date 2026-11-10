@@ -1,0 +1,7 @@
+{
+  "description": "Amplía la preparación offline con inventario de dependencias y matriz de adaptación; sin ejecución ni despliegue.",
+  "changes": [
+    "Inventario estático de 46 archivos y pruebas locales con datos ficticios.",
+    "Identifica lectura test-only, exclusividad, transporte y concurrencia pendientes antes de activar."
+  ]
+}

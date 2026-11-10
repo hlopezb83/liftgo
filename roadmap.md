@@ -6,6 +6,7 @@
 - [x] Fase 1: capa SDK 6 preparada como parche sin desplegar (`qa/facturapi6-phase1/`); 1016 pruebas sin red pasan. Aplicarla despliega: espera revisión y tu autorización.
 - [x] Fase 2: paridad de capa SDK 5.2 vs 6 documentada (13/13 con transporte simulado); no demuestra todas las secuencias de persistencia de handlers.
 - [x] Fase 3: plan aislado de sandbox preparado para revisión en `qa/facturapi6-phase3/`, sin ejecutor, despliegue ni ejecución; 2 facturas + REP + NC en ELOGISTIX.
+- [x] Continuación Fase 3: inventario estático de 46 archivos y matriz de adaptación/paridad preparados; 14/14 pruebas locales. Sin ejecutor/activación. Bloqueos: configuración heredada lee livekey/compara secreto en URL, transporte SDK, diario durable y paridad completa; ver `qa/facturapi6-phase3/ADAPTATION_REVIEW.md`.
 - [ ] Fase 3 ejecución: bloqueada por revisión independiente de adaptación de handlers reales/refresh, persistencia, claim/diario secuencial, timeout, pausa/cierre y nueva ventana. No activa el preflight cerrado.
 - [ ] Fase 4: producción en un solo cambio con reversa por redeploy. Fase 5: retiro de 5.2.0.
 

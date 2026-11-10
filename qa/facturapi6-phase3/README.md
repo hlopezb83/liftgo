@@ -17,6 +17,9 @@ Esta carpeta sólo contiene un plan, datos propuestos sin IDs reales y comprobac
 - `fixtures.json`: propuesta de importes y relaciones; **no es payload fiscal ni datos para importar**. No contiene RFC, códigos SAT, llaves, usuario, cliente ni IDs ERP/PAC reales.
 - `test_plan.py`: pruebas locales de esos límites y relaciones, sin paquetes externos ni conexiones.
 - `MANIFEST.json`: SHA-256 de los archivos anteriores para identificar la revisión; no certifica ejecución.
+- `ADAPTATION_REVIEW.md`: cierre de arquitectura, matriz de paridad y bloqueos concretos antes de crear un ejecutor.
+- `audit_imports.py` / `IMPORT_AUDIT.json`: inventario estático local con digests y líneas; no carga TypeScript ni consulta servicios.
+- `test_audit_imports.py`: pruebas del inventario con archivos ficticios; no sustituye pruebas de handlers.
 
 ## Evidencia anterior y límites
 
@@ -31,3 +34,5 @@ Los archivos operativos, SQL aprobado de exclusividad, dependencias y permisos n
 Hay bloqueos de arquitectura, no ausencia de autorización de fixtures: deben resolverse según `TEST_PLAN.md`. La revisión de este documento **no activa** una prueba. Una futura ejecución sandbox escribirá fixtures, estados y archivos en la base compartida con producción, aunque los CFDI sean de prueba. Las pruebas automatizadas con escritura sólo usarán un entorno efímero, nunca esa base compartida.
 
 Validación de esta preparación: `python3 -m unittest discover -s qa/facturapi6-phase3 -p 'test_plan.py' -v`. No ejecutar el runner antiguo.
+
+Continuación 10/11/2026: 14/14 comprobaciones locales (10 de fixtures y 4 del inventario). `python3 -B -m unittest discover -s qa/facturapi6-phase3 -p 'test_*.py' -v`. Inventario: 46 archivos, sin imports relativos faltantes; lectura livekey de la capa candidata y exclusión durable entre etapas siguen siendo bloqueos, no soluciones implementadas. CI completo y paridad de handlers pendientes. No cambió código operativo, preflight, SQL, dependencias ni datos.

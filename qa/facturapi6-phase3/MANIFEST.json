@@ -4,10 +4,15 @@
   "source_commit": "18c8a81efd4e30bd34664d5ae11623a82c14c2d2",
   "candidate_snapshot": "967ac99ce632c284fc35f9a7a62852ab4fd09dcf",
   "files": {
-    "README.md": "2d53c9dfab11dd61bcb20d37e789e96a09ef9b5284252184a4cc310edb30bc5e",
-    "TEST_PLAN.md": "5a5c0564a8e69c5736079c310441cc10acb7ba568b65b9149f09c7b6ba8a9618",
+    "ADAPTATION_REVIEW.md": "fb21d34555d9d6d1ec343c145400e8af275095e0be4f6d8b213e3a4126a70b22",
+    "IMPORT_AUDIT.json": "4ebe0d2120f488291b37343c20c7dc6cc7c2f810f2d74e664c6578723bc3b188",
+    "README.md": "5c989360a79c3a5b18aef34bdcce7d59af2b25007209dd3e1ac8cb6cb0f44c8f",
+    "TEST_PLAN.md": "184512b600f262436885a92741c96fa7234708cde8f186a63366c0f28890bb2a",
+    "audit_imports.py": "3820dea31d2d5431f553de668e44aa1699fbc072d112aef8816094157c10d92b",
     "fixtures.json": "8a5db74411519f05716f530a3e344d6f8c6c0d81823b7f02a5acaaf880aeacb5",
+    "test_audit_imports.py": "55484ac14e25c7b54099571176231760f895554de0a5eecdf9bb87e316e49743",
     "test_plan.py": "f8b12f44463023881e279f722c26d5309830e7f9bc67de4d3a667a2a91f3d690"
   },
-  "closure_sha256": "fd61d973c903d4cfa25ed1658dcefa8d2739e68e6d9f350e01c40f0b620f8e4a"
+  "closure_sha256": "a25ab1913332e5d30e8012da99a8da7eb2fcc35607236a63886f9b53bd2ac44d",
+  "continuation_base_commit": "152a31045"
 }

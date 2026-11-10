@@ -1,3 +1,7 @@
+## [8.52.3] - 2026-11-10
+
+- Amplía la preparación aislada de Fase 3 con inventario de dependencias y matriz de adaptación de funciones fiscales reales; identifica bloqueos de lectura test-only, transporte y exclusión entre etapas. Sin ejecutar, desplegar ni modificar datos.
+
 ## [8.52.2] - 2026-11-10
 
 - Prepara por separado el plan de la Fase 3: dos facturas, un REP y una nota de crédito en modo test de ELOGISTIX, con límites, criterios de revisión y cierre. Sin ejecutar, desplegar ni cambiar datos.

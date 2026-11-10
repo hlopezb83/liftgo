@@ -1,0 +1,1251 @@
+{
+  "method": "static_regex_not_runtime_or_typescript_parser",
+  "entrypoints": [
+    "qa/facturapi6-sandbox-candidate/snapshot/supabase/functions/stamp-cfdi/handler.ts",
+    "qa/facturapi6-sandbox-candidate/snapshot/supabase/functions/stamp-payment-complement/handler.ts",
+    "qa/facturapi6-sandbox-candidate/snapshot/supabase/functions/stamp-credit-note/handler.ts",
+    "qa/facturapi6-sandbox-candidate/snapshot/supabase/functions/cancel-cfdi/handler.ts",
+    "qa/facturapi6-sandbox-candidate/snapshot/supabase/functions/download-cfdi/handler.ts",
+    "supabase/functions/refresh-cancellation-status/handler.ts"
+  ],
+  "files": {
+    "qa/facturapi6-sandbox-candidate/snapshot/supabase/functions/_shared/authWithDeps.ts": {
+      "sha256": "80e8eb74ed758a660b0fa655f01238e145a77e2698e6e067d5593ae8d91742c5",
+      "imports": [
+        {
+          "specifier": "./types.ts",
+          "line": 7,
+          "dynamic": false,
+          "target": "qa/facturapi6-sandbox-candidate/snapshot/supabase/functions/_shared/types.ts"
+        },
+        {
+          "specifier": "./edgeDiagnostics.ts",
+          "line": 8,
+          "dynamic": false,
+          "target": "qa/facturapi6-sandbox-candidate/snapshot/supabase/functions/_shared/edgeDiagnostics.ts"
+        }
+      ],
+      "markers": {
+        "deno_env": [],
+        "serve": [],
+        "deno_other": [],
+        "console": [
+          70,
+          96,
+          108,
+          117,
+          131
+        ]
+      }
+    },
+    "qa/facturapi6-sandbox-candidate/snapshot/supabase/functions/_shared/cfdiRetryQueue.ts": {
+      "sha256": "ccd0b34118eb3295adcb2e0f1203e94500130d439c9812787f7d880065a317e1",
+      "imports": [
+        {
+          "specifier": "./types.ts",
+          "line": 4,
+          "dynamic": false,
+          "target": "qa/facturapi6-sandbox-candidate/snapshot/supabase/functions/_shared/types.ts"
+        },
+        {
+          "specifier": "./facturapi/retryContext.ts",
+          "line": 5,
+          "dynamic": false,
+          "target": "qa/facturapi6-sandbox-candidate/snapshot/supabase/functions/_shared/facturapi/retryContext.ts"
+        }
+      ],
+      "markers": {
+        "deno_env": [],
+        "serve": [],
+        "deno_other": [],
+        "console": [
+          76
+        ]
+      }
+    },
+    "qa/facturapi6-sandbox-candidate/snapshot/supabase/functions/_shared/cfdiUsoRegimen.ts": {
+      "sha256": "16e64783293c3999ddeedd003f2ce0a390cf4cb5324cbf985ea533f7277e2ec5",
+      "imports": [],
+      "markers": {
+        "deno_env": [],
+        "serve": [],
+        "deno_other": [],
+        "console": []
+      }
+    },
+    "qa/facturapi6-sandbox-candidate/snapshot/supabase/functions/_shared/cors.ts": {
+      "sha256": "8fb85fca8faba1314fa4f4548f5d8d8dd54fbeb7ec0dfc84f4c69ff3c3245890",
+      "imports": [],
+      "markers": {
+        "deno_env": [
+          10
+        ],
+        "serve": [],
+        "deno_other": [],
+        "console": []
+      }
+    },
+    "qa/facturapi6-sandbox-candidate/snapshot/supabase/functions/_shared/creditNoteDiscount.ts": {
+      "sha256": "0a17ec85e6071f4d2723e486fbdff6cd689f92207d6addce7d265703babe89c0",
+      "imports": [],
+      "markers": {
+        "deno_env": [],
+        "serve": [],
+        "deno_other": [],
+        "console": []
+      }
+    },
+    "qa/facturapi6-sandbox-candidate/snapshot/supabase/functions/_shared/creditNoteSourceValidation.ts": {
+      "sha256": "c035d24a4138d66547c6a436a0b4f3545492cf3508c9f72494e2707f3e80f84a",
+      "imports": [
+        {
+          "specifier": "./creditNoteDiscount.ts",
+          "line": 1,
+          "dynamic": false,
+          "target": "qa/facturapi6-sandbox-candidate/snapshot/supabase/functions/_shared/creditNoteDiscount.ts"
+        },
+        {
+          "specifier": "./money.ts",
+          "line": 2,
+          "dynamic": false,
+          "target": "qa/facturapi6-sandbox-candidate/snapshot/supabase/functions/_shared/money.ts"
+        }
+      ],
+      "markers": {
+        "deno_env": [],
+        "serve": [],
+        "deno_other": [],
+        "console": []
+      }
+    },
+    "qa/facturapi6-sandbox-candidate/snapshot/supabase/functions/_shared/edgeDiagnostics.ts": {
+      "sha256": "517b1b73867ec4eeebff355a121fb678bfe7c8d27cea9be746899479f906104d",
+      "imports": [],
+      "markers": {
+        "deno_env": [],
+        "serve": [],
+        "deno_other": [],
+        "console": []
+      }
+    },
+    "qa/facturapi6-sandbox-candidate/snapshot/supabase/functions/_shared/facturapi/cancellationResult.ts": {
+      "sha256": "2e6274026b8ef5d770da979cae4de6af209f8fec57d1ca8ab7eed89c92aef691",
+      "imports": [],
+      "markers": {
+        "deno_env": [],
+        "serve": [],
+        "deno_other": [],
+        "console": []
+      }
+    },
+    "qa/facturapi6-sandbox-candidate/snapshot/supabase/functions/_shared/facturapi/client.ts": {
+      "sha256": "4af4b27a63e3cb928ea6e9cd61ea10a7ae92aa5d15efd7e8e5b04d53be92886d",
+      "imports": [
+        {
+          "specifier": "facturapi",
+          "line": 11,
+          "dynamic": false
+        }
+      ],
+      "markers": {
+        "deno_env": [],
+        "serve": [],
+        "deno_other": [],
+        "console": []
+      }
+    },
+    "qa/facturapi6-sandbox-candidate/snapshot/supabase/functions/_shared/facturapi/invoiceRecovery.ts": {
+      "sha256": "3ccc0205dbb54651c834778b308ff20cc3ae00bc98f30293979853ad52dd4beb",
+      "imports": [
+        {
+          "specifier": "./client.ts",
+          "line": 1,
+          "dynamic": false,
+          "target": "qa/facturapi6-sandbox-candidate/snapshot/supabase/functions/_shared/facturapi/client.ts"
+        }
+      ],
+      "markers": {
+        "deno_env": [],
+        "serve": [],
+        "deno_other": [],
+        "console": []
+      }
+    },
+    "qa/facturapi6-sandbox-candidate/snapshot/supabase/functions/_shared/facturapi/notesSection.ts": {
+      "sha256": "f0ed2af168759f58c07776b1de7aacdb9cfd1dcc493c50d4b5a944426ebe7cda",
+      "imports": [],
+      "markers": {
+        "deno_env": [],
+        "serve": [],
+        "deno_other": [],
+        "console": []
+      }
+    },
+    "qa/facturapi6-sandbox-candidate/snapshot/supabase/functions/_shared/facturapi/retryContext.ts": {
+      "sha256": "716c8f435f6aeb56858343c87b899e045ed646452102a4376b6094cf9c52b4e5",
+      "imports": [
+        {
+          "specifier": "../validate.ts",
+          "line": 1,
+          "dynamic": false,
+          "target": "qa/facturapi6-sandbox-candidate/snapshot/supabase/functions/_shared/validate.ts"
+        },
+        {
+          "specifier": "../orgContext.ts",
+          "line": 2,
+          "dynamic": false,
+          "target": "qa/facturapi6-sandbox-candidate/snapshot/supabase/functions/_shared/orgContext.ts"
+        },
+        {
+          "specifier": "./client.ts",
+          "line": 3,
+          "dynamic": false,
+          "target": "qa/facturapi6-sandbox-candidate/snapshot/supabase/functions/_shared/facturapi/client.ts"
+        }
+      ],
+      "markers": {
+        "deno_env": [],
+        "serve": [],
+        "deno_other": [],
+        "console": []
+      }
+    },
+    "qa/facturapi6-sandbox-candidate/snapshot/supabase/functions/_shared/facturapi/withTimeout.ts": {
+      "sha256": "656adadc31aca5e45425f78c0afdf4f154fc56da2faa5c5df27c01d32bca54c5",
+      "imports": [],
+      "markers": {
+        "deno_env": [],
+        "serve": [],
+        "deno_other": [],
+        "console": []
+      }
+    },
+    "qa/facturapi6-sandbox-candidate/snapshot/supabase/functions/_shared/fxGate.ts": {
+      "sha256": "815f702c6e8cff4331caef9dc9156cbb9f2a0b6273ffaa16963d01594f8543af",
+      "imports": [],
+      "markers": {
+        "deno_env": [],
+        "serve": [],
+        "deno_other": [],
+        "console": []
+      }
+    },
+    "qa/facturapi6-sandbox-candidate/snapshot/supabase/functions/_shared/http.ts": {
+      "sha256": "20f9e025ee693fb7908988e0a4d36e70354748ea258857b902840768800170e5",
+      "imports": [
+        {
+          "specifier": "./cors.ts",
+          "line": 4,
+          "dynamic": false,
+          "target": "qa/facturapi6-sandbox-candidate/snapshot/supabase/functions/_shared/cors.ts"
+        }
+      ],
+      "markers": {
+        "deno_env": [],
+        "serve": [],
+        "deno_other": [],
+        "console": []
+      }
+    },
+    "qa/facturapi6-sandbox-candidate/snapshot/supabase/functions/_shared/legacyVat.ts": {
+      "sha256": "b30983d8bd762c6f905d01bcbe16666f059ba4f6eb5583956db2af991581bfe9",
+      "imports": [],
+      "markers": {
+        "deno_env": [],
+        "serve": [],
+        "deno_other": [],
+        "console": []
+      }
+    },
+    "qa/facturapi6-sandbox-candidate/snapshot/supabase/functions/_shared/money.ts": {
+      "sha256": "b5c50ce7c6ff65d6763705275a56f7d74596ddd1b0cad3635d08d050e72316a5",
+      "imports": [],
+      "markers": {
+        "deno_env": [],
+        "serve": [],
+        "deno_other": [],
+        "console": []
+      }
+    },
+    "qa/facturapi6-sandbox-candidate/snapshot/supabase/functions/_shared/orgContext.ts": {
+      "sha256": "f561f96994772ed4a44341cda632ff0afc8081878c8403398b2189e7a535e925",
+      "imports": [],
+      "markers": {
+        "deno_env": [],
+        "serve": [],
+        "deno_other": [],
+        "console": []
+      }
+    },
+    "qa/facturapi6-sandbox-candidate/snapshot/supabase/functions/_shared/regimenFiscal.ts": {
+      "sha256": "dde279288cabe411bb09c346ba58082e3abe9647706057d5af3392eaddc5032f",
+      "imports": [],
+      "markers": {
+        "deno_env": [],
+        "serve": [],
+        "deno_other": [],
+        "console": []
+      }
+    },
+    "qa/facturapi6-sandbox-candidate/snapshot/supabase/functions/_shared/repFolio.ts": {
+      "sha256": "7aad6ffb8c244da2bfe638034744ea5c5343369c8c6fdeb7cd26cf7b669ace62",
+      "imports": [
+        {
+          "specifier": "./types.ts",
+          "line": 10,
+          "dynamic": false,
+          "target": "qa/facturapi6-sandbox-candidate/snapshot/supabase/functions/_shared/types.ts"
+        }
+      ],
+      "markers": {
+        "deno_env": [],
+        "serve": [],
+        "deno_other": [],
+        "console": [
+          120
+        ]
+      }
+    },
+    "qa/facturapi6-sandbox-candidate/snapshot/supabase/functions/_shared/rfcChecksum.ts": {
+      "sha256": "957acad3e0821dc811ff5007dee68ed07c7fac5a406ef263d357d820f626c5d0",
+      "imports": [],
+      "markers": {
+        "deno_env": [],
+        "serve": [],
+        "deno_other": [],
+        "console": []
+      }
+    },
+    "qa/facturapi6-sandbox-candidate/snapshot/supabase/functions/_shared/sanitizeLegalName.ts": {
+      "sha256": "7caaa57cec6323f21329598db781b6f93fd3dad64ee2dcde7b832a5068f53576",
+      "imports": [],
+      "markers": {
+        "deno_env": [],
+        "serve": [],
+        "deno_other": [],
+        "console": []
+      }
+    },
+    "qa/facturapi6-sandbox-candidate/snapshot/supabase/functions/_shared/storagePath.ts": {
+      "sha256": "a843ba0c913e5a28b031617960f30c18e813eec3ee7b465f49824e50a4e28e39",
+      "imports": [
+        {
+          "specifier": "./validate.ts",
+          "line": 1,
+          "dynamic": false,
+          "target": "qa/facturapi6-sandbox-candidate/snapshot/supabase/functions/_shared/validate.ts"
+        }
+      ],
+      "markers": {
+        "deno_env": [],
+        "serve": [],
+        "deno_other": [],
+        "console": []
+      }
+    },
+    "qa/facturapi6-sandbox-candidate/snapshot/supabase/functions/_shared/types.ts": {
+      "sha256": "99252b757f32b367561eca8d10df07c1dc45db0727f532ad72428e99e8663d37",
+      "imports": [],
+      "markers": {
+        "deno_env": [],
+        "serve": [],
+        "deno_other": [],
+        "console": []
+      }
+    },
+    "qa/facturapi6-sandbox-candidate/snapshot/supabase/functions/_shared/validate.ts": {
+      "sha256": "17e9437d178553df923f0fcf6fc718c34c8ac0a93677110665d36e8e2c5d6503",
+      "imports": [],
+      "markers": {
+        "deno_env": [],
+        "serve": [],
+        "deno_other": [],
+        "console": []
+      }
+    },
+    "qa/facturapi6-sandbox-candidate/snapshot/supabase/functions/cancel-cfdi/handler.ts": {
+      "sha256": "65608b8607efd7630a7ce116b6f2fc2fa6751c9d8aa2ab6c13145a5d7db8ab58",
+      "imports": [
+        {
+          "specifier": "../_shared/facturapi/cancellationResult.ts",
+          "line": 1,
+          "dynamic": false,
+          "target": "qa/facturapi6-sandbox-candidate/snapshot/supabase/functions/_shared/facturapi/cancellationResult.ts"
+        },
+        {
+          "specifier": "../_shared/cors.ts",
+          "line": 3,
+          "dynamic": false,
+          "target": "qa/facturapi6-sandbox-candidate/snapshot/supabase/functions/_shared/cors.ts"
+        },
+        {
+          "specifier": "../_shared/http.ts",
+          "line": 4,
+          "dynamic": false,
+          "target": "qa/facturapi6-sandbox-candidate/snapshot/supabase/functions/_shared/http.ts"
+        },
+        {
+          "specifier": "../_shared/validate.ts",
+          "line": 5,
+          "dynamic": false,
+          "target": "qa/facturapi6-sandbox-candidate/snapshot/supabase/functions/_shared/validate.ts"
+        },
+        {
+          "specifier": "../_shared/types.ts",
+          "line": 6,
+          "dynamic": false,
+          "target": "qa/facturapi6-sandbox-candidate/snapshot/supabase/functions/_shared/types.ts"
+        },
+        {
+          "specifier": "../_shared/authWithDeps.ts",
+          "line": 7,
+          "dynamic": false,
+          "target": "qa/facturapi6-sandbox-candidate/snapshot/supabase/functions/_shared/authWithDeps.ts"
+        },
+        {
+          "specifier": "../_shared/facturapi/client.ts",
+          "line": 8,
+          "dynamic": false,
+          "target": "qa/facturapi6-sandbox-candidate/snapshot/supabase/functions/_shared/facturapi/client.ts"
+        },
+        {
+          "specifier": "../_shared/orgContext.ts",
+          "line": 13,
+          "dynamic": false,
+          "target": "qa/facturapi6-sandbox-candidate/snapshot/supabase/functions/_shared/orgContext.ts"
+        },
+        {
+          "specifier": "../_shared/facturapi/retryContext.ts",
+          "line": 14,
+          "dynamic": false,
+          "target": "qa/facturapi6-sandbox-candidate/snapshot/supabase/functions/_shared/facturapi/retryContext.ts"
+        },
+        {
+          "specifier": "../_shared/facturapi/withTimeout.ts",
+          "line": 15,
+          "dynamic": false,
+          "target": "qa/facturapi6-sandbox-candidate/snapshot/supabase/functions/_shared/facturapi/withTimeout.ts"
+        },
+        {
+          "specifier": "../_shared/cfdiRetryQueue.ts",
+          "line": 19,
+          "dynamic": false,
+          "target": "qa/facturapi6-sandbox-candidate/snapshot/supabase/functions/_shared/cfdiRetryQueue.ts"
+        }
+      ],
+      "markers": {
+        "deno_env": [],
+        "serve": [],
+        "deno_other": [],
+        "console": [
+          299
+        ]
+      }
+    },
+    "qa/facturapi6-sandbox-candidate/snapshot/supabase/functions/download-cfdi/handler.ts": {
+      "sha256": "60c0aa047f87de3c46f06c5b9c0a951908273c90ce0f1c34caf4d42ac9b2773c",
+      "imports": [
+        {
+          "specifier": "../_shared/cors.ts",
+          "line": 6,
+          "dynamic": false,
+          "target": "qa/facturapi6-sandbox-candidate/snapshot/supabase/functions/_shared/cors.ts"
+        },
+        {
+          "specifier": "../_shared/http.ts",
+          "line": 7,
+          "dynamic": false,
+          "target": "qa/facturapi6-sandbox-candidate/snapshot/supabase/functions/_shared/http.ts"
+        },
+        {
+          "specifier": "../_shared/types.ts",
+          "line": 8,
+          "dynamic": false,
+          "target": "qa/facturapi6-sandbox-candidate/snapshot/supabase/functions/_shared/types.ts"
+        },
+        {
+          "specifier": "../_shared/validate.ts",
+          "line": 9,
+          "dynamic": false,
+          "target": "qa/facturapi6-sandbox-candidate/snapshot/supabase/functions/_shared/validate.ts"
+        },
+        {
+          "specifier": "../_shared/storagePath.ts",
+          "line": 10,
+          "dynamic": false,
+          "target": "qa/facturapi6-sandbox-candidate/snapshot/supabase/functions/_shared/storagePath.ts"
+        },
+        {
+          "specifier": "../_shared/facturapi/client.ts",
+          "line": 11,
+          "dynamic": false,
+          "target": "qa/facturapi6-sandbox-candidate/snapshot/supabase/functions/_shared/facturapi/client.ts"
+        },
+        {
+          "specifier": "../_shared/orgContext.ts",
+          "line": 16,
+          "dynamic": false,
+          "target": "qa/facturapi6-sandbox-candidate/snapshot/supabase/functions/_shared/orgContext.ts"
+        },
+        {
+          "specifier": "../_shared/facturapi/withTimeout.ts",
+          "line": 21,
+          "dynamic": false,
+          "target": "qa/facturapi6-sandbox-candidate/snapshot/supabase/functions/_shared/facturapi/withTimeout.ts"
+        }
+      ],
+      "markers": {
+        "deno_env": [
+          324
+        ],
+        "serve": [],
+        "deno_other": [],
+        "console": [
+          98,
+          154,
+          275,
+          282,
+          349,
+          438,
+          448,
+          468,
+          484,
+          636,
+          747,
+          843,
+          914,
+          921
+        ]
+      }
+    },
+    "qa/facturapi6-sandbox-candidate/snapshot/supabase/functions/stamp-cfdi/handler.ts": {
+      "sha256": "cb5beecf9ee61e9238e6d4e8a18dea92058fc2994d12bc4714c57a78d31dbc6e",
+      "imports": [
+        {
+          "specifier": "../_shared/legacyVat.ts",
+          "line": 1,
+          "dynamic": false,
+          "target": "qa/facturapi6-sandbox-candidate/snapshot/supabase/functions/_shared/legacyVat.ts"
+        },
+        {
+          "specifier": "../_shared/cors.ts",
+          "line": 4,
+          "dynamic": false,
+          "target": "qa/facturapi6-sandbox-candidate/snapshot/supabase/functions/_shared/cors.ts"
+        },
+        {
+          "specifier": "../_shared/http.ts",
+          "line": 5,
+          "dynamic": false,
+          "target": "qa/facturapi6-sandbox-candidate/snapshot/supabase/functions/_shared/http.ts"
+        },
+        {
+          "specifier": "../_shared/validate.ts",
+          "line": 6,
+          "dynamic": false,
+          "target": "qa/facturapi6-sandbox-candidate/snapshot/supabase/functions/_shared/validate.ts"
+        },
+        {
+          "specifier": "../_shared/storagePath.ts",
+          "line": 7,
+          "dynamic": false,
+          "target": "qa/facturapi6-sandbox-candidate/snapshot/supabase/functions/_shared/storagePath.ts"
+        },
+        {
+          "specifier": "../_shared/types.ts",
+          "line": 8,
+          "dynamic": false,
+          "target": "qa/facturapi6-sandbox-candidate/snapshot/supabase/functions/_shared/types.ts"
+        },
+        {
+          "specifier": "../_shared/facturapi/client.ts",
+          "line": 9,
+          "dynamic": false,
+          "target": "qa/facturapi6-sandbox-candidate/snapshot/supabase/functions/_shared/facturapi/client.ts"
+        },
+        {
+          "specifier": "../_shared/facturapi/invoiceRecovery.ts",
+          "line": 13,
+          "dynamic": false,
+          "target": "qa/facturapi6-sandbox-candidate/snapshot/supabase/functions/_shared/facturapi/invoiceRecovery.ts"
+        },
+        {
+          "specifier": "../_shared/facturapi/retryContext.ts",
+          "line": 14,
+          "dynamic": false,
+          "target": "qa/facturapi6-sandbox-candidate/snapshot/supabase/functions/_shared/facturapi/retryContext.ts"
+        },
+        {
+          "specifier": "../_shared/orgContext.ts",
+          "line": 18,
+          "dynamic": false,
+          "target": "qa/facturapi6-sandbox-candidate/snapshot/supabase/functions/_shared/orgContext.ts"
+        },
+        {
+          "specifier": "../_shared/cfdiRetryQueue.ts",
+          "line": 19,
+          "dynamic": false,
+          "target": "qa/facturapi6-sandbox-candidate/snapshot/supabase/functions/_shared/cfdiRetryQueue.ts"
+        },
+        {
+          "specifier": "../_shared/money.ts",
+          "line": 23,
+          "dynamic": false,
+          "target": "qa/facturapi6-sandbox-candidate/snapshot/supabase/functions/_shared/money.ts"
+        },
+        {
+          "specifier": "../_shared/authWithDeps.ts",
+          "line": 24,
+          "dynamic": false,
+          "target": "qa/facturapi6-sandbox-candidate/snapshot/supabase/functions/_shared/authWithDeps.ts"
+        },
+        {
+          "specifier": "./invoicePayload.ts",
+          "line": 25,
+          "dynamic": false,
+          "target": "qa/facturapi6-sandbox-candidate/snapshot/supabase/functions/stamp-cfdi/invoicePayload.ts"
+        },
+        {
+          "specifier": "./invoiceGateway.ts",
+          "line": 26,
+          "dynamic": false,
+          "target": "qa/facturapi6-sandbox-candidate/snapshot/supabase/functions/stamp-cfdi/invoiceGateway.ts"
+        },
+        {
+          "specifier": "./saleSatCodes.ts",
+          "line": 27,
+          "dynamic": false,
+          "target": "qa/facturapi6-sandbox-candidate/snapshot/supabase/functions/stamp-cfdi/saleSatCodes.ts"
+        }
+      ],
+      "markers": {
+        "deno_env": [],
+        "serve": [],
+        "deno_other": [],
+        "console": [
+          79,
+          91,
+          107,
+          116,
+          126,
+          189,
+          226,
+          243,
+          276,
+          381,
+          510,
+          515,
+          534,
+          539,
+          566,
+          597,
+          644,
+          666,
+          681
+        ]
+      }
+    },
+    "qa/facturapi6-sandbox-candidate/snapshot/supabase/functions/stamp-cfdi/invoiceGateway.ts": {
+      "sha256": "60265694d138525ccb471ec380c8e3bfc642851b9bd9eeb551365dd7f852b984",
+      "imports": [
+        {
+          "specifier": "../_shared/facturapi/client.ts",
+          "line": 1,
+          "dynamic": false,
+          "target": "qa/facturapi6-sandbox-candidate/snapshot/supabase/functions/_shared/facturapi/client.ts"
+        }
+      ],
+      "markers": {
+        "deno_env": [],
+        "serve": [],
+        "deno_other": [],
+        "console": []
+      }
+    },
+    "qa/facturapi6-sandbox-candidate/snapshot/supabase/functions/stamp-cfdi/invoicePayload.ts": {
+      "sha256": "cf82efddd0288c2b9fe7a3a093c4907d08c8fec267ef2a723176ff803849dfaf",
+      "imports": [
+        {
+          "specifier": "../_shared/facturapi/notesSection.ts",
+          "line": 1,
+          "dynamic": false,
+          "target": "qa/facturapi6-sandbox-candidate/snapshot/supabase/functions/_shared/facturapi/notesSection.ts"
+        },
+        {
+          "specifier": "../_shared/money.ts",
+          "line": 2,
+          "dynamic": false,
+          "target": "qa/facturapi6-sandbox-candidate/snapshot/supabase/functions/_shared/money.ts"
+        },
+        {
+          "specifier": "../_shared/sanitizeLegalName.ts",
+          "line": 3,
+          "dynamic": false,
+          "target": "qa/facturapi6-sandbox-candidate/snapshot/supabase/functions/_shared/sanitizeLegalName.ts"
+        },
+        {
+          "specifier": "../_shared/cfdiUsoRegimen.ts",
+          "line": 4,
+          "dynamic": false,
+          "target": "qa/facturapi6-sandbox-candidate/snapshot/supabase/functions/_shared/cfdiUsoRegimen.ts"
+        },
+        {
+          "specifier": "../_shared/regimenFiscal.ts",
+          "line": 5,
+          "dynamic": false,
+          "target": "qa/facturapi6-sandbox-candidate/snapshot/supabase/functions/_shared/regimenFiscal.ts"
+        },
+        {
+          "specifier": "../_shared/rfcChecksum.ts",
+          "line": 9,
+          "dynamic": false,
+          "target": "qa/facturapi6-sandbox-candidate/snapshot/supabase/functions/_shared/rfcChecksum.ts"
+        },
+        {
+          "specifier": "../_shared/fxGate.ts",
+          "line": 10,
+          "dynamic": false,
+          "target": "qa/facturapi6-sandbox-candidate/snapshot/supabase/functions/_shared/fxGate.ts"
+        },
+        {
+          "specifier": "./saleSatCodes.ts",
+          "line": 11,
+          "dynamic": false,
+          "target": "qa/facturapi6-sandbox-candidate/snapshot/supabase/functions/stamp-cfdi/saleSatCodes.ts"
+        }
+      ],
+      "markers": {
+        "deno_env": [],
+        "serve": [],
+        "deno_other": [],
+        "console": []
+      }
+    },
+    "qa/facturapi6-sandbox-candidate/snapshot/supabase/functions/stamp-cfdi/saleSatCodes.ts": {
+      "sha256": "7747701dfce3a9cf2fba652d478cc06dad77fec2d93d4e1c5b2bbf23442e13d2",
+      "imports": [
+        {
+          "specifier": "../_shared/types.ts",
+          "line": 1,
+          "dynamic": false,
+          "target": "qa/facturapi6-sandbox-candidate/snapshot/supabase/functions/_shared/types.ts"
+        },
+        {
+          "specifier": "../_shared/validate.ts",
+          "line": 2,
+          "dynamic": false,
+          "target": "qa/facturapi6-sandbox-candidate/snapshot/supabase/functions/_shared/validate.ts"
+        }
+      ],
+      "markers": {
+        "deno_env": [],
+        "serve": [],
+        "deno_other": [],
+        "console": []
+      }
+    },
+    "qa/facturapi6-sandbox-candidate/snapshot/supabase/functions/stamp-credit-note/handler.ts": {
+      "sha256": "9efe256e40f32289d9e83616beca6e4014dac2bae93864a31fb0c0c103ecff42",
+      "imports": [
+        {
+          "specifier": "../_shared/cors.ts",
+          "line": 2,
+          "dynamic": false,
+          "target": "qa/facturapi6-sandbox-candidate/snapshot/supabase/functions/_shared/cors.ts"
+        },
+        {
+          "specifier": "../_shared/http.ts",
+          "line": 3,
+          "dynamic": false,
+          "target": "qa/facturapi6-sandbox-candidate/snapshot/supabase/functions/_shared/http.ts"
+        },
+        {
+          "specifier": "../_shared/validate.ts",
+          "line": 4,
+          "dynamic": false,
+          "target": "qa/facturapi6-sandbox-candidate/snapshot/supabase/functions/_shared/validate.ts"
+        },
+        {
+          "specifier": "../_shared/storagePath.ts",
+          "line": 5,
+          "dynamic": false,
+          "target": "qa/facturapi6-sandbox-candidate/snapshot/supabase/functions/_shared/storagePath.ts"
+        },
+        {
+          "specifier": "../_shared/regimenFiscal.ts",
+          "line": 6,
+          "dynamic": false,
+          "target": "qa/facturapi6-sandbox-candidate/snapshot/supabase/functions/_shared/regimenFiscal.ts"
+        },
+        {
+          "specifier": "../_shared/sanitizeLegalName.ts",
+          "line": 10,
+          "dynamic": false,
+          "target": "qa/facturapi6-sandbox-candidate/snapshot/supabase/functions/_shared/sanitizeLegalName.ts"
+        },
+        {
+          "specifier": "../_shared/authWithDeps.ts",
+          "line": 11,
+          "dynamic": false,
+          "target": "qa/facturapi6-sandbox-candidate/snapshot/supabase/functions/_shared/authWithDeps.ts"
+        },
+        {
+          "specifier": "../_shared/rfcChecksum.ts",
+          "line": 12,
+          "dynamic": false,
+          "target": "qa/facturapi6-sandbox-candidate/snapshot/supabase/functions/_shared/rfcChecksum.ts"
+        },
+        {
+          "specifier": "../_shared/types.ts",
+          "line": 13,
+          "dynamic": false,
+          "target": "qa/facturapi6-sandbox-candidate/snapshot/supabase/functions/_shared/types.ts"
+        },
+        {
+          "specifier": "../_shared/facturapi/client.ts",
+          "line": 14,
+          "dynamic": false,
+          "target": "qa/facturapi6-sandbox-candidate/snapshot/supabase/functions/_shared/facturapi/client.ts"
+        },
+        {
+          "specifier": "../_shared/facturapi/invoiceRecovery.ts",
+          "line": 23,
+          "dynamic": false,
+          "target": "qa/facturapi6-sandbox-candidate/snapshot/supabase/functions/_shared/facturapi/invoiceRecovery.ts"
+        },
+        {
+          "specifier": "../_shared/orgContext.ts",
+          "line": 24,
+          "dynamic": false,
+          "target": "qa/facturapi6-sandbox-candidate/snapshot/supabase/functions/_shared/orgContext.ts"
+        },
+        {
+          "specifier": "../_shared/facturapi/withTimeout.ts",
+          "line": 25,
+          "dynamic": false,
+          "target": "qa/facturapi6-sandbox-candidate/snapshot/supabase/functions/_shared/facturapi/withTimeout.ts"
+        },
+        {
+          "specifier": "../_shared/money.ts",
+          "line": 29,
+          "dynamic": false,
+          "target": "qa/facturapi6-sandbox-candidate/snapshot/supabase/functions/_shared/money.ts"
+        },
+        {
+          "specifier": "../_shared/fxGate.ts",
+          "line": 30,
+          "dynamic": false,
+          "target": "qa/facturapi6-sandbox-candidate/snapshot/supabase/functions/_shared/fxGate.ts"
+        },
+        {
+          "specifier": "../_shared/creditNoteSourceValidation.ts",
+          "line": 31,
+          "dynamic": false,
+          "target": "qa/facturapi6-sandbox-candidate/snapshot/supabase/functions/_shared/creditNoteSourceValidation.ts"
+        }
+      ],
+      "markers": {
+        "deno_env": [],
+        "serve": [],
+        "deno_other": [],
+        "console": [
+          85,
+          95,
+          117,
+          127,
+          156,
+          163,
+          199,
+          212,
+          316,
+          505,
+          519,
+          595,
+          601,
+          620,
+          626,
+          657,
+          695,
+          753,
+          773,
+          815
+        ]
+      }
+    },
+    "qa/facturapi6-sandbox-candidate/snapshot/supabase/functions/stamp-payment-complement/decisions.ts": {
+      "sha256": "9b427ca0ca393d483ee8a0fc37e20ee060f66f790d207237af85649b0cf6d90f",
+      "imports": [
+        {
+          "specifier": "../_shared/fxGate.ts",
+          "line": 10,
+          "dynamic": false,
+          "target": "qa/facturapi6-sandbox-candidate/snapshot/supabase/functions/_shared/fxGate.ts"
+        }
+      ],
+      "markers": {
+        "deno_env": [],
+        "serve": [],
+        "deno_other": [],
+        "console": []
+      }
+    },
+    "qa/facturapi6-sandbox-candidate/snapshot/supabase/functions/stamp-payment-complement/handler.ts": {
+      "sha256": "e1e66d9594fa428041a53ff8898ec7d9edc1833f3554034235d82e1685951c09",
+      "imports": [
+        {
+          "specifier": "./taxBreakdown.ts",
+          "line": 1,
+          "dynamic": false,
+          "target": "qa/facturapi6-sandbox-candidate/snapshot/supabase/functions/stamp-payment-complement/taxBreakdown.ts"
+        },
+        {
+          "specifier": "../_shared/cors.ts",
+          "line": 5,
+          "dynamic": false,
+          "target": "qa/facturapi6-sandbox-candidate/snapshot/supabase/functions/_shared/cors.ts"
+        },
+        {
+          "specifier": "../_shared/http.ts",
+          "line": 6,
+          "dynamic": false,
+          "target": "qa/facturapi6-sandbox-candidate/snapshot/supabase/functions/_shared/http.ts"
+        },
+        {
+          "specifier": "../_shared/validate.ts",
+          "line": 7,
+          "dynamic": false,
+          "target": "qa/facturapi6-sandbox-candidate/snapshot/supabase/functions/_shared/validate.ts"
+        },
+        {
+          "specifier": "../_shared/storagePath.ts",
+          "line": 8,
+          "dynamic": false,
+          "target": "qa/facturapi6-sandbox-candidate/snapshot/supabase/functions/_shared/storagePath.ts"
+        },
+        {
+          "specifier": "../_shared/facturapi/client.ts",
+          "line": 9,
+          "dynamic": false,
+          "target": "qa/facturapi6-sandbox-candidate/snapshot/supabase/functions/_shared/facturapi/client.ts"
+        },
+        {
+          "specifier": "../_shared/facturapi/invoiceRecovery.ts",
+          "line": 17,
+          "dynamic": false,
+          "target": "qa/facturapi6-sandbox-candidate/snapshot/supabase/functions/_shared/facturapi/invoiceRecovery.ts"
+        },
+        {
+          "specifier": "../_shared/orgContext.ts",
+          "line": 18,
+          "dynamic": false,
+          "target": "qa/facturapi6-sandbox-candidate/snapshot/supabase/functions/_shared/orgContext.ts"
+        },
+        {
+          "specifier": "../_shared/repFolio.ts",
+          "line": 19,
+          "dynamic": false,
+          "target": "qa/facturapi6-sandbox-candidate/snapshot/supabase/functions/_shared/repFolio.ts"
+        },
+        {
+          "specifier": "../_shared/facturapi/withTimeout.ts",
+          "line": 20,
+          "dynamic": false,
+          "target": "qa/facturapi6-sandbox-candidate/snapshot/supabase/functions/_shared/facturapi/withTimeout.ts"
+        },
+        {
+          "specifier": "../_shared/rfcChecksum.ts",
+          "line": 24,
+          "dynamic": false,
+          "target": "qa/facturapi6-sandbox-candidate/snapshot/supabase/functions/_shared/rfcChecksum.ts"
+        },
+        {
+          "specifier": "../_shared/sanitizeLegalName.ts",
+          "line": 25,
+          "dynamic": false,
+          "target": "qa/facturapi6-sandbox-candidate/snapshot/supabase/functions/_shared/sanitizeLegalName.ts"
+        },
+        {
+          "specifier": "../_shared/regimenFiscal.ts",
+          "line": 27,
+          "dynamic": false,
+          "target": "qa/facturapi6-sandbox-candidate/snapshot/supabase/functions/_shared/regimenFiscal.ts"
+        },
+        {
+          "specifier": "./decisions.ts",
+          "line": 31,
+          "dynamic": false,
+          "target": "qa/facturapi6-sandbox-candidate/snapshot/supabase/functions/stamp-payment-complement/decisions.ts"
+        },
+        {
+          "specifier": "../_shared/types.ts",
+          "line": 37,
+          "dynamic": false,
+          "target": "qa/facturapi6-sandbox-candidate/snapshot/supabase/functions/_shared/types.ts"
+        }
+      ],
+      "markers": {
+        "deno_env": [],
+        "serve": [],
+        "deno_other": [],
+        "console": [
+          122,
+          191,
+          235,
+          249,
+          293,
+          513,
+          523,
+          590,
+          608,
+          627,
+          643,
+          668
+        ]
+      }
+    },
+    "qa/facturapi6-sandbox-candidate/snapshot/supabase/functions/stamp-payment-complement/taxBreakdown.ts": {
+      "sha256": "f7edd12a09582ad6d4baa964674552a25a59e94da2134dc1224dedd1d818078a",
+      "imports": [
+        {
+          "specifier": "../_shared/money.ts",
+          "line": 1,
+          "dynamic": false,
+          "target": "qa/facturapi6-sandbox-candidate/snapshot/supabase/functions/_shared/money.ts"
+        }
+      ],
+      "markers": {
+        "deno_env": [],
+        "serve": [],
+        "deno_other": [],
+        "console": []
+      }
+    },
+    "supabase/functions/_shared/authWithDeps.ts": {
+      "sha256": "80e8eb74ed758a660b0fa655f01238e145a77e2698e6e067d5593ae8d91742c5",
+      "imports": [
+        {
+          "specifier": "./types.ts",
+          "line": 7,
+          "dynamic": false,
+          "target": "supabase/functions/_shared/types.ts"
+        },
+        {
+          "specifier": "./edgeDiagnostics.ts",
+          "line": 8,
+          "dynamic": false,
+          "target": "supabase/functions/_shared/edgeDiagnostics.ts"
+        }
+      ],
+      "markers": {
+        "deno_env": [],
+        "serve": [],
+        "deno_other": [],
+        "console": [
+          70,
+          96,
+          108,
+          117,
+          131
+        ]
+      }
+    },
+    "supabase/functions/_shared/cors.ts": {
+      "sha256": "8fb85fca8faba1314fa4f4548f5d8d8dd54fbeb7ec0dfc84f4c69ff3c3245890",
+      "imports": [],
+      "markers": {
+        "deno_env": [
+          10
+        ],
+        "serve": [],
+        "deno_other": [],
+        "console": []
+      }
+    },
+    "supabase/functions/_shared/edgeDiagnostics.ts": {
+      "sha256": "517b1b73867ec4eeebff355a121fb678bfe7c8d27cea9be746899479f906104d",
+      "imports": [],
+      "markers": {
+        "deno_env": [],
+        "serve": [],
+        "deno_other": [],
+        "console": []
+      }
+    },
+    "supabase/functions/_shared/facturapi/client.ts": {
+      "sha256": "113f4cbf2b14a53f8b540ea746737ec175743a530c1d6ee8f40e0f1523cb97f1",
+      "imports": [
+        {
+          "specifier": "facturapi",
+          "line": 11,
+          "dynamic": false
+        }
+      ],
+      "markers": {
+        "deno_env": [],
+        "serve": [],
+        "deno_other": [],
+        "console": []
+      }
+    },
+    "supabase/functions/_shared/facturapi/retryContext.ts": {
+      "sha256": "716c8f435f6aeb56858343c87b899e045ed646452102a4376b6094cf9c52b4e5",
+      "imports": [
+        {
+          "specifier": "../validate.ts",
+          "line": 1,
+          "dynamic": false,
+          "target": "supabase/functions/_shared/validate.ts"
+        },
+        {
+          "specifier": "../orgContext.ts",
+          "line": 2,
+          "dynamic": false,
+          "target": "supabase/functions/_shared/orgContext.ts"
+        },
+        {
+          "specifier": "./client.ts",
+          "line": 3,
+          "dynamic": false,
+          "target": "supabase/functions/_shared/facturapi/client.ts"
+        }
+      ],
+      "markers": {
+        "deno_env": [],
+        "serve": [],
+        "deno_other": [],
+        "console": []
+      }
+    },
+    "supabase/functions/_shared/facturapi/withTimeout.ts": {
+      "sha256": "ab719a12f2342f9d79be8b2326de53a8dc0a7e6dbca47798ccff13b0ec5e8164",
+      "imports": [],
+      "markers": {
+        "deno_env": [],
+        "serve": [],
+        "deno_other": [],
+        "console": []
+      }
+    },
+    "supabase/functions/_shared/http.ts": {
+      "sha256": "20f9e025ee693fb7908988e0a4d36e70354748ea258857b902840768800170e5",
+      "imports": [
+        {
+          "specifier": "./cors.ts",
+          "line": 4,
+          "dynamic": false,
+          "target": "supabase/functions/_shared/cors.ts"
+        }
+      ],
+      "markers": {
+        "deno_env": [],
+        "serve": [],
+        "deno_other": [],
+        "console": []
+      }
+    },
+    "supabase/functions/_shared/orgContext.ts": {
+      "sha256": "f561f96994772ed4a44341cda632ff0afc8081878c8403398b2189e7a535e925",
+      "imports": [],
+      "markers": {
+        "deno_env": [],
+        "serve": [],
+        "deno_other": [],
+        "console": []
+      }
+    },
+    "supabase/functions/_shared/types.ts": {
+      "sha256": "99252b757f32b367561eca8d10df07c1dc45db0727f532ad72428e99e8663d37",
+      "imports": [],
+      "markers": {
+        "deno_env": [],
+        "serve": [],
+        "deno_other": [],
+        "console": []
+      }
+    },
+    "supabase/functions/_shared/validate.ts": {
+      "sha256": "17e9437d178553df923f0fcf6fc718c34c8ac0a93677110665d36e8e2c5d6503",
+      "imports": [],
+      "markers": {
+        "deno_env": [],
+        "serve": [],
+        "deno_other": [],
+        "console": []
+      }
+    },
+    "supabase/functions/refresh-cancellation-status/handler.ts": {
+      "sha256": "d8e04365ebbe9c32bb76529173f8b92662d1106ea93e82ba9b277ce0ae89c8d1",
+      "imports": [
+        {
+          "specifier": "../_shared/cors.ts",
+          "line": 2,
+          "dynamic": false,
+          "target": "supabase/functions/_shared/cors.ts"
+        },
+        {
+          "specifier": "../_shared/http.ts",
+          "line": 3,
+          "dynamic": false,
+          "target": "supabase/functions/_shared/http.ts"
+        },
+        {
+          "specifier": "../_shared/validate.ts",
+          "line": 4,
+          "dynamic": false,
+          "target": "supabase/functions/_shared/validate.ts"
+        },
+        {
+          "specifier": "../_shared/types.ts",
+          "line": 5,
+          "dynamic": false,
+          "target": "supabase/functions/_shared/types.ts"
+        },
+        {
+          "specifier": "../_shared/authWithDeps.ts",
+          "line": 6,
+          "dynamic": false,
+          "target": "supabase/functions/_shared/authWithDeps.ts"
+        },
+        {
+          "specifier": "../_shared/facturapi/client.ts",
+          "line": 7,
+          "dynamic": false,
+          "target": "supabase/functions/_shared/facturapi/client.ts"
+        },
+        {
+          "specifier": "../_shared/orgContext.ts",
+          "line": 13,
+          "dynamic": false,
+          "target": "supabase/functions/_shared/orgContext.ts"
+        },
+        {
+          "specifier": "../_shared/facturapi/retryContext.ts",
+          "line": 14,
+          "dynamic": false,
+          "target": "supabase/functions/_shared/facturapi/retryContext.ts"
+        },
+        {
+          "specifier": "../_shared/facturapi/withTimeout.ts",
+          "line": 15,
+          "dynamic": false,
+          "target": "supabase/functions/_shared/facturapi/withTimeout.ts"
+        }
+      ],
+      "markers": {
+        "deno_env": [],
+        "serve": [],
+        "deno_other": [],
+        "console": [
+          162,
+          175,
+          234
+        ]
+      }
+    }
+  },
+  "missing_local": [],
+  "outside_root": [],
+  "external_specifiers": [
+    "facturapi"
+  ]
+}
