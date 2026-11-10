@@ -10,3 +10,4 @@
 - Invoice-form legacy quote-charge review blocks only invoices carrying traced charges of that quote, mirroring the database guard; rent-only invoices (extensions) must not be blocked by unrelated history.
 - RPCs added by a not-yet-applied migration are called through a local typed contract (e.g. `quoteChargeLegacyRpc.ts`), never by editing generated Supabase types, so the preview compiles before the database catches up.
 - Vite entry points must prepare release metadata through the shared generator and then validate source identity; direct hosting builds do not guarantee package lifecycle hooks.
+- Temporary SDK preflight uses a disabled Preview-only server function with a separately pinned npm alias; this keeps operational Deno dependencies unchanged and secrets behind verified session, role and tenant reads.

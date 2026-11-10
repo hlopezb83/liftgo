@@ -1,3 +1,7 @@
+## [8.49.0] - 2026-11-10
+
+- Prepara una pantalla temporal de revisión de emisor sandbox, deshabilitada hasta revisión, con sesión real, administrador activo, empresa fija y ventana máxima de dos horas. SDK 6 aislado y pruebas sin red; sin publicación, consultas reales, documentos fiscales ni escrituras ERP.
+
 ## [8.48.2] - 2026-11-10
 
 - Alinea las cinco expectativas de almacenamiento de sesión con los dominios que reconoce el editor, verifica el identificador enviado y conserva los controles de origen confiable, cierre de sesión y respaldo local. Sólo pruebas; sin cambiar autenticación, datos ni publicación.

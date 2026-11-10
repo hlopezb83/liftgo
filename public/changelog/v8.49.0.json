@@ -1,0 +1,12 @@
+{
+  "version": "8.49.0",
+  "date": "2026-11-10",
+  "type": "minor",
+  "category": "feature",
+  "title": "Revisión temporal sandbox preparada y deshabilitada",
+  "description": "Pantalla aislada de comprobación del emisor con SDK 6, sin ejecución hasta revisión independiente.",
+  "changes": [
+    "Sesión real, administrador activo y pertenencia verificada antes de credenciales exclusivamente test.",
+    "Ventana máxima de dos horas y apagado cerrado; pruebas offline, sin publicación ni escrituras ERP."
+  ]
+}
