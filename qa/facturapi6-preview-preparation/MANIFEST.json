@@ -2,7 +2,7 @@
   "base_commit": "c2cd0ac5a879f9c41fc1bbfc281816a72cfd81f1",
   "sdk": "facturapi@6.0.0",
   "closure_rule": "sorted path:sha256 LF",
-  "closure_sha256": "ac6d6c179f25fea6155732a1ee692a68289f4e868012d397c336f4df2535f9b4",
+  "closure_sha256": "995578ce25020b050ecc7f07767722908c79bb2df1892fea161342427d069e0d",
   "files": [
     {
       "path": "bun.lock",
@@ -16,23 +16,23 @@
     },
     {
       "path": "qa/facturapi6-preview-preparation/README.md",
-      "bytes": 9973,
-      "sha256": "8f8b838759b2a2f651151da7c14f636c6c8ce08ca1f9d1e565d0cf0114e67091"
+      "bytes": 10696,
+      "sha256": "26b2415b5155be2f1922dc6eb34c680d29d77aca334abb210fc4c386efb2248b"
     },
     {
       "path": "qa/facturapi6-preview-preparation/sql/0134_qa_fx6_test_key_exclusive.sql",
-      "bytes": 2195,
-      "sha256": "03dafba89d3282a31e78f0b7557f2fc71686ae457c0467a620bd588f8a6245b7"
+      "bytes": 3819,
+      "sha256": "14fa5d91e379333cf995fc7da130502a765d324bc9db1c1e0f5a1b72446eb374"
     },
     {
       "path": "qa/facturapi6-preview-preparation/sql/recovery_disable_not_executed.sql",
-      "bytes": 484,
-      "sha256": "78594ddd52adafcfe3ba4ff628826a6c0174bbc6225d54bc5c36f5d03311232a"
+      "bytes": 1700,
+      "sha256": "3842f449899ba2f33bc745312f43d2f87e6db18b68231cc9320ce491f89414fb"
     },
     {
       "path": "qa/facturapi6-preview-preparation/sql/test_isolated.sh",
-      "bytes": 5080,
-      "sha256": "8326798809406efbe0e6ee49fad2887acbd12ac82f93d65a185516c2c736b9f7"
+      "bytes": 7272,
+      "sha256": "5a5683a94c347e5f65e106599559e8195c3211e703212e763c89190b309d7c7c"
     },
     {
       "path": "qa/facturapi6-sandbox-candidate/runner/policy.ts",
