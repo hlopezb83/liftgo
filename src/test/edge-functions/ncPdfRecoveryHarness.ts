@@ -14,6 +14,8 @@ const mocks = vi.hoisted(() => ({
   createClient: vi.fn(),
   lookup: vi.fn(),
   retrieve: vi.fn(),
+  retrieveWithSignal: vi.fn(),
+  pdfWithSignal: vi.fn(),
   pdf: vi.fn(),
   xml: vi.fn(),
   create: vi.fn(),
@@ -48,6 +50,8 @@ vi.mock("../../../supabase/functions/_shared/repFolio.ts", () => ({
 vi.mock("../../../supabase/functions/_shared/facturapi/client.ts", () => ({
   getFacturapiConfigForOrganization: mocks.config,
   createFacturapiClient: mocks.createClient,
+  retrieveInvoiceWithSignal: mocks.retrieveWithSignal,
+  downloadInvoicePdfWithSignal: mocks.pdfWithSignal,
   binaryToText: async (value: unknown) => value,
   binaryToBytes: async (value: unknown) => value,
   retryOnFacturapi5xx: (fn: () => unknown) => fn(),
@@ -124,8 +128,30 @@ export function expectGuardedCas(write: QueryRecord, snapshot: Row) {
   );
 }
 
+// Keep the SDK adapter at the existing I/O mock boundary. The real adapter's
+// transport behavior is covered by sdk6_contract_test.ts; these spies retain
+// the per-call signal so handler tests can verify timeout cancellation.
+type InvoiceIoClient = {
+  invoices: {
+    retrieve: (id: string) => Promise<unknown>;
+    downloadPdf: (id: string) => Promise<unknown>;
+  };
+};
+
 beforeEach(() => {
   vi.resetAllMocks();
+  mocks.retrieveWithSignal.mockImplementation(
+    (client: InvoiceIoClient, id: string, options: { signal?: AbortSignal }) => {
+      options.signal?.throwIfAborted();
+      return client.invoices.retrieve(id);
+    },
+  );
+  mocks.pdfWithSignal.mockImplementation(
+    (client: InvoiceIoClient, id: string, options: { signal?: AbortSignal }) => {
+      options.signal?.throwIfAborted();
+      return client.invoices.downloadPdf(id);
+    },
+  );
   vi.useFakeTimers({ toFake: ["Date"] });
   vi.setSystemTime(new Date(PDF_NOW));
   mocks.auth.mockResolvedValue({ ok: true });

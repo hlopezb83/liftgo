@@ -59,10 +59,16 @@ START_EXCLUDES = {
 # Its empty snapshot links to 0131. All earlier sources and Supabase migrations
 # remain unchanged. Only the exact target-bound receipt is excluded from CI;
 # 0132 remains byte-identical and required in the observed replay ledger.
+# QA preflight 0134, reviewed from 1ca1753e3 through ddd94a4, adds only
+# a fixed-tenant boolean SECURITY DEFINER function with explicit search_path,
+# owner/service_role-only EXECUTE and a fail-closed exact ACL assertion.
+# Its body reads test-key exclusivity only when invoked; installation has no
+# business DML, HTTP or cron operations. The journal appends only entry 134;
+# its empty snapshot links to 0133. All earlier migration bytes are unchanged.
 # Any subsequent history change requires explicit source review.
 SOURCE_TREES = {
     "supabase/migrations": "3e3575f5ff6d509ecdd624ae7fc1772508b5dce6",
-    "drizzle/migrations": "9f580d5bfd5344aab55f1cec3a2338526b34cd35",
+    "drizzle/migrations": "d676be459c28e69b83041513ba24c86a84bc3e80",
 }
 HTTP_SOURCES = {
     "20260721000000_retry_queue_cron.sql": "2aecccd0758961f41769d9fed522d03df14937650b9dde80fce47646a1fa6887",
