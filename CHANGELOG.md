@@ -1,6 +1,14 @@
+## [8.48.2] - 2026-11-10
+
+- Alinea las cinco expectativas de almacenamiento de sesión con los dominios que reconoce el editor, verifica el identificador enviado y conserva los controles de origen confiable, cierre de sesión y respaldo local. Sólo pruebas; sin cambiar autenticación, datos ni publicación.
+
+## [8.48.1] - 2026-11-10
+
+- Corrige la compilación directa de la vista previa: genera la identidad de la versión antes de comprobarla contra las fuentes actuales, sin quitar la validación de integridad. Sin publicación ni cambios de datos.
+
 ## [Sin publicar] - 2026-11-09
 
-- Reconstruye GitHub Actions con un CI automático de calidad, unitarias completas sin cobertura y un build/smoke aislado. Consolida las validaciones pesadas en ejecución manual y retira las actions locales y las programaciones anteriores. Rendimiento pendiente de medición remota.
+- Reconstruye GitHub Actions con un CI automático de calidad, unitarias completas sin cobertura y un build/smoke aislado. Consolida las validaciones pesadas en ejecución manual y retira las actions locales y las programaciones anteriores. Validado en GitHub Actions: dos corridas calientes correctas de 3:54 y 3:45; las quince validaciones manuales también pasaron en entornos efímeros.
 
 ## [8.48.0] - 2026-11-05
 

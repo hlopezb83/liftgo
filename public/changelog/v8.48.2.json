@@ -1,0 +1,12 @@
+{
+  "version": "8.48.2",
+  "date": "2026-11-10",
+  "type": "patch",
+  "category": "fix",
+  "title": "Pruebas de sesión alineadas con el editor",
+  "description": "Corrige cinco expectativas desactualizadas de las pruebas de sesión, sin modificar el funcionamiento de autenticación.",
+  "changes": [
+    "Verifica los dominios de vista previa reconocidos y el identificador enviado al editor confiable.",
+    "Conserva las pruebas de origen, cierre de sesión y respaldo local; agrega identificadores malformados."
+  ]
+}

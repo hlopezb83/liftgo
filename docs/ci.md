@@ -36,10 +36,14 @@ La reconstrucción del 9 de noviembre de 2026 incluye eliminar el historial de A
 
 Dependabot mantiene su configuración de actualizaciones. Los registros dinámicos de GitHub y sus alertas de seguridad son administrados por GitHub; no se duplica CodeQL programado en YAML. No se cambian la protección de main ni el despliegue de Lovable.
 
-La aceptación exige diez corridas completas menores de cinco minutos, con caché fría y caliente. Se registran SHA, evento, particiones, resultado, tiempo desde creación hasta cierre, preparación/colas y pasos lentos. El registro de resultados se completará con evidencia remota; no se acredita la meta con estimaciones locales.
+Validación final: dos corridas calientes sobre el commit 993677d6607b4a99f452250f7daa6b3189f377b6, ambas correctas en **234 s (3:54)** y **225 s (3:45)**. Los logs confirman hits de paquetes y Chromium en ambas. El tiempo incluye colas, preparación y cierre de jobs. Las quince validaciones manuales también pasaron (313 s de pared) en entornos efímeros. La evidencia por corrida y los hashes de workflows están en [ci-benchmark-2026-11-09.json](qa/ci-benchmark-2026-11-09.json).
 
 La validación fría detectó dos representaciones CDN alternantes de tslib@2.8.1 bajo la misma URL. Las pruebas Deno generan un import map temporal que usa una copia local de la fuente oficial, verificada contra un commit fijo de Microsoft y por SHA-256. Conservan todos los aliases del manifiesto actual y --frozen/--cached-only para el resto del grafo. El manifiesto y lock productivos permanecen originales. La procedencia y comparación de estructura están en [ci-tslib-integrity-2026-11-09.json](qa/ci-tslib-integrity-2026-11-09.json).
 
 ## Dependencias de funciones Cloud
 
 El manifiesto y lock de supabase/functions son el contrato versionado de las funciones. El CLI Deno seleccionado en CI verifica ese código, pero no acredita la versión ni compatibilidad del runtime del hosting. Las actualizaciones de SDK y las verificaciones de empaquetado/publicación de Cloud se revisan por separado. El mapa temporal de tslib se usa exclusivamente en el harness offline y no modifica el contrato desplegado.
+
+La prueba complementaria anterior tardó 232 s con paquetes, Chromium y Gitleaks sin caché del repositorio. El instalador de Bun reutilizó su caché binaria, por lo que ese ensayo se clasifica como dependencias frías y no como instalación de runtime totalmente fría. La validación final quedó limitada a las dos corridas calientes registradas.
+
+Después de estas mediciones, main recibió cambios concurrentes del generador de versión, build y preview. Los dos workflows conservaron sus bytes; los resultados anteriores corresponden al commit identificado en la evidencia.

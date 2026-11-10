@@ -31,14 +31,11 @@ afterEach(() => { vi.unstubAllGlobals(); vi.useRealTimers(); });
 describe("published preview auth storage boundary", () => {
   it.each([
     "liftgo.lovable.app",
-    `live--${PROJECT}.lovable.app`,
-    `live--${PROJECT}-thr_abc123.lovable.app`,
     `preview--name-${PROJECT}.lovable.app`,
     `id-preview--${PROJECT}.lovable.app.evil.example`,
     `id-preview--${PROJECT}extra.lovable.app`,
-    "id-preview--00000000-0000-0000-0000-000000000000.lovable.app",
-    "id-preview--e25ace4a-172e-7082-a037-00473dacf2f2.lovable.app",
-    "id-preview--e25ace4a-172e-4082-0037-00473dacf2f2.lovable.app",
+    "id-preview--not-a-uuid.lovable.app",
+    "id-preview--e25ace4a-172e-4082-a037-00473dacf2f.lovable.app",
   ])("keeps local storage without broker calls on %s", (host) => {
     const { local, parent } = surface(host);
     expect(brokeredPreviewStorage()).toBe(local);
@@ -46,13 +43,28 @@ describe("published preview auth storage boundary", () => {
   });
 
   it.each([
-    `id-preview--${PROJECT}.lovable.app`,
-    `id-preview-abc--${PROJECT}-dev.lovableproject-dev.com`,
-    `project--${PROJECT}.lovableproject.com`,
-    `${PROJECT}.lovableproject.com`,
-  ])("preserves existing broker selection on %s", (host) => {
-    const { local } = surface(host);
-    expect(brokeredPreviewStorage()).not.toBe(local);
+    [`id-preview--${PROJECT}.lovable.app`, PROJECT],
+    [`id-preview-abc--${PROJECT}-dev.lovableproject-dev.com`, PROJECT],
+    [`project--${PROJECT}.lovableproject.com`, PROJECT],
+    [`${PROJECT}.lovableproject.com`, PROJECT],
+    [`live--${PROJECT}.lovable.app`, PROJECT],
+    [`live--${PROJECT}-thr_abc123.lovable.app`, PROJECT],
+    ["id-preview--00000000-0000-0000-0000-000000000000.lovable.app", "00000000-0000-0000-0000-000000000000"],
+    ["id-preview--e25ace4a-172e-7082-a037-00473dacf2f2.lovable.app", "e25ace4a-172e-7082-a037-00473dacf2f2"],
+    ["id-preview--e25ace4a-172e-4082-0037-00473dacf2f2.lovable.app", "e25ace4a-172e-4082-0037-00473dacf2f2"],
+  ])("preserves existing broker selection on %s", async (host, projectId) => {
+    // The generated broker accepts UUID-shaped IDs, not only UUID v4.
+    const { local, parent, reply } = surface(host);
+    const storage = brokeredPreviewStorage();
+    expect(storage).not.toBe(local);
+    if (!storage) throw new Error("Expected preview storage");
+    const result = storage.getItem("synthetic-session");
+    expect(parent.postMessage).toHaveBeenCalledTimes(1);
+    const [request, origin] = parent.postMessage.mock.calls[0];
+    expect(origin).toBe("https://lovable.dev");
+    expect(request).toMatchObject({ projectId, type: "lovable-preview-auth:get", key: "synthetic-session" });
+    reply({ type: "lovable-preview-auth:result", requestId: request.requestId, ok: true, value: "synthetic-value" });
+    expect(await result).toBe("synthetic-value");
   });
 
   it("keeps standalone previews local", () => {
@@ -68,7 +80,8 @@ describe("published preview auth storage boundary", () => {
   it("preserves trusted-origin replies and logout tombstones", async () => {
     const { local, parent, reply } = surface(`id-preview--${PROJECT}.lovable.app`);
     local.setItem("synthetic-session", "synthetic-value");
-    const storage = brokeredPreviewStorage()!;
+    const storage = brokeredPreviewStorage();
+    if (!storage) throw new Error("Expected preview storage");
     const result = storage.getItem("synthetic-session");
     const [request, origin] = parent.postMessage.mock.calls[0];
     expect(origin).toBe("https://lovable.dev");
@@ -84,7 +97,9 @@ describe("published preview auth storage boundary", () => {
     vi.useFakeTimers();
     const { local, parent } = surface(`id-preview--${PROJECT}.lovable.app`);
     local.setItem("synthetic-session", "synthetic-value");
-    const result = brokeredPreviewStorage()!.getItem("synthetic-session");
+    const storage = brokeredPreviewStorage();
+    if (!storage) throw new Error("Expected preview storage");
+    const result = storage.getItem("synthetic-session");
     await vi.advanceTimersByTimeAsync(4250);
     expect(await result).toBe("synthetic-value");
     expect(parent.postMessage).toHaveBeenCalledTimes(2);
