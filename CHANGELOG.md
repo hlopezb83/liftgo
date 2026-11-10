@@ -4,7 +4,7 @@
 
 ## [Sin publicar] - 2026-11-09
 
-- Reconstruye GitHub Actions con un CI automático de calidad, unitarias completas sin cobertura y un build/smoke aislado. Consolida las validaciones pesadas en ejecución manual y retira las actions locales y las programaciones anteriores. Rendimiento pendiente de medición remota.
+- Reconstruye GitHub Actions con un CI automático de calidad, unitarias completas sin cobertura y un build/smoke aislado. Consolida las validaciones pesadas en ejecución manual y retira las actions locales y las programaciones anteriores. Validado en GitHub Actions: dos corridas calientes correctas de 3:54 y 3:45; las quince validaciones manuales también pasaron en entornos efímeros.
 
 ## [8.48.0] - 2026-11-05
 
