@@ -24,6 +24,7 @@ import { computeStampVariance } from "../_shared/money.ts";
 import { authenticateWithDeps } from "../_shared/authWithDeps.ts";
 import { buildInvoicePayload } from "./invoicePayload.ts";
 import type { InvoiceGateway } from "./invoiceGateway.ts";
+import { resolveSaleSatContext, validateSaleSatCodes } from "./saleSatCodes.ts";
 
 // Re-exports usados por las pruebas y por cancel-payment-complement.
 export { computeStampVariance };
@@ -149,6 +150,25 @@ export async function handleStampCfdi(
       return json(
         { error: LEGACY_VAT_MESSAGE, code: "OBSOLETE_VAT_RATE" },
         422,
+        jsonHeaders,
+      );
+    }
+
+    // Validate stored sale sources before any claim, configuration or test stub.
+    // Rejection must not change the invoice or call the fiscal provider.
+    const saleSat = await resolveSaleSatContext(supabase, inv, organizationId);
+    if (!saleSat.ok) {
+      return json(
+        { error: saleSat.error, code: saleSat.code },
+        saleSat.status,
+        jsonHeaders,
+      );
+    }
+    const saleSatCheck = validateSaleSatCodes(inv, saleSat.context);
+    if (!saleSatCheck.ok) {
+      return json(
+        { error: saleSatCheck.error, code: saleSatCheck.code },
+        saleSatCheck.status,
         jsonHeaders,
       );
     }
@@ -315,7 +335,11 @@ export async function handleStampCfdi(
 
     const gateway = deps.createInvoiceGateway(apiKey);
 
-    const built = buildInvoicePayload({ invoiceId: invoice_id, invoice: inv });
+    const built = buildInvoicePayload({
+      invoiceId: invoice_id,
+      invoice: inv,
+      saleSatContext: saleSat.context,
+    });
     if (!built.ok) {
       await releaseClaim(built.claimError);
       return json({ error: built.error }, built.status, jsonHeaders);

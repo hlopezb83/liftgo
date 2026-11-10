@@ -68,7 +68,7 @@ beforeEach(() => {
   transportQueryFn.mockReset();
   transportQueryFn.mockResolvedValue([]);
   access.allowed = true;
-  useBookingExtensionsMock.mockReturnValue({ data: undefined, isLoading: false, isError: false, refetch: vi.fn() });
+  useBookingExtensionsMock.mockReturnValue({ data: undefined, isLoading: false, isError: false, isFetchedAfterMount: true, fetchStatus: "idle", refetch: vi.fn() });
 });
 
 describe("BookingDetail (FE4-02)", () => {

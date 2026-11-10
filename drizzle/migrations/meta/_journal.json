@@ -890,6 +890,55 @@
       "when": 1793905200000,
       "tag": "0126_delivery_historical_reconciliation",
       "breakpoints": true
+    },
+    {
+      "idx": 127,
+      "version": "7",
+      "when": 1794056400000,
+      "tag": "0127_invoice_source_transaction",
+      "breakpoints": true
+    },
+    {
+      "idx": 128,
+      "version": "7",
+      "when": 1794081979795,
+      "tag": "0128_control0127_verified_release",
+      "breakpoints": true
+    },
+    {
+      "idx": 129,
+      "version": "7",
+      "when": 1794132000000,
+      "tag": "0129_quotes_server_page",
+      "breakpoints": true
+    },
+    {
+      "idx": 130,
+      "version": "7",
+      "when": 1794153218000,
+      "tag": "0130_sale_quote_invoice_uniqueness",
+      "breakpoints": true
+    },
+    {
+      "idx": 131,
+      "version": "7",
+      "when": 1794160319241,
+      "tag": "0131_control0129_0130_verified_release",
+      "breakpoints": true
+    },
+    {
+      "idx": 132,
+      "version": "7",
+      "when": 1794171600000,
+      "tag": "0132_inventory_server_page",
+      "breakpoints": true
+    },
+    {
+      "idx": 133,
+      "version": "7",
+      "when": 1794173743361,
+      "tag": "0133_control0132_verified_release",
+      "breakpoints": true
     }
   ]
 }

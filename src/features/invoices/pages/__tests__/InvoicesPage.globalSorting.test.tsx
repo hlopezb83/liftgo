@@ -28,6 +28,10 @@ vi.mock("@/components/layout/ListPageLayout", () => ({
 vi.mock("@/lib/exportCsv", () => ({ exportToCsvGuarded: api.exportCsv }));
 vi.mock("@/lib/ui/appFeedback", () => ({ notifySuccess: vi.fn(), notifyError: api.notifyError }));
 vi.mock("@/contexts/pageActions", () => ({ usePageActions: () => undefined }));
+// This is a list-query integration test, not booking/quote mutation or auth
+// coverage. Keep their cache keys without evaluating unrelated feature barrels.
+vi.mock("@/features/bookings", () => ({ bookingKeys: { all: ["bookings"] } }));
+vi.mock("@/features/quotes", () => ({ quoteKeys: { all: ["quotes"] } }));
 vi.mock("@/features/users", () => ({ useHasModuleAccess: (_module: string, access: string) => access === "read" }));
 vi.mock("@/contexts/OrganizationContext", () => ({ useVerifiedOrganizationId: () => "org-a" }));
 vi.mock("@/lib/query/useVerifiedIdentityScope", () => ({ useVerifiedIdentityScope: () => "user:org-a" }));

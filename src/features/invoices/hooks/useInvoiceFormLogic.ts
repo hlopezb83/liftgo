@@ -10,6 +10,7 @@ import type { LineItem } from "@/lib/domain/invoiceHelpers";
 import { hasLegacyVat } from "@/lib/fiscal/legacyVat";
 import { zodResolver } from "@/lib/forms/zodResolver";
 import type { BusinessBlock } from "@/lib/rules/businessBlocks";
+import { notifyWarning } from "@/lib/ui/appFeedback";
 import { nowMty } from "@/lib/utils";
 import { lateRecoverySelectionError } from "../lib/bookingCompatibility";
 import {
@@ -188,7 +189,11 @@ export function useInvoiceFormLogic({ id, fromQuoteId, extensionId = null }: Use
   const [serverSaleAssignmentBlock, setServerSaleAssignmentBlock] = useState<BusinessBlock | null>(null);
   const submit = useInvoiceFormSubmit({
     onBusinessBlock: (block) => {
-      if (block.code === "quote_sale_assignment_incomplete") setServerSaleAssignmentBlock(block);
+      if (block.code === "quote_sale_assignment_incomplete") {
+        setServerSaleAssignmentBlock(block);
+      } else {
+        notifyWarning(block.action, { description: `${block.reason} ${block.nextStep}` });
+      }
     },
   });
   const uniqueBookingQuoteIds = collectBookingQuoteIds(bookings);
@@ -196,15 +201,14 @@ export function useInvoiceFormLogic({ id, fromQuoteId, extensionId = null }: Use
   const { relatedQuoteIds, chargeAvailability, bookingSourceBlock, chargeAvailabilityError } = useInvoiceQuoteCharges({
     form, bookings, invoiceBookingsRows, existing, fromQuoteId, currentInvoiceId: id,
   });
-  const { quoteChargePrefillError } = useInvoicePrefill({ existing, sourceQuote, assignments, forklifts, customers, isEdit, form, existingBookingIds,
+  const { quoteChargePrefillError, sourceQuoteVersion } = useInvoicePrefill({ existing, sourceQuote, assignments, forklifts, customers, isEdit, form, existingBookingIds,
     chargeAvailability: chargeAvailability.isError ? undefined : chargeAvailability.data });
   const { handleCustomerSelect, handleBookingSelect, handleBookingsChange, isLoadingCharges, chargeSelectionError, retryChargeSelection } = useInvoiceFormHandlers({
     form, customers, bookings: periods.handlerBookings, forklifts, quotes: bookingSourceQuotes,
     loadQuoteCharges: chargeAvailability.loadForQuotes,
   });
   const selectedBookingIds = useWatch({ control: form.control, name: "bookingIds" });
-  const chargeBlock = invoiceChargeBlock(isLoadingCharges, periods.linkedBlock(selectedBookingIds),
-    bookingSourceBlock, chargeSelectionError, chargeAvailabilityError, quoteChargePrefillError);
+
 
   const totals = useInvoiceFormTotals(form);
 
@@ -213,14 +217,15 @@ export function useInvoiceFormLogic({ id, fromQuoteId, extensionId = null }: Use
   // v7.307.0: al facturar una extensión, la reserva YA tiene factura del
   // período original. Se re-habilita para poder ligar la factura del tramo
   // extendido; el doble cobro lo evita el guard de `booking_extensions`.
-  const { extension } = useExtensionPrefill({
+  const { extension, prefillBlock, isLoadingPrefill, retryPrefill, interruptPrefill } = useExtensionPrefill({
     isEdit,
     extensionId,
-    customersLoaded: Boolean(customers?.length),
     form,
     handleCustomerSelect,
   });
   const extensionBookingId = extension?.booking_id ?? null;
+  const chargeBlock = invoiceChargeBlock(isLoadingCharges, periods.linkedBlock(selectedBookingIds),
+    bookingSourceBlock, chargeSelectionError, chargeAvailabilityError, quoteChargePrefillError, prefillBlock ?? null);
 
   const availableBookings = filterAvailableBookings(
     periods.candidates as BookingWithForklift[] | undefined,
@@ -292,22 +297,25 @@ export function useInvoiceFormLogic({ id, fromQuoteId, extensionId = null }: Use
     invoiceVersion,
     customers, availableBookings,
     sourceQuote,
+    sourceQuoteVersion,
     saleAssignmentGuard,
     serverSaleAssignmentBlock,
     extension,
-    handleCustomerSelect, handleBookingSelect, handleBookingsChange,
+    handleCustomerSelect: (...args: Parameters<typeof handleCustomerSelect>) => { interruptPrefill(); handleCustomerSelect(...args); },
+    handleBookingSelect: (bookingId: string) => { interruptPrefill(); handleBookingSelect(bookingId); },
+    handleBookingsChange: (bookingIds: string[]) => { interruptPrefill(); return handleBookingsChange(bookingIds); },
     onSubmit,
     validateSelection,
     chargeBlock,
     bookingAvailabilityBlock: [candidatesBlock, periods.availabilityBlock].find(Boolean) ?? null,
     retryChargeAvailability: () => {
+      if (prefillBlock) return retryPrefill();
       if ([candidatesBlock, periods.block, periods.invalidHistory].some(Boolean)) return Promise.all([bookingsQuery.refetch(), periods.refetch()]);
       if (bookingSourceBlock) return Promise.all([bookingsQuery.refetch(), invoiceBookingsQuery.refetch()]);
       return chargeSelectionError ? retryChargeSelection() : chargeAvailability.refetch();
     },
-    isLoadingChargeAvailability: [bookingsQuery.isFetching, isLoadingCharges, chargeAvailability.isFetching, periods.isFetching].some(Boolean),
+    isLoadingChargeAvailability: [bookingsQuery.isFetching, isLoadingCharges, chargeAvailability.isFetching, periods.isFetching, isLoadingPrefill].some(Boolean),
     saveInvoice: submit.saveInvoice,
-    updateQuote: submit.updateQuote,
     subtotal: totals.subtotal, taxAmount: totals.taxAmount, total: totals.total,
     isPending: submit.isPending,
   };

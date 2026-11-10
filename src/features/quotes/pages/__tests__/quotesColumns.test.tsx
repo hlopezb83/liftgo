@@ -27,6 +27,9 @@ describe("buildQuotesColumns Untranslated wrapping", () => {
     expect(c1.querySelector('[translate="no"]')?.textContent).toContain("COT-0001");
     expect(c2.querySelector('[translate="no"]')?.textContent).toContain("Industrias del Valle");
   });
+  it("keeps the natural folio header", () => {
+    expect(buildQuotesColumns<typeof quote>().find((column) => column.id === "quote_number")?.header).toBe("Folio");
+  });
   it.each(["USD", "MXN"])("el total identifica %s aunque ambas monedas usen el signo $", (currency) => {
     const row = { ...quote, total: 1160, currency };
     const column = buildQuotesColumns<typeof row>().find((c) => c.id === "total");

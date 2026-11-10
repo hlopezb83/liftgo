@@ -3,6 +3,7 @@ import { afterEach, describe, expect, it } from "vitest";
 import { useForm, useWatch } from "react-hook-form";
 import { Form } from "@/components/ui/form";
 import { useInvoiceFormTotals } from "../../../hooks/invoiceForm/useInvoiceFormTotals";
+import type { InvoiceLineItemSource } from "../../../hooks/invoiceForm/invoiceSatDefaults";
 import { buildEmptyInvoiceValues, type InvoiceFormValues, type LineItemValues } from "../../../lib/invoiceFormSchema";
 import { EditableLineItemsTable } from "../EditableLineItemsTable";
 
@@ -15,7 +16,7 @@ const quotedLines: LineItemValues[] = [
     total: 750.50, discount: 75.05, discount_type: "$", objeto_imp: "02" },
 ];
 
-function Harness({ lines = quotedLines, currency = "MXN" }: { lines?: LineItemValues[]; currency?: string }) {
+function Harness({ lines = quotedLines, currency = "MXN", source }: { lines?: LineItemValues[]; currency?: string; source?: InvoiceLineItemSource }) {
   const form = useForm<InvoiceFormValues>({
     defaultValues: { ...buildEmptyInvoiceValues(), lineItems: lines,
       cfdi: { ...buildEmptyInvoiceValues().cfdi, moneda: currency } },
@@ -24,7 +25,7 @@ function Harness({ lines = quotedLines, currency = "MXN" }: { lines?: LineItemVa
   const stored = useWatch({ control: form.control, name: "lineItems" });
   return (
     <Form {...form}>
-      <EditableLineItemsTable />
+      <EditableLineItemsTable source={source} />
       <button onClick={() => form.setValue("cfdi.moneda", "MXN")}>Cambiar a pesos</button>
       <button onClick={() => form.setValue("cfdi.moneda", "USD")}>Cambiar a dólares</button>
       <output aria-label="Totales contables">{JSON.stringify(totals)}</output>
@@ -98,6 +99,34 @@ describe("EditableLineItemsTable — descuentos visibles", () => {
   });
 });
 
+describe("EditableLineItemsTable — explicit sale SAT selection", () => {
+  it("shows empty SAT selectors for a new sale row even if the source has no rows", () => {
+    render(<Harness lines={[]} source={{ quoteId: "sale-quote", quoteType: "sale" }} />);
+    fireEvent.click(screen.getByRole("button", { name: "Agregar Fila" }));
+    expect(screen.getByRole("combobox", { name: "Clave SAT partida 1" })).toHaveTextContent("Código");
+    expect(screen.getByRole("combobox", { name: "Unidad SAT partida 1" })).toHaveTextContent("Unidad");
+    expect(JSON.parse(screen.getByLabelText("Partidas conservadas").textContent ?? "[]")[0])
+      .toMatchObject({ line_kind: "sale", clave_prod_serv: "", clave_unidad: "" });
+  });
+
+  it("keeps sale context after removing the final row and adding a replacement", () => {
+    render(<Harness lines={[{ description: "Equipo vendido", quantity: 1, unit_price: 1000, total: 1000,
+      line_kind: "sale", clave_prod_serv: "24101603", clave_unidad: "H87" }]} />);
+    fireEvent.click(screen.getByRole("button", { name: "Eliminar partida" }));
+    expect(screen.getByText("Sin partidas aún")).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Agregar Fila" }));
+    expect(JSON.parse(screen.getByLabelText("Partidas conservadas").textContent ?? "[]")[0])
+      .toMatchObject({ line_kind: "sale", clave_prod_serv: "", clave_unidad: "" });
+  });
+
+  it("does not use rental defaults while the quote type is unresolved", () => {
+    render(<Harness lines={[]} source={{ quoteId: "pending-quote" }} />);
+    fireEvent.click(screen.getByRole("button", { name: "Agregar Fila" }));
+    expect(JSON.parse(screen.getByLabelText("Partidas conservadas").textContent ?? "[]")[0])
+      .toMatchObject({ line_kind: "manual", clave_prod_serv: "", clave_unidad: "" });
+  });
+});
+
 describe("EditableLineItemsTable — persistent quote origins", () => {
   it("exposes SAT code and name and keeps codes outside the usual catalog without changing the line", () => {
     const line: LineItemValues = { description: "Servicio", quantity: 1, unit_price: 100, total: 100,
@@ -132,5 +161,31 @@ describe("EditableLineItemsTable — persistent quote origins", () => {
     expect(lines[0].line_kind).toBe("manual");
     expect(lines[0].source_quote_id).toBeUndefined();
     expect(lines[0].source_quote_line_id).toBeUndefined();
+  });
+});
+
+
+describe("explicit equipment SAT catalog choices", () => {
+  it.each([
+    ["24101602", "24101602 - Montacargas"],
+    ["24101603", "24101603 - Elevadores forklift"],
+  ])("selects %s and H87 only after the user chooses them", async (code, label) => {
+    render(<Harness lines={[]} source={{ quoteId: "sale-quote", quoteType: "sale" }} />);
+    fireEvent.click(screen.getByRole("button", { name: "Agregar Fila" }));
+    const values = () => JSON.parse(screen.getByLabelText("Partidas conservadas").textContent ?? "[]")[0];
+    expect(values()).toMatchObject({ clave_prod_serv: "", clave_unidad: "" });
+    fireEvent.keyDown(screen.getByRole("combobox", { name: "Clave SAT partida 1" }), { key: "ArrowDown" });
+    expect(screen.getByRole("option", { name: "78181500 - Alquiler de equipo de manejo de materiales" })).toBeInTheDocument();
+    fireEvent.keyDown(screen.getByRole("listbox"), { key: "Escape" });
+    expect(values()).toMatchObject({ clave_prod_serv: "", clave_unidad: "" });
+    fireEvent.keyDown(screen.getByRole("combobox", { name: "Clave SAT partida 1" }), { key: "ArrowDown" });
+    fireEvent.click(screen.getByRole("option", { name: label }));
+    expect(values()).toMatchObject({ clave_prod_serv: code, clave_unidad: "" });
+    fireEvent.keyDown(screen.getByRole("combobox", { name: "Unidad SAT partida 1" }), { key: "ArrowDown" });
+    fireEvent.click(screen.getByRole("option", { name: "H87 - Pieza" }));
+    expect(values()).toMatchObject({ clave_prod_serv: code, clave_unidad: "H87", line_kind: "sale" });
+    fireEvent.click(screen.getByRole("button", { name: "Agregar Fila" }));
+    const lines = JSON.parse(screen.getByLabelText("Partidas conservadas").textContent ?? "[]");
+    expect(lines[1]).toMatchObject({ clave_prod_serv: "", clave_unidad: "" });
   });
 });

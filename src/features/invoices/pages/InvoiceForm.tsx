@@ -1,5 +1,5 @@
 import { useRef } from "react";
-import { useFormContext, useWatch } from "react-hook-form";
+import { useFormContext, useFormState, useWatch } from "react-hook-form";
 import { TotalsSummary } from "@/components/domain/TotalsSummary";
 import { EmptyState } from "@/components/feedback/EmptyState";
 import { FormActions } from "@/components/forms/FormActions";
@@ -8,7 +8,6 @@ import { PageContainer } from "@/components/layout/PageContainer";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form, FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form";
 import { Textarea } from "@/components/ui/textarea";
-import { useLinkExtensionInvoice } from "@/features/bookings";
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import { useUnsavedChangesGuard } from "@/hooks/useUnsavedChangesGuard";
 import { formatCurrencyWithCode } from "@/lib/format/formatCurrency";
@@ -20,6 +19,7 @@ import { InvoiceAvailabilityNotice } from "../components/invoice-form/InvoiceAva
 import { InvoiceDetailsCard } from "../components/invoice-form/InvoiceDetailsCard";
 import { InvoiceSourceNotice } from "../components/invoice-form/InvoiceSourceNotice";
 import { SaleAssignmentBlocked } from "../components/invoice-form/SaleAssignmentBlocked";
+import { invoiceLineItemSource } from "../hooks/invoiceForm/invoiceSatDefaults";
 import { useDamagePrefill } from "../hooks/useDamagePrefill";
 import { useInvoiceFormLogic } from "../hooks/useInvoiceFormLogic";
 import type { InvoiceFormValues } from "../lib/invoiceFormSchema";
@@ -60,6 +60,15 @@ function InvoiceNotesCard() {
 }
 
 export default function InvoiceForm() {
+  const { id } = useParams();
+  const [searchParams] = useSearchParams();
+  // Source identity owns the whole draft, including the one-shot prefills.
+  // A new extension must never submit the previous extension's form state.
+  const sourceKey = id ? `invoice:${id}` : `extension:${searchParams.get("extension_id") ?? ""}`;
+  return <InvoiceFormSession key={sourceKey} />;
+}
+
+function InvoiceFormSession() {
   const navigate = useNavigateTransition();
   const { id } = useParams();
   const [searchParams] = useSearchParams();
@@ -68,7 +77,6 @@ export default function InvoiceForm() {
   const extensionId = searchParams.get("extension_id");
 
   const f = useInvoiceFormLogic({ id, fromQuoteId, extensionId });
-  const linkExtensionInvoice = useLinkExtensionInvoice();
 
   useDamagePrefill({
     isEdit: f.isEdit,
@@ -86,8 +94,11 @@ export default function InvoiceForm() {
   // R16 F-03: el guard acepta getter y lo evalúa DENTRO del callback del blocker,
   // así ve `justSavedRef.current=true` justo después de reset()+navigate().
   const justSavedRef = useRef(false);
+  const { isDirty } = useFormState({ control: f.form.control });
   useUnsavedChangesGuard(
-    () => f.form.formState.isDirty && !isSubmitting && !justSavedRef.current,
+    () => isDirty && !isSubmitting && !justSavedRef.current,
+    undefined,
+    id ? false : (search) => new URLSearchParams(search).get("extension_id"),
   );
 
   const onSubmit = (values: InvoiceFormValues) => {
@@ -117,24 +128,16 @@ export default function InvoiceForm() {
       invoiceId: f.isEdit ? f.id ?? null : null,
       expectedVersion: f.isEdit ? f.invoiceVersion : null,
       damageId: !f.isEdit && damageId && damageId !== "null" ? damageId : null,
+      extensionId: f.isEdit ? null : extensionId,
+      acceptQuoteId: f.isEdit ? null : f.fromQuoteId,
+      quoteExpectedVersion: !f.isEdit && f.fromQuoteId ? f.sourceQuoteVersion ?? null : null,
     }, {
-      onSuccess: async (data) => {
+      onSuccess: (data) => {
         if (f.isEdit) {
           finalize("Factura actualizada", data.id);
           return;
         }
-        // El daño, cuando existe, ya quedó ligado por el mismo RPC que creó la
-        // factura. Un conflicto revierte la factura completa y no llega aquí.
-        // Bloque 1 · G: la extensión queda reservada a esta factura; sólo se
-        // marca como facturada cuando la factura se emite (trigger en BD).
-        if (extensionId && f.extension?.booking_id) {
-          await linkExtensionInvoice.mutateAsync({
-            extensionId,
-            bookingId: f.extension.booking_id,
-            invoiceId: data.id,
-          });
-        }
-        if (f.fromQuoteId) f.updateQuote.mutate({ id: f.fromQuoteId, status: "accepted" });
+        // Sources were committed atomically with the invoice, before this receipt.
         finalize(`Factura ${data.invoice_number} creada`, data.id);
       },
     });
@@ -200,7 +203,10 @@ export default function InvoiceForm() {
             onRetry={f.retryChargeAvailability}
           />
           <div className="grid items-start gap-6 xl:grid-cols-[minmax(0,1fr)_20rem]">
-            <EditableLineItemsTable />
+            <EditableLineItemsTable source={invoiceLineItemSource({
+              invoiceId: id, existing: f.existing, isLoadingInvoice: f.isLoadingInvoice,
+              quoteId: fromQuoteId, quote: f.sourceQuote, extensionId, damageId,
+            })} />
 
             <aside aria-label="Resumen de importes" className="min-w-0 space-y-3 xl:sticky xl:top-20">
               <h2 className="text-base font-semibold">Resumen de importes</h2>

@@ -12,6 +12,7 @@ interface Props {
   setters: FormState["setters"];
   matchingQuotes: FormState["matchingQuotes"];
   selectedQuote: FormState["selectedQuote"];
+  quoteSelection: FormState["quoteSelection"];
   requiresDealValue: boolean;
 }
 
@@ -31,7 +32,7 @@ function FieldError({ id, message }: { id: string; message: string | null }) {
  * Se extrajo de ProspectFormDialog para reducir su complejidad ciclomática.
  */
 export function ProspectFormFields({
-  fields, setters, matchingQuotes, selectedQuote, requiresDealValue,
+  fields, setters, matchingQuotes, selectedQuote, quoteSelection, requiresDealValue,
 }: Props) {
   return (
     <>
@@ -66,12 +67,13 @@ export function ProspectFormFields({
         </div>
       </div>
 
-      {requiresDealValue && (
+      {(requiresDealValue || fields.quoteId) && (
         <ProspectQuoteSelector
           quoteId={fields.quoteId}
           onChange={setters.handleQuoteChange}
           matchingQuotes={matchingQuotes}
           selectedQuote={selectedQuote ?? null}
+          controls={quoteSelection}
         />
       )}
 

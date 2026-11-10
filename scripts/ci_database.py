@@ -35,10 +35,34 @@ START_EXCLUDES = {
 # are unchanged. 0126 creates an empty historical ledger with scoped RLS and
 # invoker triggers, closes only its new objects' inherited ACLs, and contains
 # no HTTP/cron operations or business-data writes.
+# Reviewed invoice-source transaction reconstruction on base 1160d397:
+# only 0127 and its journal entry are added; all earlier sources are unchanged.
+# 0127 adds an INVOKER function with scoped ACLs. Its business writes execute
+# only when called; the migration performs no business-data writes, HTTP or cron.
+# The resulting migration tree matches the previously reviewed dfa04efa tree.
+# Official 0127 activation added only the read-only 0128 receipt, its journal
+# entry and empty custom-migration snapshot, reviewed at bb795efc35da1033.
+# The snapshot links to the last existing 0124 snapshot; 0125-0127 had none.
+# Earlier SQL/journal entries are unchanged. 0128 only asserts function/ACL
+# postconditions and raises on mismatch; it performs no DDL or business writes.
+# Candidate 0129 (PR410) adds the scoped quote-page RPC; 0130 adds only
+# the reviewed sale-quote invoice trigger and owner preflight. Neither runs
+# business DML during installation. Earlier migration bytes stay unchanged.
+# Official activation added only assertion receipt 0131 and generated metadata,
+# reviewed at 07d2ab34861e8fcda28bbaa3ca7643cfe68a3e56. Its snapshot links
+# to 0128; 0129/0130 bytes are unchanged. The replay helper excludes only the
+# exact production-bound receipt, never the functional migrations.
+# Candidate 0132 adds only the INVOKER inventory-page RPC and journal entry.
+# Earlier migration bytes stay unchanged; no business DML is introduced.
+# Official 0132 activation added only assertion receipt 0133 and generated
+# migration metadata, reviewed at 2e26308cb6deb37acdc07d96de6d3eafd3fb63bf.
+# Its empty snapshot links to 0131. All earlier sources and Supabase migrations
+# remain unchanged. Only the exact target-bound receipt is excluded from CI;
+# 0132 remains byte-identical and required in the observed replay ledger.
 # Any subsequent history change requires explicit source review.
 SOURCE_TREES = {
     "supabase/migrations": "3e3575f5ff6d509ecdd624ae7fc1772508b5dce6",
-    "drizzle/migrations": "e5056ad079bdda42190e5601978d38e54f81a02f",
+    "drizzle/migrations": "9f580d5bfd5344aab55f1cec3a2338526b34cd35",
 }
 HTTP_SOURCES = {
     "20260721000000_retry_queue_cron.sql": "2aecccd0758961f41769d9fed522d03df14937650b9dde80fce47646a1fa6887",

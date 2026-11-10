@@ -15,6 +15,8 @@ export const lineItemSchema = z
     total: z.number(),
     clave_prod_serv: z.string().optional(),
     clave_unidad: z.string().optional(),
+    /** Persist explicit SAT selection even when no sale/source metadata remains. */
+    sat_selection_required: z.boolean().optional(),
     objeto_imp: z.string().optional(),
     /** Tasa de IVA en porcentaje para esta línea; si falta se usa la tasa global. */
     tax_rate: z.number().min(0).optional(),

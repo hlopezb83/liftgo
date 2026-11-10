@@ -1,3 +1,12 @@
+import { fmtMx } from "./periods.ts";
+import { loadRecurringPlanningData } from "./planningData.ts";
+import {
+  createRecurringPerformance,
+  type RecurringPerformance,
+} from "./performance.ts";
+import { planRecurringInvoices } from "./planner.ts";
+import { fiscalSnapshot, previewFingerprint } from "./planFingerprint.ts";
+import type { PlanItem, RecurringPlan } from "./planTypes.ts";
 import { assertNoLegacyVat } from "../_shared/legacyVat.ts";
 import { requireServiceOrRole } from "../_shared/auth.ts";
 import { handleCors } from "../_shared/cors.ts";
@@ -10,27 +19,12 @@ import {
 import { getAdminClient } from "../_shared/supabaseClients.ts";
 import { resolveCallerOrganization } from "../_shared/orgContext.ts";
 import type { SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2.118.0";
-import { computeProrate } from "./prorate.ts";
-import {
-  fmtMx,
-  isBookingEnded,
-  lastOfMonth,
-  nextBillingPeriod,
-  toIsoDate,
-} from "./periods.ts";
 import {
   futurePeriodLimit,
   type FuturePeriodOptions,
 } from "./futurePeriods.ts";
-import { periodCoverage } from "./invoiceHistory.ts";
-import { pendingCanonicalPeriods } from "./coverage.ts";
 import { groupPlanItems } from "./grouping.ts";
 import { selectTargetItems } from "./selection.ts";
-import { recurringQuoteIssue } from "./quoteDiscountGuard.ts";
-import {
-  type HistoricalInvoice,
-  mergeLiveInvoiceHistory,
-} from "./invoiceHistory.ts";
 import {
   fromCents,
   resolveVatRatePercent,
@@ -65,463 +59,27 @@ function nowInMonterrey(): Date {
   );
 }
 
-type Forklift = {
-  name?: string;
-  model?: string;
-  serial_number?: string | null;
-  daily_rate?: number;
-  weekly_rate?: number;
-  monthly_rate?: number;
-};
-
-type PreviewLine = {
-  bookingId: string;
-  // Fase 1 multiempresa: organización dueña de la reserva (nunca del payload).
-  organizationId: string | null;
-  bookingCode: string | null;
-  customerId: string | null;
-  customerName: string | null;
-  forkliftName: string | null;
-  periodStart: string;
-  periodEnd: string;
-  periodLabel: string;
-  monthlyRate: number;
-  // BL-12: monto efectivo a facturar. Igual a monthlyRate salvo el primer
-  // ciclo prorrateado (start_date a mitad de mes).
-  billedAmount: number;
-  // M-13: tasa de IVA del cliente (porcentaje 0–100). La vista previa la usa
-  // para totalizar igual que la generación real (frontera 8%, exento 0%).
-  taxRate?: number | null;
-  isProrated: boolean;
-  proratedDays?: number;
-  eligible: boolean;
-  isFuture?: boolean;
-  previewFingerprint?: string;
-  reason?:
-    | "period_overlap_review"
-    | "legacy_period_review"
-    | "already_invoiced"
-    | "no_customer"
-    | "no_monthly_rate"
-    | "period_in_future"
-    | "booking_ended"
-    | "no_exchange_rate"
-    | "quote_discount_review"
-    | "quote_source_missing"
-    | "quote_charge_review";
-  // A1-1: bandera para exponer al operador que la reserva no es MXN.
-  currency?: string;
-  // B5-01: la tarifa pudo cambiar después de este período (booking.updated_at
-  // posterior al fin del período facturado) — advertencia, no bloqueo.
-  rateWarning?: boolean;
-  existingInvoiceId?: string;
-  existingInvoiceNumber?: string;
-  quoteId?: string;
-};
-
-export type PlanItem = {
-  fiscalFingerprint?: string;
-  isFuture?: boolean;
-  bookingId: string;
-  // Fase 1 multiempresa: organización de la reserva de origen; se hereda
-  // explícitamente en la agrupación y en la factura resultante.
-  organizationId: string;
-  customerId: string;
-  customerName: string | null;
-  forkliftName: string | null;
-  forkliftSerial: string | null;
-  monthlyRate: number;
-  billedAmount: number;
-  isProrated: boolean;
-  proratedDays: number;
-  billingStart: Date;
-  billingEnd: Date;
-  startStr: string;
-  endStr: string;
-  // A1-1: moneda/tipo de cambio de la reserva, propagados al RPC.
-  currency: string;
-  tipoCambio: number;
-  // B5-01: advertencia de tarifa potencialmente desactualizada para el periodo.
-  rateWarning: boolean;
-  // Persistent source quote for remaining charge quantities across siblings.
-  quoteId: string | null;
-};
+export type { PlanItem } from "./planTypes.ts";
 
 export async function buildPlan(
   supabase: SupabaseClient,
   organizationId?: string | null,
   planningDate?: Date,
   futureOptions: FuturePeriodOptions = {},
-): Promise<{
-  lines: PreviewLine[];
-  items: PlanItem[];
-  truncated: boolean;
-  pendingCount: number;
-}> {
-  // Ejecución manual (usuario autenticado): acotar SIEMPRE a su propia
-  // organización (nunca al payload). El cron (organizationId=null/undefined)
-  // procesa todas las organizaciones; cada reserva conserva su propia
-  // organization_id y la agrupación posterior nunca mezcla empresas.
-  let bookingsQuery = supabase
-    .from("bookings")
-    .select(
-      "id, organization_id, booking_number, customer_id, customer_name, quote_id, start_date, end_date, last_billed_date, monthly_rate, currency, tipo_cambio, updated_at, forklifts(name, monthly_rate, serial_number), quotes(organization_id, line_items, rental_meta)",
-    )
-    .eq("recurring_billing", true)
-    .eq("status", "confirmed");
-  if (organizationId) {
-    bookingsQuery = bookingsQuery.eq("organization_id", organizationId);
-  }
-  const { data: bookings, error: bErr } = await bookingsQuery;
-  if (bErr) throw bErr;
-
-  // M-13: precargar la tasa de IVA de cada cliente para exponerla en el preview.
-  const customerIds = Array.from(
-    new Set(
-      ((bookings || []) as Array<{ customer_id: string | null }>)
-        .map((b) => b.customer_id)
-        .filter((id): id is string => !!id),
-    ),
+  metrics?: RecurringPerformance,
+): Promise<RecurringPlan> {
+  const contexts = await loadRecurringPlanningData(
+    supabase,
+    organizationId,
+    metrics,
   );
-  // Multiempresa: la tarifa fiscal es propiedad de la relación
-  // organization_customers (organización + cliente), no del cliente global.
-  // La clave del mapa incluye la organización para no mezclar tasas de dos
-  // empresas que comparten el mismo cliente.
-  const taxRateByCustomer = new Map<string, number | null>();
-  const fiscalByCustomer = new Map<string, unknown>();
-  if (customerIds.length > 0) {
-    const { data: custRows, error: custErr } = await supabase
-      .from("organization_customers")
-      .select(
-        "organization_id, customer_id, tax_rate, rfc, razon_social, regimen_fiscal, domicilio_fiscal_cp, uso_cfdi",
-      )
-      .in("customer_id", customerIds);
-    if (custErr) throw custErr;
-    for (
-      const c of (custRows ?? []) as Array<
-        {
-          organization_id: string;
-          customer_id: string;
-          tax_rate: number | null;
-        }
-      >
-    ) {
-      fiscalByCustomer.set(`${c.organization_id}|${c.customer_id}`, c);
-      taxRateByCustomer.set(
-        `${c.organization_id}|${c.customer_id}`,
-        c.tax_rate,
-      );
-    }
-  }
-
-  const nowMty = planningDate ?? nowInMonterrey();
-  const planningLimit = futurePeriodLimit(futureOptions, nowMty);
-  const lines: PreviewLine[] = [];
-  const items: PlanItem[] = [];
-  let truncated = false;
-  let pendingCount = 0;
-
-  const chargeReview = new Map<string, boolean>();
-  const chargeSnapshot = new Map<string, unknown>();
-  for (const booking of bookings || []) {
-    const forklift = (booking.forklifts as Forklift | null) ?? null;
-    let quoteIssue: PreviewLine["reason"] | null = recurringQuoteIssue(
-      booking.quote_id,
-      booking.organization_id,
-      booking.quotes,
+  const plan = () =>
+    planRecurringInvoices(
+      contexts,
+      planningDate ?? nowInMonterrey(),
+      futureOptions,
     );
-
-    if (booking.quote_id && !quoteIssue) {
-      if (!chargeReview.has(booking.quote_id)) {
-        const { data, error } = await supabase.rpc(
-          "get_quote_charge_availability",
-          {
-            p_quote_ids: [booking.quote_id],
-          },
-        );
-        if (error) throw error;
-        chargeSnapshot.set(booking.quote_id, data);
-        try {
-          recurringQuoteCharges(data, [booking.quote_id]);
-          chargeReview.set(booking.quote_id, false);
-        } catch {
-          chargeReview.set(booking.quote_id, true);
-        }
-      }
-      if (chargeReview.get(booking.quote_id)) {
-        quoteIssue = "quote_charge_review";
-      }
-    }
-
-    // A1-1: moneda y tipo de cambio de la reserva (default MXN/1 si no hay dato).
-    const bookingCurrency = String(booking.currency ?? "MXN").toUpperCase();
-    const bookingTipoCambio = Number(booking.tipo_cambio ?? 1);
-    // FIX-8 (ronda 3): regla canónica `fx_is_missing` — en divisa, un TC nulo,
-    // ≤ 0 o exactamente 1 es "faltante". Antes el preview decía "elegible" con
-    // TC=1 y la generación fallaba tarde con el error crudo del RPC.
-    const hasValidExchangeRate = bookingCurrency === "MXN" ||
-      (Number.isFinite(bookingTipoCambio) && bookingTipoCambio > 0 &&
-        bookingTipoCambio !== 1);
-
-    // B5-01: última actualización de la reserva, usada como proxy de "última
-    // actualización de tarifa" (no existe historial de tarifas dedicado).
-    const bookingUpdatedAt = booking.updated_at
-      ? new Date(booking.updated_at as string)
-      : null;
-
-    // Period history includes pivot and legacy direct links. Charge availability
-    // is independently read from the authoritative source-identity RPC.
-    const invoiceFields =
-      "id, invoice_number, billing_period_start, billing_period_end, status, cfdi_status, cfdi_uuid, cancellation_status, line_items";
-    const { data: linked, error: linkedErr } = await supabase
-      .from("invoice_bookings")
-      .select(`invoices!inner(${invoiceFields}, organization_id)`)
-      .eq("booking_id", booking.id)
-      .eq("invoices.organization_id", booking.organization_id);
-    if (linkedErr) throw linkedErr;
-    const { data: direct, error: directErr } = await supabase
-      .from("invoices")
-      .select(invoiceFields)
-      .eq("booking_id", booking.id)
-      .eq("organization_id", booking.organization_id);
-    if (directErr) throw directErr;
-
-    // Los registros legacy pueden existir sólo en invoices.booking_id, sin
-    // pivote. Incluir ambos caminos evita volver a facturar ese periodo.
-    // Filtrar en JS conserva cfdi_status NULL, que SQL considera vigente.
-    const invoices = mergeLiveInvoiceHistory(
-      (linked ?? []) as unknown as Array<
-        { invoices: HistoricalInvoice | null }
-      >,
-      (direct ?? []) as HistoricalInvoice[],
-    );
-    const pending = pendingCanonicalPeriods(
-      booking.start_date,
-      booking.end_date,
-      planningLimit,
-      invoices,
-    );
-    const coverageSnapshot = invoices.map((invoice) => ({
-      id: invoice.id,
-      start: invoice.billing_period_start,
-      end: invoice.billing_period_end,
-    })).sort((a, b) => a.id.localeCompare(b.id));
-    let emitted = 0;
-    for (const candidateStart of pending.starts) {
-      // B5-01: la tarifa se recalcula EN CADA iteración del catch-up (antes se
-      // calculaba una sola vez fuera del loop y todos los periodos atrasados
-      // se facturaban a la tarifa vigente al momento de correr el cron).
-      // BL-31 (v7.92.0): preferir tarifa pactada en la reserva; fallback a la
-      // maestra. N-7c/R4-32: nullish, no `||` — una tarifa pactada de 0 es un
-      // dato válido (cortesía/canje) y NO debe confundirse con "sin tarifa
-      // configurada". configuredRate = null sólo cuando ni la reserva ni la
-      // maestra tienen valor.
-      const configuredRate = booking.monthly_rate != null
-        ? Number(booking.monthly_rate)
-        : (forklift?.monthly_rate != null
-          ? Number(forklift.monthly_rate)
-          : null);
-      const monthlyRate = configuredRate ?? 0;
-      const { billingStart, billingEnd, isProrated: proratedPeriod } =
-        nextBillingPeriod(
-          null,
-          candidateStart,
-          booking.end_date,
-        );
-      if (
-        !Number.isFinite(billingStart.getTime()) ||
-        !Number.isFinite(billingEnd.getTime())
-      ) {
-        throw new Error("La reserva contiene fechas de facturación inválidas");
-      }
-      const startStr = toIsoDate(billingStart);
-      const endStr = toIsoDate(billingEnd);
-      const periodLabel = `${fmtMx(billingStart)} al ${fmtMx(billingEnd)}`;
-
-      const daysInMonth = lastOfMonth(billingStart).getUTCDate();
-      const billedDays = billingEnd.getUTCDate() - billingStart.getUTCDate() +
-        1;
-      // Prorrateo simétrico: computeProrate(startDay) factura
-      // (daysInMonth - startDay + 1) días; invirtiendo, startDay =
-      // daysInMonth - billedDays + 1 cubre el primer ciclo, el último y el mes
-      // completo con la misma fórmula.
-      const prorate = computeProrate(
-        daysInMonth - billedDays + 1,
-        daysInMonth,
-        monthlyRate,
-      );
-      const proratedDays = prorate.proratedDays;
-      const billedAmount = prorate.billedAmount;
-
-      // B5-01: advertencia (no bloqueo) cuando la reserva se actualizó DESPUÉS
-      // del fin de este periodo — la tarifa vigente pudo cambiar desde entonces
-      // y el periodo atrasado se está facturando con la tarifa actual.
-      const rateWarning = !!bookingUpdatedAt && bookingUpdatedAt > billingEnd;
-
-      const baseLine: PreviewLine = {
-        bookingId: booking.id,
-        quoteId: booking.quote_id ?? undefined,
-        organizationId: (booking.organization_id as string | null) ?? null,
-        bookingCode: booking.booking_number ?? null,
-        customerId: booking.customer_id ?? null,
-        customerName: booking.customer_name ?? null,
-        forkliftName: forklift?.name ?? null,
-        periodStart: startStr,
-        periodEnd: endStr,
-        periodLabel,
-        monthlyRate,
-        billedAmount,
-        currency: bookingCurrency,
-        rateWarning,
-        taxRate: booking.customer_id
-          ? taxRateByCustomer.get(
-            `${booking.organization_id}|${booking.customer_id}`,
-          ) ?? null
-          : null,
-        isProrated: proratedPeriod,
-        proratedDays: proratedPeriod ? proratedDays : undefined,
-
-        eligible: true,
-        isFuture: billingStart > nowMty,
-      };
-
-      if (
-        isBookingEnded(booking.end_date, billingStart) ||
-        billingStart > planningLimit
-      ) break;
-      const coverage = periodCoverage(invoices, startStr, endStr);
-      emitted++;
-      if (coverage === "covered") continue;
-      if (coverage !== "uncovered") {
-        lines.push({ ...baseLine, eligible: false, reason: coverage });
-        // Undated history makes every period ambiguous. A dated partial
-        // overlap only blocks this month; disjoint months can still proceed.
-        if (coverage === "legacy_period_review") break;
-        continue;
-      }
-      if (!booking.customer_id) {
-        lines.push({ ...baseLine, eligible: false, reason: "no_customer" });
-        break;
-      }
-      // A1-1: reserva en moneda distinta a MXN sin tipo de cambio válido → no
-      // facturar este periodo (ni los siguientes, ya que la moneda/TC son
-      // atributos de la reserva, no del periodo). Se reporta explícitamente
-      // en vez de facturar en MXN con TC=1 por default (bug crítico).
-      if (quoteIssue) {
-        lines.push({ ...baseLine, eligible: false, reason: quoteIssue });
-        break;
-      }
-      if (!hasValidExchangeRate) {
-        lines.push({
-          ...baseLine,
-          eligible: false,
-          reason: "no_exchange_rate",
-        });
-        break;
-      }
-      // R4-32: sólo se omite cuando NO hay tarifa configurada (null en la
-      // reserva y en la maestra). Una tarifa 0 pactada se factura por $0.
-      if (configuredRate == null) {
-        lines.push({ ...baseLine, eligible: false, reason: "no_monthly_rate" });
-        break;
-      }
-
-      baseLine.previewFingerprint = await previewFingerprint({
-        bookingId: booking.id,
-        organizationId: booking.organization_id,
-        customerId: booking.customer_id,
-        customerName: booking.customer_name,
-        forklift,
-        coverage: coverageSnapshot,
-        startStr,
-        endStr,
-        monthlyRate,
-        billedAmount,
-        currency: bookingCurrency,
-        tipoCambio: bookingTipoCambio,
-        fiscal: fiscalByCustomer.get(
-          `${booking.organization_id}|${booking.customer_id}`,
-        ) ?? null,
-        quoteId: booking.quote_id ?? null,
-        quote: booking.quotes ?? null,
-        charges: chargeSnapshot.get(booking.quote_id) ?? null,
-        rateWarning,
-      });
-      lines.push(baseLine);
-      items.push({
-        ...(futureOptions.includeFuturePeriods
-          ? {
-            fiscalFingerprint: await previewFingerprint(
-              fiscalSnapshot(
-                fiscalByCustomer.get(
-                  `${booking.organization_id}|${booking.customer_id}`,
-                ),
-              ),
-            ),
-          }
-          : {}),
-        bookingId: booking.id,
-        isFuture: billingStart > nowMty,
-        organizationId: booking.organization_id as string,
-        customerId: booking.customer_id as string,
-        customerName: booking.customer_name ?? null,
-        forkliftName: forklift?.name ?? null,
-        forkliftSerial: forklift?.serial_number ?? null,
-        monthlyRate,
-        billedAmount,
-        // FIX R4-31: propagar el prorrateo del período (primer O último
-        // ciclo), no solo el flag local de primer ciclo, para que la
-        // descripción de la factura refleje el prorrateo como el preview.
-        isProrated: proratedPeriod,
-        proratedDays: proratedPeriod ? proratedDays : 0,
-        billingStart,
-        billingEnd,
-        startStr,
-        endStr,
-        // A1-1
-        currency: bookingCurrency,
-        tipoCambio: bookingCurrency === "MXN" ? 1 : bookingTipoCambio,
-        // B5-01
-        rateWarning,
-        // FIX-6
-        quoteId: (booking.quote_id as string | null) ?? null,
-      });
-    }
-    if (emitted === pending.starts.length && pending.pendingCount > 0) {
-      truncated = true;
-      pendingCount += pending.pendingCount;
-    }
-  }
-
-  return { lines, items, truncated, pendingCount };
-}
-
-function fiscalSnapshot(value: unknown) {
-  const row = (value ?? {}) as Record<string, unknown>;
-  return {
-    tax_rate: resolveVatRatePercent(
-      typeof row.tax_rate === "number" || typeof row.tax_rate === "string"
-        ? row.tax_rate
-        : null,
-    ),
-    rfc: row.rfc ?? null,
-    razon_social: row.razon_social ?? null,
-    regimen_fiscal: row.regimen_fiscal ?? null,
-    domicilio_fiscal_cp: row.domicilio_fiscal_cp ?? null,
-    uso_cfdi: row.uso_cfdi ?? null,
-  };
-}
-
-/** Hash server-owned commercial data. No customer fiscal data is exposed. */
-async function previewFingerprint(snapshot: unknown): Promise<string> {
-  const digest = await crypto.subtle.digest(
-    "SHA-256",
-    new TextEncoder().encode(JSON.stringify(snapshot)),
-  );
-  return Array.from(
-    new Uint8Array(digest),
-    (byte) => byte.toString(16).padStart(2, "0"),
-  ).join("");
+  return metrics ? metrics.measure("plan", plan) : plan();
 }
 
 function errorMessage(error: unknown): string {
@@ -775,7 +333,23 @@ export type HandlerDependencies = {
   requireServiceOrRole?: typeof requireServiceOrRole;
   getAdminClient?: typeof getAdminClient;
   planningDate?: Date;
+  performance?: RecurringPerformance;
 };
+
+function attachPerformance(
+  response: Response,
+  metrics: RecurringPerformance,
+  outcome: "ok" | "error",
+) {
+  const { serverTiming, traceId } = metrics.finish(outcome);
+  response.headers.set("Server-Timing", serverTiming);
+  response.headers.set("X-Recurring-Trace", traceId);
+  response.headers.set(
+    "Access-Control-Expose-Headers",
+    "Server-Timing, X-Recurring-Trace",
+  );
+  return response;
+}
 
 /** Importable HTTP boundary; only index.ts registers the Edge listener. */
 export async function handleRequest(
@@ -784,14 +358,17 @@ export async function handleRequest(
 ): Promise<Response> {
   const corsRes = handleCors(req);
   if (corsRes) return corsRes;
+  const metrics = dependencies.performance ?? createRecurringPerformance();
+  let instrumentPreview = false;
 
   try {
     // Lote C · DIFF 8 rest: auth timing-safe compartida para cron/service.
-    const cronAuth =
-      await (dependencies.authenticateCronRequest ?? authenticateCronRequest)(
-        req,
-      );
-    let supabase;
+    const cronAuth = await metrics.measure(
+      "auth_cron",
+      () =>
+        (dependencies.authenticateCronRequest ?? authenticateCronRequest)(req),
+    );
+    let supabase: SupabaseClient;
     // Multiempresa Fase 1: ejecuciones manuales (usuario autenticado) se
     // acotan SIEMPRE a la organización del caller (nunca al payload). El
     // cron (y el bypass service_role interno) procesan todas las
@@ -801,17 +378,24 @@ export async function handleRequest(
     if (cronAuth.ok) {
       supabase = (dependencies.getAdminClient ?? getAdminClient)();
     } else {
-      const auth =
-        await (dependencies.requireServiceOrRole ?? requireServiceOrRole)(req, [
-          "admin",
-          "administrativo",
-        ]);
+      const auth = await metrics.measure(
+        "auth_user",
+        () =>
+          (dependencies.requireServiceOrRole ?? requireServiceOrRole)(req, [
+            "admin",
+            "administrativo",
+          ]),
+      );
       if (!auth.ok) return auth.response;
       supabase = auth.adminClient;
       if (auth.role !== "service_role") {
-        const callerOrg = await resolveCallerOrganization(
-          supabase,
-          auth.userId,
+        const callerOrg = await metrics.measure(
+          "auth_org",
+          () =>
+            resolveCallerOrganization(
+              supabase,
+              auth.userId,
+            ),
         );
         if (!callerOrg.ok) {
           return jsonError(req, callerOrg.status, callerOrg.message);
@@ -918,24 +502,38 @@ export async function handleRequest(
       });
     }
 
+    // Only a validated, tenant-scoped manual preview exposes diagnostics.
+    // Cron/service results can span organizations and must not emit these counts.
+    instrumentPreview = body.preview === true && !!scopeOrganizationId;
     const { lines, items: allItems, truncated, pendingCount } = await buildPlan(
       supabase,
       scopeOrganizationId,
       dependencies.planningDate,
       body,
+      instrumentPreview ? metrics : undefined,
     );
 
     const eligibleLines = lines.filter((l) => l.eligible);
     const periodMonth = eligibleLines[0]?.periodStart?.slice(0, 7) ?? null;
 
     if (body.preview) {
-      return jsonResponse(req, {
-        success: true,
-        period: periodMonth,
-        lines,
-        truncated,
-        pending_count: pendingCount,
-      });
+      const response = () =>
+        Promise.resolve(jsonResponse(req, {
+          success: true,
+          period: periodMonth,
+          lines,
+          truncated,
+          pending_count: pendingCount,
+        }));
+      if (!instrumentPreview) return response();
+      metrics.count("preview_lines", lines.length);
+      metrics.count("eligible_lines", eligibleLines.length);
+      metrics.count("pending_periods", pendingCount);
+      return attachPerformance(
+        await metrics.measure("serialize", response),
+        metrics,
+        "ok",
+      );
     }
 
     // R9-18 (fix fail-open): decisión centralizada en `selection.ts`. Si el
@@ -1034,6 +632,9 @@ export async function handleRequest(
     });
   } catch (err) {
     console.error("[generate-recurring-invoices]", err);
-    return jsonError(req, 500, "Internal server error");
+    const response = jsonError(req, 500, "Internal server error");
+    return instrumentPreview
+      ? attachPerformance(response, metrics, "error")
+      : response;
   }
 }

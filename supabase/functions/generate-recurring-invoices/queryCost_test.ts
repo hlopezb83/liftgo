@@ -2,6 +2,7 @@
 import { deepStrictEqual as assertEquals } from "node:assert/strict";
 import type { SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2.118.0";
 import { buildSupabaseMock } from "../_shared/test/supabaseClientMock.ts";
+import { PLANNING_BATCH_SIZE } from "./planningData.ts";
 import { buildPlan } from "./handler.ts";
 import { dateOnlyToMty } from "./periods.ts";
 import { bookingFixture } from "./testFixtures.ts";
@@ -21,7 +22,7 @@ for (const bookingCount of [1, 100, 1000]) {
         { length: bookingCount },
         (_, index) =>
           bookingFixture({
-            id: `booking-${index}`,
+            id: `booking-${String(index).padStart(5, "0")}`,
             quote_id: quoteCount
               ? quoteId(quotes === "shared" ? 0 : index)
               : null,
@@ -55,15 +56,20 @@ for (const bookingCount of [1, 100, 1000]) {
         },
         rpcsSeq: {
           get_quote_charge_availability: Array.from(
-            { length: quoteCount },
+            { length: Math.ceil(quoteCount / PLANNING_BATCH_SIZE) },
             (_, index) => ({
               data: {
                 complete: true,
-                quotes: [{
-                  quote_id: quoteId(index),
+                quotes: Array.from({
+                  length: Math.min(
+                    PLANNING_BATCH_SIZE,
+                    quoteCount - index * PLANNING_BATCH_SIZE,
+                  ),
+                }, (_, offset) => ({
+                  quote_id: quoteId(index * PLANNING_BATCH_SIZE + offset),
                   legacy_review_required: false,
                   lines: [],
-                }],
+                })),
               },
               error: null,
             }),
@@ -77,6 +83,10 @@ for (const bookingCount of [1, 100, 1000]) {
         dateOnlyToMty("2026-07-21"),
       );
       const elapsedMs = Number((performance.now() - start).toFixed(3));
+      assertEquals(
+        result.items.map((item) => item.bookingId),
+        bookings.map((booking) => booking.id),
+      );
       assertEquals(result.items.length, bookingCount);
       assertEquals(result.lines.length, bookingCount);
       assertEquals(
@@ -88,8 +98,15 @@ for (const bookingCount of [1, 100, 1000]) {
       );
       assertEquals(result.truncated, false);
       assertEquals(result.pendingCount, 0);
-      assertEquals(reads.length, 2 + 2 * bookingCount);
-      assertEquals(mock.rpcCalls.length, quoteCount);
+      assertEquals(
+        reads.length,
+        Math.ceil(bookingCount / 500) + 1 +
+          2 * Math.ceil(bookingCount / PLANNING_BATCH_SIZE),
+      );
+      assertEquals(
+        mock.rpcCalls.length,
+        Math.ceil(quoteCount / PLANNING_BATCH_SIZE),
+      );
       assertEquals(
         mock.rpcCalls.every((call) =>
           call.fn === "get_quote_charge_availability"
@@ -98,17 +115,21 @@ for (const bookingCount of [1, 100, 1000]) {
       );
       assertEquals(
         new Set(
-          mock.rpcCalls.map((call) => JSON.stringify(call.args?.p_quote_ids)),
+          mock.rpcCalls.flatMap((call) => call.args?.p_quote_ids as string[]),
         ).size,
         quoteCount,
       );
       for (const table of ["invoice_bookings", "invoices"]) {
         const historyReads = reads.filter((read) => read.table === table);
-        assertEquals(historyReads.length, bookingCount);
+        assertEquals(
+          historyReads.length,
+          Math.ceil(bookingCount / PLANNING_BATCH_SIZE),
+        );
         assertEquals(
           new Set(
-            historyReads.map((read) =>
-              read.filters.find((filter) => filter.col === "booking_id")?.val
+            historyReads.flatMap((read) =>
+              read.filters.find((filter) => filter.col === "booking_id")
+                ?.val as string[]
             ),
           ).size,
           bookingCount,

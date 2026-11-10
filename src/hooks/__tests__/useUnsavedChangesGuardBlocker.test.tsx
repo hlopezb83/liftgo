@@ -13,31 +13,31 @@ import { useUnsavedChangesGuard } from "../useUnsavedChangesGuard";
 
 const harness: { forceRerender: (() => void) | null } = { forceRerender: null };
 
-function Harness({ dirty }: { dirty: boolean }) {
+function Harness({ dirty, searchGuard = false }: { dirty: boolean; searchGuard?: boolean }) {
   const [tick, setTick] = useState(0);
   useEffect(() => {
     harness.forceRerender = () => setTick((t) => t + 1);
     return () => { harness.forceRerender = null; };
   }, []);
-  useUnsavedChangesGuard(dirty);
+  useUnsavedChangesGuard(dirty, undefined, searchGuard);
   const navigate = useNavigate();
   const location = useLocation();
   return (
     <div>
-      <span data-testid="path">{location.pathname}</span>
+      <span data-testid="path">{location.pathname}{location.search}</span>
       <span data-testid="tick">{tick}</span>
-      <button type="button" onClick={() => navigate("/other")}>
+      <button type="button" onClick={() => navigate(searchGuard ? "/?extension_id=B" : "/other")}>
         Ir a otra
       </button>
     </div>
   );
 }
 
-function setup(dirty = true) {
+function setup(dirty = true, searchGuard = false) {
   return render(
     <TestRouter>
       <ConfirmProvider>
-        <Harness dirty={dirty} />
+        <Harness dirty={dirty} searchGuard={searchGuard} />
       </ConfirmProvider>
     </TestRouter>,
   );
@@ -86,4 +86,18 @@ describe("useUnsavedChangesGuard + useBlocker", () => {
     await waitFor(() => expect(screen.getByTestId("path").textContent).toBe("/other"));
     expect(screen.queryByText("¿Descartar cambios?")).not.toBeInTheDocument();
   });
+});
+
+it("protects same-path extension navigation, cancel then confirm", async () => {
+  setup(true, true);
+  await screen.findByTestId("path");
+  await act(async () => { fireEvent.click(screen.getByRole("button", { name: "Ir a otra" })); });
+  await screen.findByText("¿Descartar cambios?");
+  await act(async () => { fireEvent.click(screen.getByRole("button", { name: "Seguir editando" })); });
+  await waitFor(() => expect(screen.queryByText("¿Descartar cambios?")).not.toBeInTheDocument());
+  expect(screen.getByTestId("path")).toHaveTextContent(/^\/$/);
+  await act(async () => { fireEvent.click(screen.getByRole("button", { name: "Ir a otra" })); });
+  await screen.findByText("¿Descartar cambios?");
+  await act(async () => { fireEvent.click(screen.getByRole("button", { name: "Descartar" })); });
+  await waitFor(() => expect(screen.getByTestId("path")).toHaveTextContent("/?extension_id=B"));
 });

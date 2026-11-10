@@ -30,6 +30,10 @@ vi.mock("@/features/fleet", () => ({
   },
 }));
 vi.mock("@/features/reports", () => ({ reportKeys: { all: ["reports"] } }));
+// The real quotes barrel also exports identity-aware CRM readers. This cache-only
+// test does not mount auth; isolate its import-time recovery bootstrap instead of
+// mocking quoteKeys or expanding the RPC-only Supabase stub into an auth SDK.
+vi.mock("@/features/auth/recoveryCapture", () => ({ startRecoveryCapture: vi.fn() }));
 vi.mock("@/lib/ui/appFeedback", () => ({
   notifyError: vi.fn(),
   notifySuccess: vi.fn(),

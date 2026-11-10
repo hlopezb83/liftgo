@@ -1,3 +1,4 @@
+const searchAccess = (invoices = true, quotes = false) => ({ invoices, quotes, customers: true, bookings: true, deliveries: true, returns: true });
 import { beforeEach, describe, it, expect } from "vitest";
 import { vi } from "vitest";
 
@@ -41,11 +42,11 @@ const { searchEntities } = await import("@/features/system/hooks/useEntitySearch
 describe("searchEntities — fallo parcial", () => {
   it("no disfraza error total como vacío al omitir la consulta financiera", async () => {
     state.failAll = true;
-    await expect(searchEntities("ACME", "org-a", false)).rejects.toMatchObject({ message: "offline" });
+    await expect(searchEntities("ACME", "org-a", searchAccess(false))).rejects.toMatchObject({ message: "offline" });
   });
 
   it("reporta la sección fallida y conserva las demás", async () => {
-    const res = await searchEntities("ACME", "org-a");
+    const res = await searchEntities("ACME", "org-a", searchAccess());
     expect(res.errors?.invoices).toMatch(/permission denied/);
     expect(res.errors?.customers).toBeUndefined();
     expect(res.customers).toHaveLength(1);

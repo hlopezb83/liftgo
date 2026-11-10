@@ -25,6 +25,9 @@ interface Extension {
 
 interface Props {
   extensions: Extension[];
+  billingChecking?: boolean;
+  billingError?: boolean;
+  onRetryBilling?: () => void;
   /** Los días adicionales se incluyen al generar el borrador mensual de la reserva. */
   recurringBilling?: boolean | null;
 }
@@ -35,12 +38,13 @@ function billingBadgeLabel(isBilled: boolean, isPendingIssue: boolean, days: num
   return `${days} ${days === 1 ? "día" : "días"} por facturar`;
 }
 
-export function BookingExtensionsCard({ extensions, recurringBilling }: Props) {
+export function BookingExtensionsCard({ extensions, recurringBilling, billingChecking = false, billingError = false, onRetryBilling }: Props) {
   const navigate = useNavigateTransition();
   const location = useLocation();
   const canSeeFinancials = useHasFinancialAccess();
   const canInvoice = useHasModuleAccess("Facturas", "full");
   const showBilling = canSeeFinancials && !recurringBilling;
+  const billingUnavailable = billingChecking || billingError;
 
   if (!extensions || extensions.length === 0) return null;
 
@@ -52,6 +56,16 @@ export function BookingExtensionsCard({ extensions, recurringBilling }: Props) {
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-2">
+        {showBilling && billingError ? (
+          <div role="alert" className="text-sm">
+            <p>No se pudo verificar la facturación de las extensiones.</p>
+            <Button size="sm" variant="outline" onClick={onRetryBilling} disabled={billingChecking}>
+              Reintentar verificación
+            </Button>
+          </div>
+        ) : showBilling && billingChecking ? (
+          <p role="status" className="text-xs text-muted-foreground">Verificando facturación de las extensiones…</p>
+        ) : null}
         {canSeeFinancials && recurringBilling && (
           <p className="text-xs text-muted-foreground">
             Los días adicionales de esta reserva se incluyen al generar el borrador
@@ -102,6 +116,7 @@ export function BookingExtensionsCard({ extensions, recurringBilling }: Props) {
 
                   {showBillAction && (
                     <BlockedActionButton
+                      disabled={billingUnavailable}
                       block={
                         isBilled || isPendingIssue
                           ? describeBusinessBlock("extension_already_billed")

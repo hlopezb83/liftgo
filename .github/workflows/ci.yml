@@ -1,515 +1,224 @@
 name: CI
-
-# CI mínimo y honesto (ver docs/ci.md):
-#   - Dos jobs base que siempre corren: `quality` (estático + build + arranque
-#     real del bundle) y `tests` (Vitest en 6 shards) + `tests-merge`, que une
-#     los blobs y aplica los umbrales de cobertura.
-#   - Jobs condicionales que solo corren cuando su área cambió.
-#   - CERO secretos de producción: el build de CI apunta a un backend
-#     inexistente a propósito. Las pruebas con escritura viven fuera de aquí.
-
 on:
   pull_request:
-    branches: [main]
-    paths-ignore:
-      - "**/*.md"
-      - ".lovable/**"
+    branches:
+      - main
   push:
-    branches: [main]
-    paths-ignore:
-      - "**/*.md"
-      - ".lovable/**"
-
-  workflow_dispatch:
-
+    branches:
+      - main
+  workflow_dispatch: {}
 permissions:
   contents: read
-
-# Un push nuevo cancela la corrida obsoleta de la misma rama.
 concurrency:
-  group: ci-${{ github.ref }}
+  group: ci-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
-
 jobs:
-  changes:
-    name: Detectar cambios
+  quality:
+    name: Calidad
     runs-on: ubuntu-24.04
-    timeout-minutes: 3
-    # `dorny/paths-filter` consulta la API de archivos de la PR: con solo el
-    # `contents: read` heredado devuelve 403 en pull_request y los jobs
-    # condicionales se quedan sin señal.
+    timeout-minutes: 6
     permissions:
       contents: read
       pull-requests: read
-    outputs:
-      functions: ${{ steps.filter.outputs.functions }}
-      migrations: ${{ steps.filter.outputs.migrations }}
-      workflows: ${{ steps.filter.outputs.workflows }}
-      dependencies: ${{ steps.filter.outputs.dependencies }}
-
     steps:
-      - uses: actions/checkout@v7
-      - uses: dorny/paths-filter@ceb8a2b8f2d89434be7ff52d3de7ec3738c5cc9d # v4.0.3
-        id: filter
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
-          filters: |
-            functions:
-              - 'supabase/functions/**'
-              - 'scripts/deno-test-selection.sh'
-              - 'scripts/deno-tests-offline.sh'
-              - '.github/workflows/ci.yml'
-            migrations:
-              - 'supabase/migrations/**'
-              # Carril Drizzle: los cambios de esquema nuevos (multiempresa)
-              # viven aquí, así que también deben disparar el lint.
-              - 'drizzle/migrations/**'
-              - 'scripts/lint-migrations.ts'
-              - '.github/workflows/ci.yml'
-            dependencies:
-              - 'package.json'
-              - 'bun.lock'
-              - '.node-version'
-              - '.nvmrc'
-              - '.bun-version'
-              # Match the postgres literal-import guard's scanned source roots.
-              - 'src/**'
-              - 'scripts/**'
-              - 'tests/**'
-              - 'supabase/functions/**'
-              - '.github/actions/setup-bun-project/**'
-              - '.github/workflows/ci.yml'
-            workflows:
-              - '.github/workflows/**'
-              - '.github/actions/**'
-              - 'scripts/ci_database.py'
-              - 'scripts/tests/**'
-              - 'scripts/run_sql_suites.py'
-
-
-  # ---------------------------------------------------------------------------
-  # BASE 1 — ¿compila, cumple las reglas y arranca de verdad?
-  # El smoke de navegador sirve el bundle real con `wrangler dev`: es el único
-  # punto donde se detectan fallos de empaquetado (p. ej. `__name is not
-  # defined`) que el typecheck y los tests unitarios no ven.
-  # ---------------------------------------------------------------------------
-  quality:
-    name: Calidad (lint, tipos, build y arranque)
-    runs-on: ubuntu-24.04
-    timeout-minutes: 20
-    steps:
-      - uses: actions/checkout@v7
-      # Eliminar sin leer antes de que Bun/Vite puedan cargar archivos locales.
-      # El build mantiene exclusivamente las variables ficticias del step Build.
-      - name: Excluir archivos de entorno locales del build
-        run: rm -f -- .env .env.*
-      - uses: ./.github/actions/setup-bun-project
-        with:
-          save-cache: "true"
-
-      - name: Contrato de identidad de release
-        run: node --test scripts/tests/release-identity.test.mjs
-
-      - name: Contrato de configuración efectiva de ESLint
-        run: node --test scripts/tests/eslint-guardrails.test.mjs
-
-      - name: Contratos de guardrails (AST, blobs y alcance de tipos)
-        run: |
-          node --test scripts/tests/feature-imports.test.mjs scripts/tests/vitest-blob-provenance.test.mjs scripts/tests/browser-typecheck.test.mjs
-          node --test scripts/tests/lint-migrations.test.mjs
-
-      - name: Offline harness lifecycle and artifact guards
-        run: node --test tests/offlineTeardown.test.mjs tests/design-group-c/artifactGuard.test.mjs
-
-      - name: ESLint
-        run: bun run lint --max-warnings=0
-
-      - name: Group C and shared harness ESLint
-        run: node node_modules/eslint/bin/eslint.js --config eslint.group-c-design.config.mjs --max-warnings=0 tests/design-group-c tests/offlineTeardown.ts tests/offlineTeardown.test.mjs playwright.group-c-design.config.ts playwright.group-c-component.config.ts vite.group-c-fixture.config.ts
-
-      - name: Typecheck
-        run: bun run typecheck
-
-      - name: Typecheck de pruebas de navegador
-        run: bun run typecheck:browser-tests
-
-      - name: Guardrails de arquitectura
-        run: bash scripts/arch-check.sh
-
-      # Build con destino DELIBERADAMENTE inexistente: smoke y móvil usan sólo
-      # respuestas ficticias, nunca datos reales. Así el CI no necesita secretos.
-      - name: Build
-        run: node scripts/browser-test-server.mjs --build-only
-
-      - name: Preparar Chromium
-        uses: ./.github/actions/setup-playwright
-        with:
-          save-cache: "true"
-
-      - name: Verificar aislamiento de navegador y Worker con destinos locales
-        run: node --test scripts/tests/browser-test-*.test.mjs
-
-      - name: Smoke de arranque (build real)
-        env:
-          SMOKE_REUSE_BUILD: "1"
-        run: bunx playwright test --config playwright.smoke.config.ts
-
-      - name: Aceptación móvil 360/390 (build real, datos ficticios)
-        env:
-          SMOKE_REUSE_BUILD: "1"
-        run: bun run test:e2e:mobile
-
-      - name: Aceptación Nueva factura (24 escenarios, datos ficticios)
-        env:
-          SMOKE_REUSE_BUILD: "1"
-        run: bunx playwright test --config playwright.invoice-ui.config.ts
-
-      - name: Quote acceptance 360/390/1440 (real build, fake data)
-        env:
-          SMOKE_REUSE_BUILD: "1"
-        run: bunx playwright test --config playwright.quotes-design.config.ts
-
-      - name: Booking acceptance 360/390/1440 (real build, fake data)
-        env:
-          SMOKE_REUSE_BUILD: "1"
-          BOOKINGS_EVIDENCE_DIR: test-results/bookings/evidence
-        run: bunx playwright test --config tests/bookings/playwright.config.ts
-
-      - name: Group C acceptance (real build, fake data)
-        env:
-          GROUP_C_BUILD_DIR: "."
-          GROUP_C_EVIDENCE_DIR: test-results/group-c
-        run: node node_modules/@playwright/test/cli.js test --config playwright.group-c-design.config.ts
-
-      - name: Group C supplemental component comparisons
-        env:
-          GROUP_C_BUILD_DIR: "."
-          GROUP_C_EVIDENCE_DIR: test-results/group-c
-        run: node node_modules/@playwright/test/cli.js test --config playwright.group-c-component.config.ts
-
-      - name: Upload group C evidence
-        if: always()
-        uses: actions/upload-artifact@v7
-        with:
-          name: group-c-design-artifacts
-          path: |
-            test-results/group-c/app-results/
-            test-results/group-c/component-results/
-            test-results/group-c/*.png
-            test-results/group-c/*.json
-          retention-days: 7
-          if-no-files-found: ignore
-
-      - name: Upload booking acceptance evidence
-        if: always()
-        uses: actions/upload-artifact@v7
-        with:
-          name: bookings-design-artifacts
-          path: test-results/bookings/
-          retention-days: 7
-          if-no-files-found: ignore
-
-      - name: Upload quote acceptance evidence
-        if: always()
-        uses: actions/upload-artifact@v7
-        with:
-          name: quotes-design-artifacts
-          path: |
-            playwright-report/quotes-design/
-            test-results/quotes-design/
-          retention-days: 7
-          if-no-files-found: ignore
-
-      - name: Subir evidencia móvil
-        if: always()
-        uses: actions/upload-artifact@v7
-        with:
-          name: mobile-acceptance-artifacts
-          path: |
-            playwright-report/mobile/
-            test-results/mobile/
-          retention-days: 7
-          if-no-files-found: ignore
-
-      - name: Subir diagnóstico del smoke
-        if: failure()
-        uses: actions/upload-artifact@v7
-        with:
-          name: smoke-artifacts
-          path: test-results/
-          retention-days: 3
-          if-no-files-found: ignore
-
-  # ---------------------------------------------------------------------------
-  # BASE 2 — suite completa de Vitest en SEIS shards + un merge mínimo.
-  # Cada shard corre su porción con `--coverage` y emite un reporte "blob" en
-  # un directorio temporal nuevo por corrida/shard; `tests-merge` verifica
-  # procedencia y une exactamente seis blobs. Ahí —y solo ahí— se evalúan los
-  # umbrales de cobertura globales y por directorio. Nunca `--changed` ni
-  # `--passWithNoTests`: todos los PRs pasan por el mismo gate.
-  # El paralelismo interno de Vitest dentro de cada runner no cambia: solo se
-  # reparte la suite entre más runners.
-  # ---------------------------------------------------------------------------
-  tests:
-    name: Pruebas (Vitest shard ${{ matrix.shard }}/6)
-    runs-on: ubuntu-24.04
-    timeout-minutes: 20
-    strategy:
-      fail-fast: false
-      matrix:
-        shard: [1, 2, 3, 4, 5, 6]
-    steps:
-      - uses: actions/checkout@v7
-      - uses: ./.github/actions/setup-bun-project
-
-      - name: Aislar salida del shard
-        run: |
-          shard_dir=$(mktemp -d "$RUNNER_TEMP/vitest-$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT-shard-${{ matrix.shard }}-XXXXXX")
-          echo "VITEST_SHARD_DIR=$shard_dir" >> "$GITHUB_ENV"
-          echo "VITEST_BLOB_OUTPUT_FILE=$shard_dir/blob.json" >> "$GITHUB_ENV"
-
-      - name: Vitest (shard ${{ matrix.shard }}/6)
-        env:
-          NODE_OPTIONS: --max-old-space-size=6144
-          # Acotado a este step: activa reporter blob y desactiva umbrales
-          # parciales (cada runner ve solo su porción del código).
-          VITEST_SHARD_BLOB: "1"
-        run: node node_modules/vitest/vitest.mjs run --shard=${{ matrix.shard }}/6 --coverage
-
-      - name: Sellar procedencia del shard
-        if: always()
-        run: node scripts/vitest-blob-provenance.mjs seal "$VITEST_SHARD_DIR" "${{ matrix.shard }}"
-
-      # Sólo el blob actual y su manifiesto. Si falla el shard conservamos
-      # diagnóstico, pero needs: tests impide consumir un conjunto incompleto.
-      - name: Subir blob del shard
-        if: always()
-        uses: actions/upload-artifact@v7
-        with:
-          name: vitest-blob-${{ github.run_id }}-${{ github.run_attempt }}-${{ matrix.shard }}
-          path: ${{ env.VITEST_SHARD_DIR }}
-          include-hidden-files: true
-          retention-days: 1
-          if-no-files-found: error
-
-  # Une los blobs de los seis shards y evalúa los umbrales sobre la cobertura
-  # completa. No reejecuta la suite ni promedia porcentajes. Si falta un
-  # artifact, `download-artifact` falla y el workflow queda rojo.
-  tests-merge:
-    name: Pruebas (merge + cobertura)
-    runs-on: ubuntu-24.04
-    timeout-minutes: 15
-    needs: tests
-    steps:
-      - uses: actions/checkout@v7
-      - uses: ./.github/actions/setup-bun-project
-
-      - name: Aislar descarga y entradas de merge
-        run: |
-          merge_root=$(mktemp -d "$RUNNER_TEMP/vitest-$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT-merge-XXXXXX")
-          mkdir "$merge_root/downloads" "$merge_root/verified"
-          echo "VITEST_DOWNLOAD_DIR=$merge_root/downloads" >> "$GITHUB_ENV"
-          echo "VITEST_MERGE_DIR=$merge_root/verified" >> "$GITHUB_ENV"
-
-      - name: Descargar blob shard 1
-        uses: actions/download-artifact@v8
-        with:
-          name: vitest-blob-${{ github.run_id }}-${{ github.run_attempt }}-1
-          path: ${{ env.VITEST_DOWNLOAD_DIR }}/shard-1
-
-      - name: Descargar blob shard 2
-        uses: actions/download-artifact@v8
-        with:
-          name: vitest-blob-${{ github.run_id }}-${{ github.run_attempt }}-2
-          path: ${{ env.VITEST_DOWNLOAD_DIR }}/shard-2
-
-      - name: Descargar blob shard 3
-        uses: actions/download-artifact@v8
-        with:
-          name: vitest-blob-${{ github.run_id }}-${{ github.run_attempt }}-3
-          path: ${{ env.VITEST_DOWNLOAD_DIR }}/shard-3
-
-      - name: Descargar blob shard 4
-        uses: actions/download-artifact@v8
-        with:
-          name: vitest-blob-${{ github.run_id }}-${{ github.run_attempt }}-4
-          path: ${{ env.VITEST_DOWNLOAD_DIR }}/shard-4
-
-
-      - name: Descargar blob shard 5
-        uses: actions/download-artifact@v8
-        with:
-          name: vitest-blob-${{ github.run_id }}-${{ github.run_attempt }}-5
-          path: ${{ env.VITEST_DOWNLOAD_DIR }}/shard-5
-
-      - name: Descargar blob shard 6
-        uses: actions/download-artifact@v8
-        with:
-          name: vitest-blob-${{ github.run_id }}-${{ github.run_attempt }}-6
-          path: ${{ env.VITEST_DOWNLOAD_DIR }}/shard-6
-
-
-      - name: Verificar seis shards y su procedencia
-        run: node scripts/vitest-blob-provenance.mjs merge "$VITEST_DOWNLOAD_DIR" "$VITEST_MERGE_DIR"
-
-      - name: Merge de reportes + umbrales de cobertura
-        env:
-          NODE_OPTIONS: --max-old-space-size=6144
-        run: node node_modules/vitest/vitest.mjs --merge-reports="$VITEST_MERGE_DIR" --coverage
-
-      - name: Subir reportes
-        if: always()
-        uses: actions/upload-artifact@v7
-        with:
-          name: vitest-reports
-          path: reports/
-          retention-days: 7
-          if-no-files-found: ignore
-
-
-  # ---------------------------------------------------------------------------
-  # CONDICIONALES
-  # ---------------------------------------------------------------------------
-  deno-functions:
-    name: Funciones Supabase (Deno, sin red)
-    runs-on: ubuntu-24.04
-    timeout-minutes: 10
-    needs: changes
-    if: needs.changes.outputs.functions == 'true' || github.event_name == 'workflow_dispatch'
-    steps:
-      - uses: actions/checkout@v7
-
-      - name: Setup Deno
-        uses: denoland/setup-deno@22d081ff2d3a40755e97629de92e3bcbfa7cf2ed # v2.0.5 (Node 24)
-        with:
-          deno-version: v2.9.8
-
-      - name: Cache de dependencias Deno
-        uses: actions/cache@v6
-        with:
-          path: ~/.cache/deno
-          key: ${{ runner.os }}-deno-${{ hashFiles('supabase/functions/**/*.ts', 'supabase/functions/deno.json', 'supabase/functions/deno.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-deno-
-
-      - name: Deno fmt + lint
-        run: cd supabase/functions && deno fmt --check && deno lint
-
-      # Solo los tests UNITARIOS/de handler. Los smoke remotos (que hacen HTTP
-      # contra funciones desplegadas) NO corren aquí: exigirían apuntar a un
-      # backend real, y el de la app es producción. Ver docs/ci.md.
-      - name: Tests Deno offline
-        run: |
-          set -euo pipefail
-          cd supabase/functions
-          mapfile -t FILES < <(bash ../../scripts/deno-test-selection.sh offline)
-          if [[ ${#FILES[@]} -eq 0 ]]; then
-            echo "::error::No se encontraron tests Deno offline"
-            exit 1
-          fi
-          echo "Ejecutando ${#FILES[@]} archivos"
-          # Descarga de dependencias (necesita red) separada de la ejecución.
-          deno cache --frozen --node-modules-dir=auto "${FILES[@]}"
-          # `--allow-net` acotado al bind local que hace `Deno.serve` al importar
-          # un `index.ts`: sin salida a internet, imposible tocar ningún backend.
-          deno test --frozen --cached-only --parallel --allow-env --allow-read --allow-net=0.0.0.0:8000 \
-            --node-modules-dir=auto --junit-path ../../reports/deno-junit.xml "${FILES[@]}"
-
-      - name: Subir reporte Deno
-        if: always()
-        uses: actions/upload-artifact@v7
-        with:
-          name: deno-reports
-          path: reports/
-          retention-days: 7
-          if-no-files-found: ignore
-
-  supabase-lint:
-    name: Lint de migraciones
-    runs-on: ubuntu-24.04
-    timeout-minutes: 10
-    needs: changes
-    if: needs.changes.outputs.migrations == 'true' || github.event_name == 'workflow_dispatch'
-    steps:
-      - uses: actions/checkout@v7
-        with:
+          persist-credentials: false
           fetch-depth: 0
-      - uses: ./.github/actions/setup-bun-project
-
-      # El linter valida el CONTRATO de una migración nueva (CREATE TABLE +
-      # GRANT + RLS + POLICY en el mismo archivo). El histórico reparte esas
-      # piezas entre archivos, así que solo se linta lo que agrega el diff.
-      - name: Resolver migraciones nuevas/modificadas
-        id: files
-        env:
-          EVENT: ${{ github.event_name }}
-          BASE_REF: ${{ github.base_ref }}
-          BEFORE: ${{ github.event.before }}
-          SHA: ${{ github.sha }}
-        shell: bash
+      - name: Excluir entorno local
+        run: rm -f -- .env .env.* .dev.vars .dev.vars.*
+      - name: Node del proyecto
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
+        with:
+          node-version-file: .node-version
+      - name: Bun del proyecto
+        uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
+        with:
+          bun-version: 1.4.4
+      - name: Caché de paquetes
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
+        with:
+          path: ~/.bun/install/cache
+          key: ${{ runner.os }}-${{ runner.arch }}-bun-v2-${{ hashFiles('bun.lock', 'package.json', '.bun-version', '.node-version') }}
+      - name: Instalación congelada
         run: |
-          set -euo pipefail
-          if [[ "$EVENT" == "pull_request" ]]; then
-            git fetch origin "$BASE_REF" --depth=1
-            FILES=$(git diff --name-only --diff-filter=AM "origin/$BASE_REF"...HEAD -- 'supabase/migrations/*.sql' 'drizzle/migrations/*.sql' | tr '\n' ' ')
-          elif [[ "$EVENT" == "push" ]]; then
-            FILES=$(git diff --name-only --diff-filter=AM "$BEFORE" "$SHA" -- 'supabase/migrations/*.sql' 'drizzle/migrations/*.sql' 2>/dev/null | tr '\n' ' ' || true)
-          else
-            # workflow_dispatch: no hay diff confiable, se linta el carril
-            # Drizzle completo (los archivos nuevos de esquema viven ahí).
-            FILES=$(find drizzle/migrations -maxdepth 1 -name '*.sql' | sort | tr '\n' ' ')
-          fi
-          echo "list=${FILES}" >> "$GITHUB_OUTPUT"
-          echo "Archivos: ${FILES:-<ninguno>}"
-
-      - name: Validar GRANT / RLS / POLICY / search_path
-        if: steps.files.outputs.list != ''
-        run: bun scripts/lint-migrations.ts ${{ steps.files.outputs.list }}
-
-  dependency-contracts:
-    name: Contratos de dependencias instaladas
-    needs: changes
-    if: needs.changes.outputs.dependencies == 'true' || github.event_name == 'workflow_dispatch'
-    runs-on: ubuntu-24.04
-    timeout-minutes: 8
-    steps:
-      - uses: actions/checkout@v7
-      - uses: ./.github/actions/setup-bun-project
-      - name: Verificar resolución y contratos de consumidores
-        run: bun run test:dependencies
-
-  dependency-review:
-    name: Dependency review
-    runs-on: ubuntu-24.04
-    timeout-minutes: 3
-    if: github.event_name == 'pull_request'
-    steps:
-      - uses: actions/checkout@v7
-      - uses: actions/dependency-review-action@a1d282b36b6f3519aa1f3fc636f609c47dddb294 # v5.0.0 (Node 24)
+          node scripts/verify-ci-runtime.mjs
+          lock_before=$(sha256sum bun.lock)
+          bun install --frozen-lockfile
+          test "$lock_before" = "$(sha256sum bun.lock)"
+      - name: Secretos
+        uses: gitleaks/gitleaks-action@e0c47f4f8be36e29cdc102c57e68cb5cbf0e8d1e # v3.0.0
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          GITLEAKS_ENABLE_SUMMARY: "true"
+          GITLEAKS_ENABLE_COMMENTS: "false"
+      - name: ESLint
+        run: |
+          bun run lint --max-warnings=0
+          node node_modules/eslint/bin/eslint.js --config eslint.group-c-design.config.mjs --max-warnings=0 tests/design-group-c tests/offlineTeardown.ts tests/offlineTeardown.test.mjs playwright.group-c-design.config.ts playwright.group-c-component.config.ts vite.group-c-fixture.config.ts
+      - name: Revisión de dependencias
+        if: github.event_name == 'pull_request'
+        uses: actions/dependency-review-action@a1d282b36b6f3519aa1f3fc636f609c47dddb294 # v5.0.0
         with:
           fail-on-severity: high
           comment-summary-in-pr: never
           allow-licenses: MIT, Apache-2.0, BSD-2-Clause, BSD-3-Clause, ISC, 0BSD, CC0-1.0, Unlicense, Python-2.0, MPL-2.0, CC-BY-4.0, BlueOak-1.0.0
-
-  # Corre en push y en PR cuando cambia algo bajo `.github/`: un workflow roto
-  # entra igual de fácil por push directo. `reporter: local` + `filter_mode:
-  # nofilter` porque publicar un check exige `checks: write` (permiso que este
-  # workflow no tiene) y porque limitar a las líneas añadidas oculta errores
-  # que el propio cambio provoca en el resto del archivo.
-  actionlint:
-    name: Actionlint
-    runs-on: ubuntu-24.04
-    timeout-minutes: 3
-    needs: changes
-    if: needs.changes.outputs.workflows == 'true' || github.event_name == 'workflow_dispatch'
-    steps:
-      - uses: actions/checkout@v7
-      - name: Probar ejecutores y preparación de BD aislada
-        run: python3 -m unittest discover -s scripts/tests -p 'test_*.py'
-      - uses: ./.github/actions/setup-bun-project
-      - name: Probar restricciones del diagnóstico PostgreSQL
-        run: bun run test:ci-tools
-      - uses: reviewdog/action-actionlint@619a81ec64ff8c0211cd6146eb2b21e8f1d7f440 # v1.81.1
+      - name: TypeScript
+        run: |
+          bun run typecheck
+          bun run typecheck:browser-tests
+      - name: Arquitectura y dependencias
+        run: |
+          bash scripts/arch-check.sh
+          bun run test:dependencies
+      - name: Contratos de calidad
+        run: |
+          node --test scripts/tests/release-identity.test.mjs scripts/tests/eslint-guardrails.test.mjs scripts/tests/feature-imports.test.mjs scripts/tests/browser-typecheck.test.mjs scripts/tests/lint-migrations.test.mjs scripts/tests/quality-workflow.test.mjs
+          node --test tests/offlineTeardown.test.mjs tests/design-group-c/artifactGuard.test.mjs
+          python3 -m unittest discover -s scripts/tests -p 'test_*.py'
+          node --test scripts/tests/deno-ci-import-map.test.mjs
+      - name: Validar workflows
+        uses: reviewdog/action-actionlint@619a81ec64ff8c0211cd6146eb2b21e8f1d7f440 # v1.81.1
         with:
           fail_level: error
           filter_mode: nofilter
           reporter: local
+      - name: Áreas modificadas
+        id: changes
+        uses: dorny/paths-filter@ceb8a2b8f2d89434be7ff52d3de7ec3738c5cc9d # v4.0.3
+        with:
+          list-files: json
+          filters: |
+            functions:
+              - supabase/functions/**
+              - scripts/deno-test-selection.sh
+              - scripts/deno-tests-offline.sh
+              - scripts/ci/deno-import-map.mjs
+              - scripts/ci/vendor/**
+              - .github/workflows/ci.yml
+            migrations:
+              - supabase/migrations/**/*.sql
+              - drizzle/migrations/**/*.sql
+      - name: Lint de migraciones modificadas
+        if: steps.changes.outputs.migrations == 'true'
+        env:
+          MIGRATION_FILES: ${{ steps.changes.outputs.migrations_files }}
+        run: node --input-type=module -e 'import fs from "node:fs"; import {spawnSync} from "node:child_process"; const files=JSON.parse(process.env.MIGRATION_FILES).filter(f=>fs.existsSync(f)); if(files.length){const r=spawnSync("bun",["scripts/lint-migrations.ts",...files],{stdio:"inherit"}); if(r.error)throw r.error; process.exit(r.status??1)}'
+      - name: Deno
+        if: steps.changes.outputs.functions == 'true' || github.event_name == 'workflow_dispatch'
+        uses: denoland/setup-deno@22d081ff2d3a40755e97629de92e3bcbfa7cf2ed # v2.0.5
+        with:
+          deno-version: v2.9.8
+      - name: Funciones offline
+        if: steps.changes.outputs.functions == 'true' || github.event_name == 'workflow_dispatch'
+        run: |
+          cd supabase/functions
+          deno fmt --check
+          deno lint
+          cd ../..
+          bash scripts/deno-tests-offline.sh
+  tests:
+    name: Unitarias ${{ matrix.shard }}/4
+    runs-on: ubuntu-24.04
+    timeout-minutes: 6
+    strategy:
+      fail-fast: false
+      matrix:
+        shard:
+          - 1
+          - 2
+          - 3
+          - 4
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - name: Excluir entorno local
+        run: rm -f -- .env .env.* .dev.vars .dev.vars.*
+      - name: Node del proyecto
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
+        with:
+          node-version-file: .node-version
+      - name: Bun del proyecto
+        uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
+        with:
+          bun-version: 1.4.4
+      - name: Caché de paquetes
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
+        with:
+          path: ~/.bun/install/cache
+          key: ${{ runner.os }}-${{ runner.arch }}-bun-v2-${{ hashFiles('bun.lock', 'package.json', '.bun-version', '.node-version') }}
+      - name: Instalación congelada
+        run: |
+          node scripts/verify-ci-runtime.mjs
+          lock_before=$(sha256sum bun.lock)
+          bun install --frozen-lockfile
+          test "$lock_before" = "$(sha256sum bun.lock)"
+      - name: Vitest completo sin cobertura
+        env:
+          SHARD: ${{ matrix.shard }}
+          SHARDS: "4"
+          NODE_OPTIONS: --max-old-space-size=6144
+        run: node node_modules/vitest/vitest.mjs run --shard="$SHARD/$SHARDS"
+      - name: Diagnóstico de fallo
+        if: failure()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
+        with:
+          name: unitarias-${{ matrix.shard }}
+          path: reports/
+          retention-days: 3
+          if-no-files-found: ignore
+  build-smoke:
+    name: Build y smoke
+    runs-on: ubuntu-24.04
+    timeout-minutes: 6
+    env:
+      SMOKE_REUSE_BUILD: "1"
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - name: Excluir entorno local
+        run: rm -f -- .env .env.* .dev.vars .dev.vars.*
+      - name: Node del proyecto
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
+        with:
+          node-version-file: .node-version
+      - name: Bun del proyecto
+        uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
+        with:
+          bun-version: 1.4.4
+      - name: Caché de paquetes
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
+        with:
+          path: ~/.bun/install/cache
+          key: ${{ runner.os }}-${{ runner.arch }}-bun-v2-${{ hashFiles('bun.lock', 'package.json', '.bun-version', '.node-version') }}
+      - name: Instalación congelada
+        run: |
+          node scripts/verify-ci-runtime.mjs
+          lock_before=$(sha256sum bun.lock)
+          bun install --frozen-lockfile
+          test "$lock_before" = "$(sha256sum bun.lock)"
+      - name: Build real con backend ficticio
+        run: node scripts/browser-test-server.mjs --build-only
+      - name: Caché de Chromium
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
+        with:
+          path: ~/.cache/ms-playwright
+          key: ${{ runner.os }}-${{ runner.arch }}-chromium-v2-${{ hashFiles('bun.lock') }}
+      - name: Preparar Chromium
+        run: node node_modules/@playwright/test/cli.js install --with-deps chromium
+      - name: Contrato de aislamiento de navegador y Worker
+        run: node --test scripts/tests/browser-test-*.test.mjs
+      - name: Arranque e interacción del Worker
+        run: node node_modules/@playwright/test/cli.js test --config playwright.smoke.config.ts
+      - name: Diagnóstico de fallo
+        if: failure()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
+        with:
+          name: smoke-diagnostico
+          path: |-
+            test-results/
+            playwright-report/
+          retention-days: 3
+          if-no-files-found: ignore

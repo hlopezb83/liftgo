@@ -5,6 +5,7 @@ import type { QueryBuilderLike, SupabaseLike } from "../types.ts";
 export interface TableResponse {
   data: unknown;
   error: unknown;
+  count?: number | null;
 }
 
 export interface MockUpdate {
@@ -92,6 +93,9 @@ export function buildSupabaseMock(cfg: MockConfig): MockState {
     patch?: Record<string, unknown>,
   ): QueryBuilderLike {
     const filters: Array<{ col: string; val: unknown }> = [];
+    const orders: string[] = [];
+    const lowerBounds: Array<{ col: string; val: unknown }> = [];
+    let range: [number, number] | undefined;
 
     const resolveSelect = (): Promise<TableResponse> => {
       const byFilter = (cfg.selectsByFilter ?? {})[table];
@@ -150,8 +154,19 @@ export function buildSupabaseMock(cfg: MockConfig): MockState {
         filters.push({ col, val });
         return builder;
       },
-      order: () => builder,
+      order: (col) => {
+        orders.push(col);
+        return builder;
+      },
       limit: () => builder,
+      gt: (col, val) => {
+        lowerBounds.push({ col, val });
+        return builder;
+      },
+      range: (from, to) => {
+        range = [from, to];
+        return builder;
+      },
 
       // Legacy: single/maybeSingle en cadena update devuelven `selects[table]`
       // (varios tests confían en esto para simular update-returning). Opt-in
@@ -167,7 +182,23 @@ export function buildSupabaseMock(cfg: MockConfig): MockState {
           : resolveSelect(),
       then: <T>(onfulfilled: (v: TableResponse) => T) => {
         const p = mode === "update" ? resolveUpdate() : resolveSelect();
-        return p.then(onfulfilled);
+        return p.then((result) => {
+          if (!range || !Array.isArray(result.data)) return onfulfilled(result);
+          const ordered = [...result.data].sort((a, b) => {
+            for (const col of orders) {
+              if (a[col] !== b[col]) return a[col] < b[col] ? -1 : 1;
+            }
+            return 0;
+          });
+          const filtered = ordered.filter((row) =>
+            lowerBounds.every(({ col, val }) => String(row[col]) > String(val))
+          );
+          return onfulfilled({
+            ...result,
+            count: "count" in result ? result.count : filtered.length,
+            data: filtered.slice(range[0], range[1] + 1),
+          });
+        });
       },
     };
     return builder;

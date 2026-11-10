@@ -10,6 +10,7 @@ vi.mock("@/features/users", async (importOriginal) => {
   const full = Object.fromEntries(actual.MODULES.map((module) => [module, "full"]));
   return {
     ...actual,
+    useHasModuleAccess: () => false,
     useHasFinancialAccess: () => state.canSeeFinancials,
     useUserRole: () => ({ isError: state.roleError, data: state.loading ? undefined : state.role ?? (state.canSeeFinancials ? "admin" : "dispatcher") }),
     useRolePermissions: () => ({ isError: state.permissionsError, data: state.loading ? undefined : state.permissions ?? {
@@ -21,10 +22,10 @@ vi.mock("@/app-routes/routes-config", () => ({ routeLoaders: { "/users": state.p
 vi.mock("@/hooks/useNavigateTransition", () => ({ useNavigateTransition: () => state.navigate }));
 vi.mock("@/hooks/useDebouncedValue", () => ({ useDebouncedValue: (value: string) => value }));
 vi.mock("@/features/system/hooks/useEntitySearch", () => ({
-  useEntitySearch: () => ({ data: {
+  useEntitySearch: () => ({ canSearchEntities: true, isResolvingAccess: false, data: {
     invoices: [{ id: "i", label: "FAC-SECRET", sub: "Cliente financiero", url: "/invoices/i" }],
     customers: [{ id: "c", label: "Cliente operativo", url: "/customers/c" }],
-    bookings: [], deliveries: [], returns: [], errors: { invoices: "Forbidden" },
+    quotes: [], bookings: [], deliveries: [], returns: [], errors: { invoices: "Forbidden" },
   } }),
 }));
 vi.mock("@/components/ui/command", () => ({

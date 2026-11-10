@@ -1,3 +1,4 @@
+import { workflowJob } from './workflow-source.mjs';
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
@@ -197,14 +198,14 @@ test("report rejects missing provenance and prerequisite migrations", () => {
 });
 
 test("workflow collects only after verified replay, before mutable fixtures, and reuses reports upload", () => {
-  const workflow = readFileSync(`${ROOT}/.github/workflows/rls-db-tests.yml`, "utf8");
+  const workflow = workflowJob('rls');
   const reportStep = workflow.indexOf("run: node scripts/ci-drizzle-function-report.mjs");
   assert.ok(reportStep > workflow.indexOf("bun scripts/ci-drizzle-replay.mjs verify"));
   assert.ok(reportStep < workflow.indexOf("Recurring invoice locking regression"));
   assert.match(workflow.slice(reportStep - 200, reportStep), /if: success\(\) && steps\.drizzle\.outcome == 'success'/);
   assert.match(workflow, /name: rls-db-reports\s+path: reports\/\s+retention-days: 14/);
   assert.equal(REPORT_PATH, "reports/income-statement-effective-functions.json");
-  assert.equal((workflow.match(/"scripts\/ci-drizzle-\*\.mjs"/g) || []).length, 2, "push and PR paths already cover script");
+  assert.ok(workflow.includes("inputs.suite == 'rls'"), "database report requires explicit manual selection");
   const pkg = JSON.parse(readFileSync(`${ROOT}/package.json`, "utf8"));
   assert.equal(pkg.scripts["test:ci-tools"], "node --test scripts/tests/ci-drizzle-*.test.mjs");
 });

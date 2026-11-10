@@ -23,9 +23,10 @@ Para reutilizar un build ya generado con el backend ficticio, configurar
 referencias productivas antes de servirlo. `SMOKE_CHROMIUM_PATH` permite usar un
 Chromium local instalado. El origen de la aplicación debe seguir siendo local.
 
-El job `quality` de `ci.yml` ejecuta los 24 escenarios después de la aceptación
-móvil, con `SMOKE_REUSE_BUILD=1`, dentro del carril CI existente sin ampliar
-sus filtros de ramas.
+El grupo interno móvil/factura del job `browser-acceptance` en `ci.yml` ejecuta
+los 24 escenarios después de la aceptación móvil, con `SMOKE_REUSE_BUILD=1`.
+Reutiliza el artifact verificado de `quality-build`; el gate `quality` exige
+que todo el carril termine correctamente, sin cambiar los filtros de ramas.
 
 El fix de disponibilidad de factura ya se integró en `main` mediante
 [#351](https://github.com/hlopezb83/liftgo/pull/351). La UI conserva el ancestro
@@ -36,8 +37,9 @@ aceptación; no restaura código anterior. El baseline real se capturó antes de
 editar la UI, sobre `88a718141346430d32f283db2c750e53bcb092da`. Reproducirlo requiere
 la UI de ese commit más este fixture. `after` (predeterminado) añade la aceptación
 de las mejoras. En local, las capturas se guardan en `test-results/invoice-ui/`.
-CI genera sus propias capturas sintéticas; el artifact de diagnóstico existente
-puede incluirlas si falla `quality`. No consume la carpeta de evidencia local.
+CI genera sus propias capturas sintéticas y las conserva en el artifact
+`browser-acceptance-mobile-invoice-<run>-<intento>`, tanto al pasar como al fallar.
+No consume la carpeta de evidencia local.
 Se capturan viewports de encabezado/conceptos/resumen y cada tarjeta de partida,
 porque la aplicación usa un contenedor principal con scroll interno.
 

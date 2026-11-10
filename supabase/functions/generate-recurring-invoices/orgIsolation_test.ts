@@ -63,14 +63,20 @@ Deno.test("executePlan uses real grouping and scoped customer lookup for atomic 
   ];
   const mock = planningFixture({ bookings });
   const plan = await buildPlan(mock.client, null, dateOnlyToMty("2026-07-21"));
-  assertEquals(plan.lines.map((line) => line.taxRate), [16, 16, 8, 16, 16]);
+  assertEquals(plan.lines.map((line) => [line.bookingId, line.taxRate]), [
+    ["a-mxn-1", 16],
+    ["a-mxn-2", 16],
+    ["a-usd-18", 16],
+    ["a-usd-19", 16],
+    ["b-mxn", 8],
+  ]);
   const result = await executePlan(mock.client, plan.items);
   assertEquals(result.failed, []);
   assertEquals(result.created.map((row) => row.bookingIds), [
     ["a-mxn-1", "a-mxn-2"],
-    ["b-mxn"],
     ["a-usd-18"],
     ["a-usd-19"],
+    ["b-mxn"],
   ]);
   assertEquals(
     mock.rpcCalls.map((call) => call.fn),
@@ -92,23 +98,26 @@ Deno.test("executePlan uses real grouping and scoped customer lookup for atomic 
     ]),
     [
       ["MXN", 1, ["a-mxn-1", "a-mxn-2"]],
-      ["MXN", 1, ["b-mxn"]],
       ["USD", 18, ["a-usd-18"]],
       ["USD", 19, ["a-usd-19"]],
+      ["MXN", 1, ["b-mxn"]],
     ],
   );
   assertEquals(writes[0].args?.p_total, 7192);
-  assertEquals(writes[1].args?.p_tax_rate, 8);
-  assertEquals(writes[1].args?.p_total, 3348);
+  assertEquals(writes[3].args?.p_tax_rate, 8);
+  assertEquals(writes[3].args?.p_total, 3348);
   const customerLookups = mock.queries.filter((query) =>
     query.table === "organization_customers" &&
-    query.filters.some((filter) => filter.col === "organization_id")
+    query.filters.some((filter) => filter.col === "organization_id") &&
+    query.filters.some((filter) =>
+      filter.col === "customer_id" && !Array.isArray(filter.val)
+    )
   );
   assertEquals(
     customerLookups.map((query) =>
       query.filters.find((filter) => filter.col === "organization_id")?.val
     ),
-    ["org-A", "org-B", "org-A", "org-A"],
+    ["org-A", "org-A", "org-A", "org-B"],
   );
   assertEquals(mock.inserts, []);
   assertEquals(mock.updates, []);

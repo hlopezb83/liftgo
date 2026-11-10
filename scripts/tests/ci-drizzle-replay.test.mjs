@@ -27,7 +27,19 @@ const OPTIONAL_RECEIPT = {
   tag: "0110_control0109_verified_release",
   sha256: "3e99b978f260dedd927dd1104b84b5af74ee524b3d78dff0acd9446c2df2e13f",
 };
-const isPinnedReceipt = (entry) => [RECEIPT.tag, OPTIONAL_RECEIPT.tag].includes(entry.tag);
+const SOURCE_RELEASE_RECEIPT = {
+  idx: 131,
+  tag: "0131_control0129_0130_verified_release",
+  when: 1794160319241,
+  sha256: "f4126e4b47e9bb7cbefdc4d46c1403cec2eea7ce45f29cd5ed3051a2c1c82dba",
+};
+const INVENTORY_RELEASE_RECEIPT = {
+  idx: 133,
+  tag: "0133_control0132_verified_release",
+  when: 1794173743361,
+  sha256: "00e33f75ffe7b626ce4e582621ca6560e3a8d34ff20eaf33638f396de7b9aa92",
+};
+const isPinnedReceipt = (entry) => [RECEIPT.tag, OPTIONAL_RECEIPT.tag, SOURCE_RELEASE_RECEIPT.tag, INVENTORY_RELEASE_RECEIPT.tag].includes(entry.tag);
 const REPO_ROOT = fileURLToPath(new URL("../../", import.meta.url));
 const ENV = Object.freeze({
   CI: "true",
@@ -543,7 +555,7 @@ test("optional exact 0110 receipt is excluded while 0109 and later functional mi
   const journalBytes = readFileSync(f.journalPath);
   const replay = await prepareReplay(f);
   assert.deepEqual(replay.manifest.excludedReceipts.map(({ idx, tag, when, sha256 }) => ({ idx, tag, when, sha256 })),
-    [RECEIPT, { ...OPTIONAL_RECEIPT, when: receipt.when }]);
+    [RECEIPT, { ...OPTIONAL_RECEIPT, when: receipt.when }, SOURCE_RELEASE_RECEIPT, INVENTORY_RELEASE_RECEIPT]);
   assert.ok(replay.entries.some(({ idx, tag }) => idx === 109 && tag === "0109_nonrecurring_invoice_period_overlap"));
   assert.ok(replay.entries.some(({ tag }) => tag === future.tag));
   assert.equal(existsSync(path.join(replay.migrationsDir, `${receipt.tag}.sql`)), false);
@@ -626,3 +638,105 @@ for (const scenario of ["timestamp drift", "removed receipt", "manifest timestam
     assert.throws(() => validateReplay(f));
   });
 }
+
+
+test("0131 exclusion retains exact executable 0129/0130 and their required ledger rows", async (t) => {
+  const f = fixture(t);
+  const replay = await prepareReplay(f);
+  assert.deepEqual(replay.manifest.excludedReceipts.map(({idx})=>idx), [108,110,131,133]);
+  for (const [idx, hash] of [[129,"11bd425b48ef7685ea5558cc91280160cd59edb03cc54fa9b35fff79eab6b9aa"],
+    [130,"646fede0b54cf4ba8ed7dd34ec4a8ce251c0fcbca660832792dddc7dc0af0405"]]) {
+    const entry = replay.entries.find(e=>e.idx===idx);
+    assert.ok(entry);
+    assert.equal(entry.sha256,hash);
+    assert.equal(digest(readFileSync(path.join(replay.migrationsDir,`${entry.tag}.sql`))),hash);
+    assert.throws(()=>assertReplayLedger(ledger(replay.entries.filter(e=>e.idx!==idx)),replay.entries));
+  }
+  assert.equal(existsSync(path.join(replay.migrationsDir,`${SOURCE_RELEASE_RECEIPT.tag}.sql`)),false);
+  assert.throws(()=>assertReplayLedger([...ledger(replay.entries),{hash:SOURCE_RELEASE_RECEIPT.sha256,created_at:String(SOURCE_RELEASE_RECEIPT.when)}],replay.entries));
+});
+for (const change of ["bytes","tag","timestamp","breakpoints","duplicate","missing"]) {
+  test(`0131 exclusion rejects ${change} drift rather than skipping unreviewed SQL`,async(t)=>{
+    const f=fixture(t),journal=readJson(f.journalPath);
+    const entry=journal.entries.find(e=>e.idx===131);
+    const file=path.join(f.canonicalDir,`${entry.tag}.sql`);
+    if(change==="bytes") appendFileSync(file,"\n-- drift\n");
+    if(change==="tag") {entry.tag="0131_unreviewed_receipt";renameSync(file,path.join(f.canonicalDir,`${entry.tag}.sql`));}
+    if(change==="timestamp") entry.when++;
+    if(change==="breakpoints") entry.breakpoints=false;
+    if(change==="missing") rmSync(file);
+    writeJson(f.journalPath,journal);
+    if(change==="duplicate") {const extra=addFutureMigration(f);cpSync(file,path.join(f.canonicalDir,`${extra.tag}.sql`));}
+    await assert.rejects(prepareReplay(f),/0131 receipt|Canonical SQL file missing/);
+  });
+}
+
+test("0133 excludes only its exact receipt and keeps 0132 executable and mandatory in the ledger", async (t) => {
+  const f = fixture(t);
+  const before = sqlSnapshot(f.canonicalDir);
+  const journalBefore = readFileSync(f.journalPath);
+  const replay = await prepareReplay(f);
+  assert.deepEqual(replay.manifest.excludedReceipts.map(({ idx }) => idx), [108, 110, 131, 133]);
+  const excluded = replay.manifest.excludedReceipts.find(({ idx }) => idx === 133);
+  const { reason, ...identity } = excluded;
+  assert.deepEqual(identity, INVENTORY_RELEASE_RECEIPT);
+  assert.match(reason, /not applied or recorded/);
+  assert.equal(readJson(f.journalPath).entries[133].breakpoints, true);
+  assert.equal(digest(before[`${INVENTORY_RELEASE_RECEIPT.tag}.sql`]), INVENTORY_RELEASE_RECEIPT.sha256);
+  assert.equal(existsSync(path.join(replay.migrationsDir, `${INVENTORY_RELEASE_RECEIPT.tag}.sql`)), false);
+  assert.equal(replay.entries.some(({ idx }) => idx === 133), false);
+  const inventory = replay.entries.find(({ idx }) => idx === 132);
+  assert.equal(inventory.tag, "0132_inventory_server_page");
+  assert.equal(inventory.when, 1794171600000);
+  assert.equal(inventory.sha256, "f670704eee1b2bd41393240962b08b0e3237998868a8457fc10cb46ac23276a2");
+  assert.equal(digest(readFileSync(path.join(replay.migrationsDir, `${inventory.tag}.sql`))), inventory.sha256);
+  assert.doesNotThrow(() => assertReplayLedger(ledger(replay.entries), replay.entries));
+  assert.throws(() => assertReplayLedger(ledger(replay.entries.filter(({ idx }) => idx !== 132)), replay.entries), /CI replay ledger/);
+  assert.throws(() => assertReplayLedger([...ledger(replay.entries), {
+    hash: INVENTORY_RELEASE_RECEIPT.sha256, created_at: String(INVENTORY_RELEASE_RECEIPT.when),
+  }], replay.entries), /CI replay ledger/);
+  assertSqlBytes(f.canonicalDir, before);
+  assert.deepEqual(readFileSync(f.journalPath), journalBefore);
+});
+
+for (const change of ["bytes", "tag", "timestamp", "idx", "breakpoints", "duplicate", "missing file", "missing journal entry"]) {
+  test(`0133 exclusion rejects ${change} drift before staging`, async (t) => {
+    const f = fixture(t);
+    const journal = readJson(f.journalPath);
+    const entry = journal.entries.find(({ idx }) => idx === 133);
+    const file = path.join(f.canonicalDir, `${entry.tag}.sql`);
+    if (change === "bytes") appendFileSync(file, "\n-- unreviewed receipt\n");
+    if (change === "tag") {
+      entry.tag = "0133_unreviewed_receipt";
+      renameSync(file, path.join(f.canonicalDir, `${entry.tag}.sql`));
+    }
+    if (change === "timestamp") entry.when++;
+    if (change === "idx") entry.idx++;
+    if (change === "breakpoints") entry.breakpoints = false;
+    if (change === "missing file") rmSync(file);
+    if (change === "missing journal entry") journal.entries.splice(133, 1);
+    writeJson(f.journalPath, journal);
+    if (change === "duplicate") {
+      const extra = addFutureMigration(f);
+      cpSync(file, path.join(f.canonicalDir, `${extra.tag}.sql`));
+    }
+    await assert.rejects(() => prepareReplay(f), /0133 receipt|Canonical/);
+    assert.equal(existsSync(path.join(f.rootDir, ".ci-drizzle-replay")), false);
+  });
+}
+
+test("prepared 0133 exclusion rejects a restored receipt or changed manifest identity", async (t) => {
+  for (const change of ["staged receipt", "manifest timestamp"]) {
+    const f = fixture(t);
+    const replay = await prepareReplay(f);
+    if (change === "staged receipt") {
+      const filename = `${INVENTORY_RELEASE_RECEIPT.tag}.sql`;
+      cpSync(path.join(f.canonicalDir, filename), path.join(replay.migrationsDir, filename));
+    } else {
+      const manifest = readJson(replay.manifestPath);
+      manifest.excludedReceipts.find(({ idx }) => idx === 133).when++;
+      writeJson(replay.manifestPath, manifest);
+    }
+    assert.throws(() => validateReplay(f), /CI replay|replay directory/);
+  }
+});

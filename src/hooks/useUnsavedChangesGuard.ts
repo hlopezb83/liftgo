@@ -10,7 +10,7 @@ import { useBlocker } from "@/lib/router-compat";
  * DENTRO del callback del blocker → lee refs/formState al momento de bloquear,
  * lo que resuelve la carrera `justSavedRef=true → reset() → navigate()` en el mismo tick.
  */
-export function useUnsavedChangesGuard(isDirty: boolean | (() => boolean), options?: ConfirmOptions) {
+export function useUnsavedChangesGuard(isDirty: boolean | (() => boolean), options?: ConfirmOptions, blockSearchChanges: boolean | ((search: string) => string | null) = false) {
   const confirm = useConfirm();
   const optionsRef = useRef(options);
   useEffect(() => { optionsRef.current = options; }, [options]);
@@ -39,7 +39,10 @@ export function useUnsavedChangesGuard(isDirty: boolean | (() => boolean), optio
   // Navegación interna: bloquea y pide confirmación async.
   const blocker = useBlocker(
     ({ currentLocation, nextLocation }) =>
-      getterRef.current() && currentLocation.pathname !== nextLocation.pathname,
+      getterRef.current() && (currentLocation.pathname !== nextLocation.pathname
+        || (typeof blockSearchChanges === "function"
+          ? blockSearchChanges(currentLocation.search) !== blockSearchChanges(nextLocation.search)
+          : blockSearchChanges && currentLocation.search !== nextLocation.search)),
   );
 
   useEffect(() => {

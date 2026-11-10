@@ -14,7 +14,7 @@ interface Props {
 
 export function ProspectQuoteLink({ prospect, quoteNumber, onNavigate }: Props) {
   const navigate = useNavigateTransition();
-  if (!prospect.quoteId || !quoteNumber) return null;
+  if (!prospect.quoteId) return null;
   return (
     <>
       <Separator />
@@ -28,7 +28,7 @@ export function ProspectQuoteLink({ prospect, quoteNumber, onNavigate }: Props) 
             onClick={() => { onNavigate(); navigate(`/quotes/${prospect.quoteId}`); }}
           >
             <DocumentIcon className="h-3 w-3" />
-            {quoteNumber}
+            {quoteNumber ?? "Ver cotización vinculada"}
           </Badge>
         </div>
       </div>

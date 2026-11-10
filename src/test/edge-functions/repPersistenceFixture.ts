@@ -77,6 +77,7 @@ export function createRepPersistenceFixture(
           return query;
         },
         lt: () => query,
+        order: () => query,
         limit: () => query,
         is: () => query,
         not: () => query,
