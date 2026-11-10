@@ -49,7 +49,7 @@ describe("wrapper real del server function", () => {
       expect(caller.auth.getClaims).not.toHaveBeenCalled();
       expect(d.loadSecretReader).not.toHaveBeenCalled(); expect(d.readIssuer).not.toHaveBeenCalled();
     });
-  it("origen live exacto avanza hasta exclusividad bloqueada, sin lector ni proveedor", async () => {
+  it("origen live exacto con DEV llega a validar sesión; sin lector ni proveedor", async () => {
     const ok = { then: (f: (v: unknown) => unknown) => Promise.resolve({ data: true, error: null }).then(f) };
     const caller = {
       from: vi.fn(() => { throw new Error("no_db_in_this_test"); }),

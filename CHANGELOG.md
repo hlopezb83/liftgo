@@ -1,3 +1,7 @@
+## [8.49.2] - 2026-11-10
+
+- Refuerza la pantalla temporal de revisión sandbox: revisa el vencimiento después de cada paso y antes de cada consulta privilegiada, y no crea conexiones cuando está apagada o fuera de la vista previa. Agrega pruebas sin red; sigue bloqueada hasta tener una comprobación segura de exclusividad. Sin publicación, consultas reales ni cambios de datos.
+
 ## [8.49.1] - 2026-11-10
 
 - Ajusta la pantalla temporal de revisión sandbox al origen exacto de la vista previa en vivo, mantiene el bloqueo para la app publicada y deja de enviar la llave de prueba dentro de consultas. Sin mecanismo revisado de exclusividad la comprobación queda bloqueada antes de leer la llave. Sin publicación, consultas reales ni cambios de datos.
