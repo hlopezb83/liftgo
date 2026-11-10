@@ -1,0 +1,11 @@
+# Migration 0134: disposable CI source review
+
+The CI failure on `ddd94a4` was the fail-closed canonical-tree check, not a database error. Compared with the previously reviewed Drizzle tree `9f580d5bfd5344aab55f1cec3a2338526b34cd35`, the current tree adds only `0134_qa_fx6_test_key_exclusive.sql`, `meta/0134_snapshot.json`, and journal entry 134. The SQL entered history in `1ca1753e3`. Earlier migration bytes and journal entries are unchanged; the empty snapshot links to 0133.
+
+The reviewed tree is `d676be459c28e69b83041513ba24c86a84bc3e80`. Supabase remains `3e3575f5ff6d509ecdd624ae7fc1772508b5dce6`. SQL 0134 has SHA256 `14fa5d91e379333cf995fc7da130502a765d324bc9db1c1e0f5a1b72446eb374`.
+
+Source review: 0134 creates a parameterless, stable, boolean SECURITY DEFINER function for one fixed tenant. Its body checks test mode, a nonempty test-key prefix, one settings/secrets row, and whether another tenant shares that key. It does not return keys, hashes or tenant identifiers and does not read the live key. The function has an explicit `pg_catalog, public` search path and qualified relations. EXECUTE is revoked from PUBLIC, anon, authenticated and the optional technical role; an exact final ACL assertion requires only owner and service_role, without grant option. Unexpected inherited grants fail closed. Installation defines the function, comment and ACLs and checks catalogs; it performs no business-data DML, HTTP or cron operation. This is a source review, not a certification of current database state or key exclusivity.
+
+The adjustment changes no canonical SQL, metadata, replay exclusions or runtime permissions. Migration 0134 remains a functional migration in the existing disposable replay path. The source guard still rejects unreviewed committed trees, modified or unexpected local files, symlinks, unsupported modes and a changed legacy patcher. Tests pin 0134 SQL and metadata, reject the old tree before SQL inspection, and mutate SQL, snapshot and journal bytes through the real Git fixture to prove rejection before patching. Existing HTTP, cron, receipt and startup checks remain intact.
+
+Validation uses offline Python tests and Node replay-contract tests. Docker, Supabase and SQL execution are mocked in the Python pipeline. No database migration or deployment was executed by this fix.

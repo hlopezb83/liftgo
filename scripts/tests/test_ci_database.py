@@ -20,11 +20,11 @@ spec.loader.exec_module(ci)
 
 
 class LocalCiDatabaseTests(unittest.TestCase):
-    def test_receipt133_has_exact_source_identity_and_reviewed_tree_pins(self):
+    def test_receipt133_retains_exact_source_identity(self):
         root = Path(__file__).parents[2]
         self.assertEqual(ci.SOURCE_TREES, {
             "supabase/migrations": "3e3575f5ff6d509ecdd624ae7fc1772508b5dce6",
-            "drizzle/migrations": "9f580d5bfd5344aab55f1cec3a2338526b34cd35",
+            "drizzle/migrations": "d676be459c28e69b83041513ba24c86a84bc3e80",
         })
         migrations = root / "drizzle/migrations"
         journal = json.loads((migrations / "meta/_journal.json").read_text())
@@ -48,6 +48,34 @@ class LocalCiDatabaseTests(unittest.TestCase):
         old_trees = [
             "040000 tree 3e3575f5ff6d509ecdd624ae7fc1772508b5dce6\tsupabase/migrations",
             "040000 tree 9cd9e112058206028074d60be1bc919c2258c9ff\tdrizzle/migrations",
+        ]
+        with mock.patch.object(ci, "command_lines", return_value=old_trees) as commands, \
+                mock.patch.object(ci, "check_http_sources") as inspect_sql, self.assertRaises(ValueError):
+            ci.preflight_sources()
+        self.assertEqual(commands.call_count, 1)
+        inspect_sql.assert_not_called()
+
+    def test_qa134_has_exact_source_identity_and_snapshot_chain(self):
+        migrations = Path(__file__).parents[2] / "drizzle/migrations"
+        sql = migrations / "0134_qa_fx6_test_key_exclusive.sql"
+        self.assertEqual(hashlib.sha256(sql.read_bytes()).hexdigest(),
+                         "14fa5d91e379333cf995fc7da130502a765d324bc9db1c1e0f5a1b72446eb374")
+        journal = json.loads((migrations / "meta/_journal.json").read_text())
+        self.assertEqual(len(journal["entries"]), 135)
+        self.assertEqual(journal["entries"][134], {
+            "idx": 134, "version": "7", "when": 1794291446347,
+            "tag": "0134_qa_fx6_test_key_exclusive", "breakpoints": True,
+        })
+        snapshot = json.loads((migrations / "meta/0134_snapshot.json").read_text())
+        self.assertEqual(snapshot["prevId"],
+                         json.loads((migrations / "meta/0133_snapshot.json").read_text())["id"])
+        for field in ["tables", "enums", "schemas", "views", "sequences", "roles", "policies"]:
+            self.assertEqual(snapshot[field], {})
+
+    def test_qa134_previous_reviewed_tree_fails_before_sql_inspection(self):
+        old_trees = [
+            "040000 tree 3e3575f5ff6d509ecdd624ae7fc1772508b5dce6\tsupabase/migrations",
+            "040000 tree 9f580d5bfd5344aab55f1cec3a2338526b34cd35\tdrizzle/migrations",
         ]
         with mock.patch.object(ci, "command_lines", return_value=old_trees) as commands, \
                 mock.patch.object(ci, "check_http_sources") as inspect_sql, self.assertRaises(ValueError):
@@ -208,7 +236,7 @@ class GuardedBootstrapTests(unittest.TestCase):
         return events
 
     @contextlib.contextmanager
-    def runner_pipeline(self):
+    def runner_pipeline(self, source_mutation=None):
         """Real Git/source/patcher pipeline; only Docker, Supabase and SQL mocked."""
         root = Path(__file__).parents[2]
         fixture = Path(self.directory.name) / "checkout"
@@ -225,6 +253,8 @@ class GuardedBootstrapTests(unittest.TestCase):
                         *ci.SOURCE_TREES, "scripts/patch_legacy_migrations.py", "supabase/config.toml"],
                        check=True, capture_output=True)
         with contextlib.chdir(fixture):
+            if source_mutation is not None:
+                source_mutation()
             ci.preflight_sources()  # Real canonical trees, file bytes and patcher pin.
             originals = {name: (Path("supabase/migrations") / name).read_bytes() for name in ci.HTTP_SOURCES}
             legacy_spec = spec_from_file_location("legacy_pipeline", Path("scripts/patch_legacy_migrations.py"))
@@ -256,6 +286,20 @@ class GuardedBootstrapTests(unittest.TestCase):
             self.backup = Path("supabase/config.toml.ci-runtime-backup").resolve()
             self.replay = self.config.read_bytes()
             yield fixture
+
+    def test_real_runner_pipeline_rejects_qa134_source_drift_before_patching(self):
+        paths = [
+            "drizzle/migrations/0134_qa_fx6_test_key_exclusive.sql",
+            "drizzle/migrations/meta/0134_snapshot.json",
+            "drizzle/migrations/meta/_journal.json",
+        ]
+        for name in paths:
+            def mutate(name=name):
+                path = Path(name)
+                path.write_bytes(path.read_bytes() + b"\n ")
+            with self.subTest(source=name), self.assertRaisesRegex(ValueError, "Canonical source bytes changed"):
+                with self.runner_pipeline(source_mutation=mutate):
+                    self.fail("Source drift reached the replay pipeline")
 
     def test_real_runner_pipeline_accepts_only_exact_patcher_output(self):
         with self.runner_pipeline():

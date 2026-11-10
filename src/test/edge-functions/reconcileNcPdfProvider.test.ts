@@ -35,10 +35,29 @@ describe("NC PDF-only reconciliation: provider and binary safety", () => {
     mocks.retrieve.mockResolvedValue(pacInvoice(overrides as Row));
     const result = await reconcile();
     expect(result.processed).toBe(1);
+    expect(result.results[0].status).toBe("nc_pdf_identity_mismatch");
+    expect(mocks.retrieveWithSignal).toHaveBeenCalledOnce();
     expect(notes[0].cfdi_pdf_url).toBeNull();
     expect(committed).toHaveLength(1);
     expect(mocks.pdf).not.toHaveBeenCalled();
     expect(upload).not.toHaveBeenCalled();
+  });
+
+  it("passes separate call signals to both SDK adapters and closes PDF transport after consumption", async () => {
+    fixture();
+    expect((await reconcile()).results[0].status).toBe("nc_pdf_recovered");
+    const client = mocks.createClient.mock.results[0].value;
+    for (const adapter of [mocks.retrieveWithSignal, mocks.pdfWithSignal]) {
+      expect(adapter).toHaveBeenCalledExactlyOnceWith(
+        client,
+        "pac-note-1",
+        { signal: expect.any(AbortSignal) },
+      );
+    }
+    const retrieveSignal = mocks.retrieveWithSignal.mock.calls[0][2].signal;
+    const pdfSignal = mocks.pdfWithSignal.mock.calls[0][2].signal;
+    expect(pdfSignal).not.toBe(retrieveSignal);
+    expect(pdfSignal.aborted).toBe(true);
   });
 
   it("accepts live PDF retrieval only when provider livemode matches configured live mode", async () => {
@@ -79,6 +98,13 @@ describe("NC PDF-only reconciliation: provider and binary safety", () => {
       await vi.advanceTimersByTimeAsync(8_001);
       const result = await pending;
       expect(result.results[0].status).toBe("nc_pdf_recovery_pending");
+      const adapter = stage === "retrieve" ? mocks.retrieveWithSignal : mocks.pdfWithSignal;
+      expect(adapter).toHaveBeenCalledExactlyOnceWith(
+        mocks.createClient.mock.results[0].value,
+        "pac-note-1",
+        { signal: expect.any(AbortSignal) },
+      );
+      expect(adapter.mock.calls[0][2].signal.aborted).toBe(true);
       release(stage === "retrieve" ? pacInvoice() : PDF_BYTES);
       await vi.advanceTimersByTimeAsync(1);
       expect(notes[0].cfdi_pdf_url).toBeNull();
