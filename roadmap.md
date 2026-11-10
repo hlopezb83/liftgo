@@ -3,10 +3,10 @@
 ## Migración Facturapi 6.0.0 (10 de noviembre de 2026)
 
 - [x] Fase 0: inventario sin cambios (`docs/facturapi6-migracion-inventario.md`).
-- [ ] Fase 1: capa única SDK 6 apagada — espera decisión de interruptor por empresa.
+- [ ] Fase 1: capa única SDK 6 (activación todo de una vez, sin interruptor) — siguiente; toca funciones operativas, requiere revisión independiente antes de desplegar.
 - [ ] Fase 2: pruebas de paridad sin red.
-- [ ] Fase 3: sandbox completo — espera decisión sobre crons y autorización de fixtures.
-- [ ] Fase 4: producción gradual. Fase 5: retiro de 5.2.0.
+- [ ] Fase 3: sandbox completo — autorizados fixtures y pausa de crons sólo en la ventana; falta Fase 1-2.
+- [ ] Fase 4: producción en un solo cambio con reversa por redeploy. Fase 5: retiro de 5.2.0.
 
 ## Hallazgos Sentry de LiftGo (18 de octubre de 2026)
 
