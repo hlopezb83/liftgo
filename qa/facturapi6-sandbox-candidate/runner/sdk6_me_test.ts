@@ -8,17 +8,29 @@ Deno.test("SDK 6 organizations.me usa GET /v2/organizations/me y respeta signal"
   const realFetch = globalThis.fetch;
   const seen: Array<{ url: string; method: string; hasSignal: boolean }> = [];
   globalThis.fetch = ((input: Request | URL | string, init?: RequestInit) => {
-    const url = typeof input === "string" ? input : input instanceof URL ? input.href : input.url;
+    const url = typeof input === "string"
+      ? input
+      : input instanceof URL
+      ? input.href
+      : input.url;
     seen.push({
       url,
-      method: (init?.method ?? (input instanceof Request ? input.method : "GET")).toUpperCase(),
+      method:
+        (init?.method ?? (input instanceof Request ? input.method : "GET"))
+          .toUpperCase(),
       hasSignal: !!init?.signal,
     });
     return Promise.resolve(
-      new Response(JSON.stringify({ id: "org_fake", legal: { legal_name: "X", tax_id: "Y" } }), {
-        status: 200,
-        headers: { "Content-Type": "application/json" },
-      }),
+      new Response(
+        JSON.stringify({
+          id: "org_fake",
+          legal: { legal_name: "X", tax_id: "Y" },
+        }),
+        {
+          status: 200,
+          headers: { "Content-Type": "application/json" },
+        },
+      ),
     );
   }) as typeof fetch;
   try {

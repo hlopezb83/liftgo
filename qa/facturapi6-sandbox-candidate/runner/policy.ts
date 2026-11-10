@@ -72,12 +72,23 @@ export function checkExpiry(nowMs: number): Gate {
   return { ok: true };
 }
 
+/**
+ * Tiempo máximo para una llamada al proveedor: el menor entre el límite
+ * fijo y lo que resta de la ventana. 0 = no enviar.
+ */
+export function providerDeadlineMs(nowMs: number): number {
+  if (!checkExpiry(nowMs).ok) return 0;
+  return Math.max(0, Math.min(PROVIDER_TIMEOUT_MS, RUN_EXPIRES_AT - nowMs));
+}
+
 export function parseAction(body: unknown): RunAction | null {
   if (!body || typeof body !== "object" || Array.isArray(body)) return null;
   const keys = Object.keys(body as Record<string, unknown>);
   // Sólo se aceptan exactamente {action, run_id}; cualquier campo extra
   // (IDs, URLs, montos, organización) invalida la petición.
-  if (keys.length !== 2 || !keys.includes("action") || !keys.includes("run_id")) {
+  if (
+    keys.length !== 2 || !keys.includes("action") || !keys.includes("run_id")
+  ) {
     return null;
   }
   const b = body as { action?: unknown; run_id?: unknown };

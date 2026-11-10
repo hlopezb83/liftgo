@@ -2,14 +2,9 @@
 // No modifican el snapshot: sólo envuelven sus dependencias inyectadas.
 import { authenticateWithDeps } from "../snapshot/supabase/functions/_shared/authWithDeps.ts";
 import { resolveCallerOrganization } from "../snapshot/supabase/functions/_shared/orgContext.ts";
+import { type CallerClientLike, type Db, isRecord, type Query } from "./db.ts";
+import { checkTenant } from "./policy.ts";
 import type { SupabaseLike } from "../snapshot/supabase/functions/_shared/types.ts";
-import { checkTenant, type Gate, TENANT_ORGANIZATION_ID } from "./policy.ts";
-
-export interface CallerClientLike {
-  auth: {
-    getClaims: (t: string) => Promise<{ data: { claims?: Record<string, unknown> | null } | null; error: unknown }>;
-  };
-}
 
 export interface IdentityDeps {
   createCallerClient: (authHeader: string) => CallerClientLike;
@@ -20,27 +15,30 @@ export type IdentityResult =
   | { ok: true; userId: string; supabase: SupabaseLike }
   | { ok: false; status: number; code: string };
 
-const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+export const UUID_RE =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
+const fail = (status: number, code: string): IdentityResult => ({
+  ok: false,
+  status,
+  code,
+});
 
 /**
- * Identidad estricta del caller humano. Fail-closed ante cualquier duda:
- * - token ausente / getClaims con error;
- * - rol del JWT distinto de `authenticated` (rechaza service_role, anon, cron);
- * - `sub` vacío o no UUID;
- * - perfil ausente, error de lectura o `is_active !== true` (null también falla,
- *   a diferencia de `authenticateWithDeps`, que sólo rechaza `false`);
- * - rol distinto de admin (vía snapshot);
- * - membresía interna ausente/múltiple/ajena u organización inactiva (vía snapshot).
+ * Sesión real: `getClaims` debe traer `session_id` UUID y `auth.getUser(token)`
+ * debe devolver el mismo usuario. Un token acuñado sin sesión (sin
+ * `session_id`) o revocado falla con 401 antes de cualquier lectura de datos.
  */
-export async function strictIdentity(req: Request, deps: IdentityDeps): Promise<IdentityResult> {
-  const header = req.headers.get("Authorization") ?? "";
-  if (!header.startsWith("Bearer ") || header.length <= 7) {
-    return { ok: false, status: 401, code: "unauthorized" };
-  }
+async function verifySession(
+  caller: CallerClientLike,
+  token: string,
+): Promise<
+  { ok: true; sub: string } | { ok: false; status: number; code: string }
+> {
   let claims: Record<string, unknown> | null = null;
   try {
-    const r = await deps.createCallerClient(header).auth.getClaims(header.slice(7));
-    if (!r.error) claims = r.data?.claims ?? null;
+    const r = await caller.auth.getClaims(token);
+    if (!r.error && isRecord(r.data?.claims)) claims = r.data.claims;
   } catch {
     claims = null;
   }
@@ -49,71 +47,126 @@ export async function strictIdentity(req: Request, deps: IdentityDeps): Promise<
     return { ok: false, status: 403, code: "caller_role_not_allowed" };
   }
   const sub = typeof claims.sub === "string" ? claims.sub : "";
-  if (!UUID_RE.test(sub)) return { ok: false, status: 401, code: "unauthorized" };
+  if (!UUID_RE.test(sub)) {
+    return { ok: false, status: 401, code: "unauthorized" };
+  }
+  const sessionId = typeof claims.session_id === "string"
+    ? claims.session_id
+    : "";
+  if (!UUID_RE.test(sessionId)) {
+    return { ok: false, status: 401, code: "session_required" };
+  }
+  try {
+    const u = await caller.auth.getUser(token);
+    const id = u.data?.user?.id;
+    if (u.error || typeof id !== "string" || id !== sub) {
+      return { ok: false, status: 401, code: "session_not_verified" };
+    }
+  } catch {
+    return { ok: false, status: 401, code: "session_not_verified" };
+  }
+  return { ok: true, sub };
+}
+
+/**
+ * Identidad estricta del caller humano. Fail-closed ante cualquier duda:
+ * sesión no verificable, rol del JWT distinto de `authenticated`, perfil
+ * ausente/erróneo/duplicado o `is_active !== true`, rol distinto de admin,
+ * membresía interna ausente/múltiple/ajena u organización inactiva.
+ */
+export async function strictIdentity(
+  req: Request,
+  deps: IdentityDeps,
+): Promise<IdentityResult> {
+  const header = req.headers.get("Authorization") ?? "";
+  if (!header.startsWith("Bearer ") || header.length <= 7) {
+    return fail(401, "unauthorized");
+  }
+  const caller = deps.createCallerClient(header);
+  const session = await verifySession(caller, header.slice(7));
+  if (!session.ok) return fail(session.status, session.code);
+  const sub = session.sub;
 
   let auth;
   try {
     auth = await authenticateWithDeps({
       req,
-      createCallerClient: (h) => deps.createCallerClient(h) as never,
+      createCallerClient: () => caller,
       createServiceClient: deps.createServiceClient,
       allowedRoles: ["admin"],
       logTag: "[fx6-sandbox]",
     });
   } catch {
-    return { ok: false, status: 503, code: "auth_unavailable" };
+    return fail(503, "auth_unavailable");
   }
-  if (!auth.ok) return { ok: false, status: auth.status, code: "unauthorized" };
-  if (auth.isServiceRole) return { ok: false, status: 403, code: "caller_role_not_allowed" };
-  if (auth.userId !== sub) return { ok: false, status: 401, code: "unauthorized" };
+  if (!auth.ok) return fail(auth.status, "unauthorized");
+  if (auth.isServiceRole) return fail(403, "caller_role_not_allowed");
+  if (auth.userId !== sub) return fail(401, "unauthorized");
 
   try {
-    const p = await (auth.supabase as any).from("profiles").select("is_active")
-      .eq("user_id", sub).limit(2);
-    if (p?.error) return { ok: false, status: 503, code: "profile_unreadable" };
-    if (!Array.isArray(p?.data) || p.data.length !== 1 || p.data[0]?.is_active !== true) {
-      return { ok: false, status: 403, code: "profile_not_active" };
+    const db = auth.supabase as unknown as Db;
+    const p = await db.from("profiles").select("is_active").eq("user_id", sub)
+      .limit(2);
+    if (p.error) return fail(503, "profile_unreadable");
+    const rows = Array.isArray(p.data) ? p.data : [];
+    if (rows.length !== 1 || !isRecord(rows[0]) || rows[0].is_active !== true) {
+      return fail(403, "profile_not_active");
     }
   } catch {
-    return { ok: false, status: 503, code: "profile_unreadable" };
+    return fail(503, "profile_unreadable");
   }
 
   let org;
   try {
     org = await resolveCallerOrganization(auth.supabase as never, sub);
   } catch {
-    return { ok: false, status: 503, code: "membership_check_failed" };
+    return fail(503, "membership_check_failed");
   }
-  if (!org.ok) return { ok: false, status: org.status, code: "membership_check_failed" };
-  const t: Gate = checkTenant(org.organizationId);
-  if (!t.ok) return { ok: false, status: t.status, code: t.code };
+  if (!org.ok) return fail(org.status, "membership_check_failed");
+  const t = checkTenant(org.organizationId);
+  if (!t.ok) return fail(t.status, t.code);
   return { ok: true, userId: sub, supabase: auth.supabase };
 }
 
 const LIVE_COLUMN = "facturapi_live_key";
 
+const wrappable = (v: unknown): v is Query =>
+  typeof v === "object" && v !== null && !(v instanceof Promise);
+
+function guardFilters(builder: Query): Query {
+  return new Proxy(builder, {
+    get(t, p, r) {
+      const v: unknown = Reflect.get(t, p, r);
+      if (typeof v !== "function" || p === "then") return v;
+      return (...args: unknown[]) => {
+        if (args.includes(LIVE_COLUMN)) {
+          throw new Error("live_key_column_blocked");
+        }
+        const out: unknown = Reflect.apply(v, t, args);
+        return wrappable(out) ? guardFilters(out) : out;
+      };
+    },
+  });
+}
+
 /**
- * Vista del cliente de servicio para el código del snapshot:
- * - `billing_secrets`: cualquier `select` que pida la columna live se reescribe
- *   para pedir sólo `facturapi_test_key`; la llave live nunca viaja al isolate.
- *   Filtros sobre la columna live se rechazan (lanzan) para fallar cerrado.
- * - `billing_secrets` sólo se lee del tenant fijo o para la verificación de
- *   exclusividad que hace el propio snapshot.
- * Todo lo demás pasa sin cambios.
+ * Vista del cliente de servicio para el código del snapshot: todo `select` de
+ * `billing_secrets` que pida la columna live se reescribe a las demás columnas
+ * y cualquier filtro por la columna live lanza. La llave live nunca viaja.
  */
-export function restrictSecretsView<T extends { from: (t: string) => any }>(admin: T): T {
+export function restrictSecretsView<T extends Db>(admin: T): T {
   return new Proxy(admin, {
     get(target, prop, recv) {
       if (prop !== "from") return Reflect.get(target, prop, recv);
-      return (table: string) => {
+      return (table: string): Query => {
         const q = target.from(table);
         if (table !== "billing_secrets") return q;
         return new Proxy(q, {
           get(qt, qp, qr) {
             if (qp !== "select") return Reflect.get(qt, qp, qr);
             return (cols: string, ...rest: unknown[]) => {
-              const list = String(cols ?? "").split(",").map((c) => c.trim()).filter(Boolean);
-              const safe = list.filter((c) => c !== LIVE_COLUMN);
+              const safe = String(cols ?? "").split(",").map((c) => c.trim())
+                .filter((c) => c !== "" && c !== LIVE_COLUMN);
               if (safe.length === 0) throw new Error("live_key_column_blocked");
               return guardFilters(qt.select(safe.join(", "), ...rest));
             };
@@ -124,23 +177,7 @@ export function restrictSecretsView<T extends { from: (t: string) => any }>(admi
   });
 }
 
-function guardFilters(builder: any): any {
-  return new Proxy(builder, {
-    get(t, p, r) {
-      const v = Reflect.get(t, p, r);
-      if (typeof v !== "function" || p === "then") return v;
-      return (...args: unknown[]) => {
-        if (args[0] === LIVE_COLUMN) throw new Error("live_key_column_blocked");
-        const out = v.apply(t, args);
-        return out && typeof out === "object" && !(out instanceof Promise) ? guardFilters(out) : out;
-      };
-    },
-  });
-}
-
 /** Entorno visible al snapshot: nunca expone llaves Facturapi por variable. */
 export function restrictEnv(env: (k: string) => string | undefined) {
   return (k: string) => (/FACTURAPI/i.test(k) ? undefined : env(k));
 }
-
-export const SECRET_COLUMNS_REQUESTED_FOR_TENANT = TENANT_ORGANIZATION_ID;
