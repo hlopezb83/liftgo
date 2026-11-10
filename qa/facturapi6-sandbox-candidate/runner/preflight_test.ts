@@ -82,7 +82,7 @@ function setup(o: Opts = {}) {
   let secretsReads = 0;
   const db = fakeDb({
     profiles: { data: o.profiles ?? [{ is_active: true }], error: o.profileError },
-    organizations: { data: [{ id: TENANT_ORGANIZATION_ID, is_active: o.orgActive ?? true }] },
+    organizations: { data: [{ id: TENANT_ORGANIZATION_ID, is_active: "orgActive" in o ? o.orgActive : true }] },
     user_roles: { data: [{ role: o.role ?? "admin" }] },
     organization_memberships: {
       data: o.memberships ?? [{ organization_id: o.org ?? TENANT_ORGANIZATION_ID, member_type: "internal" }],
