@@ -5,7 +5,7 @@
 // Ventajas vs fetch directo:
 // - Auth y serialización gestionadas por el SDK.
 // - Errores tipados (`FacturapiError` con .status, .code, .message).
-// - Mantenido oficialmente por Facturapi (v5.1.0).
+// - Mantenido oficialmente por Facturapi (v6.0.0).
 //
 // deno-lint-ignore-file no-explicit-any
 import * as FacturapiPkg from "facturapi";
@@ -356,95 +356,81 @@ export function createFacturapiClient(apiKey: string): FacturapiClient {
 }
 
 /**
- * EC-A2: timbra una factura soportando AbortSignal (timeout con abort real).
+ * The v6 resource methods supply their own date conversion plan, HTTP method,
+ * encoded path and query parameters. Call those methods instead of rebuilding
+ * their requests or depending on the removed get/put/delete transport helpers.
  *
- * `invoices.create()` del SDK no acepta `signal`, pero el wrapper HTTP interno
- * (campo público `client` del recurso, tipado como WrapperClient en el paquete)
- * esparce las opciones extra en el RequestInit del fetch subyacente — verificado
- * en facturapi@5.1.0 (`request()` hace `{...rest, headers, body}`). Llamamos al
- * wrapper directamente y así el AbortController sí cancela el socket en vuelo.
- *
- * Si el cliente no expone el wrapper (p. ej. un mock distinto en tests), cae al
- * método estándar del SDK sin signal.
+ * AbortSignal is still forwarded by request() to fetch. Give each call its own
+ * resource/transport view so concurrent requests never overwrite a shared
+ * signal, and SDK response timestamps keep the same Date contract as direct
+ * resource calls. Never silently fall back to a non-abortable fiscal write.
  */
+function invoicesWithSignal(
+  client: FacturapiClient,
+  signal?: AbortSignal,
+): FacturapiClient["invoices"] {
+  const invoices = client.invoices;
+  if (!signal) return invoices;
+  signal.throwIfAborted();
+  const transport = invoices?.client;
+  if (typeof transport?.request !== "function") {
+    throw new Error("Facturapi transport does not support AbortSignal");
+  }
+  const scopedTransport = Object.create(transport);
+  scopedTransport.request = (
+    path: string,
+    options: Record<string, unknown> = {},
+  ) => transport.request(path, { ...options, signal });
+  const scopedInvoices = Object.create(invoices);
+  scopedInvoices.client = scopedTransport;
+  return scopedInvoices;
+}
+
+/** Create without retrying fiscal writes; preserve the SDK's Date contract. */
 export async function createInvoiceWithSignal(
   client: FacturapiClient,
   payload: Record<string, unknown>,
   opts: { signal?: AbortSignal } = {},
-): Promise<
-  {
-    id: string;
-    uuid?: string;
-    status?: string;
-    folio_number?: number | string | null;
-    series?: string | null;
-    total?: number;
-  }
-> {
-  const wrapper = client?.invoices?.client;
-  if (wrapper && typeof wrapper.post === "function") {
-    const init: Record<string, unknown> = { body: payload };
-    if (opts.signal) init.signal = opts.signal;
-    return (await wrapper.post("/invoices", init)) as {
-      id: string;
-      uuid?: string;
-    };
-  }
-  return (await client.invoices.create(payload)) as {
-    id: string;
-    uuid?: string;
-  };
+): Promise<{
+  id: string;
+  uuid?: string;
+  status?: string;
+  folio_number?: number | string | null;
+  series?: string | null;
+  total?: number;
+}> {
+  return await invoicesWithSignal(client, opts.signal).create(payload);
 }
 
-/** ARQ2-A1: cancela un CFDI soportando AbortSignal (mismo patrón que createInvoiceWithSignal). */
+/** Cancel a CFDI with an abortable request and the SDK's query serialization. */
 export async function cancelInvoiceWithSignal(
   client: FacturapiClient,
   invoiceId: string,
   params: Record<string, unknown>,
   opts: { signal?: AbortSignal } = {},
 ): Promise<unknown> {
-  const wrapper = client?.invoices?.client;
-  if (wrapper && typeof wrapper.delete === "function") {
-    const init: Record<string, unknown> = { params };
-    if (opts.signal) init.signal = opts.signal;
-    return await wrapper.delete(`/invoices/${invoiceId}`, init);
-  }
-  return await client.invoices.cancel(invoiceId, params);
+  return await invoicesWithSignal(client, opts.signal).cancel(
+    invoiceId,
+    params,
+  );
 }
 
-/** ARQ2-A1: consulta un CFDI soportando AbortSignal. */
+/** Retrieve a CFDI with an abortable request. */
 export async function retrieveInvoiceWithSignal(
   client: FacturapiClient,
   invoiceId: string,
   opts: { signal?: AbortSignal } = {},
 ): Promise<unknown> {
-  const wrapper = client?.invoices?.client;
-  if (wrapper && typeof wrapper.get === "function") {
-    const init: Record<string, unknown> = {};
-    if (opts.signal) init.signal = opts.signal;
-    return await wrapper.get(`/invoices/${invoiceId}`, init);
-  }
-  return await client.invoices.retrieve(invoiceId);
+  return await invoicesWithSignal(client, opts.signal).retrieve(invoiceId);
 }
 
-/** ARQ2-A1: fuerza el refresh de estado en SAT soportando AbortSignal. */
+/** Force the SAT refresh; never substitute a cached retrieve for this PUT. */
 export async function updateInvoiceStatusWithSignal(
   client: FacturapiClient,
   invoiceId: string,
   opts: { signal?: AbortSignal } = {},
 ): Promise<unknown> {
-  const wrapper = client?.invoices?.client;
-  if (wrapper && typeof wrapper.put === "function") {
-    const init: Record<string, unknown> = {};
-    if (opts.signal) init.signal = opts.signal;
-    return await wrapper.put(`/invoices/${invoiceId}/status`, init);
-  }
-  // Fallback al método del SDK si el wrapper no está disponible.
-  const inv = client.invoices as any;
-  if (typeof inv.updateStatus === "function") {
-    return await inv.updateStatus(invoiceId);
-  }
-  return await client.invoices.retrieve(invoiceId);
+  return await invoicesWithSignal(client, opts.signal).updateStatus(invoiceId);
 }
 
 /**

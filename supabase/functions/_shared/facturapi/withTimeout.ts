@@ -42,9 +42,9 @@ export async function fetchWithTimeout(
 /**
  * ARQ2-A1: Promise.race con timeout para llamadas SDK.
  *
- * Cuando el wrapper HTTP del SDK acepta `signal`, la llamada se aborta
- * limpiamente. Cuando no lo acepta (fallback), la promesa sigue viva pero
- * el race resuelve por timeout y el handler responde 504 sin colgarse.
+ * El adaptador de Facturapi inyecta `signal` en request() para abortar el
+ * transporte real. El race limita también cualquier procesamiento posterior
+ * y el handler responde 504 sin colgarse.
  */
 export async function sdkCallWithTimeout<T>(
   call: (signal: AbortSignal) => Promise<T>,
