@@ -1,3 +1,7 @@
+## [8.50.1] - 2026-11-10
+
+- Corrige, sin aplicarla, la comprobación preparada para que sólo el servicio interno pueda ejecutarla: retira también el permiso heredado por un rol técnico y aborta todo si quedan permisos inesperados. El retiro seguro deja la función sin acceso para nadie salvo su dueño. Sin cambios en la base real ni publicación.
+
 ## [8.50.0] - 2026-11-10
 
 - Prepara, sin aplicarla, una comprobación en la base que responde sólo sí o no sobre si la llave de prueba de la empresa sandbox es exclusiva. Incluye permisos restringidos al servicio interno, pruebas aisladas con datos ficticios y un retiro seguro preparado. La pantalla temporal sigue apagada hasta la revisión independiente. Sin cambios en la base real, publicación ni consultas fiscales.
