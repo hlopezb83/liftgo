@@ -39,20 +39,26 @@ function rows(result: ReadResult): Record<string, unknown>[] {
   return result.data;
 }
 
-async function authorized(deps: PreflightDeps): Promise<boolean> {
+async function realSession(deps: PreflightDeps): Promise<string | null> {
   const claimsResult = await deps.caller.auth.getClaims(deps.token);
   const claims = claimsResult.data?.claims;
   if (claimsResult.error || !record(claims) || claims.role !== "authenticated" ||
-    !uuid(claims.sub) || !uuid(claims.session_id)) return false;
+    !uuid(claims.sub) || !uuid(claims.session_id)) return null;
   const user = await deps.caller.auth.getUser(deps.token);
-  if (user.error || user.data?.user?.id !== claims.sub) return false;
+  if (user.error || user.data?.user?.id !== claims.sub) return null;
+  return claims.sub;
+}
+
+async function authorized(deps: PreflightDeps): Promise<boolean> {
+  const sub = await realSession(deps);
+  if (!sub) return false;
   const profiles = rows(await deps.caller.from("profiles").select("user_id,is_active")
-    .eq("user_id", claims.sub).limit(2));
-  if (profiles.length !== 1 || profiles[0]?.user_id !== claims.sub || profiles[0]?.is_active !== true) return false;
-  const role = await deps.caller.rpc("has_role", { _user_id: claims.sub, _role: "admin" });
+    .eq("user_id", sub).limit(2));
+  if (profiles.length !== 1 || profiles[0]?.user_id !== sub || profiles[0]?.is_active !== true) return false;
+  const role = await deps.caller.rpc("has_role", { _user_id: sub, _role: "admin" });
   if (role.error || role.data !== true) return false;
   const memberships = rows(await deps.caller.from("organization_memberships")
-    .select("organization_id,member_type").eq("auth_user_id", claims.sub).limit(2));
+    .select("organization_id,member_type").eq("auth_user_id", sub).limit(2));
   if (memberships.length !== 1 || memberships[0]?.member_type !== "internal" ||
     memberships[0]?.organization_id !== TENANT_ORGANIZATION_ID) return false;
   const orgs = rows(await deps.caller.from("organizations").select("id,is_active")
