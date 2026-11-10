@@ -1,3 +1,7 @@
+## [8.48.2] - 2026-11-10
+
+- Alinea las cinco expectativas de almacenamiento de sesión con los dominios que reconoce el editor, verifica el identificador enviado y conserva los controles de origen confiable, cierre de sesión y respaldo local. Sólo pruebas; sin cambiar autenticación, datos ni publicación.
+
 ## [8.48.1] - 2026-11-10
 
 - Corrige la compilación directa de la vista previa: genera la identidad de la versión antes de comprobarla contra las fuentes actuales, sin quitar la validación de integridad. Sin publicación ni cambios de datos.
