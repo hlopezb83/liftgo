@@ -12,6 +12,8 @@
 - [x] Conexión offline parcial: fábricas opcionales, 7 pruebas de refresh autenticado ficticio y gateway; default bloqueado. Revisión encontró faltantes de consumo/persistencia/otros handlers.
 - [x] Continuación parcial de consumo/persistencia: gateway PDF/XML y fronteras cliente/fetch probadas con refresco y descarga NC auténticos/dobles; no protege universalmente Storage ni restantes handlers. Sin red ni activación.
 - [ ] Completar adaptación/paridad fiscal autenticada: faltan emisiones/cancelación/descarga completas, gates consumo/persistencia, logs y exclusión durable; revisar `qa/facturapi6-phase3/adaptation/WIRING_REVIEW.md`. No conectar ejecutor hasta revisión.
+- [x] Continuación: consumo Storage NC offline y log de error del proveedor con regresiones; 55 Bun + 4 Python y 85 Vitest de preflight; sin efectos reales.
+- [ ] Cierre restante del plan: paridad integral de handlers, persistencia con tenant/fila confirmada, logs restantes, diario durable y contención de crons pendientes. Ejecución sandbox/producción esperan revisión, fixtures/receptor y ventana autorizada; no habilitar por esta solicitud general.
 - [ ] Fase 3 ejecución: bloqueada por revisión independiente de adaptación de handlers reales/refresh, persistencia, claim/diario secuencial, timeout, pausa/cierre y nueva ventana. No activa el preflight cerrado.
 - [ ] Fase 4: producción en un solo cambio con reversa por redeploy. Fase 5: retiro de 5.2.0.
 

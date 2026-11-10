@@ -1,3 +1,4 @@
+import { consumeStoredForClient } from "../../effectGuards.ts";
 // Pure handler for download-cfdi, deps-injected for testability.
 // SIN cambio de comportamiento observable respecto al Deno.serve original:
 // misma autenticación (requireRole equivalente), mismas respuestas, mismos
@@ -415,10 +416,10 @@ function attachmentResponse(
 async function tryStorageDownload(
   supabase: DownloadSupabaseLike,
   path: string | null,
-): Promise<Blob | null> {
+): Promise<Uint8Array | null> {
   if (!path) return null;
   const { data } = await supabase.storage.from(BUCKET).download(path);
-  return data ?? null;
+  return data ? await consumeStoredForClient(supabase, data) : null;
 }
 
 async function persistDownload(
@@ -482,8 +483,8 @@ function facturapiErrorResponse(
   // M-16a: no exponer `res.detail` (detalle interno de Facturapi) al cliente;
   // se conserva solo en el log del servidor.
   console.error(
-    "download-cfdi: facturapi error detail:",
-    res.detail.slice(0, 500),
+    "download-cfdi: facturapi error",
+    { status: res.status },
   );
   return jsonError(req, 502, msg);
 }

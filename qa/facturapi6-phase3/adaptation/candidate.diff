@@ -59,7 +59,7 @@
 -import * as FacturapiPkg from "facturapi";
 +import * as FacturapiPkg from "facturapi6-preview";
 +import { readQaTestConfig, QaConfigError } from "../../../testConfig.ts";
- 
+
  // El SDK se publica como módulo dual ESM/CJS. La interop de Deno expone la
  // clase como `default.default` (CJS) o `default` (ESM), así que resolvemos
 @@ -154,123 +155,14 @@
@@ -191,10 +191,10 @@
 +    throw error;
 +  }
  }
- 
+
  /**
 @@ -352,7 +244,9 @@
- 
+
  /** Crea una instancia del SDK con la API key resuelta. */
  export function createFacturapiClient(apiKey: string): FacturapiClient {
 -  return new Facturapi(apiKey);
@@ -202,7 +202,7 @@
 +  // SDK 6 no ofrece fetch por instancia: no conectar hasta revisar transporte.
 +  throw new Error("QA_TRANSPORT_BLOCKED");
  }
- 
+
  /**
 --- qa/facturapi6-sandbox-candidate/snapshot/supabase/functions/cancel-cfdi/handler.ts
 +++ adaptation/candidate/cancel-cfdi/handler.ts
@@ -223,6 +223,37 @@
        pacAttempted = true;
        const params: Record<string, string> = { motive };
        if (motive === "01" && substitution_uuid) {
+--- qa/facturapi6-sandbox-candidate/snapshot/supabase/functions/download-cfdi/handler.ts
++++ adaptation/candidate/download-cfdi/handler.ts
+@@ -1,3 +1,4 @@
++import { consumeStoredForClient } from "../../effectGuards.ts";
+ // Pure handler for download-cfdi, deps-injected for testability.
+ // SIN cambio de comportamiento observable respecto al Deno.serve original:
+ // misma autenticación (requireRole equivalente), mismas respuestas, mismos
+@@ -415,10 +416,10 @@
+ async function tryStorageDownload(
+   supabase: DownloadSupabaseLike,
+   path: string | null,
+-): Promise<Blob | null> {
++): Promise<Uint8Array | null> {
+   if (!path) return null;
+   const { data } = await supabase.storage.from(BUCKET).download(path);
+-  return data ?? null;
++  return data ? await consumeStoredForClient(supabase, data) : null;
+ }
+
+ async function persistDownload(
+@@ -482,8 +483,8 @@
+   // M-16a: no exponer `res.detail` (detalle interno de Facturapi) al cliente;
+   // se conserva solo en el log del servidor.
+   console.error(
+-    "download-cfdi: facturapi error detail:",
+-    res.detail.slice(0, 500),
++    "download-cfdi: facturapi error",
++    { status: res.status },
+   );
+   return jsonError(req, 502, msg);
+ }
 --- supabase/functions/refresh-cancellation-status/handler.ts
 +++ adaptation/candidate/refresh-cancellation-status/handler.ts
 @@ -28,6 +28,7 @@
@@ -234,9 +265,9 @@
    env: (key: string) => string | undefined;
  }
 @@ -145,7 +146,7 @@
- 
+
      const fid = facturapiId;
- 
+
 -    const client = createFacturapiClient(apiKey);
 +    const client = (deps.createQaClient ?? createFacturapiClient)(apiKey);
      let facturApiInv: Record<string, unknown> = {};
@@ -251,7 +282,7 @@
    binaryToText,
 @@ -26,18 +27,18 @@
  }
- 
+
  /** Preserve SDK signal forwarding, binary decoding and existing download retries. */
 -export function createInvoiceGateway(apiKey: string): InvoiceGateway {
 -  const client = createFacturapiClient(apiKey);
@@ -287,10 +318,10 @@
 @@ -360,7 +361,7 @@
        );
      }
- 
+
 -    const client = createFacturapiClient(apiKey);
 +    const client = (deps.createQaClient ?? createFacturapiClient)(apiKey);
- 
+
      const items = sourceValidation.lines.map((li) => {
        const item: Record<string, unknown> = {
 --- qa/facturapi6-sandbox-candidate/snapshot/supabase/functions/stamp-payment-complement/handler.ts
@@ -306,7 +337,7 @@
 @@ -492,7 +493,7 @@
        complements: [{ type: "pago", data: [dataEntry] }],
      };
- 
+
 -    const client = createFacturapiClient(apiKey);
 +    const client = (deps.createQaClient ?? createFacturapiClient)(apiKey);
      let repInvoice: {

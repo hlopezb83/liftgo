@@ -158,8 +158,8 @@
   "download-cfdi/handler.ts": {
     "source": "qa/facturapi6-sandbox-candidate/snapshot/supabase/functions/download-cfdi/handler.ts",
     "source_sha256": "60c0aa047f87de3c46f06c5b9c0a951908273c90ce0f1c34caf4d42ac9b2773c",
-    "candidate_sha256": "60c0aa047f87de3c46f06c5b9c0a951908273c90ce0f1c34caf4d42ac9b2773c",
-    "changed": false
+    "candidate_sha256": "6395e2d8697cf7db1d94e514befebeaafa7e2935e6511a90d1922f79f8266e71",
+    "changed": true
   },
   "refresh-cancellation-status/handler.ts": {
     "source": "supabase/functions/refresh-cancellation-status/handler.ts",

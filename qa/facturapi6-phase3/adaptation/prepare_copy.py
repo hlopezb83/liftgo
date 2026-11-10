@@ -56,6 +56,11 @@ export function handleCors(_req: Request): Response | null { return null; }
             text = text.replace('const client = createFacturapiClient(apiKey);', 'const client = factory(apiKey);')
             text = text.replace('await binaryToText(\n        await retryOnFacturapi5xx(() => client.invoices.downloadXml(id)),\n      )', 'await consumeForClient(client,\n        await retryOnFacturapi5xx(() => client.invoices.downloadXml(id)), binaryToText\n      )')
             text = text.replace('await binaryToBytes(\n        await retryOnFacturapi5xx(() => client.invoices.downloadPdf(id)),\n      )', 'await consumeForClient(client,\n        await retryOnFacturapi5xx(() => client.invoices.downloadPdf(id)), binaryToBytes\n      )')
+        if relative == "download-cfdi/handler.ts":
+            text = 'import { consumeStoredForClient } from "../../effectGuards.ts";\n' + text
+            text = text.replace('): Promise<Blob | null> {', '): Promise<Uint8Array | null> {', 1)
+            text = text.replace('  return data ?? null;', '  return data ? await consumeStoredForClient(supabase, data) : null;', 1)
+            text = text.replace('"download-cfdi: facturapi error detail:",\n    res.detail.slice(0, 500),', '"download-cfdi: facturapi error",\n    { status: res.status },', 1)
         destination = target / relative
         destination.parent.mkdir(parents=True, exist_ok=True)
         destination.write_text(text)

@@ -17,3 +17,4 @@
 - Fiscal QA call gates preserve official SDK methods and native fetch, with request-local resource views and versioned offline contracts; no SDK fork or global fetch replacement is allowed to simulate parity.
 - Optional fiscal QA factories live only in isolated copies and compose run/call abort signals, rejecting incompatible signals; defaults remain blocked so offline wiring cannot activate traffic.
 - QA effect guards wrap supplied clients only and reject unreviewed response streams/clones; post-await rejection never implies rollback of an already dispatched effect.
+- QA cached downloads materialize Storage Blobs through the supplied client's consumption scope before returning bytes; this makes the pre/post-consumption gate explicit without relying on Blob proxies or promising response withdrawal.

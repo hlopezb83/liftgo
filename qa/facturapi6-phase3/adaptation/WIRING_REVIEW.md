@@ -32,3 +32,11 @@ Revisión independiente confirma alcance parcial: clientes originales fuera del 
 - Error tras escritura enviada significa incierto; falta diario durable conectado y cierre sin retry, saneamiento de logs, TOCTOU configuración y contención/pausa de crons. No liberar reservas para repetir ni prometer abort/rollback de efectos enviados.
 
 No conectar ejecutor/UI ni abrir ventana hasta resolver estos hallazgos y revisión independiente. Preflight conserva run/fechas cerrados, `enabled=false`, `shutdown=true`. Sin SQL/migraciones/permisos/datos/publicación.
+
+## Continuación 8.52.8 — cierres puntuales, NO-GO permanece
+
+Cache hit NC auténtico ya está cubierto: materialización explícita Blob→bytes con gate antes/después, cliente guardado con scope, y tests de cierre durante download/consumo sin consultas a secreto/proveedor ni escrituras. Rama abierta conserva bytes/headers. Generador, normalización, procedencia y diff documentan esta adaptación semántica; las afirmaciones anteriores de descarga byte a byte aplicaban al estado previo.
+
+Se elimina exclusivamente el cuerpo del proveedor del log de `facturapiErrorResponse`; test 400 ficticio conserva respuesta 502 y status saneado. Revisión independiente identificó el hueco de Storage y esta fuga. Persisten logs de errores arbitrarios en otros lugares, ramas REP/factura/acuse sin acreditar, UPDATE sólo por id tras upload (TOCTOU y cero filas no acreditados), paridad de emisiones/cancelación, diario durable, pausa/cierre y autorización de ventana. No generalizar estas pruebas a efectos reales o runtime Deno.
+
+Resultado focal: 55 Bun + 4 Python; preflight actual 85 Vitest, fuente apagada intacta. ESLint limpio; CI completo pendiente.

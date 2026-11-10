@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test";
-import { guardOfflineEffects, guardOfflineFetch } from "./effectGuards";
+import { consumeStoredForClient, guardOfflineEffects, guardOfflineFetch } from "./effectGuards";
 import { offlineSdkFactory } from "./offlineWiring";
 import { Facturapi } from "./candidate/_shared/facturapi/client";
 import { createInvoiceGateway } from "./candidate/stamp-cfdi/invoiceGateway";
@@ -16,6 +16,16 @@ function deferred<T>() {
   let resolve: ((v: T) => void) | undefined;
   const promise = new Promise<T>((r) => { resolve = r; });
   return { promise, resolve(v: T) { resolve?.(v); } };
+}
+function expectedDownloadStatus(stage: string) {
+  if (stage === "none" || stage === "cache") return 200;
+  if (stage === "body" || stage === "providerError") return 502;
+  return 500;
+}
+async function expectClosedCache(response: Response, stage: string) {
+  if (stage !== "cacheBody" && stage !== "cacheRead") return;
+  expect(await response.text()).not.toContain("PDF_FICTICIO");
+  expect(response.headers.has("Content-Disposition")).toBe(false);
 }
 
 test("builder construido abierto no envía al cerrarse antes del await", async () => {
@@ -88,11 +98,16 @@ for (const format of ["pdf", "xml"] as const) {
   });
 }
 
-for (const expireAt of ["none", "body", "upload"] as const) {
+for (const expireAt of ["none", "body", "upload", "cache", "cacheBody", "cacheRead", "providerError"] as const) {
   test(`descarga NC auténtica con dobles: ${expireAt}, sin escritura posterior al cierre`, async () => {
     const w = windowScope(); let sends = 0; let uploads = 0; let updates = 0;
     const doc = "00000000-0000-4000-8000-000000000002";
     const db: unknown[] = [];
+    const cacheHit = expireAt.startsWith("cache");
+    const logs: unknown[][] = [];
+    const originalError = console.error;
+    console.error = (...args) => { logs.push(args); };
+    try {
     const raw = {
       auth: { async getClaims() { return { data: { claims: { sub: doc } }, error: null }; } },
       async rpc() { return { data: true, error: null }; },
@@ -104,7 +119,7 @@ for (const expireAt of ["none", "body", "upload"] as const) {
             organization_memberships: [{ organization_id: TENANT, member_type: "internal" }],
             organizations: [{ is_active: true }], company_settings: { facturapi_mode: "test" },
             billing_secrets: { facturapi_test_key: "sk_test_FICTICIO_NO_UTILIZABLE" },
-            credit_notes: { id: doc, organization_id: TENANT, cfdi_status: "stamped", cfdi_uuid: "UUID_FICTICIO", facturapi_invoice_id: "FICTICIO" },
+            credit_notes: { id: doc, organization_id: TENANT, cfdi_status: "stamped", cfdi_uuid: "UUID_FICTICIO", facturapi_invoice_id: "FICTICIO", cfdi_pdf_url: cacheHit ? "ruta_FICTICIA.pdf" : null },
           };
           return { data: patch ? null : rows[table], error: null };
         };
@@ -118,28 +133,63 @@ for (const expireAt of ["none", "body", "upload"] as const) {
         }; return q;
       },
       storage: { from() { return {
-        async download() { return { data: null, error: null }; },
+        async download() {
+          if (!cacheHit) return { data: null, error: null };
+          const blob = new Blob(["PDF_FICTICIO"], { type: "application/pdf" });
+          blob.arrayBuffer = async () => {
+            await Promise.resolve();
+            if (expireAt === "cacheBody") w.expire();
+            return new TextEncoder().encode("PDF_FICTICIO").buffer;
+          };
+          if (expireAt === "cacheRead") w.expire();
+          return { data: blob, error: null };
+        },
         async upload() { uploads++; if (expireAt === "upload") w.expire(); return { error: null }; },
       }; } },
     };
     const admin = guardOfflineEffects(raw, w.scope);
     attachOfflineConfigScope(admin, { ...w.scope, async loadVerifier() { return async () => true; } });
     const fake = async () => {
+      if (expireAt === "providerError") { sends++; return new Response("TOKEN_FICTICIO RFC_FICTICIO XML_FICTICIO", { status: 400 }); }
       sends++; const r = new Response("PDF_FICTICIO");
       r.arrayBuffer = async () => { if (expireAt === "body") w.expire(); return new TextEncoder().encode("PDF_FICTICIO").buffer; }; return r;
     };
     const deps = { createCallerClient: () => admin, createServiceClient: () => admin, fetchImpl: guardOfflineFetch(fake, w.scope), env() { throw new Error("ENTORNO_PROHIBIDO"); } };
     const response = await handleDownloadCfdi(new Request("https://offline.invalid", { method: "POST", headers: { Authorization: "Bearer FICTICIO", "Content-Type": "application/json" }, body: JSON.stringify({ credit_note_id: doc, format: "pdf" }) }), deps as unknown as Parameters<typeof handleDownloadCfdi>[1]);
-    expect(sends).toBe(1);
-    expect(uploads).toBe(expireAt === "body" ? 0 : 1);
+    expect(sends).toBe(cacheHit ? 0 : 1);
+    expect(uploads).toBe(expireAt === "body" || cacheHit || expireAt === "providerError" ? 0 : 1);
     expect(updates).toBe(expireAt === "none" ? 1 : 0);
-    expect(response.status).toBe(expireAt === "none" ? 200 : expireAt === "body" ? 502 : 500);
-    if (expireAt === "none") expect(await response.text()).toBe("PDF_FICTICIO");
+    expect(response.status).toBe(expectedDownloadStatus(expireAt));
+    if (expireAt === "none" || expireAt === "cache") {
+      expect(await response.text()).toBe("PDF_FICTICIO");
+      expect(response.headers.get("Content-Type")).toBe("application/pdf");
+      expect(response.headers.get("Content-Disposition")).toBe('attachment; filename="UUID_FICTICIO.pdf"');
+    }
+    await expectClosedCache(response, expireAt);
     expect(db).toContainEqual(["credit_notes", "eq", "id", doc]);
-    expect(db).toContainEqual(["billing_secrets", "select", "facturapi_test_key"]);
-    expect(db).toContainEqual(["billing_secrets", "eq", "organization_id", TENANT]);
+    if (cacheHit) expect(db.filter(([table]) => table === "billing_secrets")).toEqual([]);
+    else {
+      expect(db).toContainEqual(["billing_secrets", "select", "facturapi_test_key"]);
+      expect(db).toContainEqual(["billing_secrets", "eq", "organization_id", TENANT]);
+    }
+    if (expireAt === "providerError") {
+      const output = JSON.stringify(logs);
+      for (const marker of ["TOKEN_FICTICIO", "RFC_FICTICIO", "XML_FICTICIO"]) expect(output).not.toContain(marker);
+      expect(logs).toContainEqual(["download-cfdi: facturapi error", { status: 400 }]);
+      expect(await response.json()).toEqual({ error: "Facturapi error: 400" });
+    }
+    } finally { console.error = originalError; }
   });
 }
+
+test("consumo Storage sin scope no lee Blob; vencimiento previo tampoco", async () => {
+  const blob = new Blob(["FICTICIO"]); let reads = 0;
+  blob.arrayBuffer = async () => { reads++; return new ArrayBuffer(0); };
+  await expect(consumeStoredForClient({}, blob)).rejects.toThrow("QA_CONSUMPTION_BLOCKED");
+  const w = windowScope(); const g = guardOfflineEffects({}, w.scope); w.expire();
+  await expect(consumeStoredForClient(g, blob)).rejects.toThrow("VENTANA_CERRADA");
+  expect(reads).toBe(0);
+});
 
 test("Request conserva señal y streams/clones no revisados fallan cerrados", async () => {
   const w = windowScope(); const requestAbort = new AbortController(); let actual: AbortSignal | null | undefined;

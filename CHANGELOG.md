@@ -1,3 +1,7 @@
+## [8.52.8] - 2026-11-10
+
+- Cierra consumo tardío de archivos almacenados y sanea un log de error del proveedor en la copia QA. Pruebas focales con NC auténtica y datos ficticios; sin ejecución fiscal, SQL, activación ni publicación. Paridad integral y CI pendientes.
+
 ## [8.52.7] - 2026-11-10
 
 - Conecta consumo PDF/XML del gateway QA y guardas offline de efectos/fetch a pruebas de refresco y descarga NC auténticos. Bloquea escrituras posteriores al vencimiento; no revierte operaciones enviadas ni habilita ejecución. Paridad completa y CI pendientes.

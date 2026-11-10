@@ -1,0 +1,7 @@
+{
+  "description": "Bloquea consumo tardío de archivos guardados y elimina el cuerpo del proveedor de un log QA. Sin activación fiscal.",
+  "changes": [
+    "NC auténtica probada con archivos guardados y vencimientos, sin proveedor ni escrituras.",
+    "55 pruebas de adaptación, cuatro de procedencia y 85 del preflight; paridad integral y CI pendientes."
+  ]
+}

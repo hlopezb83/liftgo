@@ -24,6 +24,11 @@ class ProvenanceTests(unittest.TestCase):
             copy = (BASE / "candidate" / name / "handler.ts").read_text()
             copy = copy.replace('  createQaClient?: typeof createFacturapiClient;\n', '')
             copy = copy.replace('(deps.createQaClient ?? createFacturapiClient)(apiKey)', 'createFacturapiClient(apiKey)')
+            if name == "download-cfdi":
+                copy = copy.replace('import { consumeStoredForClient } from "../../effectGuards.ts";\n', '')
+                copy = copy.replace('): Promise<Uint8Array | null> {', '): Promise<Blob | null> {', 1)
+                copy = copy.replace('  return data ? await consumeStoredForClient(supabase, data) : null;', '  return data ?? null;', 1)
+                copy = copy.replace('"download-cfdi: facturapi error",\n    { status: res.status },', '"download-cfdi: facturapi error detail:",\n    res.detail.slice(0, 500),', 1)
             self.assertEqual(copy, original)
 
     def test_cambios_limitados_a_fronteras(self):
@@ -32,6 +37,7 @@ class ProvenanceTests(unittest.TestCase):
             "_shared/cors.ts", "_shared/facturapi/client.ts", "stamp-cfdi/invoiceGateway.ts",
             "stamp-credit-note/handler.ts", "stamp-payment-complement/handler.ts",
             "cancel-cfdi/handler.ts", "refresh-cancellation-status/handler.ts",
+            "download-cfdi/handler.ts",
         })
 
     def test_gateway_normaliza_solo_fabrica_y_consumo(self):

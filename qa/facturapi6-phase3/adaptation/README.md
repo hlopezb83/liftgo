@@ -4,7 +4,7 @@
 
 ## Preparado
 
-- `candidate/`: cierre local de seis funciones auténticas. Factura y descarga conservan bytes; NC/REP/cancelar/refresh añaden sólo fábrica opcional. El refresco usa los shared SDK 6 del snapshot sólo en esta copia. Ver `WIRING_REVIEW.md` para evidencia y bloqueos.
+- `candidate/`: cierre local de seis funciones auténticas. Factura conserva bytes; descarga adapta consumo Storage y un log de error; NC/REP/cancelar/refresh añaden sólo fábrica opcional. El refresco usa los shared SDK 6 del snapshot sólo en esta copia. Ver `WIRING_REVIEW.md` para evidencia y bloqueos.
 - `PROVENANCE.json`: origen y SHA-256 de cada archivo, más digest de su copia. `prepare_copy.py` reproduce el árbol mediante lectura local; no importa ni ejecuta funciones fiscales.
 - Cambian CORS sin entorno al cargar, cliente shared con resolver QA, cuatro handlers y gateway por fábrica opcional y consumo acotado PDF/XML. Default sigue bloqueado. CORS interno vacío no autentica ni autoriza.
 - `testConfig.ts`: scope por objeto cliente, sin credenciales ni fetch global. Falta scope = bloqueo. Tenant fijo, modo test releído aunque exista override, verificador booleano sin parámetros secretos y proyección sólo `facturapi_test_key`. Sin fallback de entorno ni comparación de la llave en URL. `checkpoint` se ejecuta antes/después de awaits; una operación ya enviada no se aborta mágicamente.
@@ -51,3 +51,11 @@ Un claim raíz inmutable del run; reservas deterministas create-once para cada e
 No resolver carreras de cierre/reserva mediante sólo leer y luego escribir; falta un mecanismo acreditado que serialice ambas operaciones. No usar memoria o localStorage como evidencia durable. No se implementó conexión Storage, SQL ni permisos.
 
 Pendientes bloqueados: transporte; paridad autenticada completa de payload/fechas/idempotencia/RPC/escrituras/archivos y fallas parciales; logs; contención de colas/crons; diario durable; fixtures ERP/receptor; nueva revisión y ventana. Mantener cuatro CFDI como máximo (A, B, REP A, NC A), 116 MXN/documento y cantidad uno. No ejecutar el runner previo.
+
+### Continuación 8.52.8: Storage servido dentro de la ventana y error saneado
+
+La copia de `tryStorageDownload` ahora materializa el Blob mediante `consumeStoredForClient`, usando el scope registrado en el cliente guardado. Sin scope o con ventana cerrada no inicia consumo; tras consumo tardío no retorna bytes. NC auténtica se prueba con cache hit abierto, vencimiento durante download y durante arrayBuffer: cero proveedor, secretos, uploads y updates. Se conservan bytes y headers en el caso abierto. No se puede retirar una respuesta ya entregada. Materializar cambia deliberadamente memoria/latencia y representación Blob→bytes; no acredita tamaños reales ni otras ramas.
+
+El log de `facturapiErrorResponse` conserva sólo status, no cuerpo arbitrario del proveedor. Una respuesta ficticia 400 con marcadores sensibles devuelve el histórico 502 sin registrar esos marcadores, sin persistencia. Otros logs históricos siguen pendientes; no se declara saneamiento universal.
+
+55/55 pruebas Bun en cuatro archivos de adaptación; 4/4 pruebas Python de procedencia; ESLint focal limpio. Preflight: 85/85 en sus tres archivos con Vitest (el conteo real actual es 85, no 86). Una ejecución inicial por error con Bun falló por APIs de mocks incompatibles; se repitió correctamente sin cambiar tests ni preflight. Build automático observado correcto; CI completo pendiente. No hubo conexión a servicios ni prueba fiscal real.

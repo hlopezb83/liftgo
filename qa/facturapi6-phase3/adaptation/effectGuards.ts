@@ -13,6 +13,13 @@ export async function consumeForClient<T>(client: object, value: unknown, reader
   check(scope);
   return result;
 }
+/** Materializa Storage dentro de la ventana; nunca entrega un Blob de consumo tardío. */
+export async function consumeStoredForClient(client: object, blob: Blob): Promise<Uint8Array> {
+  return consumeForClient(client, blob, async (value) => {
+    if (!(value instanceof Blob)) throw new Error("QA_STORAGE_BODY_UNREVIEWED");
+    return new Uint8Array(await value.arrayBuffer());
+  });
+}
 function check(scope: CallScope) { scope.checkpoint(); scope.signal.throwIfAborted(); }
 
 /** Valida cada llamada del builder y resolución await, sin reintento.
@@ -50,7 +57,9 @@ export function guardOfflineEffects<T extends object>(client: T, scope: CallScop
     cache.set(target, view);
     return view;
   };
-  return wrap(client) as T;
+  const guarded = wrap(client) as T;
+  attachConsumptionScope(guarded, scope);
+  return guarded;
 }
 
 /** Fetch inyectado existente de download-cfdi; nunca fetch global/POST alternativo. */
