@@ -7,6 +7,9 @@ import { build } from 'vite';
 import { sentryVitePlugin } from '@sentry/bundler-plugins/vite';
 
 test('Sentry stamps matching debug IDs into hidden source maps without uploads', async () => {
+  // Never inherit credentials, DSNs or release settings from a developer shell.
+  const sentryEnv = Object.fromEntries(Object.entries(process.env).filter(([name]) => /^SENTRY_/i.test(name)));
+  for (const name of Object.keys(sentryEnv)) delete process.env[name];
   const root = await mkdtemp(path.join(os.tmpdir(), 'liftgo-sentry-offline-'));
   try {
     await writeFile(path.join(root, 'entry.js'), 'globalThis.__syntheticSentryQa = "offline-demo";\n');
@@ -32,6 +35,10 @@ test('Sentry stamps matching debug IDs into hidden source maps without uploads',
     assert.ok(map.sourcesContent.some(source => source.includes('offline-demo')));
     assert.ok(!js.includes('sourceMappingURL='));
   } finally {
-    await rm(root, { recursive: true, force: true });
+    try {
+      await rm(root, { recursive: true, force: true });
+    } finally {
+      Object.assign(process.env, sentryEnv);
+    }
   }
 });
