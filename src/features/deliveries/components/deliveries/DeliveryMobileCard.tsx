@@ -14,8 +14,8 @@ import { resolveDeliveryForkliftName } from "../../lib/resolveDeliveryForkliftNa
 export type DeliveryCardItem = HistoricalDeliveryLike & Pick<Tables<"deliveries">, "id" | "delivery_number" | "type" | "status" | "forklift_id" | "scheduled_date" | "scheduled_time" | "address" | "driver_name"> & { forklifts?: { name?: string | null } | null };
 
 
-export function DeliveryMobileCard({ d, forkliftMap }: { d: DeliveryCardItem; forkliftMap: Map<string, { name?: string | null }> }) {
-  const overdue = deliveryOverdueDays(d);
+export function DeliveryMobileCard({ d, forkliftMap, today }: { d: DeliveryCardItem; forkliftMap: Map<string, { name?: string | null }>; today?: string }) {
+  const overdue = deliveryOverdueDays(d, today);
   const forkliftName = resolveDeliveryForkliftName(d, forkliftMap);
   return (
     <Link

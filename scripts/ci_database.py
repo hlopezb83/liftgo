@@ -77,10 +77,14 @@ START_EXCLUDES = {
 # keys. Existing RPCs retain invoker RLS. Only the pure normalizer gains
 # service_role EXECUTE for generated columns. The new DDL does not invoke
 # business mutations, HTTP or cron. Earlier SQL and journal entries are unchanged.
+# 0141 adds a read-only invoker view and paged RPC for overdue transports.
+# The guarded dashboard patch only replaces its count with that same view;
+# all existing grants, response fields and earlier migration bytes are unchanged.
+# Installation performs no business-data writes, HTTP or cron operations.
 # Any subsequent history change requires explicit source review.
 SOURCE_TREES = {
     "supabase/migrations": "3e3575f5ff6d509ecdd624ae7fc1772508b5dce6",
-    "drizzle/migrations": "2b5a85e19d9abbd71ab2c736e9adc257972d4b96",
+    "drizzle/migrations": "6408a4d74bb180047a379980ea79e0eb851db0e3",
 }
 HTTP_SOURCES = {
     "20260721000000_retry_queue_cron.sql": "2aecccd0758961f41769d9fed522d03df14937650b9dde80fce47646a1fa6887",
