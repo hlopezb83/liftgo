@@ -1,3 +1,4 @@
+import { useId } from "react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -37,12 +38,13 @@ function AvailabilityStatus({ datesSelected, verifying, isError, empty, onRetry 
 
 /** Single-select version (legacy, used by BookingForm etc.) */
 export function ForkliftSelector({ value, onValueChange, availableForklifts, datesSelected, showStatus, error, isLoading = false, isError = false, isFetching = false, onRetry }: ForkliftSelectorProps) {
+  const errorId = useId();
   const verifying = isLoading || isFetching;
   return (
     <div className="space-y-1.5">
       <Label>Montacargas *</Label>
       <Select value={value} onValueChange={onValueChange} disabled={!datesSelected || verifying || isError}>
-        <SelectTrigger aria-label="Montacargas">
+        <SelectTrigger aria-label="Montacargas" aria-invalid={!!error} aria-describedby={error ? errorId : undefined}>
           <SelectValue placeholder={datesSelected ? "Seleccionar montacargas" : "Primero selecciona fechas"} />
         </SelectTrigger>
         <SelectContent>
@@ -53,7 +55,7 @@ export function ForkliftSelector({ value, onValueChange, availableForklifts, dat
           ))}
         </SelectContent>
       </Select>
-      {error && <p className="text-sm text-destructive">{error}</p>}
+      {error && <p id={errorId} className="text-sm text-destructive">{error}</p>}
       <AvailabilityStatus datesSelected={datesSelected} verifying={verifying} isError={isError} empty={availableForklifts.length === 0} onRetry={onRetry} />
     </div>
   );

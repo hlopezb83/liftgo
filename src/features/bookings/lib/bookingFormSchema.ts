@@ -6,8 +6,8 @@ export const bookingFormSchema = z
     date_range: z.object({
       from: z.date().optional(),
       to: z.date().optional(),
-    }).refine((r) => !!r.from, { message: "Fecha de inicio es requerida" })
-      .refine((r) => !!r.to, { message: "Fecha de fin es requerida" }),
+    }).refine((r) => !!r.from, { message: "Fecha de inicio es requerida", path: ["from"] })
+      .refine((r) => !!r.to, { message: "Fecha de fin es requerida", path: ["to"] }),
     customer_id: z.string().default(""),
     customer_name: z.string().default(""),
     customer_contact: z.string().default(""),
@@ -22,8 +22,8 @@ export const bookingFormSchema = z
     const to = new Date(d.date_range.to); to.setHours(0, 0, 0, 0);
     return to.getTime() >= from.getTime();
   }, {
-    message: "La fecha de fin debe ser posterior a la de inicio",
-    path: ["date_range"],
+    message: "La fecha de fin debe ser igual o posterior a la de inicio",
+    path: ["date_range", "to"],
   });
 
 export type BookingFormData = z.infer<typeof bookingFormSchema>;

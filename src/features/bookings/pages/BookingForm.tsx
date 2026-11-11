@@ -1,5 +1,5 @@
-import { useEffect } from "react";
-import { useWatch } from "react-hook-form";
+import { useEffect, useId } from "react";
+import { useWatch, type SubmitErrorHandler } from "react-hook-form";
 import { DateRangePickerField } from "@/components/forms/DateRangePickerField";
 import { SwitchField } from "@/components/forms/fields";
 import { FormActions } from "@/components/forms/FormActions";
@@ -16,11 +16,19 @@ import { BookingFormSummary } from "../components/bookings/BookingFormSummary";
 import { BookingPostDialogs } from "../components/bookings/BookingPostDialogs";
 import { useBookingFormLogic } from "../hooks/bookingForm/useBookingFormLogic";
 import { allowsRecurringBilling } from "../lib/recurringBillingEligibility";
+import type { BookingFormData } from "../lib/bookingFormSchema";
 
 function summaryCustomerName(customerId: string, freeName: string, customers: ReadonlyArray<{ id: string; name: string }> | undefined) {
   if (!customerId) return freeName;
   return customers?.find((customer) => customer.id === customerId)?.name || freeName || "Cliente seleccionado";
 }
+
+const focusFirstError: SubmitErrorHandler<BookingFormData> = (_errors, event) => {
+  const form = event?.target;
+  if (!(form instanceof HTMLFormElement)) return;
+  // Wait for inline validation to render, including custom unregistered controls.
+  requestAnimationFrame(() => form.querySelector<HTMLElement>('[aria-invalid="true"]:not(:disabled)')?.focus());
+};
 
 export default function BookingForm() {
   const {
@@ -33,8 +41,11 @@ export default function BookingForm() {
     handleDeliveryDone, handlePolicyDone,
     selectedForklift,
     dateRangeError,
+    dateFromError,
+    dateToError,
     navigate,
   } = useBookingFormLogic();
+  const dateId = useId();
 
   // Suscripciones aisladas: cambian sin re-renderizar el árbol de la reserva.
   const [customerId, customerName, customerContact, recurringBilling] = useWatch({
@@ -69,7 +80,7 @@ export default function BookingForm() {
       <FormPageHeader title="Nueva reserva" />
       <BookingDraftNotice draft={draft} busy={busy} />
       <Form {...form}>
-        <form onSubmit={form.handleSubmit((data) => onSubmit(data, forkliftName))} className="group/booking-form grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_18rem]">
+        <form onSubmit={form.handleSubmit((data) => onSubmit(data, forkliftName), focusFirstError)} className="group/booking-form grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_18rem]">
           <fieldset className="space-y-6 min-w-0" disabled={draft.submitBlocked || busy}>
             <Card>
               <CardHeader><CardTitle className="text-base">Detalles de la reserva</CardTitle></CardHeader>
@@ -79,7 +90,10 @@ export default function BookingForm() {
                   dateRange={dateRange}
                   onSelect={(range) => form.setValue("date_range", { from: range?.from, to: range?.to }, { shouldValidate: true, shouldDirty: true })}
                   required
-                  error={dateRangeError}
+                  fromId={`${dateId}-from`}
+                  toId={`${dateId}-to`}
+                  fromError={dateFromError}
+                  toError={dateToError}
                   helperText="La fecha final cuenta como día de renta. La siguiente reserva puede iniciar a partir del día siguiente."
                 />
                 {startInPast && !dateRangeError && (

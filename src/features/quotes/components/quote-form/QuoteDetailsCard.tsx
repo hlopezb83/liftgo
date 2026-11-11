@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { APP_CONFIG } from "@/lib/config";
+import { useFormErrorTarget } from "@/lib/forms/formErrorTargets";
 import { resolveValidUntil } from "../../hooks/quoteForm/quoteFormPayload";
 import type { QuoteFormValues } from "../../lib/quoteFormSchema";
 import type { DateRange } from "react-day-picker";
@@ -19,6 +20,9 @@ interface Props {
 }
 
 export function QuoteDetailsCard({ form, isRental }: Props) {
+  const fromId = useFormErrorTarget("dateRange.from");
+  const toId = useFormErrorTarget("dateRange.to");
+  const dateErrors = form.formState.errors.dateRange;
   // A5-02: sólo hay TC cuando la cotización no es en pesos.
   const currency = form.watch("currency");
   return (
@@ -44,9 +48,13 @@ export function QuoteDetailsCard({ form, isRental }: Props) {
                       if (synced) form.setValue("validUntil", synced, { shouldValidate: true });
                     }}
                     required
+                    fromId={fromId}
+                    toId={toId}
+                    fromError={dateErrors?.from?.message}
+                    toError={dateErrors?.to?.message}
+                    error={dateErrors?.message}
                   />
                 </FormControl>
-                <FormMessage />
               </FormItem>
             )}
           />

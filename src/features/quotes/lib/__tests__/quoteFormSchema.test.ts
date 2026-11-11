@@ -109,7 +109,7 @@ describe("quoteFormSchema", () => {
       dateRange: { from: new Date("2026-03-15"), to: new Date("2026-03-01") },
     });
     expect(r.success).toBe(false);
-    if (!r.success) expect(r.error.issues.some(i => i.path.join(".") === "dateRange")).toBe(true);
+    if (!r.success) expect(r.error.issues.some(i => i.path.join(".") === "dateRange.to")).toBe(true);
   });
 
   it("rechaza renta sin dateRange", () => {

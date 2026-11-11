@@ -6,6 +6,7 @@ import { FormControl, FormField, FormItem, FormMessage } from "@/components/ui/f
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { CustomerSelector } from "@/features/customers";
+import { useFormErrorTarget } from "@/lib/forms/formErrorTargets";
 import { useNextInvoiceNumber } from "../../hooks/invoices/useNextInvoiceNumber";
 import { formatYmdMx } from "../../lib/formatYmdMx";
 import { MultiBookingSelector, type BookingPickerControls } from "./MultiBookingSelector";
@@ -28,6 +29,7 @@ interface Props {
 export function InvoiceDetailsCard({
   isEdit, form, customers, availableBookings, bookingPicker, handleCustomerSelect, handleBookingsChange,
 }: Props) {
+  const detailsId = useFormErrorTarget("invoice-details");
   const { data: nextNumber, isLoading: loadingNext } = useNextInvoiceNumber(!isEdit);
   const bookingIds = useWatch({ control: form.control, name: "bookingIds" }) ?? [];
   const issueDate = useWatch({ control: form.control, name: "issueDate" });
@@ -36,7 +38,7 @@ export function InvoiceDetailsCard({
   const hasBooking = bookingIds.length > 0 || !!form.getValues("bookingId");
 
   return (
-    <Card>
+    <Card id={detailsId} tabIndex={-1}>
       <CardHeader><CardTitle className="text-base">Detalles de Factura</CardTitle></CardHeader>
       <CardContent className="space-y-4">
         {!isEdit && (

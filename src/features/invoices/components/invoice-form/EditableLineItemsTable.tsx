@@ -9,11 +9,13 @@ import { Textarea } from "@/components/ui/textarea";
 import { applyDiscountToBase, lineItemTotal } from "@/lib/domain/invoiceHelpers";
 import { CLAVE_PROD_SERV, CLAVE_UNIDAD } from "@/lib/domain/satCatalogs";
 import { formatCurrencyWithCode } from "@/lib/format/formatCurrency";
+import { useFormErrorTarget } from "@/lib/forms/formErrorTargets";
 import { useInvoiceLineItemHandlers } from "../../hooks/invoiceForm/useInvoiceLineItemHandlers";
 import type { InvoiceLineItemSource } from "../../hooks/invoiceForm/invoiceSatDefaults";
 import type { InvoiceFormValues } from "../../lib/invoiceFormSchema";
 
 export function EditableLineItemsTable({ source }: { source?: InvoiceLineItemSource }) {
+  const errorTarget = useFormErrorTarget("lineItems");
   const form = useFormContext<InvoiceFormValues>();
   const { fields, addLineItem, removeLineItem } = useInvoiceLineItemHandlers(form, source);
   // R15 F-02: Zod superRefine con path: ["lineItems"] emite en .root.message
@@ -23,7 +25,7 @@ export function EditableLineItemsTable({ source }: { source?: InvoiceLineItemSou
     form.formState.errors.lineItems?.message;
 
   return (
-    <Card role="region" aria-labelledby="invoice-line-items-heading" className="min-w-0">
+    <Card id={errorTarget} tabIndex={-1} role="region" aria-labelledby="invoice-line-items-heading" className="min-w-0">
       <CardHeader>
         <div className="flex items-center justify-between">
           <CardTitle id="invoice-line-items-heading" className="text-base">Partidas</CardTitle>
@@ -54,6 +56,7 @@ interface RowProps {
 }
 
 function LineItemRow({ index, onRemove }: RowProps) {
+  const errorTarget = useFormErrorTarget(`lineItems.${index}`);
   const { control, setValue, getValues } = useFormContext<InvoiceFormValues>();
   const currency = useWatch({ control, name: "cfdi.moneda" });
   const origin = useWatch({ control, name: `lineItems.${index}.source_quote_line_id` });
@@ -74,7 +77,7 @@ function LineItemRow({ index, onRemove }: RowProps) {
   };
 
   return (
-    <fieldset className="min-w-0 space-y-4 rounded-lg border bg-background p-3 sm:p-4">
+    <fieldset id={errorTarget} tabIndex={-1} className="min-w-0 space-y-4 rounded-lg border bg-background p-3 sm:p-4">
       <legend className="px-1 text-sm font-semibold">Partida {index + 1}</legend>
       <div>
         <FormField control={control} name={`lineItems.${index}.description`} render={({ field }) => (
