@@ -5,6 +5,7 @@ import { useUpcomingInvoices } from "@/features/invoices";
 import { hasFinancialAccess, useHasModuleAccess, useUserRole } from "@/features/users";
 import { toMxn } from "@/lib/money";
 import { nowMty } from "@/lib/utils";
+import { dashboardPriority } from "../../lib/dashboardPriority";
 import {
   EMPTY_COUNTS,
   buildPieData,
@@ -75,10 +76,12 @@ function dashboardAccess(
 ) {
   const role = query.isError || query.isLoading ? undefined : query.data;
   const canSeeFinancials = role === "admin" || role === "administrativo" || role === "auditor";
+  const canViewCollection = canSeeFinancials && canReadInvoices;
   return {
+    priority: dashboardPriority(role, canViewCollection),
     canSeeFinancials,
     canViewFinancialCharts: hasFinancialAccess(role),
-    canViewCollection: canSeeFinancials && canReadInvoices,
+    canViewCollection,
     // R6-FE-03: get_insurance_alerts admite además dispatcher/mechanic. Ventas queda fuera.
     canSeeInsuranceAlerts: canSeeFinancials || role === "dispatcher" || role === "mechanic",
   };
@@ -89,7 +92,7 @@ export function useDashboardSections() {
   // R14-L: mismos roles que admite get_financial_kpis (20260725050634).
   const roleQuery = useUserRole();
   const canReadInvoices = useHasModuleAccess("Facturas");
-  const { canSeeFinancials, canSeeInsuranceAlerts, canViewFinancialCharts, canViewCollection } = dashboardAccess(roleQuery, canReadInvoices);
+  const { priority, canSeeFinancials, canSeeInsuranceAlerts, canViewFinancialCharts, canViewCollection } = dashboardAccess(roleQuery, canReadInvoices);
   // Bug 6: exponer loading/error de los KPIs financieros — su query es
   // independiente de `useDashboardStats` y sin guard propio la sección
   // Finanzas renderizaba ceros falsos ($0) durante carga o fallo del RPC.
@@ -112,6 +115,7 @@ export function useDashboardSections() {
 
   return {
     isLoading,
+    priority,
     isError,
     isFetching,
     refetch,

@@ -1,5 +1,6 @@
 import { QueryErrorState } from "@/components/feedback/QueryErrorState";
 import { Skeleton } from "@/components/ui/skeleton";
+import { DASHBOARD_ALERT_ORDER, type DashboardAlertGroup, type DashboardPriority } from "../../lib/dashboardPriority";
 import { AlertsRow } from "./AlertsRow";
 import { CollectionForecast } from "./CollectionForecast";
 import { ExpiringContractsAlert } from "./ExpiringContractsAlert";
@@ -13,6 +14,7 @@ type ExpiringContractsAlertProps = ComponentProps<typeof ExpiringContractsAlert>
 type InsuranceAlertProps = ComponentProps<typeof InsuranceAlert>;
 
 interface DashboardAlertsSectionProps {
+  priority?: DashboardPriority;
   overdueInvoices: AlertsRowProps["overdueInvoices"];
   maintenanceAlerts: AlertsRowProps["maintenanceAlerts"];
   agingBuckets: AlertsRowProps["agingBuckets"];
@@ -43,26 +45,34 @@ function AlertQuery<T>({ state, entity, children }: {
   }
 }
 
-export function DashboardAlertsSection(props: DashboardAlertsSectionProps) {
+function AlertGroup({ group, ...props }: DashboardAlertsSectionProps & { group: DashboardAlertGroup }) {
   return (
-    <div className="flex flex-col gap-4">
+    <>
       <AlertsRow
-        overdueInvoices={props.overdueInvoices}
-        maintenanceAlerts={props.maintenanceAlerts}
-        agingBuckets={props.agingBuckets}
-        overdueBookings={props.overdueBookings}
-        pendingDeliveriesCount={props.pendingDeliveriesCount}
+        overdueInvoices={group === "collection" ? props.overdueInvoices : []}
+        maintenanceAlerts={group === "maintenance" ? props.maintenanceAlerts : []}
+        agingBuckets={group === "collection" ? props.agingBuckets : []}
+        overdueBookings={group === "returns" ? props.overdueBookings : []}
+        pendingDeliveriesCount={group === "transport" ? props.pendingDeliveriesCount : 0}
         canManageInvoices={props.canManageInvoices}
         canManageReturns={props.canManageReturns}
         canManageMaintenance={props.canManageMaintenance}
       />
-      <AlertQuery state={props.collectionForecast} entity="la previsión de cobranza">
+      {group === "collection" && <AlertQuery state={props.collectionForecast} entity="la previsión de cobranza">
         {(upcomingInvoices) => <CollectionForecast overdueInvoices={props.overdueInvoices} upcomingInvoices={upcomingInvoices} />}
-      </AlertQuery>
-      <ExpiringContractsAlert contracts={props.expiringContracts} />
-      <AlertQuery state={props.insuranceAlert} entity="las alertas de seguros">
+      </AlertQuery>}
+      {group === "returns" && <ExpiringContractsAlert contracts={props.expiringContracts} />}
+      {group === "maintenance" && <AlertQuery state={props.insuranceAlert} entity="las alertas de seguros">
         {(data) => <InsuranceAlert data={data} />}
-      </AlertQuery>
+      </AlertQuery>}
+    </>
+  );
+}
+
+export function DashboardAlertsSection({ priority = "overview", ...props }: DashboardAlertsSectionProps) {
+  return (
+    <div className="flex flex-col gap-4">
+      {DASHBOARD_ALERT_ORDER[priority].map((group) => <AlertGroup key={group} group={group} {...props} />)}
     </div>
   );
 }

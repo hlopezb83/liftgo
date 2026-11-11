@@ -107,8 +107,8 @@ export function KpiTile({
     <KpiInteractiveWrapper href={href} onClick={onClick}>
       <Card
         className={cn(
-          "h-full hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200",
-          isInteractive && "cursor-pointer group-hover:ring-2 group-hover:ring-primary/20",
+          "h-full",
+          isInteractive && "cursor-pointer transition-all duration-200 hover:shadow-lg hover:-translate-y-0.5 group-hover:ring-2 group-hover:ring-primary/20",
           className,
         )}
       >
@@ -138,7 +138,7 @@ export function KpiTile({
             {hint ? <div className="mt-0.5">{hint}</div> : null}
           </div>
           {isInteractive ? (
-            <ArrowRight className="h-4 w-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity shrink-0 hidden sm:block" />
+            <ArrowRight className="h-4 w-4 text-primary shrink-0" aria-hidden="true" />
           ) : null}
         </CardContent>
       </Card>

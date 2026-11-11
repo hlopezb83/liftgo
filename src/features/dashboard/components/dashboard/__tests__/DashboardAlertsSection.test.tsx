@@ -8,6 +8,25 @@ const props = {
   canManageInvoices: false, canManageReturns: false, canManageMaintenance: false,
 };
 
+it.each(["finance", "operations"] as const)("ordena las alertas por perfil %s sin duplicarlas", async (priority) => {
+  render(<TestRouter><DashboardAlertsSection {...props} priority={priority}
+    pendingDeliveriesCount={4}
+    overdueInvoices={[{ id: "inv1", invoice_number: "FAC-QA", customer_name: "Cliente", total: 100, due_date: "2026-11-01" }]}
+    overdueBookings={[{ booking_id: "b1", forklift_name: "Unidad QA-RET", forklift_id: "f1", customer_name: "Cliente", end_date: "2026-11-01", days_overdue: 2 }]}
+    collectionForecast={{ status: "hidden" }} insuranceAlert={{ status: "hidden" }} />
+  </TestRouter>);
+  await screen.findByText("FAC-QA");
+  const regions = screen.getAllByRole("region");
+  expect(regions).toHaveLength(3);
+  if (priority === "finance") expect(regions[0]).toHaveTextContent("FAC-QA");
+  else {
+    expect(regions[0]).not.toHaveTextContent("FAC-QA");
+    expect(regions[1]).toHaveTextContent("Unidad QA-RET");
+    expect(regions[2]).toHaveTextContent("FAC-QA");
+  }
+  expect(screen.getAllByText("FAC-QA")).toHaveLength(1);
+});
+
 it("muestra carga y error por alerta, y sólo monta previsiones con datos listos", async () => {
   const onRetry = vi.fn();
   const view = render(

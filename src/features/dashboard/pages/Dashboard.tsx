@@ -10,134 +10,102 @@ import { DashboardChartsSection } from "../components/dashboard/DashboardChartsS
 import { FinancialKpiCards } from "../components/dashboard/FinancialKpiCards";
 import { StatCards } from "../components/dashboard/StatCards";
 import { useDashboardSections } from "../hooks/dashboard/useDashboardSections";
+import { DASHBOARD_PRIORITY_LABEL, type DashboardPriority } from "../lib/dashboardPriority";
 
-function DashboardSectionLabel({ children }: { children: React.ReactNode }) {
+type DashboardData = ReturnType<typeof useDashboardSections>;
+
+function SectionLabel({ children, id }: { children: React.ReactNode; id?: string }) {
+  return <h2 id={id} className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">{children}</h2>;
+}
+
+function DashboardLoading({ priority, canSeeFinancials, canViewFinancialCharts }: {
+  priority: DashboardPriority; canSeeFinancials: boolean; canViewFinancialCharts: boolean;
+}) {
+  const groups = priority === "finance" ? ["finance", "operations"] : ["operations", "finance"];
   return (
-    <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">
-      {children}
-    </p>
+    <PageContainer>
+      <PageHeader title="Panel" />
+      <div className="flex flex-col gap-6" role="status">
+        <span className="sr-only">Cargando tablero…</span>
+        <section><SectionLabel>{DASHBOARD_PRIORITY_LABEL[priority]}</SectionLabel><Skeleton className="h-24 rounded-xl" /></section>
+        {groups.map((group) => group === "finance" ? canSeeFinancials && (
+          <section key={group}>
+            <SectionLabel>Finanzas</SectionLabel>
+            <div className="grid grid-cols-1 sm:grid-cols-2 2xl:grid-cols-4 gap-4">
+              {Array.from({ length: 4 }, (_, i) => <Skeleton key={i} className="h-20 rounded-xl" />)}
+            </div>
+          </section>
+        ) : (
+          <section key={group}>
+            <SectionLabel>Operación</SectionLabel>
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+              {Array.from({ length: 5 }, (_, i) => <Skeleton key={i} className="h-20 rounded-xl" />)}
+            </div>
+          </section>
+        ))}
+        <div className="grid grid-cols-1 xl:grid-cols-3 gap-4">
+          <Skeleton className="h-72 rounded-xl xl:col-span-1" /><Skeleton className="h-72 rounded-xl xl:col-span-2" />
+          {canViewFinancialCharts && <Skeleton className="h-80 rounded-xl xl:col-span-3" />}
+        </div>
+      </div>
+    </PageContainer>
   );
+}
+
+function FinancialSection({ data }: { data: DashboardData }) {
+  if (!data.canSeeFinancials) return null;
+  return (
+    <section aria-label="Indicadores financieros">
+      <SectionLabel>Finanzas</SectionLabel>
+      {data.financialsState === "error" ? (
+        <QueryErrorState bare entity="los KPIs financieros" onRetry={() => { void data.refetchFinancials(); }} isRetrying={data.financialsIsFetching} />
+      ) : data.financialsState === "loading" ? (
+        <div className="grid grid-cols-1 sm:grid-cols-2 2xl:grid-cols-4 gap-4" role="status">
+          <span className="sr-only">Cargando KPIs financieros…</span>
+          {Array.from({ length: 4 }, (_, i) => <Skeleton key={i} className="h-20 rounded-xl" />)}
+        </div>
+      ) : (
+        <FinancialKpiCards mrr={data.financials.mrr} utilizationPercent={data.utilizationPercent}
+          dso={data.financials.dso} overdueTotal={data.financials.overdueTotal}
+          overdueFxMissingCount={data.financials.overdueFxMissingCount} mrrFxMissingCount={data.financials.mrrFxMissingCount} />
+      )}
+    </section>
+  );
+}
+
+function OperationalSection({ cards }: { cards: DashboardData["statCards"] }) {
+  return <section aria-label="Indicadores de operación"><SectionLabel>Operación</SectionLabel><StatCards cards={cards} /></section>;
 }
 
 export default function Dashboard() {
   const canManageInvoices = useHasModuleAccess("Facturas", "full");
   const canManageReturns = useHasModuleAccess("Entregas", "full");
   const canManageMaintenance = useHasModuleAccess("Mantenimiento", "full");
-  const {
-    isLoading, isError, isFetching, refetch, insuranceAlert, collectionForecast,
-    statCards, utilizationPercent,
-    pieData, agingBuckets, maintenanceAlerts,
-    monthlyUtilization, revenuePerUnit, cashFlowData,
-    overdueInvoices, pendingDeliveriesCount,
-    financials, alertsProps, canSeeFinancials, canViewFinancialCharts,
-    financialsState, financialsIsFetching, refetchFinancials,
-  } = useDashboardSections();
+  const data = useDashboardSections();
+  const priority = data.priority ?? "overview";
 
-  if (isError) {
-    return (
-      <PageContainer>
-        <PageHeader title="Panel" />
-        <QueryErrorState entity="el tablero" onRetry={() => refetch()} isRetrying={isFetching} />
-      </PageContainer>
-    );
-  }
-
-  if (isLoading) {
-    // Skeleton por secciones reales: replica la jerarquía final (KPIs de
-    // Operación 5 tiles, Finanzas 4 tiles, alertas y grid de gráficas) para
-    // evitar saltos de contenido al hidratar. Misma convención de accesibilidad
-    // que TableSkeleton: contenedor role="status" + texto sr-only.
-    return (
-      <PageContainer>
-        <PageHeader title="Panel" />
-        <div className="flex flex-col gap-6" role="status">
-          <span className="sr-only">Cargando tablero…</span>
-          <section className="order-1">
-            <DashboardSectionLabel>Operación</DashboardSectionLabel>
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
-              {Array.from({ length: 5 }, (_, i) => <Skeleton key={i} className="h-20 rounded-xl" />)}
-            </div>
-          </section>
-          {canSeeFinancials && <section className="order-3 md:order-2 border-t border-border/60 pt-5">
-            <DashboardSectionLabel>Finanzas</DashboardSectionLabel>
-            <div className="grid grid-cols-1 sm:grid-cols-2 2xl:grid-cols-4 gap-4">
-              {Array.from({ length: 4 }, (_, i) => <Skeleton key={i} className="h-20 rounded-xl" />)}
-            </div>
-          </section>}
-          <Skeleton className="order-2 md:order-3 h-16 rounded-xl" />
-          <div className="order-4 grid grid-cols-1 xl:grid-cols-3 gap-4">
-            <Skeleton className="h-72 rounded-xl xl:col-span-1" />
-            <Skeleton className="h-72 rounded-xl xl:col-span-2" />
-            {canViewFinancialCharts && <Skeleton className="h-80 rounded-xl xl:col-span-3" />}
-          </div>
-        </div>
-      </PageContainer>
-    );
-  }
+  if (data.isError) return (
+    <PageContainer><PageHeader title="Panel" /><QueryErrorState entity="el tablero" onRetry={() => data.refetch()} isRetrying={data.isFetching} /></PageContainer>
+  );
+  if (data.isLoading) return <DashboardLoading priority={priority} canSeeFinancials={data.canSeeFinancials} canViewFinancialCharts={data.canViewFinancialCharts} />;
 
   return (
     <PageTransition>
       <PageContainer>
         <PageHeader title="Panel" subtitle="Vista general de la flota" actions={<DemoTour />} />
         <div className="flex flex-col gap-6">
-          {/* v7.181: agrupar KPIs por área (Operación vs Finanzas) para dar jerarquía. */}
-          <section className="order-1">
-            <DashboardSectionLabel>Operación</DashboardSectionLabel>
-            <StatCards cards={statCards} />
+          <section aria-labelledby="dashboard-pending-title">
+            <SectionLabel id="dashboard-pending-title">{DASHBOARD_PRIORITY_LABEL[priority]}</SectionLabel>
+            <DashboardAlertsSection priority={priority} overdueInvoices={data.overdueInvoices}
+              maintenanceAlerts={data.maintenanceAlerts} agingBuckets={data.agingBuckets}
+              insuranceAlert={data.insuranceAlert} collectionForecast={data.collectionForecast}
+              pendingDeliveriesCount={data.pendingDeliveriesCount} canManageInvoices={canManageInvoices}
+              canManageReturns={canManageReturns} canManageMaintenance={canManageMaintenance} {...data.alertsProps} />
           </section>
-          {canSeeFinancials && (
-            <section className="order-3 md:order-2 border-t border-border/60 pt-5">
-              <DashboardSectionLabel>Finanzas</DashboardSectionLabel>
-              {/* Bug 6: la query de KPIs financieros es independiente del resto
-                  del tablero; sin guard propio esta sección mostraba $0 falsos
-                  durante carga o error de get_financial_kpis. */}
-              {financialsState === "error" ? (
-                <QueryErrorState
-                  bare
-                  entity="los KPIs financieros"
-                  onRetry={() => { void refetchFinancials(); }}
-                  isRetrying={financialsIsFetching}
-                />
-              ) : financialsState === "loading" ? (
-                <div className="grid grid-cols-1 sm:grid-cols-2 2xl:grid-cols-4 gap-4" role="status">
-                  <span className="sr-only">Cargando KPIs financieros…</span>
-                  {Array.from({ length: 4 }, (_, i) => <Skeleton key={i} className="h-20 rounded-xl" />)}
-                </div>
-              ) : (
-                <FinancialKpiCards
-                  mrr={financials.mrr}
-                  utilizationPercent={utilizationPercent}
-                  dso={financials.dso}
-                  overdueTotal={financials.overdueTotal}
-                  overdueFxMissingCount={financials.overdueFxMissingCount}
-                  mrrFxMissingCount={financials.mrrFxMissingCount}
-                />
-              )}
-            </section>
-          )}
-          <div className="order-2 md:order-3">
-            <DashboardAlertsSection
-              overdueInvoices={overdueInvoices}
-              maintenanceAlerts={maintenanceAlerts}
-              agingBuckets={agingBuckets}
-              insuranceAlert={insuranceAlert}
-              collectionForecast={collectionForecast}
-              pendingDeliveriesCount={pendingDeliveriesCount}
-              canManageInvoices={canManageInvoices}
-              canManageReturns={canManageReturns}
-              canManageMaintenance={canManageMaintenance}
-              {...alertsProps}
-            />
-          </div>
-          <div className="order-4">
-            <DashboardChartsSection
-              pieData={pieData}
-              monthlyUtilization={monthlyUtilization}
-              revenuePerUnit={revenuePerUnit}
-              cashFlowData={cashFlowData}
-              canSeeFinancials={canViewFinancialCharts}
-            />
-          </div>
+          {priority === "finance" ? <><FinancialSection data={data} /><OperationalSection cards={data.statCards} /></>
+            : <><OperationalSection cards={data.statCards} /><FinancialSection data={data} /></>}
+          <DashboardChartsSection pieData={data.pieData} monthlyUtilization={data.monthlyUtilization}
+            revenuePerUnit={data.revenuePerUnit} cashFlowData={data.cashFlowData} canSeeFinancials={data.canViewFinancialCharts} />
         </div>
       </PageContainer>
     </PageTransition>
