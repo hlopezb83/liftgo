@@ -50,6 +50,7 @@ describe("Dashboard dispatcher financial data boundary", () => {
     expect(state.financialQuery).toHaveBeenCalledWith(false);
     expect(state.upcomingQuery).toHaveBeenCalledWith(false);
     expect(result.current.canSeeFinancials).toBe(false);
+    expect(result.current.priority).toBe("operations");
     expect(result.current.canViewFinancialCharts).toBe(false);
     expect(result.current.cashFlowData).toEqual([]);
     expect(result.current.overdueInvoices).toEqual([]);
@@ -68,15 +69,18 @@ describe("Dashboard dispatcher financial data boundary", () => {
     expect(state.financialQuery).toHaveBeenCalledWith(true);
     expect(result.current.cashFlowData).toHaveLength(1);
     expect(result.current.financials.mrr).toBe(1000);
+    expect(result.current.priority).toBe("finance");
     state.role = "dispatcher";
     rerender();
     expect(result.current.cashFlowData).toEqual([]);
     expect(result.current.financials.mrr).toBe(0);
+    expect(result.current.priority).toBe("operations");
   });
   it("fails closed while role identity is unresolved", () => {
     state.role = null;
     const { result } = renderHook(() => useDashboardSections());
     expect(result.current.canViewFinancialCharts).toBe(false);
+    expect(result.current.priority).toBe("overview");
     expect(result.current.cashFlowData).toEqual([]);
     expect(state.financialQuery).toHaveBeenCalledWith(false);
   });
@@ -88,6 +92,7 @@ describe("Dashboard dispatcher financial data boundary", () => {
     rerender();
     expect(state.upcomingQuery).toHaveBeenLastCalledWith(false);
     expect(result.current.collectionForecast).toEqual({ status: "hidden" });
+    expect(result.current.priority).toBe("overview");
     expect(result.current.overdueInvoices).toEqual([]);
     expect(result.current.financials.mrr).toBe(1000);
     expect(result.current.insuranceAlert.status).toBe("ready");

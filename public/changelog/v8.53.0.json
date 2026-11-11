@@ -1,0 +1,13 @@
+{
+  "description": "Facilita el seguimiento de transportes, reservas y facturas, con un Panel que prioriza los pendientes según el rol.",
+  "changes": [
+    "El aviso de transportes atrasados abre la lista exacta de pendientes, con búsqueda y paginación.",
+    "Consulta disponibilidad por equipo y fechas desde Calendario y Equipos, con motivos y reservas vinculadas.",
+    "El detalle de la reserva indica el siguiente paso y permite programar transporte con su contexto.",
+    "Las fechas identifican su error junto al campo correcto; cotizaciones y facturas incluyen un resumen para corregirlas.",
+    "Las tablas conservan enlaces accesibles y las acciones del Panel tienen controles independientes.",
+    "Próximas reservas, búsqueda móvil y filtros visibles agilizan el trabajo en las listas.",
+    "Las facturas distinguen Cobro y CFDI y mantienen visible el saldo con su moneda al registrar un pago.",
+    "La captura móvil usa un resumen plegable y controles más amplios; navegación y fechas comparten nombres y formato."
+  ]
+}
