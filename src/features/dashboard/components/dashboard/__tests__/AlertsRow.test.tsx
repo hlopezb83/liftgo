@@ -34,6 +34,12 @@ describe("AlertsRow — cobranza", () => {
     expect(screen.queryByRole("button", { name: "Ver transportes atrasados →" })).toBeNull();
   });
 
+  it.each([["2026-11-01", "01/11/2026"], ["2026-12-31", "31/12/2026"]])("formatea la fecha calendario de mantenimiento %s sin desplazar el día", async (nextDate, displayed) => {
+    await renderAlerts(<AlertsRow overdueInvoices={[]} maintenanceAlerts={[{ forkliftName: "Unidad QA", forkliftId: "f1", nextDate }]}
+      agingBuckets={[]} overdueBookings={[]} canManageInvoices={false} canManageReturns={false} canManageMaintenance={false} />);
+    expect(screen.getByText(`Vence: ${displayed}`)).toBeInTheDocument();
+  });
+
   it("envía al flujo de pago y no ofrece mutar la factura a paid", async () => {
     await renderAlerts(
       <AlertsRow

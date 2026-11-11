@@ -23,7 +23,7 @@ describe("availability reasons: verified evidence and priority", () => {
   it("verified reservation outranks a generic rented status", () => {
     const reason = explainUnavailableUnit({ unit: { ...unit, status: "rented" }, overlappingBooking: booking });
     expect(reason.code).toBe("reservation");
-    expect(reason.detail).toContain("2026-10-05");
+    expect(reason.detail).toContain("05/10/2026");
   });
   it("rented status is not claimed as proof of physical custody or an exact blocker", () => {
     const reason = explainUnavailableUnit({ unit: { ...unit, status: "rented" } });

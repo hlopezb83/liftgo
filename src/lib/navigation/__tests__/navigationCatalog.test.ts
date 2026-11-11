@@ -6,13 +6,24 @@ import baseline from "./fixtures/surfaces.json";
 
 const icons = { DashboardIcon, CalendarDays, BookOpen, DeliveryIcon, ClipboardCheck, TargetIcon, UsersIcon, DocumentIcon, ScrollText, FleetIcon, MaintenanceIcon, WarnIcon, InventoryIcon, InvoiceIcon, GitCompareArrows, TrendingUpIcon, BankIcon, ArrowLeftRight, ChartIcon, SupplierIcon, FileClock, ActivityIcon, HistoryIcon, SecurityIcon, SettingsIcon, HelpIcon, MessageSquare, TrophyIcon, Megaphone, ExpenseIcon, CompanyIcon };
 
-// Captured from main 8644a7fe before extraction. Keep this independent of the
+// Captured before extraction; search names/groups aligned in the GUI review.
+// Keep this independent of the
 // catalog: additions/removals or changes to either surface must be intentional.
 function resolveIcons<T extends { icon: string }>(items: T[]) {
   return items.map(({ icon, ...item }) => ({ ...item, icon: icons[icon as keyof typeof icons] }));
 }
 
 describe("navigation surface contracts", () => {
+  it("uses the sidebar name and group for every shared destination and the expenses alias", () => {
+    for (const item of SEARCH_NAVIGATION_ITEMS) {
+      const url = item.url === "/expenses" ? "/cuentas-por-pagar" : item.url;
+      const group = NAV_GROUPS.find((group) => group.items.some((entry) => entry.url === url));
+      if (!group) continue;
+      expect(item.title, item.url).toBe(group.items.find((entry) => entry.url === url)?.title);
+      expect(item.group, item.url).toBe(group.label);
+    }
+    expect(SEARCH_NAVIGATION_ITEMS.find(({ url }) => url === "/expenses")?.keywords).toContain("gastos");
+  });
   it("preserves every sidebar group, item, icon, badge and collapse setting in order", () => {
     expect(sidebarGroups).toBe(NAV_GROUPS);
     expect(NAV_GROUPS).toEqual(baseline.sidebar.map(({ items, ...group }) => ({ ...group, items: resolveIcons(items) })));
