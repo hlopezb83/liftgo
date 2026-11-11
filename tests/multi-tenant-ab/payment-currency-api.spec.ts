@@ -9,7 +9,6 @@ import { createLocalUserClient } from "./fixtures/localBackend";
 type Client = SupabaseClient<Database>;
 type InvoiceInsert = Database["public"]["Tables"]["invoices"]["Insert"];
 type PaymentInsert = Database["public"]["Tables"]["payments"]["Insert"];
-type InvoiceRow = Database["public"]["Tables"]["invoices"]["Row"];
 type PaymentRow = Database["public"]["Tables"]["payments"]["Row"];
 type BalanceRow = Database["public"]["Views"]["v_invoices_with_balance"]["Row"];
 type Membership = Pick<Database["public"]["Tables"]["organization_memberships"]["Row"], "auth_user_id" | "organization_id" | "member_type">;
@@ -60,7 +59,7 @@ async function createInvoice(client: Client, side: AbSide, invoiceId: string, da
     tax_amount: 0,
     total: 100,
   };
-  const invoice = dataOrThrow<InvoiceRow>(await client.from("invoices").insert(payload).select("*").single(), `${label}: create invoice`);
+  const invoice = dataOrThrow(await client.from("invoices").insert(payload).select("*").single(), `${label}: create invoice`);
   expect(invoice).toMatchObject({ id: invoiceId, organization_id: side.organizationId, status: "sent", is_e2e: false });
   return invoice;
 }
@@ -91,7 +90,7 @@ async function snapshot(client: Client, invoiceId: string, organizationId: strin
     client.from("v_invoices_with_balance").select("*").eq("id", invoiceId).single(),
   ]);
   return {
-    invoice: dataOrThrow<InvoiceRow>(invoice, "read own invoice"),
+    invoice: dataOrThrow(invoice, "read own invoice"),
     payments: dataOrThrow<PaymentRow[]>(payments, "read own payments"),
     balance: dataOrThrow<BalanceRow>(balance, "read canonical invoice balance"),
   };

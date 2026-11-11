@@ -1,6 +1,6 @@
 import { supabase } from "@/integrations/supabase/client";
-import type { Tables } from "@/integrations/supabase/types";
-import { getMissingStampFields } from "./cfdiPrechecks";
+import type { TablesUpdate } from "@/integrations/supabase/types";
+import { getMissingStampFields, type InvoiceForStamping } from "./cfdiPrechecks";
 
 /**
  * Backfill snapshot fiscal del receptor + defaults SAT en facturas antiguas
@@ -18,7 +18,7 @@ interface CustomerSnap {
   uso_cfdi: string | null;
 }
 
-function mergeCustomerFields(invoice: Tables<"invoices">, customer: CustomerSnap, patch: Partial<Tables<"invoices">>) {
+function mergeCustomerFields(invoice: InvoiceForStamping, customer: CustomerSnap, patch: TablesUpdate<"invoices">) {
   if (isEmpty(invoice.receptor_rfc) && customer.rfc) patch.receptor_rfc = customer.rfc;
   const razon = customer.razon_social ?? customer.alias;
   if (isEmpty(invoice.receptor_razon_social) && razon) patch.receptor_razon_social = razon;
@@ -31,14 +31,14 @@ function mergeCustomerFields(invoice: Tables<"invoices">, customer: CustomerSnap
   if (isEmpty(invoice.uso_cfdi) && customer.uso_cfdi) patch.uso_cfdi = customer.uso_cfdi;
 }
 
-function mergeSatDefaults(invoice: Tables<"invoices">, patch: Partial<Tables<"invoices">>) {
+function mergeSatDefaults(invoice: InvoiceForStamping, patch: TablesUpdate<"invoices">) {
   if (isEmpty(invoice.forma_pago)) patch.forma_pago = "99";
   if (isEmpty(invoice.metodo_pago)) patch.metodo_pago = "PPD";
   if (isEmpty(invoice.moneda)) patch.moneda = "MXN";
   if (invoice.tipo_cambio === null || invoice.tipo_cambio === undefined) patch.tipo_cambio = 1;
 }
 
-export async function backfillStampSnapshot(invoice: Tables<"invoices">): Promise<Tables<"invoices">> {
+export async function backfillStampSnapshot(invoice: InvoiceForStamping): Promise<InvoiceForStamping> {
   const missing = getMissingStampFields(invoice);
   if (missing.length === 0) return invoice;
   if (!invoice.customer_id) return invoice;
@@ -53,7 +53,7 @@ export async function backfillStampSnapshot(invoice: Tables<"invoices">): Promis
     .maybeSingle();
   if (customerError) throw customerError;
 
-  const patch: Partial<Tables<"invoices">> = {};
+  const patch: TablesUpdate<"invoices"> = {};
   if (customer) mergeCustomerFields(invoice, customer as CustomerSnap, patch);
   mergeSatDefaults(invoice, patch);
 

@@ -1,8 +1,7 @@
 import { useRef, useState } from "react";
-import type { Tables } from "@/integrations/supabase/types";
 import { notifyError, notifyValidation } from "@/lib/ui/appFeedback";
 import { backfillStampSnapshot } from "../../lib/backfillStampSnapshot";
-import { getMissingStampFields } from "../../lib/cfdiPrechecks";
+import { getMissingStampFields, type InvoiceForStamping } from "../../lib/cfdiPrechecks";
 import { classifyFacturapiError, type FacturapiErrorKind } from "../../lib/facturapiErrors";
 import { useStampCfdi } from "../invoices/cfdi/useStampCfdi";
 
@@ -41,7 +40,7 @@ export function useStampInvoiceFlow(refetch: () => void) {
   // dispara 2 timbrados (la 2ª llamada dispara un toast info duplicado).
   const inFlightRef = useRef(false);
 
-  const run = async (invoice: Tables<"invoices"> | undefined) => {
+  const run = async (invoice: InvoiceForStamping | undefined) => {
     if (!invoice) return;
     if (inFlightRef.current) return;
     inFlightRef.current = true;
