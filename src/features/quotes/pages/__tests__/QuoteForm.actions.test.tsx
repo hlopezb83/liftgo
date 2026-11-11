@@ -25,6 +25,7 @@ vi.mock("@/hooks/useNavigateTransition", () => ({ useNavigateTransition: () => f
 vi.mock("../../hooks/quoteForm/useQuoteFormLogic", () => ({
   useQuoteFormLogic: function useFixtureQuoteFormLogic() {
     const form = useForm<QuoteFormValues>({
+      shouldFocusError: false,
       defaultValues: {
         quoteType: fixture.quoteType,
         customerId: fixture.customerId,
@@ -125,6 +126,7 @@ describe("QuoteForm actions remain wired through the persistent footer", () => {
     fireEvent.click(screen.getByRole("button", { name: "Volver" }));
     expect(fixture.navigate.mock.calls).toEqual([[-1], [-1]]);
     expect(fixture.submit).not.toHaveBeenCalled();
+
   });
 
   it("disables both actions during a pending save", () => {
@@ -183,6 +185,10 @@ describe("QuoteForm actions remain wired through the persistent footer", () => {
     expect(screen.getByText("Selecciona un cliente")).toBeVisible();
     expect(fixture.invalid).toHaveBeenCalledTimes(1);
     expect(fixture.submit).not.toHaveBeenCalled();
+    const summary = screen.getByRole("region", { name: "Revisa los campos marcados" });
+    expect(summary).toHaveFocus();
+    fireEvent.click(screen.getByRole("link", { name: "Cliente: Selecciona un cliente" }));
+    expect(screen.getByRole("textbox", { name: "Cliente ficticio" })).toHaveFocus();
 
     await act(async () => {
       fireEvent.change(screen.getByRole("textbox", { name: "Cliente ficticio" }), { target: { value: "customer-fixture" } });

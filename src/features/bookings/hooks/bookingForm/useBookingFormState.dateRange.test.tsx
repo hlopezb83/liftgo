@@ -17,7 +17,7 @@ describe("booking date availability feedback", () => {
       result.current.form.setValue("forklift_id", "selected");
       result.current.form.setValue("date_range", { from: new Date(2026, 9, 26), to: new Date(2026, 9, 25) });
     });
-    expect(result.current.dateRangeError).toBe("La fecha de fin debe ser posterior a la de inicio");
+    expect(result.current.dateRangeError).toBe("La fecha de fin debe ser igual o posterior a la de inicio");
     expect(result.current.datesSelected).toBe(false);
     expect(result.current.forkliftId).toBe("selected");
     expect(callRpc).not.toHaveBeenCalled();

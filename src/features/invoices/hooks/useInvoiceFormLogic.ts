@@ -186,6 +186,7 @@ export function useInvoiceFormLogic({ id, fromQuoteId, extensionId = null, damag
   const { data: invoiceBookingsRows } = invoiceBookingsQuery;
   const existingBookingIds = (invoiceBookingsRows ?? []).map((r) => r.booking_id);
   const form = useForm<InvoiceFormValues>({
+    shouldFocusError: false,
     resolver: zodResolver(invoiceSchemaForEdit(isEdit, existing)),
     defaultValues: buildEmptyInvoiceValues(),
   });

@@ -15,6 +15,7 @@ import {
 
 import { cn } from "@/lib/utils";
 import { Label } from "@/components/ui/label";
+import { useFormErrorTarget } from "@/lib/forms/formErrorTargets";
 
 const Form = FormProvider;
 
@@ -90,10 +91,12 @@ const FormItemContext = createContext<FormItemContextValue>({} as FormItemContex
 
 const FormItem = ({ className, ref, ...props }: HTMLAttributes<HTMLDivElement> & { ref?: Ref<HTMLDivElement> }) => {
     const id = useId();
+    const { name } = useContext(FormFieldContext);
+    const errorTargetId = useFormErrorTarget(name);
 
     return (
       <FormItemContext.Provider value={{ id }}>
-        <div ref={ref} className={cn("space-y-2", className)} {...props} />
+        <div ref={ref} id={errorTargetId} tabIndex={errorTargetId ? -1 : undefined} className={cn("space-y-2", className)} {...props} />
       </FormItemContext.Provider>
     );
   };

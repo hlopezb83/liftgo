@@ -49,7 +49,7 @@ describe("useAvailableForklifts date boundary", () => {
 
   it("clears the local error and resumes querying when dates are corrected", async () => {
     const { result, rerender } = setup({ from: new Date(2026, 9, 26), to: new Date(2026, 9, 25) });
-    expect(result.current.dateRangeError).toBe("La fecha de fin debe ser posterior a la de inicio");
+    expect(result.current.dateRangeError).toBe("La fecha de fin debe ser igual o posterior a la de inicio");
     rerender({ dateRange: { from: new Date(2026, 9, 25), to: new Date(2026, 9, 26) } });
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
     expect(result.current.dateRangeError).toBeUndefined();
