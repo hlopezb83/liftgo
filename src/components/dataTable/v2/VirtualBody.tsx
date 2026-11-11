@@ -2,10 +2,13 @@ import { useQueryClient, type QueryClient } from "@tanstack/react-query";
 import { flexRender, type RowData } from "@tanstack/react-table";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { useEffect, useRef, type ReactNode, type Ref } from "react";
+import type { TableRowAction } from "@/components/dataTable/v2/types";
 import { EmptyRow } from "@/components/feedback/EmptyRow";
 import { Checkbox } from "@/components/ui/checkbox";
 import { TableBody, TableCell, TableRow } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
+import { DataTableRowAction } from "./DataTableRowAction";
+import { canActivateTableRow } from "./rowInteraction";
 import { alignClass } from "./sorting";
 import type { LiftgoRow } from "./types";
 
@@ -19,6 +22,7 @@ interface Props<T extends RowData> {
   /** R-Sel: ver `DataTableBodyV2`; invalida el memo cuando cambia la selección. */
   selectionKey?: string;
   onRowClick?: (item: T) => void;
+  rowAction?: TableRowAction<T>;
   rowClassName?: (item: T) => string | undefined;
   onRowPrefetch?: (item: T) => unknown;
   estimateRowHeight?: number;
@@ -32,6 +36,7 @@ export function VirtualBody<T extends RowData>({
   showSelection,
   selectionKey = "",
   onRowClick,
+  rowAction,
   rowClassName,
   onRowPrefetch,
   estimateRowHeight = 44,
@@ -100,7 +105,7 @@ export function VirtualBody<T extends RowData>({
             ref={virtualizer.measureElement}
             className={cn("table w-full table-fixed", onRowClick && "cursor-pointer", rowClassName?.(item))}
             style={{ display: "table", width: "100%" }}
-            onClick={onRowClick ? () => onRowClick(item) : undefined}
+            onClick={onRowClick ? (event) => { if (canActivateTableRow(event)) onRowClick(item); } : undefined}
             onMouseEnter={onRowPrefetch ? () => armPrefetch(item) : undefined}
             onMouseLeave={onRowPrefetch ? disarmPrefetch : undefined}
             onFocus={onRowPrefetch ? () => armPrefetch(item) : undefined}
@@ -127,7 +132,9 @@ export function VirtualBody<T extends RowData>({
                     meta?.cellClassName,
                   )}
                 >
-                  {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                  <DataTableRowAction item={item} columnId={cell.column.id} action={rowAction} onActivate={onRowClick}>
+                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                  </DataTableRowAction>
                 </TableCell>
               );
             })}

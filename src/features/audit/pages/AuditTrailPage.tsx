@@ -128,6 +128,7 @@ export default function AuditTrailPage() {
         isError={isError}
         onRetry={() => { void refetch(); }}
         table={table}
+        rowAction={{ columnId: "record", label: (log) => `Ver cambio de ${getRecordLabel(log)}` }}
         onRowClick={(log) => setSelectedLog(log)}
         hasActiveFilters={hasActive}
         onClearFilters={reset}

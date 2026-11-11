@@ -144,6 +144,7 @@ export default function InvoicesPage() {
         isError={isError}
         onRetry={() => { void refetch(); }}
         table={table}
+        rowAction={{ columnId: "invoice_number", label: (inv) => `Ver factura ${inv.invoice_number}`, to: (inv) => `/invoices/${inv.id}`, state: () => ({ invoiceListBackTo: `${location.pathname}${location.search}${location.hash}` }) }}
         onRowClick={(inv) => navigate(`/invoices/${inv.id}`, {
           state: { invoiceListBackTo: `${location.pathname}${location.search}${location.hash}` },
         })}

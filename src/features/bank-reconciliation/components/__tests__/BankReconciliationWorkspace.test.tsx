@@ -39,11 +39,14 @@ function mount(extra: Partial<React.ComponentProps<typeof BankReconciliationWork
   return { ...view, props, rerenderWorkspace: (next: Partial<typeof props>) => view.rerender(
     <QueryClientProvider client={client}><BankReconciliationWorkspace {...props} {...next} /></QueryClientProvider>), };
 }
+function rowAction(id: string) {
+  return within(row(id)).getByRole('button', { name: /^Ver movimiento/ });
+}
 async function closeAndFocus(id: string, key = true) {
   if (key) fireEvent.keyDown(screen.getByRole('dialog'), { key: 'Escape' });
   else fireEvent.click(screen.getByRole('button', { name: 'Cerrar' }));
   await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
-  await waitFor(() => expect(row(id)).toHaveFocus());
+  await waitFor(() => expect(rowAction(id)).toHaveFocus());
 }
 beforeEach(() => {
   mocks.mutate.mockClear(); mocks.candidates.mockReset();
@@ -70,9 +73,12 @@ describe('V06 inspector con tabla real y Radix, datos aislados', () => {
     expect(mocks.candidates).not.toHaveBeenCalled();
     expect(screen.getByTestId('bank-lines-table').parentElement).toHaveClass('w-full', 'min-w-0');
   });
-  it.each(['click', 'Enter'])('abre con %s y restaura foco al cerrar', async (method) => {
-    mount(); const first = row('uno'); first.focus();
-    if (method === 'click') fireEvent.click(first); else fireEvent.keyDown(first, { key: 'Enter' });
+  it.each(['fila', 'botón'])('abre con %s y restaura foco al cerrar', async (method) => {
+    mount(); const first = row('uno');
+    expect(first).not.toHaveAttribute('role');
+    expect(first).not.toHaveAttribute('tabindex');
+    const action = rowAction('uno'); action.focus();
+    fireEvent.click(method === 'fila' ? first : action);
     expect(screen.getByRole('dialog')).toContainElement(screen.getByText('Pago aislado'));
     await waitFor(() => expect(screen.getByRole('dialog')).toContainElement(document.activeElement as HTMLElement));
     await closeAndFocus('uno'); expect(row('uno')).toBe(first);
@@ -84,7 +90,7 @@ describe('V06 inspector con tabla real y Radix, datos aislados', () => {
     fireEvent.keyDown(screen.getByRole('dialog'), { key: 'k' });
     fireEvent.keyDown(screen.getByRole('dialog'), { key: 'ArrowDown' });
     await closeAndFocus('dos', false);
-    fireEvent.keyDown(row('dos'), { key: 'Enter' }); await closeAndFocus('dos');
+    fireEvent.click(rowAction('dos')); await closeAndFocus('dos');
   });
   it('escribir J/K/flechas en candidatos y textarea no cambia movimiento', async () => {
     mount(); fireEvent.click(row('uno'));
@@ -156,8 +162,8 @@ describe('V06 inspector con tabla real y Radix, datos aislados', () => {
     const scrollTop = body.scrollTop;
     const region = screen.getByRole('region', { name: 'Movimientos bancarios' });
     const focus = vi.spyOn(region, 'focus');
-    // Abrir con clic: Enter de VirtualBody es un comportamiento previo ajeno a esta corrección.
-    fireEvent.click(first);
+    // La fila virtual también expone la acción nativa del inspector.
+    fireEvent.click(rowAction('line-0'));
     for (let i = 0; i < 40; i++) fireEvent.keyDown(screen.getByRole('dialog'), { key: 'j' });
     expect(within(screen.getByRole('dialog')).getByText('Línea 40')).toBeInTheDocument();
     expect(document.querySelector('[data-bank-line-id="line-40"]')).toBeNull();

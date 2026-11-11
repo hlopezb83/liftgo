@@ -148,6 +148,7 @@ export default function BookingsPage() {
       isError={isError}
       onRetry={() => { void refetch(); }}
       table={table}
+      rowAction={{ columnId: "booking_number", label: (b) => `Ver reserva ${b.booking_number}`, to: (b) => `/bookings/${b.id}` }}
       onRowClick={(b) => navigate(`/bookings/${b.id}`)}
       onRowPrefetch={(b) => bookingQueries.detail(b.id)}
       hasActiveFilters={hasActive}

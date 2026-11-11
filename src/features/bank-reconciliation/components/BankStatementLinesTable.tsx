@@ -124,6 +124,7 @@ export function BankStatementLinesTable({
         <DataTableV2
           table={table}
           isLoading={isLoading}
+          rowAction={{ columnId: "posted_date", label: (l) => `Ver movimiento ${l.reference || l.description || formatDateMty(l.posted_date)}` }}
           onRowClick={onSelect}
           virtualized={virtualized}
           enableRowSelection

@@ -1,5 +1,5 @@
 import { ReactNode, useState } from "react";
-import type { LiftgoTable } from "@/components/dataTable/v2/types";
+import type { LiftgoTable, TableRowAction } from "@/components/dataTable/v2/types";
 import { type LucideIcon } from "@/components/icons";
 import { ListPageBody } from "@/components/layout/listPage/ListPageBody";
 import { ListPageControls } from "@/components/layout/listPage/ListPageControls";
@@ -55,6 +55,7 @@ interface ListPageLayoutProps<T extends { id?: string }> {
   table?: LiftgoTable<T>;
   /** Click handler para filas (modo tabla). */
   onRowClick?: (item: T) => void;
+  rowAction?: TableRowAction<T>;
   /** Handler opcional para prefetch de detalle al hacer hover en fila. */
   onRowPrefetch?: (item: T) => unknown;
   /** Si se provee, en mobile/tablet se renderiza como tarjetas en lugar de tabla. */
@@ -94,6 +95,7 @@ export function ListPageLayout<T extends { id?: string }>({
   onClearFilters,
   table,
   onRowClick,
+  rowAction,
   onRowPrefetch,
   mobileCardRender,
   mobileKeyExtractor,
@@ -160,6 +162,7 @@ export function ListPageLayout<T extends { id?: string }>({
           hasActiveFilters={hasActiveFilters}
           onClearFilters={onClearFilters}
           onRowClick={onRowClick}
+          rowAction={rowAction}
           onRowPrefetch={onRowPrefetch}
           mobileCardRender={mobileCardRender}
           mobileKeyExtractor={mobileKeyExtractor}

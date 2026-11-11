@@ -110,6 +110,7 @@ export default function InventoryPage() {
         hasActiveFilters={hasActive}
         onClearFilters={reset}
         table={table}
+        rowAction={{ columnId: "name", label: (p) => `Ver refacción ${p.name}` }}
         onRowClick={(p) => detail.open(p.id)}
         emptyMessage="Sin refacciones registradas"
         emptyIcon={InventoryIcon}

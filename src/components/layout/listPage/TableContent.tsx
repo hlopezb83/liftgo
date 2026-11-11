@@ -1,4 +1,5 @@
 import { DataTableV2 } from "@/components/dataTable/v2/DataTableV2";
+import type { TableRowAction } from "@/components/dataTable/v2/types";
 import type { LiftgoTable } from "@/components/dataTable/v2/types";
 import { EmptyState } from "@/components/feedback/EmptyState";
 import { ErrorState } from "@/components/feedback/ErrorState";
@@ -22,6 +23,7 @@ export interface TableContentProps<T extends { id?: string }> {
   hasActiveFilters: boolean;
   onClearFilters?: () => void;
   onRowClick?: (item: T) => void;
+  rowAction?: TableRowAction<T>;
   onRowPrefetch?: (item: T) => unknown;
   mobileCardRender?: (item: T) => ReactNode;
   mobileKeyExtractor?: (item: T) => string;
@@ -32,7 +34,7 @@ export function TableContent<T extends { id?: string }>({
   isLoading, isError, onRetry, showEmpty, showMobileCards, items, table,
   emptyMessage, emptyIcon, emptyActionLabel, onEmptyAction,
   hasActiveFilters, onClearFilters,
-  onRowClick, onRowPrefetch, mobileCardRender, mobileKeyExtractor, skeletonColumns,
+  onRowClick, rowAction, onRowPrefetch, mobileCardRender, mobileKeyExtractor, skeletonColumns,
 }: TableContentProps<T>) {
   if (isError) return <ErrorState onRetry={onRetry} />;
   if (isLoading) return <TableSkeleton columnCount={skeletonColumns} />;
@@ -73,7 +75,7 @@ export function TableContent<T extends { id?: string }>({
     );
   }
   if (table) {
-    return <DataTableV2 table={table} emptyMessage={emptyMessage} onRowClick={onRowClick} onRowPrefetch={onRowPrefetch} />;
+    return <DataTableV2 table={table} emptyMessage={emptyMessage} onRowClick={onRowClick} rowAction={rowAction} onRowPrefetch={onRowPrefetch} />;
   }
   return null;
 }

@@ -126,6 +126,7 @@ export default function PortalInvoices() {
             <DataTableV2
               table={table}
               emptyMessage="Aún no tienes facturas. Cuando se emita tu primera factura aparecerá aquí. ¿Dudas? Contáctanos."
+              rowAction={{ columnId: "invoice_number", label: (inv) => `Ver factura ${inv.invoice_number}`, to: (inv) => `/portal/invoices/${inv.id}` }}
               onRowClick={(inv) => navigate(`/portal/invoices/${inv.id}`)}
             />
           )}

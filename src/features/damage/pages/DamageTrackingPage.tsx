@@ -99,6 +99,7 @@ export default function DamageTrackingPage() {
         isError={isError}
         onRetry={() => { void refetch(); }}
         table={table}
+        rowAction={{ columnId: "forklift_name", label: (r) => `Ver daño de ${r.forklifts?.name || "equipo"}` }}
         onRowClick={(r) => detail.open(r as DamageRecordWithJoins)}
         hasActiveFilters={hasActive}
         onClearFilters={reset}

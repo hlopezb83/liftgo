@@ -124,6 +124,7 @@ export default function CuentasPorPagarPage() {
         isError={isError}
         onRetry={() => { void refetch(); }}
         table={table}
+        rowAction={{ columnId: "bill_number", label: (b) => `Ver factura de proveedor ${b.bill_number}` }}
         onRowClick={(b) => setSelectedId(b.id)}
         hasActiveFilters={f.hasActive}
         onClearFilters={f.reset}

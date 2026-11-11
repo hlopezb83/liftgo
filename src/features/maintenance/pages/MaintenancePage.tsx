@@ -125,6 +125,7 @@ export default function MaintenancePage() {
         onRetry={() => { void refetch(); }}
         onRefresh={refetch}
         table={table}
+        rowAction={{ columnId: "forklift_name", label: (log) => `Ver servicio de ${log.forklift_name || "equipo"}` }}
         onRowClick={(log) => detail.open(log)}
         hasActiveFilters={hasActive}
         onClearFilters={reset}

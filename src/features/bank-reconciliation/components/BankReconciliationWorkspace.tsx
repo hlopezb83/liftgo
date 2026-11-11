@@ -53,12 +53,12 @@ export function BankReconciliationWorkspace({
     const marker = Array.from(tableRef.current?.querySelectorAll<HTMLElement>("[data-bank-line-id]") ?? [])
       .find((node) => node.dataset.bankLineId === focusLineId.current);
     const row = marker?.closest("tr");
+    const action = row?.querySelector<HTMLButtonElement>("[data-table-row-action]");
     // La fila vigente puede estar fuera de la ventana virtual o haber desaparecido.
     // Resolver ambos destinos al desmontar, sin mover el scroll ni usar nodos antiguos.
-    const target = row?.isConnected && row.getClientRects().length > 0 ? row : tableRef.current;
+    const target = action?.isConnected && action.getClientRects().length > 0 ? action : tableRef.current;
     if (!target?.isConnected || target.getClientRects().length === 0) return;
     event.preventDefault();
-    if (target === row) target.tabIndex = 0;
     target.focus({ preventScroll: true });
   }, []);
 

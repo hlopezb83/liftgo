@@ -1,5 +1,6 @@
 import { ReactNode } from "react";
 import { DataTablePaginationV2 } from "@/components/dataTable/v2/DataTablePaginationV2";
+import type { TableRowAction } from "@/components/dataTable/v2/types";
 import type { LiftgoTable } from "@/components/dataTable/v2/types";
 import { type LucideIcon } from "@/components/icons";
 import { LoadMoreButton, type LoadMoreProps } from "@/components/layout/listPage/LoadMoreFooter";
@@ -24,6 +25,7 @@ interface Props<T extends { id?: string }> {
   hasActiveFilters: boolean;
   onClearFilters?: () => void;
   onRowClick?: (item: T) => void;
+  rowAction?: TableRowAction<T>;
   onRowPrefetch?: (item: T) => unknown;
   mobileCardRender?: (item: T) => ReactNode;
   mobileKeyExtractor?: (item: T) => string;
@@ -65,6 +67,7 @@ export function ListPageBody<T extends { id?: string }>({
   hasActiveFilters,
   onClearFilters,
   onRowClick,
+  rowAction,
   onRowPrefetch,
   mobileCardRender,
   mobileKeyExtractor,
@@ -96,6 +99,7 @@ export function ListPageBody<T extends { id?: string }>({
         hasActiveFilters={hasActiveFilters}
         onClearFilters={onClearFilters}
         onRowClick={onRowClick}
+        rowAction={rowAction}
         onRowPrefetch={onRowPrefetch}
         mobileCardRender={mobileCardRender}
         mobileKeyExtractor={mobileKeyExtractor}

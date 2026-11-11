@@ -112,3 +112,15 @@ describe("useRecordPaymentForm: date submit guard", () => {
     expect(mocks.validation).toHaveBeenCalledWith({ message: "Captura una fecha válida para el pago." });
   });
 });
+
+
+it("asocia nombres visibles con cada control del pago", () => {
+  setup();
+  for (const name of ["Método", "Forma de pago SAT", "Moneda"]) {
+    expect(screen.getByRole("combobox", { name })).toBeInTheDocument();
+  }
+  expect(screen.getByRole("spinbutton", { name: "Tipo de cambio" })).toBeDisabled();
+  expect(screen.getByRole("textbox", { name: "Referencia" })).toBeInTheDocument();
+  expect(screen.getByRole("textbox", { name: "Notas" })).toBeInTheDocument();
+  expect(mocks.create).not.toHaveBeenCalled();
+});

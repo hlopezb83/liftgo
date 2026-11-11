@@ -80,16 +80,19 @@ describe.each(cases)("Portal $label detail navigation", ({ Component, number, li
     expect(screen.getByTestId("location").textContent).toBe(list);
   });
 
-  it.each(["click", "Enter"])("keeps the desktop table and its %s detail navigation", async (activation) => {
+  it.each(["row", "link"])("keeps the native desktop table and its %s detail navigation", async (activation) => {
     viewport.mobile = false;
     renderList();
     const table = await screen.findByRole("table");
     expect(within(table).getAllByRole("columnheader")).toHaveLength(5);
-    expect(screen.queryByRole("link", { name: new RegExp(number) })).not.toBeInTheDocument();
-    const row = within(table).getByRole("button", { name: new RegExp(number) });
-    expect(row).toHaveAttribute("tabindex", "0");
-    if (activation === "click") fireEvent.click(row);
-    else fireEvent.keyDown(row, { key: "Enter" });
+    const row = within(table).getByRole("row", { name: new RegExp(number) });
+    expect(row).not.toHaveAttribute("role");
+    expect(row).not.toHaveAttribute("tabindex");
+    const link = within(row).getByRole("link", { name: new RegExp(number) });
+    expect(link).toHaveAttribute("href", detail);
+    link.focus(); expect(link).toHaveFocus();
+    // Native Enter activation is covered against the built app by Playwright.
+    fireEvent.click(activation === "row" ? row : link);
     await waitFor(() => expect(screen.getByTestId("location").textContent).toBe(detail));
   });
 });

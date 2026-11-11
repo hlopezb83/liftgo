@@ -1,4 +1,5 @@
 import { type ReactNode } from "react";
+import type { TableRowAction } from "@/components/dataTable/v2/types";
 import { TableSkeleton } from "@/components/feedback/TableSkeleton";
 import { MobileCardList } from "@/components/layout/MobileCardList";
 import { Table } from "@/components/ui/table";
@@ -14,6 +15,7 @@ interface Props<T extends RowData> {
   isLoading?: boolean;
   emptyMessage?: string;
   onRowClick?: (item: T) => void;
+  rowAction?: TableRowAction<T>;
   onRowPrefetch?: (item: T) => unknown;
   rowClassName?: (item: T) => string | undefined;
   mobileCardRender?: (item: T) => ReactNode;
@@ -47,6 +49,7 @@ export function DataTableV2<T extends RowData>({
   isLoading,
   emptyMessage = "Sin resultados",
   onRowClick,
+  rowAction,
   onRowPrefetch,
   rowClassName,
   mobileCardRender,
@@ -93,6 +96,7 @@ export function DataTableV2<T extends RowData>({
     showSelection: enableRowSelection,
     selectionKey,
     onRowClick,
+    rowAction,
     onRowPrefetch,
     rowClassName,
   };

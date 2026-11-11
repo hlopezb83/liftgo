@@ -137,6 +137,7 @@ export function RevenueReport({ startDate, endDate }: Props) {
           <DataTableV2
             table={table}
             emptyMessage="Sin facturas en el rango"
+            rowAction={{ columnId: "month", label: (r) => `Ver ingresos de ${r.month}` }}
             onRowClick={(r) => setSelectedKey(r.key)}
           />
         </CardContent>

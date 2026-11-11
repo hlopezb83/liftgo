@@ -1,3 +1,4 @@
+import { useId } from "react";
 import { BlockedActionNotice } from "@/components/feedback/BlockedActionNotice";
 import { DatePickerField } from "@/components/forms/DatePickerField";
 import { FormDialog, FormDialogFooter } from "@/components/forms/FormDialog";
@@ -30,6 +31,7 @@ interface Props {
 }
 
 export function RecordPaymentDialog({ open, onOpenChange, invoiceId, balance, invoiceCurrency, invoiceExchangeRate, invoiceIssuedAt, ppdStamped = false }: Props) {
+  const id = useId();
   const {
     amount, setAmount, date, setDate, method, setMethod,
     paymentFormSat, setPaymentFormSat, currency, setCurrency,
@@ -57,11 +59,11 @@ export function RecordPaymentDialog({ open, onOpenChange, invoiceId, balance, in
         <div className="space-y-4">
           {currencyError && <p role="alert" className="text-sm text-destructive">{currencyError}</p>}
           <div>
-            <Label htmlFor="recordPaymentAmount">Monto</Label>
+            <Label htmlFor={`${id}-amount`}>Monto</Label>
             <div className="relative">
               <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">$</span>
               <Input
-                id="recordPaymentAmount"
+                id={`${id}-amount`}
                 aria-label="Monto del pago"
                 type="number"
                 step="0.01"
@@ -85,18 +87,18 @@ export function RecordPaymentDialog({ open, onOpenChange, invoiceId, balance, in
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
-              <Label>Método</Label>
+              <Label htmlFor={`${id}-method`}>Método</Label>
               <Select value={method} onValueChange={setMethod}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectTrigger id={`${id}-method`}><SelectValue /></SelectTrigger>
                 <SelectContent>
                   {PAYMENT_METHODS.map((m) => <SelectItem key={m.value} value={m.value}>{m.label}</SelectItem>)}
                 </SelectContent>
               </Select>
             </div>
             <div>
-              <Label>Forma de pago SAT</Label>
+              <Label htmlFor={`${id}-sat`}>Forma de pago SAT</Label>
               <Select value={paymentFormSat} onValueChange={setPaymentFormSat}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectTrigger id={`${id}-sat`}><SelectValue /></SelectTrigger>
                 <SelectContent>
                   {FORMA_PAGO.map((f) => <SelectItem key={f.code} value={f.code}>{f.label}</SelectItem>)}
                 </SelectContent>
@@ -105,9 +107,9 @@ export function RecordPaymentDialog({ open, onOpenChange, invoiceId, balance, in
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
-              <Label>Moneda</Label>
+              <Label htmlFor={`${id}-currency`}>Moneda</Label>
               <Select value={currency} onValueChange={setCurrency} disabled>
-                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectTrigger id={`${id}-currency`}><SelectValue /></SelectTrigger>
                 <SelectContent>
                   {MONEDA.map((m) => <SelectItem key={m.code} value={m.code}>{m.label}</SelectItem>)}
                 </SelectContent>
@@ -117,8 +119,9 @@ export function RecordPaymentDialog({ open, onOpenChange, invoiceId, balance, in
               </p>
             </div>
             <div>
-              <Label>Tipo de cambio</Label>
+              <Label htmlFor={`${id}-exchange-rate`}>Tipo de cambio</Label>
               <Input
+                id={`${id}-exchange-rate`}
                 type="number"
                 step="0.0001"
                 value={exchangeRate}
@@ -129,22 +132,22 @@ export function RecordPaymentDialog({ open, onOpenChange, invoiceId, balance, in
           </div>
 
           <div>
-            <Label>Referencia</Label>
-            <Input value={reference} onChange={(e) => setReference(e.target.value)} placeholder="Número de referencia bancaria" />
+            <Label htmlFor={`${id}-reference`}>Referencia</Label>
+            <Input id={`${id}-reference`} value={reference} onChange={(e) => setReference(e.target.value)} placeholder="Número de referencia bancaria" />
           </div>
           <div>
-            <Label>Notas</Label>
-            <Textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={2} />
+            <Label htmlFor={`${id}-notes`}>Notas</Label>
+            <Textarea id={`${id}-notes`} value={notes} onChange={(e) => setNotes(e.target.value)} rows={2} />
           </div>
           {ppdStamped && (
             <div className="flex items-start gap-2 rounded-md border border-primary/20 bg-primary/5 p-3">
               <Checkbox
-                id="stampRep"
+                id={`${id}-stamp-rep`}
                 checked={stampRep}
                 onCheckedChange={(v) => setStampRep(v === true)}
                 className="mt-0.5"
               />
-              <Label htmlFor="stampRep" className="text-sm font-normal cursor-pointer">
+              <Label htmlFor={`${id}-stamp-rep`} className="text-sm font-normal cursor-pointer">
                 Timbrar Complemento de Pago (REP) automáticamente.
                 <span className="block text-xs text-muted-foreground mt-0.5">
                   Obligatorio para facturas PPD según el SAT.
