@@ -64,7 +64,8 @@ jobs:
           path: ~/.cache/ms-playwright
           key: ${{ runner.os }}-${{ runner.arch }}-chromium-v2-${{ hashFiles('bun.lock') }}
       - name: Preparar Chromium
-        run: node node_modules/@playwright/test/cli.js install --with-deps chromium
+        # ubuntu-24.04 ya incluye las bibliotecas del navegador.
+        run: node node_modules/@playwright/test/cli.js install chromium
       - name: Verificar aislamiento de navegador y Worker con destinos locales
         run: node --test scripts/tests/browser-test-*.test.mjs
       - name: Smoke de arranque (build real)
@@ -126,7 +127,8 @@ jobs:
           path: ~/.cache/ms-playwright
           key: ${{ runner.os }}-${{ runner.arch }}-chromium-v2-${{ hashFiles('bun.lock') }}
       - name: Preparar Chromium
-        run: node node_modules/@playwright/test/cli.js install --with-deps chromium
+        # ubuntu-24.04 ya incluye las bibliotecas del navegador.
+        run: node node_modules/@playwright/test/cli.js install chromium
       - name: Verificar aislamiento de navegador y Worker con destinos locales
         run: node --test scripts/tests/browser-test-*.test.mjs
       - name: Ejecutar todas las suites en grupos internos aislados
@@ -729,7 +731,8 @@ jobs:
           path: ~/.cache/ms-playwright
           key: ${{ runner.os }}-${{ runner.arch }}-chromium-v2-${{ hashFiles('bun.lock') }}
       - name: Preparar Chromium
-        run: node node_modules/@playwright/test/cli.js install --with-deps chromium
+        # ubuntu-24.04 ya incluye las bibliotecas del navegador.
+        run: node node_modules/@playwright/test/cli.js install chromium
       - name: Historical quote charge review browser (6 cases)
         timeout-minutes: 5
         run: |
