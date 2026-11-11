@@ -103,6 +103,13 @@ jobs:
               - drizzle/migrations/meta/_journal.json
               - scripts/tests/invoice-booking-reads.*
               - scripts/tests/dashboard-search.*
+              - scripts/tests/overdue-deliveries.postgres.mjs
+              - src/features/deliveries/lib/overdueDeliveriesPageRpc.ts
+              - src/features/deliveries/hooks/useOverdueDeliveriesPage.ts
+              - src/features/deliveries/pages/OverdueDeliveriesPage.tsx
+              - src/features/deliveries/pages/DeliveriesPage.tsx
+              - src/features/dashboard/components/dashboard/AlertsRow.tsx
+              - .github/workflows/ci.yml
               - scripts/tests/quotes/atomic-conversion.*
               - scripts/tests/recurring-future-coverage.test.cjs
               - supabase/functions/generate-recurring-invoices/**
@@ -137,6 +144,7 @@ jobs:
           bun run migrations:check
           node scripts/tests/invoice-booking-reads.postgres.mjs
           node scripts/tests/dashboard-search.postgres.mjs
+          node scripts/tests/overdue-deliveries.postgres.mjs
           node scripts/tests/recurring-future-coverage.test.cjs
       - name: Contratos de búsqueda y paginación de cotizaciones
         if: steps.changes.outputs.quote_paging == 'true' || github.event_name == 'workflow_dispatch'

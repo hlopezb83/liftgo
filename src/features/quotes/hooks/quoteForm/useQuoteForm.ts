@@ -51,6 +51,7 @@ export function useQuoteForm(values?: QuoteFormValues, isEdit = false) {
     defaultValues: defaultQuoteFormValues(),
     values,
     mode: "onSubmit",
+    shouldFocusError: false,
   });
 }
 

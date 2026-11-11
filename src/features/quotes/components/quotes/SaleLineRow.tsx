@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import type { EquipmentModel } from "@/features/fleet";
 import { formatCurrencyWithCode } from "@/lib/format/formatCurrency";
+import { useFormErrorTarget } from "@/lib/forms/formErrorTargets";
 import { computeSaleLineTotal } from "./saleLineHelpers";
 import type { SaleLine } from "./SaleLineItems";
 
@@ -23,12 +24,14 @@ interface Props {
 
 export function SaleLineRow({ line, index, models, disableRemove, currency = "MXN", onUpdate, onRemove }: Props) {
   const fieldId = useId();
+  const errorTarget = useFormErrorTarget(`saleLines.${index}`);
+  const errorId = (field: string) => errorTarget ? `${errorTarget}.${field}` : undefined;
   const model = models.find((item) => item.id === line.modelId);
   const modelName = model ? `${model.manufacturer} - ${model.model}` : undefined;
   return (
     <div role="group" aria-label={`Equipo de venta ${index + 1}`} className="space-y-3 rounded-lg border border-border p-3 sm:p-4">
       <div className="grid grid-cols-[minmax(0,1fr)_40px] items-start gap-3">
-      <div className="min-w-0 space-y-1.5">
+      <div id={errorId("modelId")} tabIndex={-1} className="min-w-0 space-y-1.5">
         <Label htmlFor={`${fieldId}-model`} className="text-xs">Modelo *</Label>
         {/* R10-FE-01 (P0): mismo guard que RentalLineRow — ignorar "" del
             BubbleSelect de Radix al hidratar valores sin colección registrada. */}
@@ -51,7 +54,7 @@ export function SaleLineRow({ line, index, models, disableRemove, currency = "MX
       </Button>
       </div>
       <div className="grid grid-cols-2 items-end gap-3">
-      <div className="space-y-1.5">
+      <div id={errorId("quantity")} tabIndex={-1} className="space-y-1.5">
         <Label htmlFor={`${fieldId}-quantity`} className="text-xs">Cantidad</Label>
         <Input
           id={`${fieldId}-quantity`}
@@ -63,7 +66,7 @@ export function SaleLineRow({ line, index, models, disableRemove, currency = "MX
         />
       </div>
 
-      <div className="space-y-1.5">
+      <div id={errorId("unitPrice")} tabIndex={-1} className="space-y-1.5">
         <Label htmlFor={`${fieldId}-price`} className="text-xs">Precio Unit. ({currency})</Label>
         <Input
           id={`${fieldId}-price`}
@@ -76,7 +79,7 @@ export function SaleLineRow({ line, index, models, disableRemove, currency = "MX
         />
       </div>
 
-      <div className="col-span-2 space-y-1.5">
+      <div id={errorId("discount")} tabIndex={-1} className="col-span-2 space-y-1.5">
         <Label htmlFor={`${fieldId}-discount`} className="text-xs">Descuento</Label>
         <div className="flex gap-1">
           <Input

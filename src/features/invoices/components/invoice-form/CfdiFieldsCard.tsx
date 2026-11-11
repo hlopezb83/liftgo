@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useFormContext, useWatch } from "react-hook-form";
+import { useFormContext, useFormState, useWatch, type FieldErrors } from "react-hook-form";
 import { ChevronDownIcon, ChevronRightIcon } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -129,10 +129,17 @@ function ReceptorSummaryHeader({
   );
 }
 
+function hasReceptorErrors(errors: FieldErrors<InvoiceFormValues>) {
+  const cfdi = errors.cfdi;
+  return !!(cfdi?.receptorRfc || cfdi?.receptorRazonSocial || cfdi?.receptorRegimenFiscal || cfdi?.receptorDomicilioFiscalCp);
+}
+
 export function CfdiFieldsCard() {
   const { control } = useFormContext<InvoiceFormValues>();
   const receptor = useWatch({ control, name: "cfdi" });
   const [receptorOpen, setReceptorOpen] = useState(false);
+  const { errors } = useFormState({ control, name: "cfdi" });
+  const showReceptor = receptorOpen || hasReceptorErrors(errors);
   const isGlobal = (receptor?.receptorRfc || "").toUpperCase() === "XAXX010101000";
 
   const receptorSummary = [
@@ -148,8 +155,8 @@ export function CfdiFieldsCard() {
         <CfdiCatalogSelects />
         <CurrencyFields />
         {isGlobal && <GlobalInvoiceFields />}
-        <Collapsible open={receptorOpen} onOpenChange={setReceptorOpen}>
-          <ReceptorSummaryHeader summary={receptorSummary} open={receptorOpen} onToggle={() => setReceptorOpen((v) => !v)} />
+        <Collapsible open={showReceptor} onOpenChange={setReceptorOpen}>
+          <ReceptorSummaryHeader summary={receptorSummary} open={showReceptor} onToggle={() => setReceptorOpen((v) => !v)} />
           <CollapsibleContent>
             <ReceptorFiscalFields />
           </CollapsibleContent>

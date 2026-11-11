@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import type { EquipmentModel } from "@/features/fleet";
 import { formatCurrencyWithCode } from "@/lib/format/formatCurrency";
+import { useFormErrorTarget } from "@/lib/forms/formErrorTargets";
 import { cn } from "@/lib/utils";
 import { computeRentalLineTotal } from "./rentalLineHelpers";
 import type { RentalLine } from "./RentalLineItems";
@@ -27,6 +28,8 @@ interface Props {
 
 export function RentalLineRow({ line, index, models, disableRemove, startDate, endDate, currency = "MXN", onUpdate, onModelChange, onRemove }: Props) {
   const fieldId = useId();
+  const errorTarget = useFormErrorTarget(`rentalLines.${index}`);
+  const errorId = (field: string) => errorTarget ? `${errorTarget}.${field}` : undefined;
   const model = models.find((item) => item.id === line.modelId);
   const modelName = model ? `${model.manufacturer} - ${model.model}` : line.legacyDescription;
   const estimatedTotal = computeRentalLineTotal(line, startDate, endDate);
@@ -39,7 +42,7 @@ export function RentalLineRow({ line, index, models, disableRemove, startDate, e
           ? "grid-cols-1 sm:grid-cols-[minmax(0,1fr)_80px]"
           : "grid-cols-[minmax(0,1fr)_40px] sm:grid-cols-[minmax(0,1fr)_80px_40px]",
       )}>
-        <div className={cn("min-w-0 space-y-1.5", !disableRemove && "col-span-2 sm:col-span-1")}>
+        <div id={errorId("modelId")} tabIndex={-1} className={cn("min-w-0 space-y-1.5", !disableRemove && "col-span-2 sm:col-span-1")}>
           <Label htmlFor={`${fieldId}-model`} className="text-xs">Modelo *</Label>
           {/* R10-FE-01 (P0): el BubbleSelect de Radix emite onValueChange("")
               cuando el valor se hidrata sin colección registrada (dropdown
@@ -57,7 +60,7 @@ export function RentalLineRow({ line, index, models, disableRemove, startDate, e
             </SelectContent>
           </Select>
         </div>
-        <div className="space-y-1.5">
+        <div id={errorId("quantity")} tabIndex={-1} className="space-y-1.5">
           <Label htmlFor={`${fieldId}-quantity`} className="text-xs">Cantidad</Label>
           <Input
             id={`${fieldId}-quantity`}
@@ -77,22 +80,22 @@ export function RentalLineRow({ line, index, models, disableRemove, startDate, e
       {modelName && <p id={`${fieldId}-identity`} className="break-words text-xs text-muted-foreground">{modelName}</p>}
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-        <div className="space-y-1.5">
+        <div id={errorId("dailyRate")} tabIndex={-1} className="space-y-1.5">
           <Label htmlFor={`${fieldId}-daily`} className="text-xs">Tarifa Diaria ({currency})</Label>
           <Input id={`${fieldId}-daily`} type="number" min="0" step="0.01" placeholder="0.00" value={line.dailyRate || ""} onChange={(e) => onUpdate(index, "dailyRate", parseFloat(e.target.value) || 0)} />
         </div>
-        <div className="space-y-1.5">
+        <div id={errorId("weeklyRate")} tabIndex={-1} className="space-y-1.5">
           <Label htmlFor={`${fieldId}-weekly`} className="text-xs">Tarifa Semanal ({currency})</Label>
           <Input id={`${fieldId}-weekly`} type="number" min="0" step="0.01" placeholder="0.00" value={line.weeklyRate || ""} onChange={(e) => onUpdate(index, "weeklyRate", parseFloat(e.target.value) || 0)} />
         </div>
-        <div className="space-y-1.5">
+        <div id={errorId("monthlyRate")} tabIndex={-1} className="space-y-1.5">
           <Label htmlFor={`${fieldId}-monthly`} className="text-xs">Tarifa Mensual ({currency})</Label>
           <Input id={`${fieldId}-monthly`} type="number" min="0" step="0.01" placeholder="0.00" value={line.monthlyRate || ""} onChange={(e) => onUpdate(index, "monthlyRate", parseFloat(e.target.value) || 0)} />
         </div>
       </div>
 
       <div className="flex flex-wrap items-end gap-3 border-t pt-3">
-        <div className="w-full space-y-1.5 sm:w-auto">
+        <div id={errorId("discount")} tabIndex={-1} className="w-full space-y-1.5 sm:w-auto">
           <Label htmlFor={`${fieldId}-discount`} className="text-xs">Descuento</Label>
           <div className="flex gap-1">
             <Input id={`${fieldId}-discount`} type="number" min="0" step="0.01" placeholder="0" value={line.discount || ""} onChange={(e) => onUpdate(index, "discount", parseFloat(e.target.value) || 0)} className="min-w-0 flex-1 sm:w-24 sm:flex-none" />

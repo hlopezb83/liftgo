@@ -37,7 +37,7 @@ function availabilityDateRange(dateRange: DateRange | undefined) {
   const endStr = !invalidDate ? toYMD(endDate)?.padStart(10, "0") : undefined;
   const invertedRange = !!startStr && !!endStr && startStr > endStr;
   const dateRangeError = invalidDate ? "Selecciona fechas válidas"
-    : invertedRange ? "La fecha de fin debe ser posterior a la de inicio" : undefined;
+    : invertedRange ? "La fecha de fin debe ser igual o posterior a la de inicio" : undefined;
   const datesSelected = !!startStr && !!endStr && !dateRangeError;
   return { startStr, endStr, dateRangeError, datesSelected };
 }

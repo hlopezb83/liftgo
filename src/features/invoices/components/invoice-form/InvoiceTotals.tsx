@@ -2,6 +2,7 @@ import { createContext, useContext, useMemo, type PropsWithChildren } from "reac
 import { useFormContext, useFormState, useWatch } from "react-hook-form";
 import { TotalsSummary } from "@/components/domain/TotalsSummary";
 import { formatCurrencyWithCode } from "@/lib/format/formatCurrency";
+import { useFormErrorTarget } from "@/lib/forms/formErrorTargets";
 import { useInvoiceFormTotals } from "../../hooks/invoiceForm/useInvoiceFormTotals";
 import type { InvoiceFormValues } from "../../lib/invoiceFormSchema";
 
@@ -23,11 +24,12 @@ export function InvoiceTotalsProvider({ children }: PropsWithChildren) {
 }
 
 export function InvoiceTotalsSummary() {
+  const taxRateTarget = useFormErrorTarget("taxRate");
   const { control, setValue } = useFormContext<InvoiceFormValues>();
   const { errors } = useFormState({ control, name: "taxRate", exact: true });
   const totals = useTotals();
   return (
-    <aside aria-label="Resumen de importes" className="min-w-0 space-y-3 xl:sticky xl:top-20">
+    <aside id={taxRateTarget} tabIndex={-1} aria-label="Resumen de importes" className="min-w-0 space-y-3 xl:sticky xl:top-20">
       <h2 className="text-base font-semibold">Resumen de importes</h2>
       <TotalsSummary {...totals} onTaxRateChange={(value) => setValue("taxRate", value, { shouldDirty: true })} />
       {errors.taxRate?.message && <p role="alert" className="text-sm text-destructive">{errors.taxRate.message}</p>}

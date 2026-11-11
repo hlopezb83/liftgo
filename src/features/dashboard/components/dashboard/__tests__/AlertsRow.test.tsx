@@ -19,6 +19,21 @@ async function renderAlerts(content: ReactNode) {
 describe("AlertsRow — cobranza", () => {
   beforeEach(() => vi.clearAllMocks());
 
+  it("abre el conjunto exacto de transportes atrasados sin prometer disponibilidad del equipo", () => {
+    render(<AlertsRow overdueInvoices={[]} maintenanceAlerts={[]} agingBuckets={[]} overdueBookings={[]}
+      pendingDeliveriesCount={4} canManageInvoices={false} canManageReturns={false} canManageMaintenance={false} />);
+    expect(screen.getByText("Transportes atrasados (4)")).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Ver transportes atrasados →" }));
+    expect(navigate).toHaveBeenCalledWith("/deliveries?view=overdue");
+    expect(screen.queryByText(/siguen apareciendo como disponibles/)).toBeNull();
+  });
+
+  it("no muestra una alerta de transportes cuando no hay pendientes", () => {
+    render(<AlertsRow overdueInvoices={[]} maintenanceAlerts={[]} agingBuckets={[]} overdueBookings={[]}
+      pendingDeliveriesCount={0} canManageInvoices={false} canManageReturns={false} canManageMaintenance={false} />);
+    expect(screen.queryByRole("button", { name: "Ver transportes atrasados →" })).toBeNull();
+  });
+
   it("envía al flujo de pago y no ofrece mutar la factura a paid", async () => {
     await renderAlerts(
       <AlertsRow

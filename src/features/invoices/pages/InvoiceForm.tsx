@@ -2,6 +2,8 @@ import { useRef } from "react";
 import { useFormContext, useFormState } from "react-hook-form";
 import { EmptyState } from "@/components/feedback/EmptyState";
 import { FormActions } from "@/components/forms/FormActions";
+import { FormErrorSummary } from "@/components/forms/FormErrorSummary";
+import { FormErrorSummaryScope } from "@/components/forms/FormErrorSummaryScope";
 import { FormPageHeader } from "@/components/layout/FormPageHeader";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -21,6 +23,7 @@ import { SaleAssignmentBlocked } from "../components/invoice-form/SaleAssignment
 import { invoiceLineItemSource } from "../hooks/invoiceForm/invoiceSatDefaults";
 import { useDamagePrefill } from "../hooks/useDamagePrefill";
 import { useInvoiceFormLogic } from "../hooks/useInvoiceFormLogic";
+import { invoiceFormErrorLabel, invoiceFormErrorTarget } from "../lib/invoiceFormErrorSummary";
 import type { InvoiceFormValues } from "../lib/invoiceFormSchema";
 
 function invoiceSubmitBlock(chargeBlock: string | null, isEdit: boolean, version: number | null | undefined) {
@@ -191,8 +194,10 @@ function InvoiceFormSession({ id, sources }: { id?: string; sources: ReturnType<
       />
 
       <Form {...f.form}>
+        <FormErrorSummaryScope>
         {/* eslint-disable-next-line react-hooks/refs -- onSubmit only writes justSavedRef inside async callbacks */}
         <form onSubmit={f.form.handleSubmit(onSubmit)} className="space-y-6">
+          <FormErrorSummary labelFor={invoiceFormErrorLabel} targetFor={(name) => invoiceFormErrorTarget(name, f.isEdit)} />
           <InvoiceTotalsProvider>
             <InvoiceSourceNotice extension={f.extension} quoteNumber={f.sourceQuote?.quote_number ?? null} />
             <InvoiceDetailsCard
@@ -229,6 +234,7 @@ function InvoiceFormSession({ id, sources }: { id?: string; sources: ReturnType<
             </InvoiceStickySubmitBar>
           </InvoiceTotalsProvider>
         </form>
+        </FormErrorSummaryScope>
       </Form>
     </PageContainer>
   );

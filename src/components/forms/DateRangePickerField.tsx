@@ -26,6 +26,10 @@ interface DateRangePickerFieldProps {
   placeholder?: string;
   required?: boolean;
   error?: string;
+  fromError?: string;
+  toError?: string;
+  fromId?: string;
+  toId?: string;
   helperText?: string;
 }
 
@@ -114,11 +118,14 @@ export function DateRangePickerField({
   placeholder = "Seleccionar fechas",
   required,
   error,
+  fromError,
+  toError,
+  fromId,
+  toId,
   helperText,
 }: DateRangePickerFieldProps) {
   const descriptionId = useId();
-  const invalid = error ? true : undefined;
-  const describedBy = error || helperText ? descriptionId : undefined;
+  const describedBy = helperText && !error ? descriptionId : undefined;
   const isMobile = useIsMobile();
   const isTabletOrBelow = useIsTabletOrBelow();
   const [open, setOpen] = useState(false);
@@ -161,24 +168,26 @@ export function DateRangePickerField({
         <div className="grid grid-cols-1 gap-2 sm:flex sm:items-start">
           <div className="min-w-0 sm:flex-1">
             <MaskedDateInput
+              id={fromId}
               value={dateRange?.from}
               onChange={(d) => onSelect(normalizeRange({ from: d, to: dateRange?.to }))}
               today={nowMty()}
               aria-label={`${fieldName} — inicio`}
-              aria-invalid={invalid}
               aria-describedby={describedBy}
+              errorMessage={fromError}
               className="min-w-0"
             />
           </div>
           <span className="hidden pt-2 text-muted-foreground sm:block">—</span>
           <div className="min-w-0 sm:flex-1">
             <MaskedDateInput
+              id={toId}
               value={dateRange?.to}
               onChange={(d) => onSelect(normalizeRange({ from: dateRange?.from, to: d }))}
               today={nowMty()}
               aria-label={`${fieldName} — fin`}
-              aria-invalid={invalid}
               aria-describedby={describedBy}
+              errorMessage={toError ?? error}
               className="min-w-0"
             />
           </div>
@@ -213,7 +222,7 @@ export function DateRangePickerField({
           onApply={() => applyRange(localRange)}
         />
       </Dialog>
-      {error ? <p id={descriptionId} className="text-sm text-destructive">{error}</p> : helperText ? <p id={descriptionId} className="text-xs text-muted-foreground">{helperText}</p> : null}
+      {!error && helperText ? <p id={descriptionId} className="text-xs text-muted-foreground">{helperText}</p> : null}
     </div>
   );
 }

@@ -15,11 +15,11 @@ type DeliveryLike = HistoricalDeliveryLike & {
  * Se usa `nowMty()` (reloj del negocio, America/Monterrey) y `parseDateLocal`
  * para evitar el corrimiento UTC que marcaba un día de más o de menos.
  */
-export function deliveryOverdueDays(delivery: DeliveryLike): number {
+export function deliveryOverdueDays(delivery: DeliveryLike, businessDate?: string): number {
   if (isHistoricallyReconciled(delivery)) return 0;
   if (delivery.status !== "scheduled" && delivery.status !== "in_transit") return 0;
   const scheduled = delivery.scheduled_date ? parseDateLocal(delivery.scheduled_date) : null;
-  const today = parseDateLocal(toYMD(nowMty()));
+  const today = parseDateLocal(businessDate ?? toYMD(nowMty()));
   if (!scheduled || !today) return 0;
   const days = differenceInCalendarDays(today, scheduled);
   return days > 0 ? days : 0;

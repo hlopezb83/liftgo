@@ -1,5 +1,7 @@
 import { useRef } from "react";
 import { NotesCard } from "@/components/domain/NotesCard";
+import { FormErrorSummary } from "@/components/forms/FormErrorSummary";
+import { FormErrorSummaryScope } from "@/components/forms/FormErrorSummaryScope";
 import { FormPageHeader } from "@/components/layout/FormPageHeader";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -14,6 +16,7 @@ import { RentalLineItems } from "../components/quotes/RentalLineItems";
 import { SaleLineItems } from "../components/quotes/SaleLineItems";
 import { useQuoteFormLogic } from "../hooks/quoteForm/useQuoteFormLogic";
 import { useQuoteFormVisibility } from "../hooks/quoteForm/useQuoteFormVisibility";
+import { quoteFormErrorLabel, quoteFormErrorTarget } from "../lib/quoteFormErrorSummary";
 
 export default function QuoteForm() {
   const f = useQuoteFormLogic();
@@ -30,7 +33,9 @@ export default function QuoteForm() {
         subtitle={f.id ? f.quoteNumber ?? undefined : undefined}
       />
       <Form {...form}>
+        <FormErrorSummaryScope>
         <form ref={formRef} onSubmit={f.handleSubmit} className="space-y-4">
+          <FormErrorSummary labelFor={quoteFormErrorLabel} targetFor={quoteFormErrorTarget} />
           <div className="grid items-start gap-6 xl:grid-cols-[minmax(0,1fr)_20rem]">
             <div className="min-w-0 space-y-4">
               <QuoteTypeCard value={f.quoteType} onChange={f.handleTypeChange} />
@@ -122,6 +127,7 @@ export default function QuoteForm() {
             onCancel={() => f.navigate(-1)}
           />
         </form>
+        </FormErrorSummaryScope>
       </Form>
     </PageContainer>
   );

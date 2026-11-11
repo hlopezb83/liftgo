@@ -30,6 +30,7 @@ describe("bookingFormSchema", () => {
       date_range: { from: undefined, to: new Date("2026-05-15") },
     });
     expect(r.success).toBe(false);
+    if (!r.success) expect(r.error.issues.map((issue) => issue.path)).toEqual([["date_range", "from"]]);
   });
 
   it("rechaza date_range sin fecha de fin", () => {
@@ -38,6 +39,7 @@ describe("bookingFormSchema", () => {
       date_range: { from: new Date("2026-05-01"), to: undefined },
     });
     expect(r.success).toBe(false);
+    if (!r.success) expect(r.error.issues.map((issue) => issue.path)).toEqual([["date_range", "to"]]);
   });
 
   it("rechaza cuando fecha de fin es anterior al inicio", () => {
@@ -47,6 +49,7 @@ describe("bookingFormSchema", () => {
     });
     expect(r.success).toBe(false);
     if (!r.success) {
+      expect(r.error.issues.map((issue) => issue.path)).toEqual([["date_range", "to"]]);
       expect(r.error.issues.some((i) =>
         i.message.includes("posterior"),
       )).toBe(true);

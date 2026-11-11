@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { useForm, useWatch } from "react-hook-form";
+import { useForm, useFormState, useWatch } from "react-hook-form";
 import { useAvailableForklifts } from "@/features/fleet";
 import { zodResolver } from "@/lib/forms/zodResolver";
 import { emptyBookingForm } from "../../lib/bookingDraft";
@@ -10,6 +10,7 @@ export function useBookingFormState() {
   const form = useForm<BookingFormData>({
     resolver: zodResolver(bookingFormSchema),
     defaultValues: emptyBookingForm(),
+    shouldFocusError: false,
   });
 
   const dateRange = useWatch({ control: form.control, name: "date_range" }) as DateRange | undefined;
@@ -28,13 +29,14 @@ export function useBookingFormState() {
     }
   }, [availableForklifts, forkliftId, datesSelected, availabilitySettled, form]);
 
-  // Normaliza errores anidados de date_range a un único string.
-  const dateRangeErrorObj = form.formState.errors.date_range as
+  // Keep the field identity: a missing start must not invalidate the end.
+  const { errors } = useFormState({ control: form.control, name: "date_range" });
+  const dateRangeErrorObj = errors.date_range as
     | { message?: string; from?: { message?: string }; to?: { message?: string } }
     | undefined;
-  const dateRangeError = availabilityDateRangeError ?? dateRangeErrorObj?.message
-    ?? dateRangeErrorObj?.from?.message
-    ?? dateRangeErrorObj?.to?.message;
+  const dateFromError = dateRangeErrorObj?.from?.message;
+  const dateToError = dateRangeErrorObj?.to?.message ?? availabilityDateRangeError;
+  const dateRangeError = dateFromError ?? dateToError ?? dateRangeErrorObj?.message;
 
-  return { form, dateRange, forkliftId, availableForklifts, forklifts, datesSelected, dateRangeError, revalidateAvailability, availabilityLoading, availabilityError, availabilityFetching };
+  return { form, dateRange, forkliftId, availableForklifts, forklifts, datesSelected, dateRangeError, dateFromError, dateToError, revalidateAvailability, availabilityLoading, availabilityError, availabilityFetching };
 }

@@ -42,6 +42,8 @@ export function useBookingFormLogic() {
     handlePolicyDone: submitBag.handlePolicyDone,
     selectedForklift,
     dateRangeError: stateBag.dateRangeError,
+    dateFromError: stateBag.dateFromError,
+    dateToError: stateBag.dateToError,
     navigate: submitBag.navigate,
   };
 }

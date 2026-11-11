@@ -65,16 +65,17 @@ describe("UX01: limpiar calendario con confirmación", () => {
 });
 
 describe("UX02: accesibilidad del error de rango", () => {
-  it("relaciona ambos campos con un solo mensaje de dominio y elimina el estado al corregir", () => {
-    const { rerender } = render(<DateRangePickerField label="Fechas de reserva" required error="Selecciona la fecha de inicio" onSelect={vi.fn()} />);
+  it("relaciona el error de inicio sólo con su campo y lo elimina al corregir", () => {
+    const { rerender } = render(<DateRangePickerField label="Fechas de reserva" required fromError="Selecciona la fecha de inicio" onSelect={vi.fn()} />);
     const error = screen.getByText("Selecciona la fecha de inicio");
     expect(error).toBeVisible();
     expect(error.id).toBeTruthy();
-    for (const input of screen.getAllByRole("textbox")) {
-      expect(input).toHaveAttribute("aria-invalid", "true");
-      expect(input.getAttribute("aria-describedby")?.split(" ")).toContain(error.id);
-      expect(input).toHaveAccessibleDescription("Selecciona la fecha de inicio");
-    }
+    const start = screen.getByRole("textbox", { name: "Fechas de reserva — inicio" });
+    const end = screen.getByRole("textbox", { name: "Fechas de reserva — fin" });
+    expect(start).toHaveAttribute("aria-invalid", "true");
+    expect(start).toHaveAccessibleDescription("Selecciona la fecha de inicio");
+    expect(end).not.toHaveAttribute("aria-invalid", "true");
+    expect(end).not.toHaveAccessibleDescription("Selecciona la fecha de inicio");
     rerender(<DateRangePickerField label="Fechas de reserva" helperText="Elige inicio y fin" onSelect={vi.fn()} />);
     for (const input of screen.getAllByRole("textbox")) {
       expect(input).not.toHaveAttribute("aria-invalid", "true");
@@ -82,11 +83,18 @@ describe("UX02: accesibilidad del error de rango", () => {
     }
   });
 
-  it("conserva juntos el error del rango y el error propio de la captura", () => {
-    render(<DateRangePickerField label="Rango QA" error="Revisa el rango" onSelect={vi.fn()} />);
+  it("prioriza la fecha imposible sobre requerido, sin contaminar el campo final", () => {
+    render(<DateRangePickerField label="Rango QA" fromError="Fecha de inicio es requerida" toError="Fecha de fin es requerida" onSelect={vi.fn()} />);
     const input = screen.getByRole("textbox", { name: "Rango QA — inicio" });
     fireEvent.change(input, { target: { value: "31/02/2026" } });
-    expect(input).toHaveAccessibleDescription("Revisa el rango 31/02/2026 no existe");
-    expect(screen.getAllByText("Revisa el rango")).toHaveLength(1);
+    expect(input).toHaveAccessibleDescription("31/02/2026 no existe");
+    expect(screen.queryByText("Fecha de inicio es requerida")).not.toBeInTheDocument();
+    expect(screen.getByRole("textbox", { name: "Rango QA — fin" })).toHaveAccessibleDescription("Fecha de fin es requerida");
+  });
+
+  it("asocia el error de orden con la fecha de fin", () => {
+    render(<DateRangePickerField label="Rango QA" error="El fin no puede ser anterior al inicio" onSelect={vi.fn()} />);
+    expect(screen.getByRole("textbox", { name: "Rango QA — inicio" })).not.toHaveAttribute("aria-invalid", "true");
+    expect(screen.getByRole("textbox", { name: "Rango QA — fin" })).toHaveAccessibleDescription("El fin no puede ser anterior al inicio");
   });
 });

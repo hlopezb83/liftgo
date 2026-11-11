@@ -176,10 +176,14 @@ function refineSaleLines(lines: z.infer<typeof saleLineBase>[], ctx: z.Refinemen
 }
 
 function refineDateRange(range: { from?: Date; to?: Date } | undefined, ctx: z.RefinementCtx): void {
-  if (!range?.from || !range?.to) {
-    ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["dateRange"], message: "Selecciona el rango de renta" });
-  } else if (range.to < range.from) {
-    ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["dateRange"], message: "La fecha final debe ser posterior a la inicial" });
+  if (!range?.from) {
+    ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["dateRange", "from"], message: "Selecciona la fecha de inicio" });
+  }
+  if (!range?.to) {
+    ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["dateRange", "to"], message: "Selecciona la fecha final" });
+  }
+  if (range?.from && range.to && range.to < range.from) {
+    ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["dateRange", "to"], message: "La fecha final debe ser igual o posterior a la inicial" });
   }
 }
 

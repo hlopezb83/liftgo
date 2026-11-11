@@ -51,7 +51,7 @@ interface AlertsRowProps {
   maintenanceAlerts: MaintenanceAlert[];
   agingBuckets: AgingBucket[];
   overdueBookings: OverdueBooking[];
-  /** Entregas programadas con fecha ya pasada que nadie cerró. */
+  /** Transportes atrasados sin conciliación histórica activa. */
   pendingDeliveriesCount?: number;
   canManageInvoices: boolean;
   canManageReturns: boolean;
@@ -218,31 +218,26 @@ export function AlertsRow({
   );
 }
 
-/**
- * Bug tablero 2026-09-10: cerrar la entrega es el único evento que pasa la
- * unidad a "rentada". Con entregas programadas vencidas sin cerrar, el
- * catálogo seguía ofreciendo equipo que ya estaba en campo.
- */
 function PendingDeliveriesCard({ count }: { count: number }) {
   const navigate = useNavigateTransition();
   if (count === 0) return null;
   return (
-    <AlertCard icon={ClipboardList} title="Entregas pendientes de cerrar" count={count} tone="warning"
+    <AlertCard icon={ClipboardList} title="Transportes atrasados" count={count} tone="warning"
       footer={
         <Button
           type="button"
           variant="link"
           size="sm"
-          onClick={() => navigate("/deliveries?status=scheduled")}
+          onClick={() => navigate("/deliveries?view=overdue")}
           className="w-full h-auto p-0 pt-1 text-xs font-medium text-warning-text"
         >
-          Ver entregas por cerrar →
+          Ver transportes atrasados →
         </Button>
       }
     >
       <p className="text-sm text-muted-foreground">
-        Su fecha programada ya pasó. Mientras no se cierren, esas unidades siguen
-        apareciendo como disponibles en el catálogo.
+        Incluye entregas, recolecciones y devoluciones programadas o en tránsito
+        con fecha vencida, sin conciliación histórica activa. Revisa cada transporte para resolver su pendiente.
       </p>
     </AlertCard>
   );
