@@ -106,22 +106,45 @@ jobs:
               - scripts/tests/quotes/atomic-conversion.*
               - scripts/tests/recurring-future-coverage.test.cjs
               - supabase/functions/generate-recurring-invoices/**
+              - scripts/ci/setup-postgres-17.sh
+            quote_paging:
+              - scripts/tests/quotes/**
+              - drizzle/migrations/**/*quote*.sql
+              - drizzle/migrations/0031_multi_org_audit_hardening.sql
+              - src/features/quotes/hooks/quotes/useQuotesPage.ts
+              - src/features/quotes/lib/quotesPageRpc.ts
+              - src/features/quotes/pages/QuotesPage.tsx
+              - src/features/quotes/pages/quotesColumns.tsx
+              - scripts/ci/setup-postgres-17.sh
+              - .github/workflows/ci.yml
       - name: Lint de migraciones modificadas
         if: steps.changes.outputs.migrations == 'true'
         env:
           MIGRATION_FILES: ${{ steps.changes.outputs.migrations_files }}
         run: node --input-type=module -e 'import fs from "node:fs"; import {spawnSync} from "node:child_process"; const files=JSON.parse(process.env.MIGRATION_FILES).filter(f=>fs.existsSync(f)); if(files.length){const r=spawnSync("bun",["scripts/lint-migrations.ts",...files],{stdio:"inherit"}); if(r.error)throw r.error; process.exit(r.status??1)}'
+      - name: Preparar PostgreSQL 17
+        id: postgres17
+        if: steps.changes.outputs.migrations == 'true' || steps.changes.outputs.sql_contracts == 'true' || steps.changes.outputs.quote_paging == 'true' || github.event_name == 'workflow_dispatch'
+        timeout-minutes: 2
+        run: bash scripts/ci/setup-postgres-17.sh
       - name: Contratos de lectura y conversión en PostgreSQL efímero
         if: steps.changes.outputs.migrations == 'true' || steps.changes.outputs.sql_contracts == 'true' || github.event_name == 'workflow_dispatch'
         env:
-          PG_BIN: /usr/lib/postgresql/16/bin
+          PG_BIN: ${{ steps.postgres17.outputs.bin }}
+          LD_LIBRARY_PATH: ${{ steps.postgres17.outputs.lib }}
           RUN_LOCAL_RECURRING_TESTS: '1'
         run: |
-          test -x "$PG_BIN/initdb"
           bun run migrations:check
           node scripts/tests/invoice-booking-reads.postgres.mjs
           node scripts/tests/dashboard-search.postgres.mjs
           node scripts/tests/recurring-future-coverage.test.cjs
+      - name: Contratos de búsqueda y paginación de cotizaciones
+        if: steps.changes.outputs.quote_paging == 'true' || github.event_name == 'workflow_dispatch'
+        env:
+          PG_BIN: ${{ steps.postgres17.outputs.bin }}
+          LD_LIBRARY_PATH: ${{ steps.postgres17.outputs.lib }}
+          RUN_LOCAL_QUOTES_TESTS: '1'
+        run: node scripts/tests/quotes/run-local-postgres.mjs
       - name: Deno
         if: steps.changes.outputs.functions == 'true' || github.event_name == 'workflow_dispatch'
         uses: denoland/setup-deno@22d081ff2d3a40755e97629de92e3bcbfa7cf2ed # v2.0.5
@@ -232,6 +255,10 @@ jobs:
         run: node --test scripts/tests/browser-test-*.test.mjs
       - name: Arranque e interacción del Worker
         run: node node_modules/@playwright/test/cli.js test --config playwright.smoke.config.ts
+      - name: Identidad del código probado
+        run: |
+          identity=$(node scripts/release-identity.mjs)
+          printf '### Identidad del código probado\n\nCommit: %s\n\n%s\n' "$GITHUB_SHA" "$identity" >> "$GITHUB_STEP_SUMMARY"
       - name: Diagnóstico de fallo
         if: failure()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
@@ -242,3 +269,26 @@ jobs:
             playwright-report/
           retention-days: 3
           if-no-files-found: ignore
+
+  required:
+    name: CI requerida
+    runs-on: ubuntu-24.04
+    needs: [quality, tests, build-smoke]
+    if: ${{ always() }}
+    permissions: {}
+    timeout-minutes: 2
+    steps:
+      - name: Verificar las comprobaciones de CI
+        env:
+          QUALITY_RESULT: ${{ needs.quality.result }}
+          TESTS_RESULT: ${{ needs.tests.result }}
+          BUILD_SMOKE_RESULT: ${{ needs.build-smoke.result }}
+        run: |
+          printf 'Calidad: %s\nUnitarias: %s\nBuild y smoke: %s\n' \
+            "$QUALITY_RESULT" "$TESTS_RESULT" "$BUILD_SMOKE_RESULT"
+          if [ "$QUALITY_RESULT" != success ] ||
+             [ "$TESTS_RESULT" != success ] ||
+             [ "$BUILD_SMOKE_RESULT" != success ]; then
+            echo '::error::CI requiere que todas las comprobaciones finalicen correctamente.'
+            exit 1
+          fi

@@ -1,11 +1,11 @@
 -- Smoke SQL de fix-16 (panel y reportes financieros):
 --   N-14 get_dashboard_stats expone utilization / maintenance_alerts
---   N-16 fleet_counts.rented sale de forklifts.status y se excluye is_e2e
+--   N-16 fleet_counts cuenta la ocupación actual y excluye equipos is_e2e
 --   N-15 get_financial_kpis excluye fx_missing y expone overdue_fx_missing_count
 --   N-19 trg_payment_amount_mxn prioriza el tipo de cambio del pago
 --   N-20 report_revenue_by_month sin fallback 1:1 en pagos
 --   psql -f supabase/tests/r_fix16_dashboard_finanzas_smoke.sql
--- Solo lecturas de catálogo: no toca datos.
+-- Las lecturas de catálogo y las fixtures se ejecutan dentro de un ROLLBACK.
 
 \set ON_ERROR_STOP on
 
@@ -40,11 +40,61 @@ SELECT pg_temp.expect_true(
   pg_temp.fndef('get_dashboard_stats') LIKE '%''maintenance_alerts'',%'
 );
 
--- N-16: rented sale de forklifts.status (conteos disjuntos).
-SELECT pg_temp.expect_true(
-  'N-16 fleet_counts.rented usa forklifts.status',
-  pg_temp.fndef('get_dashboard_stats') LIKE '%''rented'', COUNT(*) FILTER (WHERE status = ''rented'')%'
-);
+-- N-16: una reserva confirmada hoy cuenta como ocupada, aun sin entrega.
+DO $fixture$
+DECLARE
+  v_org uuid := gen_random_uuid();
+  v_admin uuid := gen_random_uuid();
+  v_customer uuid := gen_random_uuid();
+  v_occupied_unit uuid := gen_random_uuid();
+BEGIN
+  INSERT INTO public.organizations (id, name, slug)
+  VALUES (v_org, 'Flota del smoke del Panel', 'smoke-dashboard-' || v_org);
+  PERFORM set_config('app.organization_id', v_org::text, true);
+
+  INSERT INTO auth.users (id, email, created_at, updated_at)
+  VALUES (v_admin, 'dashboard-' || v_admin || '@example.invalid', now(), now());
+  INSERT INTO public.organization_memberships (organization_id, auth_user_id, member_type)
+  VALUES (v_org, v_admin, 'internal');
+  INSERT INTO public.user_roles (user_id, role)
+  VALUES (v_admin, 'admin')
+  ON CONFLICT (user_id) DO UPDATE SET role = EXCLUDED.role;
+
+  INSERT INTO public.forklifts (id, name, model, status, organization_id)
+  VALUES (v_occupied_unit, 'Panel ocupado', 'Smoke', 'available', v_org),
+         (gen_random_uuid(), 'Panel disponible', 'Smoke', 'available', v_org);
+  INSERT INTO public.customers (id, name)
+  VALUES (v_customer, 'Cliente smoke del Panel');
+  INSERT INTO public.organization_customers (organization_id, customer_id)
+  VALUES (v_org, v_customer);
+  INSERT INTO public.bookings (
+    forklift_id, customer_id, start_date, end_date, booking_number, status, organization_id
+  ) VALUES (
+    v_occupied_unit, v_customer, public.today_mty() - 1, public.today_mty() + 1,
+    'RES-SMOKE-PANEL', 'confirmed', v_org
+  );
+
+  PERFORM set_config('app.e2e_seed', 'on', true);
+  INSERT INTO public.forklifts (name, model, status, organization_id, is_e2e, e2e_scope)
+  VALUES ('Panel E2E', 'Smoke', 'available', v_org, true, 'smoke-dashboard');
+  PERFORM set_config('app.e2e_seed', 'off', true);
+  PERFORM set_config('request.jwt.claims',
+    jsonb_build_object('sub', v_admin, 'role', 'authenticated')::text, true);
+END;
+$fixture$;
+
+SET LOCAL ROLE authenticated;
+DO $check$
+DECLARE
+  v_counts jsonb := public.get_dashboard_stats()::jsonb -> 'fleet_counts';
+BEGIN
+  IF v_counts IS DISTINCT FROM
+    '{"total":2,"available":1,"rented":1,"maintenance":0,"retired":0,"sold":0}'::jsonb THEN
+    RAISE EXCEPTION 'N-16: se esperaba 1 equipo ocupado y 1 disponible, sin E2E. Resultado: %', v_counts;
+  END IF;
+END;
+$check$;
+RESET ROLE;
 
 -- N-16: las agregaciones del panel excluyen documentos de prueba.
 SELECT pg_temp.expect_true(
@@ -82,8 +132,7 @@ SELECT pg_temp.expect_true(
   pg_temp.fndef('report_revenue_by_month') LIKE '%BOOL_OR(%'
 );
 
--- Guardias de seguridad: siguen siendo SECURITY DEFINER con search_path fijo
--- y sin EXECUTE para anon.
+-- Guardias de seguridad: las funciones del Panel no admiten EXECUTE para anon.
 SELECT pg_temp.expect_true(
   'fix-16 funciones sin EXECUTE para anon',
   NOT EXISTS (
