@@ -256,7 +256,7 @@ async function loadInvoiceHistory(
 
 async function loadQuoteCharges(
   supabase: SupabaseClient,
-  { org, group, contexts, metrics }: PlanningReadScope,
+  { group, contexts, metrics }: PlanningReadScope,
 ): Promise<void> {
   const quoteIds = unique(
     group.filter((booking) => !contexts.get(booking.id)!.quoteIssue).map((
