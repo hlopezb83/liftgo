@@ -60,9 +60,9 @@ describe("InvoiceDetailBadges estilos reales", () => {
     expect(badgeOf("Cancelación en proceso").className).toContain("bg-warning/10");
   });
 
-  it("Pagada usa estilo success; Error de timbrado danger", () => {
+  it("Cobro pagado usa estilo success y CFDI sigue timbrada", () => {
     renderB({ invoiceStatus: "paid" });
-    expect(badgeOf("Pagada").className).toContain("bg-success/10");
+    expect(badgeOf("Pagado").className).toContain("bg-success/10");
   });
 
   it("Sandbox es outline neutral, sin punto ni estilo de Parcial", () => {

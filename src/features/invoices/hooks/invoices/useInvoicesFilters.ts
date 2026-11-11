@@ -2,9 +2,12 @@ import { isValid, parseISO } from "date-fns";
 import { useCallback, useEffect, useMemo } from "react";
 import { writeSessionParams } from "@/hooks/filters/sessionStorage";
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";
+import { STATUS_LABELS } from "@/lib/constants";
 import { toYMD } from "@/lib/date/toYMD";
+import { formatDateMty } from "@/lib/format/dateFormats";
 import { useLocation } from "@/lib/router-compat";
 import {
+  INVOICE_CFDI_LABELS,
   createInvoiceListFilters,
   createInvoiceListFilterKey,
   normalizeInvoiceCfdiFilter,
@@ -130,7 +133,16 @@ export function useInvoicesFilters() {
     });
   }, [replaceParams]);
 
+  const activeFilterLabels = [
+    ...(search ? [`Búsqueda: ${search}`] : []),
+    ...(statusFilter !== "all" ? [`Cobro: ${STATUS_LABELS[statusFilter] ?? statusFilter}`] : []),
+    ...(cfdiFilter !== "all" ? [`CFDI: ${INVOICE_CFDI_LABELS[cfdiFilter]}`] : []),
+    ...(fromParam ? [`Emisión desde: ${formatDateMty(fromParam)}`] : []),
+    ...(toParam ? [`Emisión hasta: ${formatDateMty(toParam)}`] : []),
+  ];
+
   return {
+    activeFilterLabels,
     search,
     setSearch,
     statusFilter,

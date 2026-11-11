@@ -54,7 +54,7 @@ describe("AlertsRow — cobranza", () => {
     );
 
     expect(screen.queryByRole("button", { name: "Marcar pagada" })).not.toBeInTheDocument();
-    fireEvent.click(screen.getByRole("button", { name: "Registrar pago" }));
+    fireEvent.click(screen.getByRole("button", { name: "Ver factura" }));
     expect(navigate).toHaveBeenCalledWith("/invoices/inv-1");
   });
 
@@ -122,7 +122,7 @@ describe("AlertsRow — cobranza", () => {
       canManageMaintenance={false}
     />);
 
-    expect(screen.queryByRole("button", { name: "Registrar pago" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Ver factura" })).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Registrar devolución" })).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Registrar servicio" })).not.toBeInTheDocument();
     expect(screen.getByRole("link", { name: /Unidad 2/ })).toHaveAttribute("href", "/bookings/booking-1");

@@ -17,7 +17,7 @@ export function FiltersSlot({ filters, inSheet, hasActive = false, open, onOpenC
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetTrigger asChild>
-        <Button variant="outline" size="sm" className="touch:h-11 w-auto justify-start gap-2">
+        <Button data-list-filters-trigger variant="outline" size="sm" className="touch:h-11 w-auto justify-start gap-2">
           <FilterIcon className="h-4 w-4" />
           {hasActive ? "Filtros activos" : "Filtros"}
         </Button>

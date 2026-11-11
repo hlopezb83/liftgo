@@ -64,7 +64,8 @@ describe("QR04: complete invoice export", () => {
       expect(request.orders).toEqual([["created_at", { ascending: false }], ["id", { ascending: false }]]);
       expect(request.filters).toEqual([
         ["or", "is_e2e.is.null,is_e2e.eq.false"], ["eq", "status", "sent"],
-        ["eq", "cfdi_status", "stamped"], ["gte", "issued_at", "2026-10-01"],
+        ["eq", "cfdi_status", "stamped"],
+        ["or", "cancellation_status.is.null,cancellation_status.not.in.(accepted,pending)"], ["gte", "issued_at", "2026-10-01"],
         ["lte", "issued_at", "2026-10-20"],
         ["or", "invoice_number.ilike.%Acme%,customer_name.ilike.%Acme%"],
         ["eq", "organization_id", "org-a"],

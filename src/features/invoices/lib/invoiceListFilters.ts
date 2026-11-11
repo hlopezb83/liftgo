@@ -1,3 +1,5 @@
+import { INVOICE_FISCAL_LABELS, type InvoiceFiscalFilter } from "./invoiceFiscalStatus";
+
 export type InvoiceStatusFilter = "all" | "draft" | "sent" | "partial" | "paid" | "overdue";
 
 export const INVOICE_STATUS_FILTERS: readonly InvoiceStatusFilter[] = [
@@ -9,22 +11,21 @@ export const INVOICE_STATUS_FILTERS: readonly InvoiceStatusFilter[] = [
   "overdue",
 ];
 
-export type InvoiceCfdiFilter = "all" | "pending" | "stamped" | "error" | "cancelled";
+export type InvoiceCfdiFilter = "all" | InvoiceFiscalFilter;
 
 export const INVOICE_CFDI_FILTERS: readonly InvoiceCfdiFilter[] = [
   "all",
   "pending",
+  "stamping",
   "stamped",
   "error",
+  "cancellation_pending",
   "cancelled",
 ];
 
 export const INVOICE_CFDI_LABELS: Record<InvoiceCfdiFilter, string> = {
   all: "Todos",
-  pending: "Sin timbrar",
-  stamped: "Timbrada",
-  error: "Error de timbrado",
-  cancelled: "Cancelada",
+  ...INVOICE_FISCAL_LABELS,
 };
 
 export interface InvoiceListFilters extends Record<string, unknown> {
@@ -58,6 +59,10 @@ export function normalizeInvoiceCfdiFilter(value: string | null | undefined): In
   switch (value) {
     case "pending":
       return "pending";
+    case "stamping":
+      return "stamping";
+    case "cancellation_pending":
+      return "cancellation_pending";
     case "stamped":
       return "stamped";
     case "error":

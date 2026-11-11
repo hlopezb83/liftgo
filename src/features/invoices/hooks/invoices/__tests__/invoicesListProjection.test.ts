@@ -4,9 +4,11 @@ import { createSupabaseChainMock, type ChainCall } from "@/test/helpers/supabase
 import { invoiceQueries, type InvoiceListItem } from "../invoiceQueries";
 
 let selected: string[] = [];
+let reads = 0;
 vi.mock("@/integrations/supabase/client", () => {
   const client = createSupabaseChainMock({ tableResolvers: {
     invoices: (calls: ChainCall[]) => {
+      reads += 1;
       const select = calls.find(call => call.method === "select")?.args[0];
       selected = String(select).split(",").map(field => field.trim());
       const detail = calls.some(call => call.method === "maybeSingle");
@@ -22,20 +24,24 @@ const listFixture = {
   id: "qa-id",
   invoice_number: "qa-invoice_number",
   customer_name: null,
-  status: "qa-status",
+  status: "partial",
+  cfdi_status: "stamped",
+  cancellation_status: "none",
   moneda: null,
   total: 0,
   issued_at: "qa-issued_at",
   due_date: null,
 } satisfies InvoiceListItem;
 
-beforeEach(() => { selected = []; });
+beforeEach(() => { selected = []; reads = 0; });
 describe("invoices read projections", () => {
   it("list fixture has exactly the selected columns, without document payload", async () => {
     const client = new QueryClient();
     const rows = await client.fetchQuery(invoiceQueries.list());
     expect(selected.sort()).toEqual(Object.keys(listFixture).sort());
     expect(rows).toEqual([listFixture]);
+    expect(reads).toBe(1);
+    expect(selected).toEqual(expect.arrayContaining(["cfdi_status", "cancellation_status"]));
     expect(rows[0]).not.toHaveProperty("line_items");
     expect(rows[0]).not.toHaveProperty("cfdi_xml");
     client.clear();

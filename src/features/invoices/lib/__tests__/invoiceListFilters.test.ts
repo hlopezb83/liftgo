@@ -8,6 +8,8 @@ import {
 describe("normalizeInvoiceCfdiFilter", () => {
   it("acepta valores conocidos", () => {
     expect(normalizeInvoiceCfdiFilter("pending")).toBe("pending");
+    expect(normalizeInvoiceCfdiFilter("stamping")).toBe("stamping");
+    expect(normalizeInvoiceCfdiFilter("cancellation_pending")).toBe("cancellation_pending");
     expect(normalizeInvoiceCfdiFilter("stamped")).toBe("stamped");
     expect(normalizeInvoiceCfdiFilter("error")).toBe("error");
     expect(normalizeInvoiceCfdiFilter("cancelled")).toBe("cancelled");

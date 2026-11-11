@@ -1,4 +1,3 @@
-import { StatusBadge } from "@/components/feedback/StatusBadge";
 import { ChevronRightIcon } from "@/components/icons";
 import { Card, CardContent } from "@/components/ui/card";
 import { Untranslated } from "@/components/ui/Untranslated";
@@ -7,8 +6,9 @@ import { formatDateMty } from "@/lib/format/dateFormats";
 import { formatCurrency } from "@/lib/format/formatCurrency";
 import { useLocation } from "@/lib/router-compat";
 import { Link } from "@/lib/router-compat-ui";
+import { InvoiceStatusBadges } from "../InvoiceStatusBadges";
 
-export type InvoiceCardItem = Pick<Tables<"invoices">, "id" | "invoice_number" | "customer_name" | "status" | "issued_at" | "due_date" | "total" | "moneda">;
+export type InvoiceCardItem = Pick<Tables<"invoices">, "id" | "invoice_number" | "customer_name" | "status" | "cfdi_status" | "cancellation_status" | "issued_at" | "due_date" | "total" | "moneda">;
 
 export function InvoiceMobileCard({ inv }: { inv: InvoiceCardItem }) {
   const location = useLocation();
@@ -24,12 +24,14 @@ export function InvoiceMobileCard({ inv }: { inv: InvoiceCardItem }) {
         <CardContent className="p-4">
           <div className="flex items-center justify-between mb-1">
             <Untranslated className="font-mono font-semibold text-sm">{inv.invoice_number}</Untranslated>
-            <StatusBadge status={inv.status} />
           </div>
           <p className="text-sm text-muted-foreground">
             {inv.customer_name ? <Untranslated>{inv.customer_name}</Untranslated> : "Sin cliente"}
           </p>
-          <div className="flex items-center justify-between mt-3 pt-3 border-t">
+          <div className="mt-3">
+            <InvoiceStatusBadges invoiceStatus={inv.status} cfdiStatus={inv.cfdi_status} cancellationStatus={inv.cancellation_status} />
+          </div>
+          <div className="flex flex-wrap gap-2 items-center justify-between mt-3 pt-3 border-t">
             <div className="text-xs text-muted-foreground">
               <span>{formatDateMty(inv.issued_at)}</span>
               {inv.due_date && <span> → {formatDateMty(inv.due_date)}</span>}

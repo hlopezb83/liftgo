@@ -1,7 +1,7 @@
 vi.mock("../../hooks/invoices/useInvoiceCsvExport", () => ({ useInvoiceCsvExport: () => ({ download: vi.fn(), busy: false, allowed: true }) }));
 import type { ReactNode } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, within } from "@testing-library/react";
 import { useIsMobile, useIsTabletOrBelow } from "@/hooks/use-mobile";
 import { TestRouter } from "@/test/router";
 import { describe, it, expect, vi, beforeEach } from "vitest";
@@ -15,6 +15,8 @@ const mockInvoices = [
     customer_name: "Matrimar",
     total: 1700,
     status: "sent",
+    cfdi_status: "error",
+    cancellation_status: null,
     issued_at: "2026-02-13",
     due_date: "2026-02-13",
   },
@@ -24,6 +26,8 @@ const mockInvoices = [
     customer_name: "Matrimar",
     total: 2000,
     status: "paid",
+    cfdi_status: "pending",
+    cancellation_status: null,
     issued_at: "2026-02-13",
     due_date: "2026-02-20",
   },
@@ -69,11 +73,11 @@ vi.mock("@/features/users", () => ({
   useHasModuleAccess: () => true,
 }));
 
-function renderPage() {
+function renderPage(origin = "/invoices") {
   const qc = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   const { container } = render(
     <QueryClientProvider client={qc}>
-      <TestRouter>
+      <TestRouter initialEntries={[origin]}>
         <InvoicesPage />
       </TestRouter>
     </QueryClientProvider>
@@ -108,6 +112,23 @@ describe("InvoicesPage smoke tests", () => {
     expect(container.textContent).toContain("Pagado");
   });
 
+  it("shows URL search, collection, fiscal and date filters outside the closed mobile panel", async () => {
+    vi.mocked(useIsMobile).mockReturnValue(true);
+    vi.mocked(useIsTabletOrBelow).mockReturnValue(true);
+    renderPage("/invoices?q=Matrimar&status=paid&cfdi=pending&from=2026-02-01&to=2026-02-28");
+    const summary = await screen.findByRole("list", { name: "Filtros activos" });
+    for (const label of ["Búsqueda: Matrimar", "Cobro: Pagado", "CFDI: Sin timbrar", "Emisión desde: 01/02/2026", "Emisión hasta: 28/02/2026"]) {
+      expect(within(summary).getByText(label)).toBeVisible();
+    }
+    expect(screen.queryByRole("dialog")).toBeNull();
+    const card = screen.getByRole("link", { name: "Ver factura FAC-0002 de Matrimar" });
+    expect(within(card).getByRole("group", { name: "Cobro" })).toHaveTextContent("Pagado");
+    expect(within(card).getByRole("group", { name: "CFDI" })).toHaveTextContent("Sin timbrar");
+    fireEvent.click(screen.getByRole("button", { name: "Limpiar filtros activos" }));
+    expect(await screen.findByRole("button", { name: "Filtros" })).toBeVisible();
+    expect(screen.queryByRole("list", { name: "Filtros activos" })).toBeNull();
+  });
+
   it("paid status persists and is displayed correctly", async () => {
     const container = renderPage();
     await screen.findByText("FAC-0002");
@@ -115,6 +136,9 @@ describe("InvoicesPage smoke tests", () => {
     const paidRow = Array.from(rows).find((r) => r.textContent?.includes("FAC-0002"));
     expect(paidRow).toBeTruthy();
     expect(paidRow?.textContent).toContain("Pagado");
+    expect(paidRow?.textContent).toContain("Sin timbrar");
+    expect(screen.getByRole("columnheader", { name: "Cobro" })).toBeVisible();
+    expect(screen.getByRole("columnheader", { name: "CFDI" })).toBeVisible();
     expect(paidRow?.textContent).toMatch(/2,000\.00/);
   });
 

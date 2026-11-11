@@ -1,4 +1,4 @@
-import { MaintenanceIcon, PaymentIcon, ClipboardList, OverdueIcon } from "@/components/icons";
+import { MaintenanceIcon, ViewIcon, ClipboardList, OverdueIcon } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import { formatDateMty } from "@/lib/format/dateFormats";
@@ -141,8 +141,8 @@ export function AlertsRow({
               rightTop={<span className="tabular-nums font-semibold text-destructive text-sm sm:text-base whitespace-nowrap">{formatCurrency(pendingAmountMxn(inv))}</span>}
               rightBottom={`Vence: ${formatDateMty(inv.due_date)}`}
               action={canManageInvoices ? {
-                icon: PaymentIcon,
-                title: "Registrar pago",
+                icon: ViewIcon,
+                title: "Ver factura",
                 onClick: (e) => {
                   e.stopPropagation();
                   navigate(`/invoices/${inv.id}`);
