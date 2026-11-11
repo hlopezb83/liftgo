@@ -4915,6 +4915,8 @@ export type Database = {
           rejected_at: string | null
           rejection_reason: string | null
           rental_meta: Json | null
+          search_customer_name: string | null
+          search_quote_number: string | null
           start_date: string | null
           status: string
           subtotal: number
@@ -4948,6 +4950,8 @@ export type Database = {
           rejected_at?: string | null
           rejection_reason?: string | null
           rental_meta?: Json | null
+          search_customer_name?: string | null
+          search_quote_number?: string | null
           start_date?: string | null
           status?: string
           subtotal?: number
@@ -4981,6 +4985,8 @@ export type Database = {
           rejected_at?: string | null
           rejection_reason?: string | null
           rental_meta?: Json | null
+          search_customer_name?: string | null
+          search_quote_number?: string | null
           start_date?: string | null
           status?: string
           subtotal?: number
@@ -6416,6 +6422,8 @@ export type Database = {
           rejected_at: string | null
           rejection_reason: string | null
           rental_meta: Json | null
+          search_customer_name: string | null
+          search_quote_number: string | null
           start_date: string | null
           status: string
           subtotal: number
@@ -8369,6 +8377,8 @@ export type Database = {
           rejected_at: string | null
           rejection_reason: string | null
           rental_meta: Json | null
+          search_customer_name: string | null
+          search_quote_number: string | null
           start_date: string | null
           status: string
           subtotal: number
