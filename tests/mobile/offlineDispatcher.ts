@@ -314,6 +314,34 @@ export async function installOfflineDispatcher(
       return route.fulfill({ status: 204, headers: cors });
     if (url.pathname === "/auth/v1/user" && method === "GET") return json(user);
     const rpc = url.pathname.replace("/rest/v1/rpc/", "");
+    if (url.pathname === "/rest/v1/rpc/get_global_search" && method === "POST") {
+      if (!authenticated || profile !== "dispatcher") return reject();
+      const input = request.postDataJSON();
+      const sections = input?.p_sections;
+      const allowedSections = ["customers", "bookings", "deliveries", "returns"];
+      const query = input?.p_query;
+      if (
+        input?.p_expected_organization_id !== ORG ||
+        typeof query !== "string" ||
+        query !== query.trim().toLowerCase() ||
+        query.length < 2 ||
+        query.length > 256 ||
+        !Array.isArray(sections) ||
+        sections.length !== allowedSections.length ||
+        !allowedSections.every((section) => sections.includes(section))
+      ) {
+        return reject();
+      }
+      observed.add(rpc);
+      return json({
+        invoices: [],
+        quotes: [],
+        customers: [],
+        bookings: [],
+        deliveries: [],
+        returns: [],
+      });
+    }
     const readRpcs: Record<string, unknown> = {
       get_organization_display_name: "QA Empresa ficticia móvil",
       get_public_branding: [{ razon_social: "QA Empresa ficticia móvil" }],

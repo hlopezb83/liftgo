@@ -97,6 +97,7 @@ test("menú lateral: abrir, excluir finanzas, navegar y cerrar", async ({
 
 test("búsqueda: teclado, diálogo reducido y navegación permitida", async ({
   page,
+  mockBackend,
 }, info) => {
   await page.goto("/bookings");
   const trigger = page.getByRole("button", {
@@ -112,6 +113,7 @@ test("búsqueda: teclado, diálogo reducido y navegación permitida", async ({
   await expect(input).toBeFocused();
   await fitsViewport(page, dialog, true);
   await input.fill("facturas");
+  await expect.poll(() => mockBackend.observed.has("get_global_search")).toBe(true);
   await expect(
     dialog.getByRole("option", { name: "Facturas", exact: true }),
   ).toHaveCount(0);

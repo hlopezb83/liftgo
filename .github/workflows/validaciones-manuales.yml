@@ -64,7 +64,8 @@ jobs:
           path: ~/.cache/ms-playwright
           key: ${{ runner.os }}-${{ runner.arch }}-chromium-v2-${{ hashFiles('bun.lock') }}
       - name: Preparar Chromium
-        run: node node_modules/@playwright/test/cli.js install --with-deps chromium
+        # ubuntu-24.04 ya incluye las bibliotecas del navegador.
+        run: node node_modules/@playwright/test/cli.js install chromium
       - name: Verificar aislamiento de navegador y Worker con destinos locales
         run: node --test scripts/tests/browser-test-*.test.mjs
       - name: Smoke de arranque (build real)
@@ -126,7 +127,8 @@ jobs:
           path: ~/.cache/ms-playwright
           key: ${{ runner.os }}-${{ runner.arch }}-chromium-v2-${{ hashFiles('bun.lock') }}
       - name: Preparar Chromium
-        run: node node_modules/@playwright/test/cli.js install --with-deps chromium
+        # ubuntu-24.04 ya incluye las bibliotecas del navegador.
+        run: node node_modules/@playwright/test/cli.js install chromium
       - name: Verificar aislamiento de navegador y Worker con destinos locales
         run: node --test scripts/tests/browser-test-*.test.mjs
       - name: Ejecutar todas las suites en grupos internos aislados
@@ -292,7 +294,7 @@ jobs:
     timeout-minutes: 25
     if: github.event_name == 'workflow_dispatch' && (inputs.suite == 'rls' || inputs.suite == 'all')
     env:
-      SUPABASE_INTERNAL_IMAGE_REGISTRY: public.ecr.aws
+      SUPABASE_INTERNAL_IMAGE_REGISTRY: ghcr.io
       DB_URL: postgresql://postgres:postgres@127.0.0.1:54322/postgres
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
@@ -588,7 +590,7 @@ jobs:
     timeout-minutes: 35
     if: github.event_name == 'workflow_dispatch' && (inputs.suite == 'multiempresa' || inputs.suite == 'all')
     env:
-      SUPABASE_INTERNAL_IMAGE_REGISTRY: public.ecr.aws
+      SUPABASE_INTERNAL_IMAGE_REGISTRY: ghcr.io
       DB_URL: postgresql://postgres:postgres@127.0.0.1:54322/postgres
       E2E_ISOLATED_BACKEND: "1"
       VITE_SUPABASE_PROJECT_ID: local-ab-ephemeral
@@ -729,7 +731,8 @@ jobs:
           path: ~/.cache/ms-playwright
           key: ${{ runner.os }}-${{ runner.arch }}-chromium-v2-${{ hashFiles('bun.lock') }}
       - name: Preparar Chromium
-        run: node node_modules/@playwright/test/cli.js install --with-deps chromium
+        # ubuntu-24.04 ya incluye las bibliotecas del navegador.
+        run: node node_modules/@playwright/test/cli.js install chromium
       - name: Historical quote charge review browser (6 cases)
         timeout-minutes: 5
         run: |

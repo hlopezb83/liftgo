@@ -22,28 +22,22 @@ con definiciones/hashes, permisos y verificaciones antes/después.
 
 ## Gate de aceptación antes y después de publicar
 
-1. Obtener el checkout exacto aprobado por CI. Verificar que no tiene cambios de
-   fuentes pendientes y que el HEAD remoto y Lovable no cambiaron. Si hay deriva,
-   detener y reconciliar; nunca restaurar ni publicar automáticamente sobre otros.
-2. Ejecutar `node scripts/release-identity.mjs` desde ese checkout. Guardar su
-   JSON junto con commit, árbol y runs de CI en el recibo de aprobación. No tomar
-   el valor esperado de `version.json` del sitio que se va a comprobar.
+1. Abrir el CI verde de `main` para el commit a publicar. El resumen de
+   **Build y smoke** muestra el commit y el JSON de identidad del código probado.
+   Guardar esos datos y el enlace del run en el recibo de aprobación.
+2. Comprobar que Lovable está sincronizado con ese commit y ejecutar
+   `node scripts/release-identity.mjs` en el checkout que se va a publicar.
+   Exigir la misma versión y huella que en el resumen de GitHub. Si aparece
+   un nuevo commit con cambios de fuente, usar su propio run de CI.
 3. Publicar mediante el canal autorizado. No reutilizar un checkout antiguo.
-4. Ejecutar el workflow **Prod smoke** manual con `expected_source_sha256` y
-   `expected_version` del paso 2, o ejecutar su Playwright equivalente con
-   `LIFTGO_EXPECTED_SOURCE_ID` y `LIFTGO_EXPECTED_VERSION`. Ambas expectativas son
+4. Ejecutar Playwright con `playwright.prod-smoke.config.ts` y pasar los valores
+   aprobados como `LIFTGO_EXPECTED_SOURCE_ID` y `LIFTGO_EXPECTED_VERSION`. Ambas expectativas son
    obligatorias para una aceptación. El smoke conserva su aislamiento de red,
    sin sesión, backend ni escrituras, y obtiene el manifiesto con `no-store`.
 5. Deben coincidir versión esperada, huella esperada, manifiesto servido y huella
    compilada del navegador. Bundle viejo coherente, mezcla por caché, campos
    ausentes o sólo una expectativa fallan. Guardar run terminal y volver a
    comprobar que no hubo deriva de fuente durante la publicación.
-
-El cron horario sin baseline comprueba **coherencia**, no aprobación de una
-publicación. No compara contra el último main porque éste puede adelantarse
-legítimamente al despliegue. Tampoco cambia permisos de rama ni obliga a Lovable
-a pasar por este gate: esos controles externos no se han verificado. Para cerrar
-una entrega no basta el cron; es obligatorio el paso de aceptación explícita.
 
 ## Contratos de dependencias
 

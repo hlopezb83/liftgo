@@ -19,7 +19,9 @@ import tomllib
 LOCAL_DB_URL = "postgresql://postgres:postgres@127.0.0.1:54322/postgres"
 CONFIG = Path("supabase/config.toml")
 BACKUP = Path("supabase/config.toml.ci-runtime-backup")
-DB_IMAGE = "public.ecr.aws/supabase/postgres:17.4.1.068"
+DB_IMAGE = "ghcr.io/supabase/postgres:17.4.1.068"
+# Linux/amd64 config from the identical Supabase GHCR and ECR image manifests.
+DB_IMAGE_ID = "sha256:baec138eed75c79677ec4401086ad1140fc7614b8d86353d7e36bbf6cf6e5282"
 DB_DATA_DIRECTORY = "/var/lib/postgresql/data"
 CONTAINER_VIEW = '{"id":{{json .Id}},"name":{{json .Name}},"image":{{json .Config.Image}},"image_id":{{json .Image}},"project":{{json (index .Config.Labels "com.supabase.cli.project")}},"compose_project":{{json (index .Config.Labels "com.docker.compose.project")}},"running":{{json .State.Running}},"created":{{json .Created}},"ports":{{json (index .NetworkSettings.Ports "5432/tcp")}}}'
 IMAGE_VIEW = '{"id":{{json .Id}},"tags":{{json .RepoTags}},"os":{{json .Os}},"architecture":{{json .Architecture}}}'
@@ -307,7 +309,7 @@ def owned_db_container(project_id: str, started_at: float) -> str:
     if (not isinstance(row.get("id"), str) or not re.fullmatch(r"[a-f0-9]{64}", row["id"])
             or row.get("name") != "/" + name or row.get("project") != project_id or row.get("compose_project") != project_id
             or row.get("running") is not True or row.get("image") != DB_IMAGE
-            or not isinstance(row.get("image_id"), str) or not re.fullmatch(r"sha256:[a-f0-9]{64}", row["image_id"])
+            or row.get("image_id") != DB_IMAGE_ID
             or created.tzinfo is None or not started_at <= created.timestamp() <= time.time()
             or not isinstance(ports, list) or not any(
                 isinstance(port, dict) and port.get("HostIp") in ("127.0.0.1", "0.0.0.0") and port.get("HostPort") == "54322"

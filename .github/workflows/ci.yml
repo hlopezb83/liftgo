@@ -254,6 +254,10 @@ jobs:
         run: node --test scripts/tests/browser-test-*.test.mjs
       - name: Arranque e interacción del Worker
         run: node node_modules/@playwright/test/cli.js test --config playwright.smoke.config.ts
+      - name: Identidad del código probado
+        run: |
+          identity=$(node scripts/release-identity.mjs)
+          printf '### Identidad del código probado\n\nCommit: %s\n\n%s\n' "$GITHUB_SHA" "$identity" >> "$GITHUB_STEP_SUMMARY"
       - name: Diagnóstico de fallo
         if: failure()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
@@ -264,3 +268,26 @@ jobs:
             playwright-report/
           retention-days: 3
           if-no-files-found: ignore
+
+  required:
+    name: CI requerida
+    runs-on: ubuntu-24.04
+    needs: [quality, tests, build-smoke]
+    if: ${{ always() }}
+    permissions: {}
+    timeout-minutes: 2
+    steps:
+      - name: Verificar las comprobaciones de CI
+        env:
+          QUALITY_RESULT: ${{ needs.quality.result }}
+          TESTS_RESULT: ${{ needs.tests.result }}
+          BUILD_SMOKE_RESULT: ${{ needs.build-smoke.result }}
+        run: |
+          printf 'Calidad: %s\nUnitarias: %s\nBuild y smoke: %s\n' \
+            "$QUALITY_RESULT" "$TESTS_RESULT" "$BUILD_SMOKE_RESULT"
+          if [ "$QUALITY_RESULT" != success ] ||
+             [ "$TESTS_RESULT" != success ] ||
+             [ "$BUILD_SMOKE_RESULT" != success ]; then
+            echo '::error::CI requiere que todas las comprobaciones finalicen correctamente.'
+            exit 1
+          fi
