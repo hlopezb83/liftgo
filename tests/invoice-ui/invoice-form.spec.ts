@@ -35,8 +35,8 @@ test("captura local de Nueva factura con datos ficticios", async ({ page, mockBa
     await page.screenshot({ path: info.outputPath(`${phase}-concept-2-lower.png`) });
     await page.getByRole("complementary", { name: "Resumen de importes", exact: true }).evaluate((element) => element.scrollIntoView({ block: "center" }));
     await page.screenshot({ path: info.outputPath(`${phase}-summary.png`) });
+    expect(mockBackend.observed).toContain("get_invoice_booking_candidate_page");
+    expect(mockBackend.observed).not.toContain("invoices");
   }
-  expect(mockBackend.observed.has("organization_customers")).toBe(true);
-  expect(mockBackend.observed.has("invoices")).toBe(true);
-  expect(mockBackend.observed.has("get_invoice_booking_candidate_page")).toBe(true);
+  expect(mockBackend.observed).toContain("organization_customers");
 });
