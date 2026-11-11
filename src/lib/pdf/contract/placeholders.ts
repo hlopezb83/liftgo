@@ -1,9 +1,9 @@
-import type { LegalTemplateOverrides } from "@/features/contracts/lib/legalTemplateOverrides";
+import type { LegalTemplateOverrides } from "@/lib/domain/contractTypes";
 import { formatDateMty } from "@/lib/format/dateFormats";
 import { formatCurrency } from "@/lib/format/formatCurrency";
 import { formatLegalAddress } from "@/lib/format/formatLegalAddress";
 import { numeroALetras } from "@/lib/format/numeroALetras";
-import type { ContractData } from "./fetchers";
+import type { ContractData } from "./data";
 
 interface CompanyInfo {
   razon_social?: string | null;

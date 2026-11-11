@@ -1,7 +1,7 @@
 import { useQueryClient } from "@tanstack/react-query";
+import { useRef } from "react";
 import { bookingKeys } from "@/features/bookings";
 import { forkliftKeys } from "@/features/fleet";
-import { supabase } from "@/integrations/supabase/client";
 import { notifyError, notifySuccess, notifyValidation } from "@/lib/ui/appFeedback";
 import { quoteKeys } from "../quotes/useQuotes";
 import {
@@ -9,7 +9,8 @@ import {
   resolveLegacyForkliftIds,
   type Assignment,
 } from "./quoteBookingBuilders";
-import type { useQuoteConversionState } from "./useQuoteConversionState";
+import { convertQuoteBookings } from "./quoteConversionRpc";
+import type { QuoteConversion, useQuoteConversionState } from "./useQuoteConversionState";
 import type { useQuoteDetailData } from "./useQuoteDetailData";
 
 export type { Assignment } from "./quoteBookingBuilders";
@@ -28,25 +29,13 @@ export function useQuoteBookingCreator(data: DataResult, state: StateResult) {
   const queryClient = useQueryClient();
   const { quote, customers, forklifts, equipmentModels } = data;
 
-  const createBookingsFor = async (assignments: Assignment[], recurring: boolean) => {
-    if (!quote) return;
+  const converting = useRef(false);
+  const createBookingsFor = async (assignments: Assignment[], request: QuoteConversion) => {
+    if (quote?.id !== request.quoteId || converting.current) return;
+    converting.current = true;
     state.setIsConverting(true);
     try {
-      const { data: rows, error } = await supabase.rpc("convert_quote_to_bookings_scoped", {
-        p_quote_id: quote.id,
-        p_assignments: assignments.map((a) => ({
-          forklift_id: a.forkliftId,
-          daily_rate: a.dailyRate ?? 0,
-          weekly_rate: a.weeklyRate ?? 0,
-          monthly_rate: a.monthlyRate ?? 0,
-        })),
-        p_recurring: recurring,
-      });
-
-      if (error) throw error;
-
-      const createdIds = (rows ?? []).map((r) => r.booking_id as string);
-      const forkliftIds = (rows ?? []).map((r) => r.forklift_id as string);
+      const rows = await convertQuoteBookings(request.quoteId, assignments, request.recurring, request.replacementCustomerId);
 
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: bookingKeys.all }),
@@ -54,11 +43,13 @@ export function useQuoteBookingCreator(data: DataResult, state: StateResult) {
         queryClient.invalidateQueries({ queryKey: quoteKeys.all }),
       ]);
 
-      notifySuccess(`${createdIds.length} reserva(s) creada(s) desde cotización`);
+      notifySuccess(`${rows.length} reserva(s) creada(s) desde cotización`);
+      state.setShowConvertDialog(false);
       state.setShowAssignmentDialog(false);
+      state.setPendingConversion(null);
       state.setCurrentDeliveryIndex(0);
       state.setPendingDeliveries(
-        buildDeliveryInfos(quote, customers, forklifts, forkliftIds, createdIds),
+        buildDeliveryInfos(rows, customers, forklifts),
       );
     } catch (err: unknown) {
       notifyError({
@@ -66,11 +57,12 @@ export function useQuoteBookingCreator(data: DataResult, state: StateResult) {
         message: `Error al crear reserva: ${err instanceof Error ? err.message : "Error desconocido"}`,
       });
     } finally {
+      converting.current = false;
       state.setIsConverting(false);
     }
   };
 
-  const convertLegacy = async (recurring: boolean) => {
+  const convertLegacy = async (request: QuoteConversion) => {
     if (!quote || !forklifts) return;
     const ids = resolveLegacyForkliftIds(quote, forklifts);
     if (ids.length === 0) {
@@ -92,7 +84,7 @@ export function useQuoteBookingCreator(data: DataResult, state: StateResult) {
         monthlyRate: forklift?.monthly_rate ?? model?.default_monthly_rate ?? 0,
       };
     });
-    await createBookingsFor(assignments, recurring);
+    await createBookingsFor(assignments, request);
   };
 
   return { createBookingsFor, convertLegacy };

@@ -14,6 +14,7 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { persistQueryClient } from "@tanstack/react-query-persist-client";
 import { useEffect, useState, type ReactNode } from "react";
+import { useOrganizationContext } from "@/contexts/OrganizationContext";
 import { isIdentityQueryKey } from "@/lib/query/identityScope";
 import {
   createBrowserPersister,
@@ -28,6 +29,8 @@ import { syncFormDraftIdentity } from "@/lib/storage/formDraftStorage";
 export function IdentityScopedPersistence({ children }: { children: ReactNode }) {
   const queryClient = useQueryClient();
   const scope = useVerifiedIdentityScope();
+  const { status } = useOrganizationContext();
+  const identityAbsent = status === "signed-out" || status === "no-membership";
   // `null` hasta que la caché de la identidad actual está lista para usarse.
   const [readyScope, setReadyScope] = useState<string | null>(null);
   // Estado derivado durante el render (patrón soportado por React): al cambiar
@@ -62,14 +65,18 @@ export function IdentityScopedPersistence({ children }: { children: ReactNode })
       if (cancelled) return;
       queryClient.removeQueries(notIdentity);
 
-      const storage = getBrowserStorage();
-      if (storage) purgeForeignPersistedCaches(storage, scope);
-
-      if (!scope) return;
+      if (!scope) {
+        // La verificación pendiente o fallida no confirma un cierre de sesión.
+        if (identityAbsent) {
+          const storage = getBrowserStorage();
+          if (storage) purgeForeignPersistedCaches(storage, null);
+        }
+        return;
+      }
 
       const [unsub, restored] = persistQueryClient({
         queryClient,
-        persister: createBrowserPersister(scope, storage),
+        persister: createBrowserPersister(scope, getBrowserStorage(), () => !cancelled),
         maxAge: PERSIST_MAX_AGE_MS,
         dehydrateOptions: { shouldDehydrateQuery: shouldPersistQuery },
         buster: scope,
@@ -94,7 +101,7 @@ export function IdentityScopedPersistence({ children }: { children: ReactNode })
       cancelled = true;
       unsubscribe?.();
     };
-  }, [scope, queryClient]);
+  }, [scope, identityAbsent, queryClient]);
 
   // Sin identidad verificada no hay contenido protegido que mostrar: el gate de
   // organización y AuthGuard deciden qué se ve (carga, error, sin membresía).

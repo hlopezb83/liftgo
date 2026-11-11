@@ -3,7 +3,7 @@ import { useState } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import type { BookingWithForklift } from "@/features/bookings";
 import { useCustomers } from "@/features/customers";
-import { useForklifts, useQuoteAssignments } from "@/features/fleet";
+import { useQuoteAssignments } from "@/features/fleet";
 import { useQuote, useQuoteSaleAssignmentStatus, useQuotesByIds } from "@/features/quotes";
 import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 import { useInitialRecordVersion } from "@/hooks/useInitialRecordVersion";
@@ -32,8 +32,9 @@ import { buildFromInvoice, type ExistingInvoice } from "./invoiceForm/invoiceFor
 import { useInvoiceBookingPeriods } from "./invoiceForm/useInvoiceBookingPeriods";
 import { useInvoiceFormHandlers } from "./invoiceForm/useInvoiceFormHandlers";
 import { useInvoiceFormSubmit } from "./invoiceForm/useInvoiceFormSubmit";
-import { useInvoicePrefill } from "./invoiceForm/useInvoicePrefill";
 import { invoiceChargeBlock, useInvoiceQuoteCharges } from "./invoiceForm/useInvoiceQuoteCharges";
+import { useInvoiceQuoteSource } from "./invoiceForm/useInvoiceQuoteSource";
+import { useInvoiceRentalEquipment } from "./invoiceForm/useInvoiceRentalEquipment";
 import { useInvoiceBookingCandidates } from "./invoices/useInvoiceBookingCandidates";
 import { useInvoiceBookings } from "./invoices/useInvoiceBookings";
 import { useInvoice } from "./invoices/useInvoices";
@@ -54,6 +55,7 @@ interface UseInvoiceFormLogicArgs {
   fromQuoteId: string | null;
   /** v7.307.0: id de `booking_extensions` cuando venimos de "Facturar extensión". */
   extensionId?: string | null;
+  damageId?: string | null;
 }
 
 /** Ids únicos de cotización referenciados por las reservas. */
@@ -158,16 +160,28 @@ function withEvidenceLoading(picker: ReturnType<typeof useBookingPicker>["bookin
   return { ...picker, isLoading: picker.isLoading || (periods.isFetching && !periods.ready) };
 }
 
-export function useInvoiceFormLogic({ id, fromQuoteId, extensionId = null }: UseInvoiceFormLogicArgs) {
+function recurringEquipmentIds(bookings: BookingWithForklift[] | undefined) {
+  return (bookings ?? []).filter((booking) => booking.status === "completed" && booking.recurring_billing && booking.monthly_rate == null)
+    .map((booking) => booking.forklift_id);
+}
+
+function useBillingEquipment(assignments: ReturnType<typeof useQuoteAssignments>["data"], bookings: BookingWithForklift[] | undefined) {
+  const ids = [...(assignments ?? []).map((assignment) => assignment.forklift_id), ...recurringEquipmentIds(bookings)];
+  const equipment = useInvoiceRentalEquipment(ids);
+  return { ...equipment, retry: () => ids.length ? equipment.refetch() : Promise.resolve() };
+}
+
+export function useInvoiceFormLogic({ id, fromQuoteId, extensionId = null, damageId = null }: UseInvoiceFormLogicArgs) {
 
   const isEdit = !!id;
   const quoteId = fromQuoteId || undefined;
 
-  const { data: forklifts } = useForklifts();
   const { data: customers } = useCustomers();
   const { data: existing, isLoading: isLoadingExisting } = useInvoice(id);
-  const { data: sourceQuote } = useQuote(quoteId);
-  const { data: assignments } = useQuoteAssignments(quoteId);
+  const quoteQuery = useQuote(quoteId);
+  const { data: sourceQuote } = quoteQuery;
+  const assignmentsQuery = useQuoteAssignments(quoteId);
+  const { data: assignments } = assignmentsQuery;
   const invoiceBookingsQuery = useInvoiceBookings(id);
   const { data: invoiceBookingsRows } = invoiceBookingsQuery;
   const existingBookingIds = (invoiceBookingsRows ?? []).map((r) => r.booking_id);
@@ -177,6 +191,8 @@ export function useInvoiceFormLogic({ id, fromQuoteId, extensionId = null }: Use
   });
   const { selectedBookingIds, bookingsQuery, bookingPicker } = useBookingPicker(form.control, existingBookingIds, isEdit, existing);
   const { data: bookings } = bookingsQuery;
+  const equipment = useBillingEquipment(assignments, bookings);
+  const forklifts = equipment.data;
   const candidatesBlock = candidateAvailabilityBlock(bookingsQuery);
   const periods = useInvoiceBookingPeriods({ bookings, forklifts, isEdit, id, extensionId, existing, existingBookingIds });
   const invoiceVersion = useInitialRecordVersion(id, existing?.id, existing?.version);
@@ -211,10 +227,11 @@ export function useInvoiceFormLogic({ id, fromQuoteId, extensionId = null }: Use
   const { relatedQuoteIds, chargeAvailability, bookingSourceBlock, chargeAvailabilityError } = useInvoiceQuoteCharges({
     form, bookings, invoiceBookingsRows, existing, fromQuoteId, currentInvoiceId: id,
   });
-  const { quoteChargePrefillError, sourceQuoteVersion } = useInvoicePrefill({ existing, sourceQuote, assignments, forklifts, customers, isEdit, form, existingBookingIds,
-    chargeAvailability: chargeAvailability.isError ? undefined : chargeAvailability.data });
+  const quotePrefill = useInvoiceQuoteSource({ existing, sourceQuote, assignments, forklifts, customers, isEdit, form,
+    existingBookingIds, requestedQuoteId: fromQuoteId }, { extensionId, damageId }, chargeAvailability,
+    [quoteQuery, assignmentsQuery, { isError: equipment.isError, refetch: equipment.retry }]);
   const { handleCustomerSelect, handleBookingSelect, handleBookingsChange, isLoadingCharges, chargeSelectionError, retryChargeSelection } = useInvoiceFormHandlers({
-    form, customers, bookings: periods.handlerBookings, forklifts, quotes: bookingSourceQuotes,
+    form, customers, bookings: periods.handlerBookings, loadEquipment: equipment.loadForIds, quotes: bookingSourceQuotes,
     loadQuoteSources: bookingQuoteSources.loadForIds, loadQuotedBookings: bookingsQuery.loadQuotedBookings,
     loadQuoteCharges: chargeAvailability.loadForQuotes,
   });
@@ -233,7 +250,7 @@ export function useInvoiceFormLogic({ id, fromQuoteId, extensionId = null }: Use
   });
   const extensionBookingId = extension?.booking_id ?? null;
   const chargeBlock = invoiceChargeBlock(isLoadingCharges, periods.linkedBlock(selectedBookingIds),
-    bookingSourceBlock, chargeSelectionError, chargeAvailabilityError, quoteChargePrefillError, prefillBlock ?? null);
+    bookingSourceBlock, chargeSelectionError, chargeAvailabilityError, quotePrefill.block, prefillBlock ?? null);
 
   const availableBookings = filterAvailableBookings(
     periods.candidates as BookingWithForklift[] | undefined,
@@ -307,7 +324,7 @@ export function useInvoiceFormLogic({ id, fromQuoteId, extensionId = null }: Use
     customers, availableBookings, pickerBookings,
     bookingPicker: withEvidenceLoading(bookingPicker, periods),
     sourceQuote,
-    sourceQuoteVersion,
+    sourceQuoteVersion: quotePrefill.sourceQuoteVersion,
     saleAssignmentGuard,
     serverSaleAssignmentBlock,
     extension,
@@ -320,11 +337,14 @@ export function useInvoiceFormLogic({ id, fromQuoteId, extensionId = null }: Use
     bookingAvailabilityBlock: [candidatesBlock, periods.availabilityBlock].find(Boolean) ?? null,
     retryChargeAvailability: () => {
       if (prefillBlock) return retryPrefill();
+      if (quotePrefill.block) return quotePrefill.retry();
+      if (equipment.isError) return equipment.refetch();
       if ([candidatesBlock, periods.block, periods.invalidHistory].some(Boolean)) return Promise.all([bookingsQuery.refetch(), periods.refetch()]);
       if (bookingSourceBlock) return Promise.all([bookingsQuery.refetch(), invoiceBookingsQuery.refetch()]);
       return chargeSelectionError ? retryChargeSelection() : chargeAvailability.refetch();
     },
-    isLoadingChargeAvailability: [bookingsQuery.isFetching, isLoadingCharges, chargeAvailability.isFetching, periods.isFetching, isLoadingPrefill].some(Boolean),
+    isLoadingChargeAvailability: [bookingsQuery.isFetching, isLoadingCharges, chargeAvailability.isFetching,
+      periods.isFetching, isLoadingPrefill, equipment.isFetching, quoteQuery.isFetching, assignmentsQuery.isFetching].some(Boolean),
     saveInvoice: submit.saveInvoice,
     isPending: submit.isPending,
   };

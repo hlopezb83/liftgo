@@ -14,6 +14,7 @@ import { jsonResponse } from "../_shared/http.ts";
 import { getAdminClient } from "../_shared/supabaseClients.ts";
 import { nextRetryAt } from "../_shared/cfdiRetryQueue.ts";
 import { authenticateCronRequest } from "../_shared/cronAuth.ts";
+import { readStampOutcome } from "../_shared/stampOutcome.ts";
 import {
   createFacturapiClient,
   describeFacturapiError,
@@ -35,6 +36,7 @@ import {
   assertOwnedQueue,
   claimQueueLease,
   markOwnedQueueRow,
+  type QueueLease,
   QueueMutationError,
 } from "./queueLease.ts";
 import {
@@ -117,14 +119,8 @@ async function invokeStampFn(
   try {
     body = JSON.parse(text);
   } catch { /* text-only response */ }
-  // 200 → success. 409 → already stamped → éxito idempotente SOLO para stamp.
-  // M-6: para `cancel` un 409 = documento no cancelable → fallo terminal.
-  // R5-02: para `cancel_nc`/`cancel_rep` un 409 suele ser el PROPIO claim
-  // 'pending' dejado por un intento anterior que murió por timeout tras
-  // llamar al PAC; el caller lo reprograma como deferral SIN consumir
-  // intento y dispara refresh-cancellation-status para reconciliar.
   return {
-    ok: res.ok || (res.status === 409 && operation === "stamp"),
+    ok: res.ok,
     status: res.status,
     body,
   };
@@ -134,6 +130,26 @@ async function invokeStampFn(
 // `exhausted` con diagnóstico en vez de reintentar contra el PAC para siempre
 // (antes `attempts` quedaba congelado y `max_attempts` nunca se alcanzaba).
 export const MAX_DEFERRALS = 10;
+
+async function deferStamp(
+  admin: OrgQueryClient,
+  lease: QueueLease,
+  row: QueueRow,
+  reason: string,
+) {
+  const deferrals = (row.deferrals ?? 0) + 1;
+  const exhausted = deferrals >= MAX_DEFERRALS;
+  await markOwnedQueueRow(admin, lease, {
+    status: exhausted ? "exhausted" : "pending",
+    attempts: row.attempts,
+    deferrals,
+    last_error: reason,
+    ...(exhausted
+      ? {}
+      : { next_retry_at: nextRetryAt(deferrals).toISOString() }),
+  });
+  return exhausted ? "exhausted" : "stamp_recovery_pending";
+}
 
 // FIX R6-08: `cancel-cfdi` devuelve 409 en DOS casos distintos:
 //  (a) claim propio 'pending' de un intento anterior → diferible.
@@ -327,7 +343,7 @@ export async function handleRequest(
         const { data: invRowFull, error: invReadErr } = await admin
           .from("invoices")
           .select(
-            "cfdi_status, cfdi_uuid, facturapi_invoice_id, organization_id, updated_at",
+            "status, cfdi_status, cfdi_uuid, facturapi_invoice_id, organization_id, updated_at",
           )
           .eq("id", row.invoice_id)
           .eq("organization_id", row.organization_id)
@@ -388,13 +404,34 @@ export async function handleRequest(
           results.push({ id: row.id, status: "exhausted" });
           continue;
         }
-        if (decideStampRetry(st) === "succeeded_noop_state") {
+        const stampDecision = decideStampRetry(st);
+        if (stampDecision === "defer") {
+          const status = await deferStamp(
+            admin,
+            lease,
+            row,
+            "Timbrado en conciliación sin referencia confirmada.",
+          );
+          results.push({ id: row.id, status });
+          continue;
+        }
+        if (stampDecision === "rejected") {
+          await markOwnedQueueRow(admin, lease, {
+            status: "exhausted",
+            last_error:
+              "El estado de la factura no permite reintentar su timbrado.",
+          });
+          results.push({ id: row.id, status: "exhausted" });
+          continue;
+        }
+        if (stampDecision !== "proceed") {
           await markOwnedQueueRow(admin, lease, {
             status: "succeeded",
             attempts: nextAttempts,
+            deferrals: 0,
             last_error: null,
           });
-          results.push({ id: row.id, status: "succeeded_noop_state" });
+          results.push({ id: row.id, status: stampDecision });
           continue;
         }
 
@@ -590,7 +627,31 @@ export async function handleRequest(
       ) {
         throw new FiscalRetryContextError("unavailable");
       }
-      if (invRes.ok) {
+      const stampResult = row.operation === "stamp"
+        ? readStampOutcome(invRes.status, invRes.body)
+        : null;
+      const recoveryHandoff = stampResult?.kind === "recovery_required" &&
+        stampResult.reference === "saved";
+      const issued = stampResult?.kind === "issued" ||
+        stampResult?.kind === "already_issued";
+      if (
+        row.operation === "stamp" && !recoveryHandoff && !issued && (
+          stampResult?.kind === "in_progress" ||
+          stampResult?.kind === "recovery_required" ||
+          (stampResult === null && (invRes.ok || invRes.status === 409))
+        )
+      ) {
+        const status = await deferStamp(
+          admin,
+          lease,
+          row,
+          "El timbrado aún no tiene un resultado confirmado.",
+        );
+        results.push({ id: row.id, status, http: invRes.status });
+        continue;
+      }
+
+      if (row.operation === "stamp" ? issued || recoveryHandoff : invRes.ok) {
         await markOwnedQueueRow(admin, lease, {
           status: "succeeded",
           attempts: nextAttempts,
@@ -600,7 +661,7 @@ export async function handleRequest(
         });
         results.push({
           id: row.id,
-          status: "succeeded",
+          status: recoveryHandoff ? "succeeded_recovery_handoff" : "succeeded",
           http: invRes.status,
         });
       } else {
@@ -734,12 +795,13 @@ export async function handleRequest(
         // M-6: 409 en una cancelación de factura (stamp ya lo filtró como
         // éxito en invokeStampFn) = el documento no es cancelable → fallo
         // TERMINAL inmediato (exhausted), sin gastar los reintentos.
-        const queueStatus = invRes.status === 409
-          ? "exhausted"
-          : decideTerminalStatus(
-            nextAttempts,
-            row.max_attempts,
-          );
+        const queueStatus =
+          invRes.status === 409 || stampResult?.kind === "rejected"
+            ? "exhausted"
+            : decideTerminalStatus(
+              nextAttempts,
+              row.max_attempts,
+            );
         await markOwnedQueueRow(admin, lease, {
           status: queueStatus,
           attempts: nextAttempts,

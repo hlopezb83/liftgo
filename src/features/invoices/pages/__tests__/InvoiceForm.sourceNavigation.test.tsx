@@ -7,7 +7,7 @@ const state = vi.hoisted(() => ({
 }));
 vi.mock("@/hooks/useNavigateTransition", () => ({ useNavigateTransition: () => state.navigate }));
 vi.mock("@/lib/ui/appFeedback", () => ({ notifySuccess: state.success }));
-vi.mock("../../hooks/useDamagePrefill", () => ({ useDamagePrefill: () => undefined }));
+vi.mock("../../hooks/useDamagePrefill", () => ({ useDamagePrefill: () => ({ block: null, isLoading: false, retry: vi.fn() }) }));
 vi.mock("../../hooks/useInvoiceFormLogic", async () => {
   const { useForm } = await import("react-hook-form");
   const { buildEmptyInvoiceValues } = await import("../../lib/invoiceFormSchema");
@@ -36,19 +36,23 @@ import InvoiceForm from "../InvoiceForm";
 import { ConfirmProvider } from "@/components/feedback/ConfirmProvider";
 import { TestRouter } from "@/test/router";
 import { useNavigate, useLocation } from "@/lib/router-compat";
-function Navigation() {
+function Navigation({ from, to }: { from: string; to: string }) {
   const navigate = useNavigate();
   const location = useLocation();
   return <><span data-testid="location">{location.search}</span>
-    <button onClick={() => navigate("/invoices/new?extension_id=ext-1&tab=notes")}>Change tab</button>
-    <button onClick={() => navigate("/invoices/new?extension_id=ext-2")}>Extension B</button>
+    <button onClick={() => navigate(`/invoices/new?${from}&tab=notes`)}>Change tab</button>
+    <button onClick={() => navigate(`/invoices/new?${to}`)}>Source B</button>
     <InvoiceForm />
   </>;
 }
 afterEach(cleanup);
-it("keeps unrelated query edits, cancels extension navigation, and resets only after confirmation", async () => {
-  render(<TestRouter initialEntries={["/invoices/new?extension_id=ext-1"]}>
-    <ConfirmProvider><Navigation /></ConfirmProvider>
+it.each([
+  ["extension_id=ext-1", "extension_id=ext-2"],
+  ["from_quote=quote-1", "from_quote=quote-2"],
+  ["damage_id=damage-1", "damage_id=damage-2"],
+])("keeps unrelated query edits and confirms source change from %s to %s", async (from, to) => {
+  render(<TestRouter initialEntries={[`/invoices/new?${from}`]}>
+    <ConfirmProvider><Navigation from={from} to={to} /></ConfirmProvider>
   </TestRouter>);
   const notes = await screen.findByPlaceholderText("Notas adicionales…");
   fireEvent.change(notes, { target: { value: "Draft A" } });
@@ -56,15 +60,15 @@ it("keeps unrelated query edits, cancels extension navigation, and resets only a
   await waitFor(() => expect(screen.getByTestId("location")).toHaveTextContent("tab=notes"));
   expect(screen.queryByText("¿Descartar cambios?")).not.toBeInTheDocument();
   expect(screen.getByPlaceholderText("Notas adicionales…")).toHaveValue("Draft A");
-  fireEvent.click(screen.getByRole("button", { name: "Extension B" }));
+  fireEvent.click(screen.getByRole("button", { name: "Source B" }));
   await screen.findByText("¿Descartar cambios?");
   fireEvent.click(screen.getByRole("button", { name: "Seguir editando" }));
   await waitFor(() => expect(screen.queryByText("¿Descartar cambios?")).not.toBeInTheDocument());
-  expect(screen.getByTestId("location")).toHaveTextContent("extension_id=ext-1");
+  expect(screen.getByTestId("location")).toHaveTextContent(from);
   expect(screen.getByPlaceholderText("Notas adicionales…")).toHaveValue("Draft A");
-  fireEvent.click(screen.getByRole("button", { name: "Extension B" }));
+  fireEvent.click(screen.getByRole("button", { name: "Source B" }));
   await screen.findByText("¿Descartar cambios?");
   fireEvent.click(screen.getByRole("button", { name: "Descartar" }));
-  await waitFor(() => expect(screen.getByTestId("location")).toHaveTextContent("extension_id=ext-2"));
+  await waitFor(() => expect(screen.getByTestId("location")).toHaveTextContent(to));
   expect(screen.getByPlaceholderText("Notas adicionales…")).toHaveValue("");
 });

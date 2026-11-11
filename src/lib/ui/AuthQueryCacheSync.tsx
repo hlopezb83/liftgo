@@ -28,13 +28,14 @@ export function AuthQueryCacheSync(): null {
       if (getAuthSnapshot().user?.id !== currentUserId) {
         setAuthSnapshot({ user: null, organization: null, role: null });
       }
-      // Se conserva únicamente la consulta de identidad: limpiarla aquí
-      // reiniciaría la verificación de empresa en bucle. El resto de la caché
-      // de la sesión anterior se elimina por completo.
-      void queryClient.cancelQueries();
-      queryClient.removeQueries({
-        predicate: (query) => !isIdentityQueryKey(query.queryKey),
-      });
+      // La verificación del usuario entrante puede haber comenzado en este
+      // commit. Se cancela y retira únicamente la caché ajena a esa verificación.
+      const previousSession = {
+        predicate: ({ queryKey }: { queryKey: readonly unknown[] }) =>
+          !isIdentityQueryKey(queryKey) || queryKey[1] !== currentUserId,
+      };
+      void queryClient.cancelQueries(previousSession);
+      queryClient.removeQueries(previousSession);
     }
     prevUserId.current = currentUserId;
   }, [user?.id, queryClient]);

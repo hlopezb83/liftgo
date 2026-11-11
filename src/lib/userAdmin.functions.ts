@@ -220,7 +220,7 @@ export const resetUserPasswordFn = createServerFn({ method: "POST" })
 
 export const toggleUserStatusFn = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .validator((data: { user_id: string; is_active: boolean }) => data)
+  .validator((data: { user_id: string; is_active: boolean; expected_version?: string }) => data)
   .handler(async ({ data, context }) => {
     const g = await import("./server/adminGuards.server");
     const { admin } = await g.requireAdmin(context.supabase, context.userId);
@@ -230,7 +230,7 @@ export const toggleUserStatusFn = createServerFn({ method: "POST" })
     );
     await g.enforceRateLimit(admin, "toggle-user-status", context.userId);
 
-    const { user_id: userId, is_active: isActive } = data;
+    const { user_id: userId, is_active: isActive, expected_version: expectedVersion } = data;
     if (!g.isUUID(userId)) {
       throw new g.HttpError(400, "El identificador del usuario no es válido. Actualiza la lista.");
     }
@@ -239,6 +239,9 @@ export const toggleUserStatusFn = createServerFn({ method: "POST" })
     }
     if (typeof isActive !== "boolean") {
       throw new g.HttpError(400, "is_active must be a boolean");
+    }
+    if (expectedVersion !== undefined && typeof expectedVersion !== "string") {
+      throw new g.HttpError(400, "No se pudo verificar la versión del perfil.");
     }
     await g.assertTargetInOrganization(admin, userId, organizationId);
 
@@ -249,37 +252,6 @@ export const toggleUserStatusFn = createServerFn({ method: "POST" })
     }
 
 
-    // DB4-07 (N6): primero profiles; si el trigger rechaza, no se baneó nada.
-    const { error: profileErr } = await admin
-      .from("profiles")
-      .update({ is_active: isActive })
-      .eq("user_id", userId);
-    if (profileErr) {
-      console.error("[toggle-user-status] profile update error:", profileErr);
-      throw new g.HttpError(400, "No se pudo actualizar el estado del usuario");
-    }
-
-    const { error: authErr } = await admin.auth.admin.updateUserById(userId, {
-      ban_duration: isActive ? "none" : "876600h",
-    });
-    if (authErr) {
-      await admin
-        .from("profiles")
-        .update({ is_active: !isActive })
-        .eq("user_id", userId);
-      console.error("[toggle-user-status] auth ban error:", authErr);
-      throw new g.HttpError(400, "No se pudo actualizar el estado del usuario");
-    }
-
-    // SEC-M2: al desactivar, revocar sesiones/refresh tokens vigentes.
-    if (isActive === false) {
-      const { error: revokeErr } = await admin.rpc("revoke_user_sessions", {
-        _user_id: userId,
-      });
-      if (revokeErr) {
-        console.error("[toggle-user-status] revoke sessions:", revokeErr.message);
-      }
-    }
-
-    return { success: true, is_active: isActive };
+    const { setUserStatus } = await import("./server/userStatus.server");
+    return setUserStatus(admin, userId, isActive, expectedVersion);
   });

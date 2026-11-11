@@ -24,7 +24,7 @@ class LocalCiDatabaseTests(unittest.TestCase):
         root = Path(__file__).parents[2]
         self.assertEqual(ci.SOURCE_TREES, {
             "supabase/migrations": "3e3575f5ff6d509ecdd624ae7fc1772508b5dce6",
-            "drizzle/migrations": "5e901bd70653e8e84ec6ed899efbc87ecce92b8a",
+            "drizzle/migrations": "dc964afbbd8820e5ec8f6f961b5b328c119a3cbe",
         })
         migrations = root / "drizzle/migrations"
         journal = json.loads((migrations / "meta/_journal.json").read_text())

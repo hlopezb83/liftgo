@@ -1,5 +1,5 @@
 import { act, renderHook } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { useLiftgoTable } from "../useLiftgoTable";
 import type { ColumnDef } from "../types";
 
@@ -86,6 +86,42 @@ describe("useLiftgoTable · paginación", () => {
     rerender({ data: updated });
     expect(result.current.state.pagination.pageIndex).toBe(0);
     expect(result.current.getRowModel().rows[0]?.original.name).toBe("Nuevo registro");
+    rerender({ data: original });
+    expect(result.current.state.pagination.pageIndex).toBe(0);
+  });
+
+  it("con clave explícita conserva ediciones, ajusta la última página y reinicia por filtro", () => {
+    const toJSON = vi.fn();
+    const rows = makeRows(60).map((row) => ({ ...row, toJSON }));
+    const { result, rerender } = renderHook(
+      ({ data, key }: { data: Row[]; key: string }) => useLiftgoTable({
+        data, columns, getRowId, initialPageSize: 25, resetKey: key, paginationReset: "key",
+      }),
+      { initialProps: { data: rows, key: "a" } },
+    );
+    act(() => result.current.setPageIndex(2));
+    const edited = rows.map((row) => ({ ...row, name: `editado ${row.id}` }));
+    rerender({ data: edited, key: "a" });
+    expect(result.current.state.pagination.pageIndex).toBe(2);
+    expect(result.current.getRowModel().rows[0]?.original.name).toBe("editado 50");
+    rerender({ data: edited.slice(0, 40), key: "a" });
+    expect(result.current.state.pagination.pageIndex).toBe(1);
+    rerender({ data: edited, key: "b" });
+    expect(result.current.state.pagination.pageIndex).toBe(0);
+    expect(toJSON).not.toHaveBeenCalled();
+  });
+
+  it("no serializa filas de paginación remota ni listados sin paginar", () => {
+    const toJSON = vi.fn();
+    const rows = makeRows(60).map((row) => ({ ...row, toJSON }));
+    const { result, rerender } = renderHook(({ data, paginated }: { data: Row[]; paginated: boolean }) =>
+      useLiftgoTable({ data, columns, getRowId, paginated, ...(paginated ? { pageCount: 5, controlledPagination: { pageIndex: 2, pageSize: 25 } } : {}) }),
+    { initialProps: { data: rows, paginated: true } });
+    expect(result.current.state.pagination.pageIndex).toBe(2);
+    rerender({ data: rows.slice(0, 10), paginated: true });
+    expect(result.current.state.pagination.pageIndex).toBe(2);
+    rerender({ data: rows, paginated: false });
+    expect(toJSON).not.toHaveBeenCalled();
   });
 });
 

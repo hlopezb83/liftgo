@@ -54,6 +54,7 @@ export default function MaintenancePage() {
     reset,
     hasActive,
     filtered,
+    filterKey,
   } = useTableFilters<EnrichedMaintenanceLog, {
     q: { type: "text"; fields: (keyof EnrichedMaintenanceLog)[] };
     forklift: { type: "entityRef"; field: keyof EnrichedMaintenanceLog };
@@ -74,6 +75,8 @@ export default function MaintenancePage() {
     data: filtered,
     columns: maintenanceColumns,
     getRowId: (l) => l.id,
+    resetKey: `${filterKey}|${showArchived}`,
+    paginationReset: "key",
   });
 
   const isBoard = viewMode === "board";

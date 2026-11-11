@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import type { ComponentProps, ReactNode } from "react";
 import { render, screen, fireEvent, within, waitFor } from "@testing-library/react";
 import { TestRouter } from "@/test/router";
 import { describe, it, expect, vi, beforeEach } from "vitest";
@@ -36,9 +36,9 @@ const acceptedQuote = { ...quote, status: "accepted" } as unknown as Tables<"quo
 function renderActions(
   onSetStatus: (status: string) => void,
   quoteOverride: Tables<"quotes"> = quote,
-  extra: { alreadyConverted?: boolean; linkedBookingId?: string | null; isSale?: boolean; draftInvoiceId?: string | null; canInvoice?: boolean } = {},
+  extra: Partial<ComponentProps<typeof QuoteDetailActions>> = {},
 ) {
-  render(
+  return render(
     <TestRouter>
       <QuoteDetailActions
         quote={quoteOverride}
@@ -49,6 +49,10 @@ function renderActions(
         isConverting={false}
         canInvoice={extra.canInvoice ?? false}
         draftInvoiceId={extra.draftInvoiceId}
+        bookingLinksStatus={extra.bookingLinksStatus ?? "ready"}
+        invoiceLinksStatus={extra.invoiceLinksStatus ?? "ready"}
+        retryBookingLinks={extra.retryBookingLinks ?? vi.fn()}
+        retryInvoiceLinks={extra.retryInvoiceLinks ?? vi.fn()}
         onSetStatus={onSetStatus}
         onConvertClick={vi.fn()}
         onDelete={vi.fn()}
@@ -82,12 +86,25 @@ describe("QuoteDetailActions - permisos de Facturas", () => {
         <TestRouter>
           <QuoteDetailActions quote={sale} isSale alreadyConverted={false} alreadyInvoiced={false}
             isConverting={false} canInvoice draftInvoiceId="inv-1" onSetStatus={vi.fn()}
+            bookingLinksStatus="ready" invoiceLinksStatus="ready" retryBookingLinks={vi.fn()} retryInvoiceLinks={vi.fn()}
             onConvertClick={vi.fn()} onDelete={vi.fn()} />
         </TestRouter>,
       );
       expect(screen.queryByRole("button", { name: "Continuar factura" })).not.toBeInTheDocument();
       view.unmount();
     }
+  });
+
+  it("espera vínculos de facturas y ofrece reintentar la consulta fallida", async () => {
+    const pending = renderActions(vi.fn(), sale, { isSale: true, canInvoice: true, invoiceLinksStatus: "loading" });
+    expect(await screen.findByText("Verificando facturas…")).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Facturar" })).toBeNull();
+    pending.unmount();
+    const retry = vi.fn();
+    renderActions(vi.fn(), sale, { isSale: true, canInvoice: true, invoiceLinksStatus: "error", retryInvoiceLinks: retry });
+    fireEvent.click(await screen.findByRole("button", { name: "Reintentar consulta de facturas" }));
+    expect(retry).toHaveBeenCalledOnce();
+    expect(screen.queryByText("Ya facturada")).toBeNull();
   });
 });
 

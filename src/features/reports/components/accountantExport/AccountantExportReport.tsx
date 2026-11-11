@@ -1,16 +1,9 @@
-import { useLayoutEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
-import { useVerifiedOrganizationId } from "@/contexts/OrganizationContext";
-import { useHasFinancialAccess, useHasModuleAccess } from "@/features/users";
-import { toYMD } from "@/lib/format/dateFormats";
-import { useVerifiedIdentityScope } from "@/lib/query/useVerifiedIdentityScope";
-import { buildAccountantSheets } from "../../lib/accountantExport/buildSheets";
-import { downloadAccountantExport } from "../../lib/accountantExport/downloadExport";
-import { fetchAccountantData } from "../../lib/accountantExport/fetchData";
-import type { ExportOptions, Sections } from "../../lib/accountantExport/model";
+import { useAccountantExport } from "../../hooks/accountantExport/useAccountantExport";
+import type { Sections } from "../../lib/accountantExport/model";
 
 const LABELS: Record<keyof Sections, string> = {
   sales: "Ventas, notas de crédito, cobros y REP asociados",
@@ -18,75 +11,14 @@ const LABELS: Record<keyof Sections, string> = {
   expenses: "Gastos operativos legados con empresa verificada",
 };
 
-function isValidRange(start: string, end: string) {
-  return /^\d{4}-\d{2}-\d{2}$/.test(start) && /^\d{4}-\d{2}-\d{2}$/.test(end) && start <= end;
-}
-
 export function AccountantExportReport({ startDate, endDate }: { startDate: Date; endDate: Date }) {
-  const financial = useHasFinancialAccess();
-  const reports = useHasModuleAccess("Reportes", "read");
-  const sales = useHasModuleAccess("Facturas", "read");
-  const purchases = useHasModuleAccess("Facturas de Proveedor", "read");
-  const expenses = useHasModuleAccess("Gastos", "read");
-  const organizationId = useVerifiedOrganizationId();
-  const identity = useVerifiedIdentityScope();
-  const [selected, setSelected] = useState<Sections>({ sales: true, purchases: true, expenses: true });
-  const [includeDrafts, setIncludeDrafts] = useState(false);
-  const [includeTest, setIncludeTest] = useState(false);
-  const [includeDocuments, setIncludeDocuments] = useState(false);
-  const [packageStatus, setPackageStatus] = useState<string | null>(null);
-  const [progress, setProgress] = useState<string | null>(null);
-  const [busy, setBusy] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const controller = useRef<AbortController | null>(null);
-  const permissions = { sales, purchases, expenses };
-  const start = toYMD(startDate); const end = toYMD(endDate);
-  const contextKey = JSON.stringify([identity, organizationId, financial, reports, permissions, selected, includeDrafts, includeTest, includeDocuments, start, end]);
-  const latestKey = useRef(contextKey);
-  const epoch = useRef(0);
-  useLayoutEffect(() => {
-    epoch.current += 1;
-    latestKey.current = contextKey;
-    controller.current?.abort();
-    controller.current = null;
-    return () => { controller.current?.abort(); };
-  }, [contextKey]);
-  const validRange = isValidRange(start, end);
-  const canExport = financial && reports && !!identity && !!organizationId && validRange &&
-    (Object.keys(permissions) as (keyof Sections)[]).some((key) => permissions[key] && selected[key]);
+  const {
+    canAccess, start, end, selected, setSelected, permissions,
+    includeDrafts, setIncludeDrafts, includeTest, setIncludeTest, includeDocuments, setIncludeDocuments,
+    validRange, canExport, busy, packageStatus, error, progress, download, cancel,
+  } = useAccountantExport(startDate, endDate);
 
-  const download = async () => {
-    if (!canExport || !organizationId || controller.current) return;
-    const abort = new AbortController(); controller.current = abort;
-    abort.signal.addEventListener("abort", () => {
-      if (controller.current === abort) { controller.current = null; setBusy(false); }
-    }, { once: true });
-    const key = contextKey;
-    const generation = epoch.current;
-    const isCurrent = () => !abort.signal.aborted && epoch.current === generation && latestKey.current === key;
-    const options: ExportOptions = { organizationId, start, end, includeDrafts, includeTest, includeDocuments,
-      sections: { sales: sales && selected.sales, purchases: purchases && selected.purchases, expenses: expenses && selected.expenses } };
-    setBusy(true); setError(null); setPackageStatus(null); setProgress(null);
-    try {
-      const data = await fetchAccountantData(options, permissions, abort.signal);
-      if (!isCurrent()) return;
-      const { fetchCompanyData } = await import("@/lib/pdf/shared");
-      const { company } = await fetchCompanyData();
-      if (!isCurrent()) return;
-      const sheets = buildAccountantSheets(options, data, company, permissions);
-      const message = await downloadAccountantExport(options, data, sheets, abort.signal, isCurrent, (done, total) => {
-        if (isCurrent()) setProgress(`${done} de ${total} archivos revisados`);
-      });
-      if (isCurrent()) setPackageStatus(message);
-
-    } catch (cause) {
-      if (isCurrent()) setError(cause instanceof Error ? cause.message : "No se pudo completar la exportación. Vuelve a intentarlo.");
-    } finally {
-      if (controller.current === abort) { controller.current = null; setBusy(false); }
-    }
-  };
-
-  if (!financial || !reports) return <p role="alert">No tienes permiso para exportar reportes financieros.</p>;
+  if (!canAccess) return <p role="alert">No tienes permiso para exportar reportes financieros.</p>;
   return <Card>
     <CardHeader><CardTitle>Exportar para contador</CardTitle></CardHeader>
     <CardContent className="space-y-4">
@@ -106,7 +38,7 @@ export function AccountantExportReport({ startDate, endDate }: { startDate: Date
       <ExportFeedback validRange={validRange} packageStatus={packageStatus} error={error} />
       <div className="flex flex-wrap gap-2">
         <Button onClick={download} disabled={!canExport || busy}>{busy ? "Preparando exportación…" : includeDocuments ? "Descargar paquete para contador" : "Descargar Excel para contador"}</Button>
-        {busy && <Button variant="outline" onClick={() => { epoch.current += 1; controller.current?.abort(); controller.current = null; setBusy(false); }}>Cancelar exportación</Button>}
+        {busy && <Button variant="outline" onClick={cancel}>Cancelar exportación</Button>}
       </div>
       {busy && <p role="status" aria-live="polite" className="text-sm">{progress ?? "Consultando todas las páginas autorizadas."} Cambiar empresa, permisos o fechas cancela la descarga.</p>}
     </CardContent>

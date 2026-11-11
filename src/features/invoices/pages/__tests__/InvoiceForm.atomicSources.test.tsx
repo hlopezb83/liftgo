@@ -9,7 +9,7 @@ vi.mock("@/lib/router-compat", () => ({ useParams: () => ({ id: state.isEdit ? "
 vi.mock("@/hooks/useNavigateTransition", () => ({ useNavigateTransition: () => state.navigate }));
 vi.mock("@/hooks/useUnsavedChangesGuard", () => ({ useUnsavedChangesGuard: () => undefined }));
 vi.mock("@/lib/ui/appFeedback", () => ({ notifySuccess: state.success }));
-vi.mock("../../hooks/useDamagePrefill", () => ({ useDamagePrefill: () => undefined }));
+vi.mock("../../hooks/useDamagePrefill", () => ({ useDamagePrefill: () => ({ block: null, isLoading: false, retry: vi.fn() }) }));
 vi.mock("../../hooks/useInvoiceFormLogic", async () => {
   const { useForm } = await import("react-hook-form");
   const { buildEmptyInvoiceValues } = await import("../../lib/invoiceFormSchema");

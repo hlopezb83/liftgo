@@ -39,3 +39,13 @@ CREATE POLICY fixture_tenant ON public.booking_extensions FOR SELECT TO authenti
 CREATE POLICY fixture_tenant ON public.return_inspections FOR SELECT TO authenticated USING (organization_id = (SELECT public.current_internal_organization_id()));
 GRANT SELECT ON public.forklifts, public.bookings, public.invoices, public.invoice_bookings,
   public.booking_extensions, public.return_inspections TO authenticated;
+
+-- Projection columns used by the actual cash-flow and invoice coverage reads.
+CREATE TABLE public.customers(id uuid PRIMARY KEY, tax_rate numeric, name text, deleted_at timestamptz);
+GRANT SELECT ON public.customers TO authenticated;
+ALTER TABLE public.forklifts ADD COLUMN monthly_rate numeric;
+ALTER TABLE public.bookings ADD COLUMN monthly_rate numeric, ADD COLUMN currency text,
+  ADD COLUMN tipo_cambio numeric, ADD COLUMN last_billed_date date, ADD COLUMN recurring_billing boolean;
+ALTER TABLE public.invoices ADD COLUMN cfdi_status text, ADD COLUMN cfdi_uuid uuid,
+  ADD COLUMN cancellation_status text;
+ALTER TABLE public.invoice_bookings ADD COLUMN organization_id uuid;

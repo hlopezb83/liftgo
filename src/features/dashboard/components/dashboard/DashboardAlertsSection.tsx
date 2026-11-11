@@ -1,8 +1,11 @@
+import { QueryErrorState } from "@/components/feedback/QueryErrorState";
+import { Skeleton } from "@/components/ui/skeleton";
 import { AlertsRow } from "./AlertsRow";
 import { CollectionForecast } from "./CollectionForecast";
 import { ExpiringContractsAlert } from "./ExpiringContractsAlert";
 import { InsuranceAlert } from "./InsuranceAlert";
-import type { ComponentProps } from "react";
+import type { DashboardAlertState } from "../../lib/dashboardSectionHelpers";
+import type { ComponentProps, ReactNode } from "react";
 
 type AlertsRowProps = ComponentProps<typeof AlertsRow>;
 type CollectionForecastProps = ComponentProps<typeof CollectionForecast>;
@@ -14,24 +17,37 @@ interface DashboardAlertsSectionProps {
   maintenanceAlerts: AlertsRowProps["maintenanceAlerts"];
   agingBuckets: AlertsRowProps["agingBuckets"];
   overdueBookings: AlertsRowProps["overdueBookings"];
-  upcomingInvoices: CollectionForecastProps["upcomingInvoices"];
+  collectionForecast: DashboardAlertState<NonNullable<CollectionForecastProps["upcomingInvoices"]>>;
   expiringContracts: ExpiringContractsAlertProps["contracts"];
-  insuranceData: InsuranceAlertProps["data"];
+  insuranceAlert: DashboardAlertState<NonNullable<InsuranceAlertProps["data"]>>;
   pendingDeliveriesCount?: number;
-  /** GUI-FE-05 (G-VEN-05/06): roles sin acceso a Facturas no ven widgets
-   *  ni links de cobranza (evita "Sin permisos" y toast Forbidden). */
-  canSeeFinancials?: boolean;
   canManageInvoices: boolean;
   canManageReturns: boolean;
   canManageMaintenance: boolean;
 }
 
+function AlertQuery<T>({ state, entity, children }: {
+  state: DashboardAlertState<T>;
+  entity: string;
+  children: (data: T) => ReactNode;
+}) {
+  switch (state.status) {
+    case "hidden":
+      return null;
+    case "loading":
+      return <div role="status"><span className="sr-only">Cargando {entity}…</span><Skeleton className="h-24 rounded-xl" /></div>;
+    case "error":
+      return <QueryErrorState entity={entity} error={state.error} onRetry={state.onRetry} isRetrying={state.isRetrying} />;
+    case "ready":
+      return children(state.data);
+  }
+}
+
 export function DashboardAlertsSection(props: DashboardAlertsSectionProps) {
-  const showFinancials = props.canSeeFinancials ?? true;
   return (
     <div className="flex flex-col gap-4">
       <AlertsRow
-        overdueInvoices={showFinancials ? props.overdueInvoices : []}
+        overdueInvoices={props.overdueInvoices}
         maintenanceAlerts={props.maintenanceAlerts}
         agingBuckets={props.agingBuckets}
         overdueBookings={props.overdueBookings}
@@ -40,11 +56,13 @@ export function DashboardAlertsSection(props: DashboardAlertsSectionProps) {
         canManageReturns={props.canManageReturns}
         canManageMaintenance={props.canManageMaintenance}
       />
-      {showFinancials && (
-        <CollectionForecast overdueInvoices={props.overdueInvoices} upcomingInvoices={props.upcomingInvoices} />
-      )}
+      <AlertQuery state={props.collectionForecast} entity="la previsión de cobranza">
+        {(upcomingInvoices) => <CollectionForecast overdueInvoices={props.overdueInvoices} upcomingInvoices={upcomingInvoices} />}
+      </AlertQuery>
       <ExpiringContractsAlert contracts={props.expiringContracts} />
-      <InsuranceAlert data={props.insuranceData} />
+      <AlertQuery state={props.insuranceAlert} entity="las alertas de seguros">
+        {(data) => <InsuranceAlert data={data} />}
+      </AlertQuery>
     </div>
   );
 }

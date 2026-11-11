@@ -28,6 +28,7 @@ vi.mock("@/lib/ui/appFeedback", () => ({
 }));
 
 import { useStampCfdi } from "../useStampCfdi";
+import { invoiceKeys } from "../../../../lib/queryKeys";
 
 const INVOICE_ID = "inv-1";
 
@@ -70,6 +71,25 @@ describe("useStampCfdi", () => {
     expect(notifyInfo).toHaveBeenCalledTimes(1);
     expect(notifySuccess).not.toHaveBeenCalled();
     expect(notifyError).not.toHaveBeenCalled();
+  });
+
+  it("actualiza el detalle cuando el backend solicita conciliación después del PAC", async () => {
+    const appFeedback = await import("@/lib/ui/appFeedback");
+    vi.mocked(appFeedback.notifyInfo).mockClear();
+    vi.mocked(appFeedback.notifySuccess).mockClear();
+    const context = Response.json({
+      error: "No se pudo confirmar el registro",
+      code: "STAMP_RECOVERY_REQUIRED",
+    }, { status: 503 });
+    stampResp = { data: null, error: Object.assign(new Error("Edge error"), { context }) };
+    const { Wrapper, queryClient } = createQueryWrapper();
+    const invalidate = vi.spyOn(queryClient, "invalidateQueries");
+    const { result } = renderHook(() => useStampCfdi(), { wrapper: Wrapper });
+    result.current.mutate(INVOICE_ID);
+    await waitFor(() => expect(result.current.isError).toBe(true));
+    expect(invalidate).toHaveBeenCalledWith({ queryKey: invoiceKeys.detail(INVOICE_ID) });
+    expect(appFeedback.notifyInfo).toHaveBeenCalledOnce();
+    expect(appFeedback.notifySuccess).not.toHaveBeenCalled();
   });
 
   it("propaga error de transporte (functions.invoke error)", async () => {

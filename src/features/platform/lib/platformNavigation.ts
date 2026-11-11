@@ -37,8 +37,6 @@ export function platformEntryDestination(
   pathname: string,
   search = "",
 ): string | null {
-  if (pathname === "/settings/organizations") return "/platform/organizations";
-  if (pathname === "/settings/catalogs") return "/platform/catalogs";
   if (
     pathname === "/" &&
     new URLSearchParams(search).get("workspace") !== "organization"

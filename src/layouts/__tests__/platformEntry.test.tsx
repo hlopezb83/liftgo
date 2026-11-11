@@ -1,20 +1,22 @@
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { ReactNode } from "react";
 
 const state = vi.hoisted(() => ({
   path: "/", search: "", role: "admin", roleLoading: false,
+  roleError: false, refetchRole: vi.fn(), memberType: "internal" as "internal" | "portal",
   operator: { data: true as boolean | undefined, isPending: false, isError: false, refetch: vi.fn() },
   organizationMounted: vi.fn(),
 }));
 vi.mock("@/contexts/AuthContext", () => ({ useAuth: () => ({ user: { id: "user" }, isLoading: false }) }));
 vi.mock("@/features/users", () => ({
-  useUserRole: () => ({ data: state.role, isLoading: state.roleLoading }),
+  useUserRole: () => ({ data: state.roleError ? undefined : state.role, isLoading: state.roleLoading, isError: state.roleError, refetch: state.refetchRole }),
   AuthSnapshotSync: () => null,
 }));
 vi.mock("@/contexts/OrganizationContext", () => ({
   OrganizationGate: ({ children }: { children: ReactNode }) => <section data-testid="organization-gate">{children}</section>,
   OrganizationProvider: ({ children }: { children: ReactNode }) => { state.organizationMounted(); return children; },
+  useOrganizationContext: () => ({ status: "ready", memberType: state.memberType }),
 }));
 vi.mock("@/features/auth/hooks/useRecoveryStatus", () => ({ useRecoveryStatus: () => "idle" }));
 vi.mock("@/features/platform", async () => {
@@ -31,6 +33,7 @@ import { WorkspaceProviders } from "../WorkspaceProviders";
 describe("árboles de empresa y plataforma", () => {
   beforeEach(() => {
     state.path = "/"; state.search = ""; state.role = "admin"; state.roleLoading = false;
+    state.roleError = false; state.memberType = "internal"; state.refetchRole.mockClear();
     state.operator = { data: true, isPending: false, isError: false, refetch: vi.fn() };
     state.organizationMounted.mockClear();
   });
@@ -49,9 +52,29 @@ describe("árboles de empresa y plataforma", () => {
     state.operator.data = false;
     const view = render(<AuthGuard><p>ERP</p></AuthGuard>);
     expect(screen.getByTestId("organization-gate")).toBeInTheDocument();
-    state.role = "customer";
+    state.memberType = "portal";
     view.rerender(<AuthGuard><p>ERP</p></AuthGuard>);
     expect(screen.getByText("Destino: /portal")).toBeInTheDocument();
+  });
+  it("preserva el portal de un miembro verificado aunque falle la consulta de rol", () => {
+    state.path = "/portal/invoices";
+    state.roleError = true;
+    state.memberType = "portal";
+    const view = render(<AuthGuard><p>Portal</p></AuthGuard>);
+    expect(screen.getByText("Portal")).toBeInTheDocument();
+    expect(screen.queryByText("Destino: /")).not.toBeInTheDocument();
+    state.path = "/maintenance";
+    view.rerender(<AuthGuard><p>ERP</p></AuthGuard>);
+    expect(screen.getByText("Destino: /portal")).toBeInTheDocument();
+    expect(screen.queryByText("ERP")).not.toBeInTheDocument();
+  });
+  it("permite reintentar un error de rol empresarial sin montar el ERP", () => {
+    state.path = "/maintenance";
+    state.roleError = true;
+    render(<AuthGuard><p>ERP</p></AuthGuard>);
+    expect(screen.queryByText("ERP")).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Reintentar" }));
+    expect(state.refetchRole).toHaveBeenCalledOnce();
   });
   it.each(["/platform", "/platform/login", "/platform/catalogs"])("%s no monta contexto empresarial", (path) => {
     state.path = path;

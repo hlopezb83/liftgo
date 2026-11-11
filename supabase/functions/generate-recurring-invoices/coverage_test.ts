@@ -130,6 +130,7 @@ Deno.test("fingerprint: reopening prior coverage invalidates still-future select
   );
   assertEquals(before.lines.map((line) => line.periodStart), ["2026-12-01"]);
   november.cancellation_status = "accepted";
+  november.occupies_booking_period = false;
   const after = await buildPlan(
     mock.client,
     "org-A",

@@ -67,13 +67,12 @@ export function DataTableV2<T extends RowData>({
   if (isLoading) return <TableSkeleton columnCount={columnCount} rows={5} />;
 
   if (isTabletOrBelow && mobileCardRender) {
-    const items = rows.map((r) => r.original);
     return (
       <MobileCardList
-        items={items}
-        keyExtractor={(item) => rows.find((r) => r.original === item)?.id ?? ""}
+        items={rows}
+        keyExtractor={(row) => row.id}
         emptyMessage={emptyMessage}
-        renderCard={mobileCardRender}
+        renderCard={(row) => mobileCardRender(row.original)}
       />
     );
   }

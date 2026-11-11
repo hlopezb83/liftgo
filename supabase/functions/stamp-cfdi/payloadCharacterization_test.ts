@@ -32,7 +32,12 @@ function fixture(invoice: Record<string, unknown>) {
       company_settings: { data: { facturapi_mode: "test" }, error: null },
       billing_secrets: { data: null, error: null },
     },
-    updatesSeq: { invoices: [{ data: { id: INVOICE_ID }, error: null }] },
+    updatesSeq: {
+      invoices: [
+        { data: { id: INVOICE_ID }, error: null },
+        { data: { id: INVOICE_ID }, error: null },
+      ],
+    },
   });
   return {
     service,

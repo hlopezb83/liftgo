@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { replacePlaceholders } from "@/lib/domain/templateUtils";
-import type { ContractData } from "@/lib/pdf/contract/fetchers";
+import type { ContractData } from "@/lib/pdf/contract/data";
 import { DEFAULT_PAGARE } from "@/lib/pdf/contract/data-templates";
 import { CONTRACT_PLACEHOLDERS } from "@/lib/pdf/contract/placeholderRegistry";
 import { buildPagareVars, buildPlaceholderVars } from "@/lib/pdf/contract/placeholders";

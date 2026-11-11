@@ -2,7 +2,7 @@
 import { differenceInDays, parseISO } from "date-fns";
 import { useInsuranceAlerts } from "@/features/fleet";
 import { useUpcomingInvoices } from "@/features/invoices";
-import { useHasFinancialAccess, useUserRole } from "@/features/users";
+import { hasFinancialAccess, useHasModuleAccess, useUserRole } from "@/features/users";
 import { toMxn } from "@/lib/money";
 import { nowMty } from "@/lib/utils";
 import {
@@ -16,6 +16,7 @@ import {
   mapCashFlow,
   buildFinancials,
   buildAlertsProps,
+  dashboardAlertState,
   computeUtilizationPercent,
   financialSectionState,
 } from "../../lib/dashboardSectionHelpers";
@@ -68,10 +69,16 @@ function computeAgingBuckets(
  * en `dashboardSectionHelpers` para mantener este hook declarativo.
  */
 /** Roles con acceso a KPIs financieros y a alertas de seguros (espejo de las RPC). */
-function dashboardAccess(role: string | null | undefined) {
+function dashboardAccess(
+  query: Pick<ReturnType<typeof useUserRole>, "data" | "isError" | "isLoading">,
+  canReadInvoices: boolean,
+) {
+  const role = query.isError || query.isLoading ? undefined : query.data;
   const canSeeFinancials = role === "admin" || role === "administrativo" || role === "auditor";
   return {
     canSeeFinancials,
+    canViewFinancialCharts: hasFinancialAccess(role),
+    canViewCollection: canSeeFinancials && canReadInvoices,
     // R6-FE-03: get_insurance_alerts admite además dispatcher/mechanic. Ventas queda fuera.
     canSeeInsuranceAlerts: canSeeFinancials || role === "dispatcher" || role === "mechanic",
   };
@@ -80,17 +87,17 @@ function dashboardAccess(role: string | null | undefined) {
 export function useDashboardSections() {
   const { data: stats, isLoading, isError, isFetching, refetch } = useDashboardStats();
   // R14-L: mismos roles que admite get_financial_kpis (20260725050634).
-  const { data: role } = useUserRole();
-  const canViewFinancialCharts = useHasFinancialAccess();
-  const { canSeeFinancials, canSeeInsuranceAlerts } = dashboardAccess(role);
+  const roleQuery = useUserRole();
+  const canReadInvoices = useHasModuleAccess("Facturas");
+  const { canSeeFinancials, canSeeInsuranceAlerts, canViewFinancialCharts, canViewCollection } = dashboardAccess(roleQuery, canReadInvoices);
   // Bug 6: exponer loading/error de los KPIs financieros — su query es
   // independiente de `useDashboardStats` y sin guard propio la sección
   // Finanzas renderizaba ceros falsos ($0) durante carga o fallo del RPC.
   const kpisQuery = useFinancialKpis(canSeeFinancials);
   const kpis = canSeeFinancials ? kpisQuery.data : undefined;
-  const { data: insuranceData } = useInsuranceAlerts(canSeeInsuranceAlerts);
+  const insuranceQuery = useInsuranceAlerts(canSeeInsuranceAlerts);
   // GUI-FE-05: ventas no consulta facturas (rol SELECT-only-denied → toast Forbidden).
-  const { data: upcomingInvoices } = useUpcomingInvoices(canSeeFinancials);
+  const upcomingInvoicesQuery = useUpcomingInvoices(canViewCollection);
 
   // La RPC cuenta toda la flota visible con la fecha de Monterrey y RLS por
   // empresa. Los listados de reservas y unidades tienen un límite de 500.
@@ -100,7 +107,7 @@ export function useDashboardSections() {
 
   // Do not reuse financial payloads cached by an earlier authorized session.
   const financialStats = canViewFinancialCharts ? stats : undefined;
-  const overdueInvoices = financialStats?.overdue_invoices ?? [];
+  const overdueInvoices = canViewCollection ? financialStats?.overdue_invoices ?? [] : [];
 
 
   return {
@@ -108,7 +115,8 @@ export function useDashboardSections() {
     isError,
     isFetching,
     refetch,
-    insuranceData,
+    insuranceAlert: dashboardAlertState(canSeeInsuranceAlerts, insuranceQuery),
+    collectionForecast: dashboardAlertState(canViewCollection, upcomingInvoicesQuery),
     utilizationPercent,
     overdueInvoices,
     canSeeFinancials,
@@ -126,11 +134,11 @@ export function useDashboardSections() {
     // Bug 6: la página decide skeleton/error para la sección Finanzas.
     financialsState: financialSectionState({
       isError: kpisQuery.isError,
-      isLoading: kpisQuery.isLoading,
+      isLoading: kpis === undefined,
     }),
     financialsIsFetching: kpisQuery.isFetching,
     refetchFinancials: kpisQuery.refetch,
     pendingDeliveriesCount: stats ? stats.pending_deliveries_count : 0,
-    alertsProps: buildAlertsProps(stats, canSeeFinancials ? upcomingInvoices : undefined, kpis),
+    alertsProps: buildAlertsProps(stats, kpis),
   };
 }

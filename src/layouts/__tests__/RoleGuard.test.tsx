@@ -1,13 +1,13 @@
 import { render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-const state = vi.hoisted(() => ({ role: "dispatcher", access: "none" }));
+const state = vi.hoisted(() => ({ role: "dispatcher", access: "none", hasPermissions: true }));
 
 vi.mock("@/features/users", () => ({
-  getAccessLevel: () => state.access,
+  getAccessLevel: (perms: unknown) => perms ? state.access : "none",
   hasFinancialAccess: (role: string) => role !== "dispatcher",
   useUserRole: () => ({ data: state.role, isLoading: false, isError: false }),
-  useRolePermissions: () => ({ data: {}, isLoading: false, isError: false }),
+  useRolePermissions: () => ({ data: state.hasPermissions ? {} : undefined, isLoading: false, isError: false }),
 }));
 
 vi.mock("@/layouts/NoAccess", () => ({
@@ -19,9 +19,17 @@ import { RoleGuard } from "@/layouts/RoleGuard";
 beforeEach(() => {
   state.role = "dispatcher";
   state.access = "none";
+  state.hasPermissions = true;
 });
 
 describe("RoleGuard (R6-B1)", () => {
+  it("no abre un módulo sin permisos efectivos", () => {
+    state.hasPermissions = false;
+    state.access = "full";
+    render(<RoleGuard module="Mantenimiento"><p>Contenido protegido</p></RoleGuard>);
+    expect(screen.queryByText("Contenido protegido")).not.toBeInTheDocument();
+    expect(screen.getByTestId("no-access")).toBeInTheDocument();
+  });
   it("fallback={null} → no renderiza NoAccess ni children", () => {
     const { container } = render(
       <RoleGuard module="invoices" minAccess="full" fallback={null}>

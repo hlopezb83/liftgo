@@ -65,25 +65,31 @@ Deno.test("terminal state: attempts >= max_attempts → exhausted", () => {
   assertEquals(decideTerminalStatus(4, 5), "pending");
 });
 
-// FIX-15: antes de re-timbrar, si la factura ya no está en pending|error o
-// ya tiene cfdi_uuid, el reintento debe tratarse como no-op exitoso.
-Deno.test("FIX-15: factura ya timbrada/cancelada -> no-op succeeded (no re-timbra)", () => {
+Deno.test("stamp retry distinguishes issuance, reconciliation, and terminal states", () => {
   assertEquals(
     decideStampRetry({ cfdi_status: "stamped", cfdi_uuid: "u1" }),
     "succeeded_noop_state",
   );
   assertEquals(
     decideStampRetry({ cfdi_status: "cancelled", cfdi_uuid: null }),
-    "succeeded_noop_state",
+    "rejected",
   );
-  assertEquals(decideStampRetry(null), "succeeded_noop_state");
+  assertEquals(decideStampRetry(null), "rejected");
+  assertEquals(decideStampRetry({ cfdi_status: "stamping" }), "defer");
+  assertEquals(
+    decideStampRetry({
+      cfdi_status: "stamping",
+      facturapi_invoice_id: "pac-1",
+    }),
+    "succeeded_recovery_handoff",
+  );
   assertEquals(
     decideStampRetry({
       cfdi_status: "error",
       cfdi_uuid: null,
       facturapi_invoice_id: "pac-1",
     }),
-    "succeeded_noop_state",
+    "rejected",
   );
   assertEquals(
     decideStampRetry({ cfdi_status: "error", cfdi_uuid: null }),

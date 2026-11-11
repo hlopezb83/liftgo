@@ -50,52 +50,56 @@ function resolveRentalMeta(
   return allItems[0]?._rentalMeta ?? [];
 }
 
-/**
- * Reservas y facturas ya generadas desde la cotización.
- * Fix 5.2: si la query falla, no hay certeza de que la cotización NO esté
- * convertida — se trata como "ya convertida" para bloquear el botón en vez
- * de habilitarlo por defecto (evita duplicados por fallas de red).
- */
+export type QuoteLinkStatus = "loading" | "error" | "ready";
+
+function linkStatus(query: { isError: boolean; data: unknown }): QuoteLinkStatus {
+  if (query.isError) return "error";
+  return query.data === undefined ? "loading" : "ready";
+}
+
 function useQuoteLinks(id: string | undefined) {
-  const { data: linkedBookings, isError: isBookingsError } = useQuery({
+  const bookings = useQuery({
     queryKey: bookingKeys.byFilter({ quote_id: id ?? "", exclude_cancelled: "1" }),
     enabled: !!id,
-    queryFn: async () => {
+    queryFn: async ({ signal }) => {
       // A3B-05: las reservas canceladas no cuentan como conversión vigente;
       // el RPC `convert_quote_to_bookings` permite reconvertir en ese caso.
       const { data, error } = await supabase
         .from("bookings")
         .select("id")
         .eq("quote_id", id ?? "")
-        .neq("status", "cancelled");
+        .neq("status", "cancelled").abortSignal(signal);
       if (error) throw error;
       return data || [];
     },
   });
 
 
-  const { data: linkedInvoices, isError: isInvoicesError } = useQuery({
+  const invoices = useQuery({
     queryKey: invoiceKeys.byFilter({ quote_id: id ?? "" }),
     enabled: !!id,
-    queryFn: async () => {
+    queryFn: async ({ signal }) => {
       const { data, error } = await supabase
         .from("invoices")
         .select("id,status")
-        .eq("quote_id", id ?? "");
+        .eq("quote_id", id ?? "").abortSignal(signal);
       if (error) throw error;
       return data || [];
     },
   });
 
+  const linkedBookings = bookings.data;
+  const linkedInvoices = invoices.data ?? [];
   return {
-    alreadyConverted: (linkedBookings?.length ?? 0) > 0 || isBookingsError,
-    // Ya está en memoria: no se agrega ninguna consulta nueva.
+    bookingLinksStatus: linkStatus(bookings), invoiceLinksStatus: linkStatus(invoices),
+    retryBookingLinks: () => { void bookings.refetch(); },
+    retryInvoiceLinks: () => { void invoices.refetch(); },
+    alreadyConverted: !!linkedBookings?.length,
     linkedBookingId: linkedBookings?.[0]?.id ?? null,
     // Bloque 3C: solo una factura EMITIDA bloquea el CTA. Un borrador sigue
     // siendo reanudable (se retoma en vez de crear un duplicado).
-    alreadyInvoiced: (linkedInvoices ?? []).some((i) => isIssuedInvoiceStatus(i.status)) || isInvoicesError,
-    draftInvoiceId:
-      (linkedInvoices ?? []).find((i) => (i.status ?? "draft") === "draft")?.id ?? null,
+    alreadyInvoiced: linkedInvoices.some((i) => isIssuedInvoiceStatus(i.status)),
+    draftInvoiceId: linkedInvoices.find((i) => (i.status ?? "draft") === "draft")?.id ?? null,
   };
 }
 
@@ -105,7 +109,7 @@ export function useQuoteDetailData(id: string | undefined) {
   const { data: forklifts } = useForklifts();
   const { data: equipmentModels } = useEquipmentModels();
 
-  const { alreadyConverted, linkedBookingId, alreadyInvoiced, draftInvoiceId } = useQuoteLinks(id);
+  const links = useQuoteLinks(id);
 
   const customerMatch = customers?.find((c) => c.id === quote?.customer_id);
   const quoteType = quote?.quote_type || "rental";
@@ -124,6 +128,6 @@ export function useQuoteDetailData(id: string | undefined) {
   return {
     quote, isLoading, isError, refetchQuote: refetch, customers, forklifts, equipmentModels,
     customerMatch, quoteType, isSale, lineItems, durationDays,
-    rentalMeta, isModelBasedQuote, unitCount, alreadyConverted, linkedBookingId, alreadyInvoiced, draftInvoiceId,
+    rentalMeta, isModelBasedQuote, unitCount, ...links,
   };
 }

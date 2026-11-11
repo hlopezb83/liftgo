@@ -1,6 +1,7 @@
 import type { Json } from "@/integrations/supabase/types";
 import type { LineItem } from "@/lib/domain/invoiceHelpers";
 import { parseLineItems } from "@/lib/domain/lineItems";
+import type { ConvertedBooking } from "./quoteConversionRpc";
 import type { DeliveryInfo } from "./useQuoteConversionState";
 
 export type Assignment = {
@@ -21,22 +22,20 @@ type CustomerLike = { id: string; address?: string | null };
 type ForkliftLike = { id: string; name: string };
 
 export function buildDeliveryInfos(
-  quote: QuoteLike,
+  bookings: ConvertedBooking[],
   customers: CustomerLike[] | undefined,
   forklifts: ForkliftLike[] | undefined,
-  forkliftIds: string[],
-  bookingIds: string[],
 ): DeliveryInfo[] {
-  const cust = customers?.find((c) => c.id === quote.customer_id);
-  return forkliftIds.map((fId, i) => {
-    const fl = forklifts?.find((f) => f.id === fId);
+  return bookings.map((booking) => {
+    const customer = customers?.find((item) => item.id === booking.customer_id);
+    const forklift = forklifts?.find((item) => item.id === booking.forklift_id);
     return {
-      bookingId: bookingIds[i],
-      forkliftId: fId,
-      forkliftName: fl?.name || "Montacargas",
-      startDate: quote.start_date ?? "",
-      endDate: quote.end_date ?? "",
-      customerAddress: cust?.address || null,
+      bookingId: booking.booking_id,
+      forkliftId: booking.forklift_id,
+      forkliftName: forklift?.name || "Montacargas",
+      startDate: booking.start_date,
+      endDate: booking.end_date,
+      customerAddress: customer?.address || null,
     };
   });
 }

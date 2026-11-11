@@ -11,26 +11,42 @@ export function optimizationParityCases(): Array<{
 }> {
   const cases = [];
   const states = [
-    { status: "draft", cfdi_status: null },
-    { status: "cancelled", cfdi_status: null },
-    { status: "cancelled", cfdi_status: "stamping" },
+    { status: "draft", cfdi_status: null, occupies_booking_period: true },
+    { status: "cancelled", cfdi_status: null, occupies_booking_period: false },
+    {
+      status: "cancelled",
+      cfdi_status: "stamping",
+      occupies_booking_period: true,
+    },
     {
       status: "cancelled",
       cfdi_status: "stamped",
       cancellation_status: "pending",
+      occupies_booking_period: true,
     },
     {
       status: "cancelled",
       cfdi_status: "stamped",
       cancellation_status: "rejected",
+      occupies_booking_period: true,
     },
     {
       status: "cancelled",
       cfdi_uuid: "synthetic",
       cancellation_status: "accepted",
+      occupies_booking_period: false,
     },
-    { status: "pending", cfdi_status: "cancelled" },
-    { status: "pending", cfdi_uuid: "synthetic", cancellation_status: null },
+    {
+      status: "pending",
+      cfdi_status: "cancelled",
+      occupies_booking_period: false,
+    },
+    {
+      status: "pending",
+      cfdi_uuid: "synthetic",
+      cancellation_status: null,
+      occupies_booking_period: true,
+    },
   ];
   for (let index = 0; index < 192; index++) {
     const state = states[index % states.length];

@@ -18,6 +18,7 @@ import { useInvoiceBookingPeriods } from "../invoiceForm/useInvoiceBookingPeriod
 
 const invoice = (id: number) => ({
   id: `invoice-${id}`, booking_id: `booking-${id}`, status: "draft", moneda: "USD",
+  occupies_booking_period: true,
   billing_period_start: "2026-10-01", billing_period_end: "2026-10-31",
   line_items: [{ line_kind: "rental", description: "Renta ficticia íntegra", quantity: 1, unit_price: 1234.56,
     total: 1234.56, tax_rate: 16, clave_prod_serv: "72141700", clave_unidad: "E48", objeto_imp: "02" }],
@@ -33,7 +34,7 @@ function context() {
 }
 function scopedTransport(response: unknown, status = 200) {
   transport.mockImplementation(async (input: string, init: RequestInit) => {
-    expect(new URL(input).pathname).toBe("/rest/v1/rpc/get_invoice_booking_billing_evidence");
+    expect(new URL(input).pathname).toBe("/rest/v1/rpc/get_invoice_booking_billing_evidence_v2");
     expect(init.signal).toBeInstanceOf(AbortSignal);
     return new Response(JSON.stringify(response), { status, headers: { "Content-Type": "application/json" } });
   });

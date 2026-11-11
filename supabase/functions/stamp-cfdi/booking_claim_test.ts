@@ -75,7 +75,8 @@ Deno.test("booking guard claim rejection stops before PAC without compensating w
     );
     assertEquals(response.status, 409);
     assertEquals(await response.json(), {
-      error: "Invoice already stamped or in progress",
+      error: "La factura ya no cumple las condiciones para timbrarse.",
+      stamp_outcome: { kind: "rejected" },
     });
     assertEquals(gatewayCalls, 0);
     assertEquals(pac.calls, []);
@@ -85,8 +86,11 @@ Deno.test("booking guard claim rejection stops before PAC without compensating w
       patch: { cfdi_status: "stamping" },
       filters: [
         { col: "id", val: invoiceId },
+        { col: "organization_id", val: organizationId },
         { col: "cfdi_status", val: ["pending", "error"] },
         { col: "cfdi_uuid", val: null },
+        { col: "facturapi_invoice_id", val: null },
+        { col: "status", val: "cancelled" },
       ],
     }]);
     assertEquals(service.inserts, []);

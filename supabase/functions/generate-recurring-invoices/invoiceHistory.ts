@@ -7,20 +7,12 @@ export type HistoricalInvoice = {
   cfdi_status: string | null;
   cfdi_uuid?: string | null;
   cancellation_status?: string | null;
+  occupies_booking_period: boolean;
   // Optional legacy input only; planning never reads invoice line-item payloads.
   line_items?: unknown;
 };
 
-/** Pending fiscal cancellation/stamping continues to occupy its period. */
-function isActive(invoice: HistoricalInvoice): boolean {
-  if (invoice.cfdi_status === "stamping") return true;
-  if (invoice.cfdi_status === "stamped" || invoice.cfdi_uuid) {
-    return invoice.cancellation_status !== "accepted";
-  }
-  return invoice.status !== "cancelled" && invoice.cfdi_status !== "cancelled";
-}
-
-/** A draft with no CFDI status still occupies its billing period. */
+/** PostgreSQL classifies the period before the planner merges direct and linked rows. */
 export function mergeLiveInvoiceHistory(
   linked: Array<{ invoices: HistoricalInvoice | null }>,
   direct: HistoricalInvoice[],
@@ -28,16 +20,12 @@ export function mergeLiveInvoiceHistory(
   const history = new Map<string, HistoricalInvoice>();
   for (const row of linked) {
     const invoice = row.invoices;
-    if (
-      invoice && isActive(invoice)
-    ) {
+    if (invoice?.occupies_booking_period) {
       history.set(invoice.id, invoice);
     }
   }
   for (const invoice of direct) {
-    if (
-      isActive(invoice)
-    ) {
+    if (invoice.occupies_booking_period) {
       history.set(invoice.id, invoice);
     }
   }

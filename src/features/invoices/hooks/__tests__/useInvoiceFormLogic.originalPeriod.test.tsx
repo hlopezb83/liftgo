@@ -5,7 +5,8 @@ const state = vi.hoisted(() => ({ bookings: [] as unknown[], claims: [] as unkno
 vi.mock("../invoices/useInvoiceBookingCandidates", () => ({ useInvoiceBookingCandidates: () => ({ isSuccess: state.candidatesReady, isError: state.candidatesError, data: state.bookings, refetch: state.refetch }) }));
 vi.mock("@/features/customers", async () => ({
   ...await vi.importActual("@/features/customers/lib/customerTaxRate"), useCustomers: () => ({ data: [] }) }));
-vi.mock("@/features/fleet", () => ({ useForklifts: () => ({ data: [] }), useQuoteAssignments: () => ({ data: [] }) }));
+vi.mock("@/features/fleet", () => ({ useQuoteAssignments: () => ({ data: [] }) }));
+vi.mock("../invoiceForm/useInvoiceRentalEquipment", () => ({ useInvoiceRentalEquipment: () => ({ data: [], refetch: state.refetch }) }));
 vi.mock("@/features/quotes", () => ({ useQuote: () => ({ data: undefined }), useQuotesByIds: () => ({ data: [] }), useQuoteSaleAssignmentStatus: () => ({ isComplete: true }) }));
 vi.mock("@/hooks/useInitialRecordVersion", () => ({ useInitialRecordVersion: () => 1 }));
 vi.mock("../invoices/useInvoices", () => ({ useInvoice: () => ({ data: state.existing }) }));

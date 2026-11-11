@@ -1,0 +1,7 @@
+{
+  "description": "Protege los borradores de facturas y cobros y hace más confiable la conversión de cotizaciones y la conciliación fiscal.",
+  "changes": [
+    "Unifica la cobertura de periodos y comprueba los equipos de cada renta.",
+    "Corrige rutas, caché y estados del tablero, y añade contratos PostgreSQL al CI."
+  ]
+}

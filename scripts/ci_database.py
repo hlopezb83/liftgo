@@ -68,10 +68,13 @@ START_EXCLUDES = {
 # 0135–0136 add tenant-scoped read RPCs and extend the existing dashboard
 # aggregate. The functions keep invoker RLS; new grants are authenticated-only.
 # No data writes, HTTP or cron operations. Earlier SQL is byte-identical.
+# 0137–0138 add an invoker conversion wrapper and share the fiscal coverage
+# predicate across reads and existing guards. Installation has no business DML
+# or cron changes. The schema notification only refreshes PostgREST metadata.
 # Any subsequent history change requires explicit source review.
 SOURCE_TREES = {
     "supabase/migrations": "3e3575f5ff6d509ecdd624ae7fc1772508b5dce6",
-    "drizzle/migrations": "5e901bd70653e8e84ec6ed899efbc87ecce92b8a",
+    "drizzle/migrations": "dc964afbbd8820e5ec8f6f961b5b328c119a3cbe",
 }
 HTTP_SOURCES = {
     "20260721000000_retry_queue_cron.sql": "2aecccd0758961f41769d9fed522d03df14937650b9dde80fce47646a1fa6887",

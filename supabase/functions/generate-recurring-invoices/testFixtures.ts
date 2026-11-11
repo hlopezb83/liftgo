@@ -36,6 +36,7 @@ export function invoiceFixture(
     billing_period_end: "2026-06-30",
     status: "draft",
     cfdi_status: null,
+    occupies_booking_period: true,
     line_items: [],
     ...overrides,
   };

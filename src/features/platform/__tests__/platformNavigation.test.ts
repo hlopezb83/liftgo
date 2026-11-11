@@ -44,12 +44,6 @@ describe("entrada y destinos de plataforma", () => {
     expect(isPlatformPath("/portal")).toBe(false);
     expect(platformEntryDestination("/", "?workspace=organization")).toBeNull();
     expect(platformEntryDestination("/")).toBe("/platform");
-    expect(platformEntryDestination("/settings/organizations")).toBe(
-      "/platform/organizations",
-    );
-    expect(platformEntryDestination("/settings/catalogs")).toBe(
-      "/platform/catalogs",
-    );
     expect(platformEntryDestination("/bookings")).toBeNull();
     expect(platformEntryDestination("/portal")).toBeNull();
   });

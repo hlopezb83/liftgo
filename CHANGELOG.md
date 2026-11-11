@@ -1,3 +1,9 @@
+## [8.52.13] - 2026-11-10
+
+- Protege las partidas y el origen de los borradores de facturas y cobros. Unifica la cobertura de periodos con la facturación recurrente.
+- Convierte cotizaciones y reasigna su cliente en una sola transacción. Distingue timbrado, conciliación y reintentos pendientes.
+- Corrige la restauración de sesión, las rutas de Plataforma y portal, los estados del tablero y la paginación. Añade pruebas de PostgreSQL al CI.
+
 ## [8.52.12] - 2026-11-10
 
 - Pagina las reservas de facturación y consulta solo el historial relevante. Aísla los cálculos del editor y refresca las listas en segundo plano al guardar.

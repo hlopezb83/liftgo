@@ -49,6 +49,72 @@ Deno.test("queue handler: factura recuperada guardada antes de cerrar la cola, s
   assert.deepEqual(f.calls(), { lookups: 1, invocations: 0 });
 });
 
+const stampReplyCases = [
+  {
+    http: 409,
+    body: { error: "Invoice already stamped or in progress" },
+    queue: "pending",
+    result: "stamp_recovery_pending",
+  },
+  {
+    http: 409,
+    body: { stamp_outcome: { kind: "in_progress" } },
+    queue: "pending",
+    result: "stamp_recovery_pending",
+  },
+  {
+    http: 503,
+    body: {
+      stamp_outcome: { kind: "recovery_required", reference: "unconfirmed" },
+    },
+    queue: "pending",
+    result: "stamp_recovery_pending",
+  },
+  {
+    http: 202,
+    body: { code: "PAC_PENDING" },
+    queue: "pending",
+    result: "stamp_recovery_pending",
+  },
+  {
+    http: 202,
+    body: { stamp_outcome: { kind: "recovery_required", reference: "saved" } },
+    queue: "succeeded",
+    result: "succeeded_recovery_handoff",
+  },
+  {
+    http: 409,
+    body: {
+      stamp_outcome: {
+        kind: "already_issued",
+        cfdi_uuid: "55555555-5555-4555-8555-555555555555",
+      },
+    },
+    queue: "succeeded",
+    result: "succeeded",
+  },
+  {
+    http: 409,
+    body: { stamp_outcome: { kind: "rejected" } },
+    queue: "exhausted",
+    result: "exhausted",
+  },
+];
+
+for (const { http, body, queue, result } of stampReplyCases) {
+  Deno.test(`queue handler: stamp reply ${http} ${JSON.stringify(body)} → ${queue}`, async () => {
+    const f = fixture();
+    f.deps.lookup = () => Promise.resolve({ kind: "miss" });
+    f.deps.fetch = () => Promise.resolve(Response.json(body, { status: http }));
+    const response = await f.run();
+    assert.equal(response.results[0].status, result);
+    assert.equal(f.tables.cfdi_retry_queue[0].status, queue);
+    if (queue === "pending") {
+      assert.equal(f.tables.cfdi_retry_queue[0].attempts, 2);
+    }
+  });
+}
+
 Deno.test("queue handler: fallo al guardar recuperación no cierra la cola ni consume intento", async () => {
   const f = fixture();
   f.failQuery((query) => query.table === "invoices" && !!query.patch);

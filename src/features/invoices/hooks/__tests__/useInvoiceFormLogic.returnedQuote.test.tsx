@@ -35,7 +35,11 @@ vi.mock("@/features/bookings", async () => ({
 vi.mock("@/features/customers", async () => ({
   ...await vi.importActual("@/features/customers/lib/customerTaxRate"), useCustomers: () => ({ data: data.customers }), useCustomer: () => ({ ...data.customerDetail, refetch: data.refetch }) }));
 vi.mock("@/features/fleet", () => ({
-  useForklifts: () => ({ data: data.forklifts }), useQuoteAssignments: () => ({ data: data.empty }),
+  useQuoteAssignments: () => ({ data: data.empty }),
+}));
+vi.mock("../invoiceForm/useInvoiceRentalEquipment", async (original) => ({
+  ...await original<typeof import("../invoiceForm/useInvoiceRentalEquipment")>(),
+  useInvoiceRentalEquipment: () => ({ data: data.forklifts, loadForIds: async () => data.forklifts, refetch: data.refetch }),
 }));
 vi.mock("@/features/quotes", async () => ({
   ...await vi.importActual<typeof import("@/features/quotes")>("@/features/quotes"),

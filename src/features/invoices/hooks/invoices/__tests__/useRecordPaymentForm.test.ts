@@ -73,11 +73,31 @@ describe("useRecordPaymentForm", () => {
     expect(result.current.amount).toBe("1234.50");
   });
 
-  it("rerender con open=true y nuevo balance refresca amount", () => {
-    const { result, rerender } = renderForm({ balance: 100 });
-    expect(result.current.amount).toBe("100.00");
-    rerender({ open: true, balance: 250, ppdStamped: false, invoiceId: "inv-1", onOpenChange: vi.fn() });
-    expect(result.current.amount).toBe("250.00");
+  it("conserva la captura y valida con el saldo nuevo mientras el diálogo sigue abierto", async () => {
+    const { result, rerender } = renderForm({ balance: 100, invoiceCurrency: "USD", invoiceExchangeRate: 17 });
+    act(() => {
+      result.current.setExchangeRate("17.5");
+      result.current.setReference("REF-1");
+      result.current.setAmount("80");
+    });
+    const refreshed = { open: true, balance: 50, ppdStamped: false, invoiceId: "inv-1", invoiceCurrency: "USD",
+      invoiceExchangeRate: 18, onOpenChange: vi.fn() };
+    rerender(refreshed);
+    expect(result.current).toMatchObject({ amount: "80", reference: "REF-1", exchangeRate: "17.5", isDirty: true, exceedsBalance: true });
+    await act(async () => { await result.current.handleSubmit(); });
+    expect(createPaymentMutate).not.toHaveBeenCalled();
+    rerender({ ...refreshed, open: false });
+    rerender(refreshed);
+    expect(result.current).toMatchObject({ amount: "50.00", reference: "", exchangeRate: "18", isDirty: false, exceedsBalance: false });
+  });
+
+  it("protege una edición del tipo de cambio aunque sea el único campo cambiado", () => {
+    const { result } = renderForm({ invoiceCurrency: "USD", invoiceExchangeRate: 17 });
+    expect(result.current.isDirty).toBe(false);
+    act(() => result.current.setExchangeRate("17.5"));
+    expect(result.current.isDirty).toBe(true);
+    act(() => result.current.setExchangeRate("17"));
+    expect(result.current.isDirty).toBe(false);
   });
 
   it("cambiar method sincroniza paymentFormSat vía satCodeForMethod", () => {

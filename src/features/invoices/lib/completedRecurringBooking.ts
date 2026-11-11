@@ -1,8 +1,8 @@
 import { formatMtyDate } from "@/lib/utils";
+import { bookingClaimOccupiesPeriod, type BookingInvoiceClaim, type InvoiceClaimIndex } from "./originalBookingPeriod";
 import { pendingRecurringPeriod } from "./pendingRecurringPeriod";
 import { verifiedRecurringCoverage } from "./verifiedRecurringCoverage";
 import type { BillableBooking } from "./bookingCompatibility";
-import type { BookingInvoiceClaim, InvoiceClaimIndex } from "./originalBookingPeriod";
 
 export interface ReturnBillingEvidence { booking_id: string; forklift_id: string; inspected_at: string }
 const returnError = "No se pudo verificar la devolución efectiva de una reserva recurrente. Revisa su inspección de devolución antes de facturar.";
@@ -10,10 +10,10 @@ const returnError = "No se pudo verificar la devolución efectiva de una reserva
 const lateHistoryError = "Hay días posteriores al contrato pendientes de revisión: sus facturas históricas contienen cargos o partidas sin atribución inequívoca al equipo. Concilia esos cargos antes de facturar la renta tardía; no se consideran pagados.";
 
 function unambiguousRentalHistory(bookingId: string, claims: BookingInvoiceClaim[], claimsByInvoice?: InvoiceClaimIndex): boolean {
-  const active = claims.filter((claim) => claim.status !== "cancelled");
+  const active = claims.filter(bookingClaimOccupiesPeriod);
   return active.filter((claim) => claim.booking_id === bookingId).every((claim) => {
     const invoiceClaims = claimsByInvoice?.get(claim.invoice_id) ?? active;
-    if (invoiceClaims.some((other) => other.status !== "cancelled" && other.invoice_id === claim.invoice_id && other.booking_id !== bookingId)) return false;
+    if (invoiceClaims.some((other) => bookingClaimOccupiesPeriod(other) && other.invoice_id === claim.invoice_id && other.booking_id !== bookingId)) return false;
     return Array.isArray(claim.line_items) && claim.line_items.length > 0
       && claim.line_items.every((line: unknown) => typeof line === "object" && line !== null && "line_kind" in line && line.line_kind === "rental");
   });

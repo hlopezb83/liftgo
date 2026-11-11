@@ -24,7 +24,7 @@ export default function Dashboard() {
   const canManageReturns = useHasModuleAccess("Entregas", "full");
   const canManageMaintenance = useHasModuleAccess("Mantenimiento", "full");
   const {
-    isLoading, isError, isFetching, refetch, insuranceData,
+    isLoading, isError, isFetching, refetch, insuranceAlert, collectionForecast,
     statCards, utilizationPercent,
     pieData, agingBuckets, maintenanceAlerts,
     monthlyUtilization, revenuePerUnit, cashFlowData,
@@ -120,9 +120,9 @@ export default function Dashboard() {
               overdueInvoices={overdueInvoices}
               maintenanceAlerts={maintenanceAlerts}
               agingBuckets={agingBuckets}
-              insuranceData={insuranceData}
+              insuranceAlert={insuranceAlert}
+              collectionForecast={collectionForecast}
               pendingDeliveriesCount={pendingDeliveriesCount}
-              canSeeFinancials={canSeeFinancials}
               canManageInvoices={canManageInvoices}
               canManageReturns={canManageReturns}
               canManageMaintenance={canManageMaintenance}

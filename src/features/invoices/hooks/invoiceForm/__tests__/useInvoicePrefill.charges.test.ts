@@ -26,4 +26,23 @@ describe("delayed invoice quote prefill", () => {
     rerender({ available: structuredClone(availability) });
     expect(result.current.getValues("lineItems")).toHaveLength(2);
   });
+
+  it("does not overwrite an explicitly changed receiver while waiting for the quote", async () => {
+    const { result, rerender } = renderHook(({ loaded }: { loaded: boolean }) => {
+      const form = useForm<InvoiceFormValues>({ defaultValues: buildEmptyInvoiceValues() });
+      const prefill = useInvoicePrefill({ form, existing: undefined, requestedQuoteId: q,
+        sourceQuote: loaded ? { ...quote, version: 2 } : undefined, assignments: [], forklifts: [], customers: [], isEdit: false,
+        chargeAvailability: loaded ? availability : undefined });
+      return { form, ...prefill };
+    }, { initialProps: { loaded: false } });
+    act(() => {
+      result.current.form.setValue("customerId", "manual-customer", { shouldDirty: true });
+      result.current.form.setValue("customerId", "", { shouldDirty: true });
+    });
+    rerender({ loaded: true });
+    await waitFor(() => expect(result.current.quoteChargePrefillError).toMatch(/Cambiaste el receptor/));
+    expect(result.current.sourceQuoteVersion).toBeNull();
+    expect(result.current.form.getValues("customerId")).toBe("");
+    expect(result.current.form.getValues("lineItems")).toEqual([]);
+  });
 });

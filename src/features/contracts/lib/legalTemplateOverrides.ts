@@ -1,10 +1,6 @@
-export interface LegalTemplateOverrides {
-  city: string;
-  jurisdiction: string;
-  legal_representative: string;
-  witness_1: string;
-  witness_2: string;
-}
+import type { LegalTemplateOverrides } from "@/lib/domain/contractTypes";
+
+export type { LegalTemplateOverrides } from "@/lib/domain/contractTypes";
 
 export const EMPTY_LEGAL_TEMPLATE_OVERRIDES: LegalTemplateOverrides = {
   city: "",
