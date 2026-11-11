@@ -14,6 +14,7 @@ import { formatDateMty } from "@/lib/format/dateFormats";
 import { formatCurrency } from "@/lib/format/formatCurrency";
 import { useLocation } from "@/lib/router-compat";
 // hasReachedListLimit ya no es necesario: paginación real vía useInvoicesInfinite.
+import { InvoiceFiscalBadge } from "../components/InvoiceStatusBadges";
 import { InvoiceMobileCard } from "../components/list/InvoiceMobileCard";
 import { InvoicesActionsBar, InvoicesFiltersBar } from "../components/list/InvoicesToolbar";
 import RecurringInvoiceDialogs from "../components/recurring/RecurringInvoiceDialogs";
@@ -40,8 +41,10 @@ const invoiceColumns: ColumnDef<Invoice>[] = [
             </span>
           );
         } },
-      { id: "status", header: "Estado", accessorKey: "status",
+      { id: "status", header: "Cobro", accessorKey: "status",
         cell: ({ row }) => <StatusBadge status={row.original.status} /> },
+      { id: "cfdi_status", header: "CFDI", enableSorting: false,
+        cell: ({ row }) => <InvoiceFiscalBadge cfdiStatus={row.original.cfdi_status} cancellationStatus={row.original.cancellation_status} /> },
       { id: "issued_at", header: "Emitida", accessorKey: "issued_at",
         cell: ({ row }) => <span className="text-sm text-muted-foreground">{formatDateMty(row.original.issued_at)}</span> },
       { id: "due_date", header: "Vencimiento", accessorFn: (i) => i.due_date,
@@ -54,7 +57,7 @@ export default function InvoicesPage() {
   const location = useLocation();
   const {
     search, setSearch, statusFilter, setStatusFilter, cfdiFilter, setCfdiFilter,
-    dateRange, setDateRange, queryFilters, filterKey, hasActive, clearAll,
+    dateRange, setDateRange, queryFilters, filterKey, hasActive, clearAll, activeFilterLabels,
   } = useInvoicesFilters();
 
   const tableViewState = useTableViewState(undefined, [{ id: "invoice_number", desc: true }]);
@@ -150,13 +153,14 @@ export default function InvoicesPage() {
         })}
         onRowPrefetch={(inv) => invoiceQueries.detail(inv.id)}
         hasMoreRows={!!hasNextPage}
+        activeFilterLabels={activeFilterLabels}
         hasActiveFilters={hasActive}
         onClearFilters={clearAll}
         emptyMessage="No se encontraron facturas"
         emptyIcon={InvoiceIcon}
         emptyActionLabel={canCreate ? "Nueva factura" : undefined}
         onEmptyAction={canCreate ? () => navigate("/invoices/new") : undefined}
-        skeletonColumns={7}
+        skeletonColumns={8}
         mobileCardRender={(inv) => <InvoiceMobileCard inv={inv} />}
       />
       {canCreate && <RecurringInvoiceDialogs opening={recurringOpening} />}

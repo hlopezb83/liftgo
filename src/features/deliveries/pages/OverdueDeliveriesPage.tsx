@@ -28,6 +28,15 @@ const TYPE_OPTIONS = [
   { value: "return", label: "Devolución" },
 ];
 
+function overdueFilterLabels(values: { q: string; status: string; type: string }): string[] {
+  return [
+    "Vista: Transportes atrasados",
+    ...(values.q ? [`Búsqueda: ${values.q}`] : []),
+    ...(values.status !== "all" ? [`Estado: ${STATUS_OPTIONS.find((option) => option.value === values.status)?.label ?? values.status}`] : []),
+    ...(values.type !== "all" ? [`Tipo: ${TYPE_OPTIONS.find((option) => option.value === values.type)?.label ?? values.type}`] : []),
+  ];
+}
+
 export function OverdueDeliveriesPage() {
   const navigate = useNavigateTransition();
   const { values, set, reset, hasActive } = useTableFilters<OverdueDeliveryItem, {
@@ -86,8 +95,9 @@ export function OverdueDeliveriesPage() {
       rowAction={{ columnId: "delivery_number", label: (row) => `Ver transporte ${row.delivery_number}`, to: (row) => `/deliveries/${row.id}` }}
       onRowClick={(row) => navigate(`/deliveries/${row.id}`)}
       onRowPrefetch={(row) => deliveryQueries.detail(row.id)}
+      activeFilterLabels={overdueFilterLabels(values)}
       hasActiveFilters={hasActive}
-      onClearFilters={reset}
+      onClearFilters={hasActive ? reset : undefined}
       emptyMessage="No hay transportes atrasados"
       emptyActionLabel="Ver todos los transportes"
       onEmptyAction={() => navigate("/deliveries")}

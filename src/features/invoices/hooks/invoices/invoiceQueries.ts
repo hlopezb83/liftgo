@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
 import { todayKeyMty } from "@/lib/format/dateFormats";
 import { e2eVisibilityFilter, LIST_FETCH_LIMIT, LIST_PAGE_LIMIT } from "@/lib/supabase/constants";
+import { invoiceFiscalQueryFilter } from "../../lib/invoiceFiscalStatus";
 import {
   createInvoiceListFilters,
   createInvoiceListQueryKey,
@@ -39,7 +40,7 @@ const INVOICE_COLUMNS = sel(
 // Sin `cfdi_xml` ni `line_items`. Suficiente para render de listas + filtros.
 // Consumidores que necesiten esos campos deben cargar el detalle por id.
 const INVOICE_LIST_FIELDS = [
-  "id", "invoice_number", "customer_name", "status", "total", "moneda", "issued_at", "due_date",
+  "id", "invoice_number", "customer_name", "status", "cfdi_status", "cancellation_status", "total", "moneda", "issued_at", "due_date",
 ] as const satisfies readonly (keyof InvoiceRow)[];
 const INVOICE_LIST_COLUMNS = INVOICE_LIST_FIELDS.join(", ");
 const INVOICE_EXPORT_COLUMNS = `${INVOICE_LIST_COLUMNS}, tipo_cambio`;
@@ -63,7 +64,11 @@ function baseInvoiceQuery(normalized: InvoiceListFilters, columns = INVOICE_LIST
   } else if (normalized.status !== "all") {
     q = q.eq("status", normalized.status);
   }
-  if (normalized.cfdi !== "all") q = q.eq("cfdi_status", normalized.cfdi);
+  if (normalized.cfdi !== "all") {
+    const fiscal = invoiceFiscalQueryFilter(normalized.cfdi);
+    if (fiscal.equals) q = q.eq(...fiscal.equals);
+    for (const condition of fiscal.anyOf) q = q.or(condition);
+  }
   if (normalized.from) q = q.gte("issued_at", normalized.from);
   if (normalized.to) q = q.lte("issued_at", normalized.to);
   const search = sanitizeInvoiceSearchForQuery(normalized.search);

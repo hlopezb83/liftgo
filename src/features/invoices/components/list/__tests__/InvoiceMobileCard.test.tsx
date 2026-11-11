@@ -6,7 +6,7 @@ import { InvoiceMobileCard, type InvoiceCardItem } from "../InvoiceMobileCard";
 
 const invoice: InvoiceCardItem = {
   id: "inv-1", invoice_number: "FAC-0001", customer_name: "Constructora Regia",
-  status: "sent", issued_at: "2026-09-01", due_date: "2026-09-30", total: 20300, moneda: "USD",
+  status: "partial", cfdi_status: "stamped", cancellation_status: "none", issued_at: "2026-09-01", due_date: "2026-09-30", total: 20300, moneda: "USD",
 };
 
 describe("InvoiceMobileCard", () => {
@@ -31,6 +31,8 @@ describe("InvoiceMobileCard", () => {
     expect(link).toHaveAttribute("href", "/invoices/inv-1");
     expect(link).toHaveTextContent("20,300.00");
     expect(link).toHaveTextContent("USD");
+    expect(link).toHaveTextContent("Cobro:Parcial");
+    expect(link).toHaveTextContent("CFDI:Timbrada");
     expect(link).toHaveTextContent("01/09/2026");
     expect(link).toHaveTextContent("30/09/2026");
   });

@@ -11,7 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea";
 import { PAYMENT_METHODS } from "@/features/invoices/lib/paymentMethods";
 import { FORMA_PAGO, MONEDA } from "@/lib/domain/satCatalogs";
-import { formatCurrency } from "@/lib/format/formatCurrency";
+import { formatCurrencyWithCode } from "@/lib/format/formatCurrency";
 import { nowMty } from "@/lib/utils";
 import { useRecordPaymentForm } from "../../hooks/invoices/useRecordPaymentForm";
 
@@ -72,7 +72,7 @@ export function RecordPaymentDialog({ open, onOpenChange, invoiceId, balance, in
                 className="pl-7"
               />
             </div>
-            <p className="text-xs text-muted-foreground mt-1">Saldo pendiente: {formatCurrency(balance)}</p>
+            <p className="text-xs text-muted-foreground mt-1">Saldo pendiente: {formatCurrencyWithCode(balance, lockedCurrency)} {lockedCurrency}</p>
             {amountBlock && <BlockedActionNotice block={amountBlock} className="mt-2" />}
           </div>
           <DatePickerField

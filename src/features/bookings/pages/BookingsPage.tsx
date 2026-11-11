@@ -10,14 +10,14 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Untranslated } from "@/components/ui/Untranslated";
 import { usePageActions } from "@/contexts/pageActions";
 import { useUserRole } from "@/features/users";
-import { useTableFilters } from "@/hooks/filters/useTableFilters";
 import { useTableViewState } from "@/hooks/filters/useTableViewState";
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import { BOOKING_STATUSES, STATUS_LABELS } from "@/lib/constants";
 import { Link } from "@/lib/router-compat-ui";
-import { visibleListRows } from "@/lib/supabase/constants";
+import { hasReachedListLimit } from "@/lib/supabase/constants";
 import { formatMtyDate } from "@/lib/utils";
 import { RecurringBillingBadge } from "../components/bookings/RecurringBillingBadge";
+import { useBookingListView } from "../hooks/bookings/useBookingListView";
 import { useBookings, bookingQueries } from "../hooks/bookings/useBookings";
 import { rentalDaysInclusive } from "../lib/rentalDays";
 
@@ -36,9 +36,17 @@ const getDuration = (start: string, end: string) => {
 
 
 
+function activeBookingFilters(values: { q: string; status: string; view: string }): string[] {
+  return [
+    ...(values.view === "upcoming" ? ["Vista: Próximas reservas"] : []),
+    ...(values.q ? [`Búsqueda: ${values.q}`] : []),
+    ...(values.status !== "all" ? [`Estado: ${STATUS_LABELS[values.status] ?? values.status}`] : []),
+  ];
+}
+
 export default function BookingsPage() {
-  const { data: bookingsRaw, isLoading, isError, refetch } = useBookings();
-  const bookings = visibleListRows(bookingsRaw);
+  const { values, set, filtered, filterKey, hasActive, reset, query, upcoming, setView } = useBookingListView();
+  const { data: bookingsRaw, isLoading, isError, refetch } = query;
   const navigate = useNavigateTransition();
   const { data: role } = useUserRole();
   const isAdmin = role === "admin";
@@ -94,18 +102,7 @@ export default function BookingsPage() {
     },
   ];
 
-  const { values, set, filtered, filterKey, hasActive, reset } = useTableFilters<Booking, {
-    q: { type: "text"; fields: (keyof Booking)[] };
-    status: { type: "enum"; field: keyof Booking; options: readonly BookingStatus[] };
-  }>({
-    items: bookings ?? [],
-    facets: {
-      q: { type: "text", fields: ["customer_name", "booking_number"] as (keyof Booking)[] },
-      status: { type: "enum", field: "status", options: STATUSES },
-    },
-  });
-
-  const tableViewState = useTableViewState(filtered.length);
+  const tableViewState = useTableViewState(filtered.length, upcoming ? [{ id: "start_date", desc: false }] : []);
   const table = useLiftgoTable<Booking>({
     ...tableViewState,
     data: filtered,
@@ -119,10 +116,17 @@ export default function BookingsPage() {
       onRefresh={refetch}
       title="Reservas"
       subtitle="Administrar reservas de equipos"
-      totalCount={filtered.length}
+      totalCount={upcoming && hasReachedListLimit(bookingsRaw) ? undefined : filtered.length}
       actions={isAdmin ? <Button size="sm" onClick={() => navigate("/bookings/new")}><AddIcon className="h-4 w-4 mr-1" />Nueva reserva</Button> : undefined}
       notice={
-        <ListTruncationNotice rows={bookingsRaw} />
+        <div className="space-y-3">
+          <div role="group" aria-label="Vista de reservas" className="flex flex-wrap gap-2">
+            <Button variant={upcoming ? "outline" : "secondary"} size="sm" aria-pressed={!upcoming} onClick={() => setView("all")}>Todas las reservas</Button>
+            <Button variant={upcoming ? "secondary" : "outline"} size="sm" aria-pressed={upcoming} onClick={() => setView("upcoming")}>Próximas reservas</Button>
+          </div>
+          {upcoming && <p className="text-sm text-muted-foreground">Confirmadas con inicio desde hoy, ordenadas por fecha de inicio.</p>}
+          <ListTruncationNotice rows={bookingsRaw} />
+        </div>
       }
       search={
         <FiltersToolbar.Search
@@ -151,6 +155,7 @@ export default function BookingsPage() {
       rowAction={{ columnId: "booking_number", label: (b) => `Ver reserva ${b.booking_number}`, to: (b) => `/bookings/${b.id}` }}
       onRowClick={(b) => navigate(`/bookings/${b.id}`)}
       onRowPrefetch={(b) => bookingQueries.detail(b.id)}
+      activeFilterLabels={activeBookingFilters(values)}
       hasActiveFilters={hasActive}
       onClearFilters={reset}
       emptyMessage={isAdmin ? "No se encontraron reservas" : "No se encontraron reservas. Las reservas se crean convirtiendo una cotización aceptada."}

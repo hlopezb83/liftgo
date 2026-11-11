@@ -39,7 +39,7 @@ describe("InvoiceDetailBadges (R7 Bloque 11)", () => {
     expect(screen.getByText("Timbrada")).toBeInTheDocument();
   });
 
-  it("borrador tiene prioridad sobre estados fiscales", () => {
+  it("borrador conserva el estado fiscal independiente", () => {
     render(
       <InvoiceDetailBadges
         invoiceStatus="draft"
@@ -49,6 +49,7 @@ describe("InvoiceDetailBadges (R7 Bloque 11)", () => {
       />,
     );
     expect(screen.getByText("Borrador")).toBeInTheDocument();
+    expect(screen.getByText("Timbrando…")).toBeInTheDocument();
   });
 });
 

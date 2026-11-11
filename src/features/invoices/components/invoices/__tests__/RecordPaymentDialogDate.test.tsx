@@ -46,6 +46,16 @@ function submitForm(button: HTMLElement) {
 }
 
 describe("RecordPaymentDialog: current date capture is authoritative", () => {
+  it.each(["MXN", "USD"])("shows the pending balance in the locked invoice currency %s", (currency) => {
+    render(<RecordPaymentDialog {...props} balance={1234.56} invoiceCurrency={currency} invoiceExchangeRate={20} />);
+    const balance = screen.getByText(/Saldo pendiente:/);
+    expect(balance).toHaveTextContent("1,234.56");
+    expect(balance).toHaveTextContent(currency);
+    expect(screen.getByLabelText("Moneda")).toHaveTextContent(currency);
+    expect(mocks.create).not.toHaveBeenCalled();
+    expect(mocks.stamp).not.toHaveBeenCalled();
+  });
+
   it.each([
     ["impossible", "31022026", "31/02/2026 no existe"],
     ["partial before blur", "1509", "Captura una fecha válida para el pago."],

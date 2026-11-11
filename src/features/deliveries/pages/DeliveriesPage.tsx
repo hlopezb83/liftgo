@@ -17,6 +17,7 @@ import { DeliveryFormDialog } from "../components/deliveries/DeliveryFormDialog"
 import { DeliveryMobileCard } from "../components/deliveries/DeliveryMobileCard";
 import { useDeliveries, deliveryQueries } from "../hooks/useDeliveries";
 import { countOverdueDeliveries } from "../lib/deliveryOverdue";
+import { deliveryTypeLabel } from "../lib/deliveryTypeLabel";
 import { selectDeliveryHistory } from "../lib/historicalReconciliation";
 import { buildDeliveryColumns } from "./deliveryColumns";
 import { OverdueDeliveriesPage } from "./OverdueDeliveriesPage";
@@ -110,6 +111,8 @@ function DeliveriesList() {
           <ListTruncationNotice rows={deliveriesRaw} />
         </div>
       }
+      search={<FiltersToolbar.Search value={values.q} onChange={(v) => set("q", v)} placeholder="Buscar entregas…" className="w-full sm:w-64 sm:flex-none" />}
+      stackedControls
       filters={
         <FiltersToolbar>
           <FiltersToolbar.StatusSelect
@@ -117,11 +120,6 @@ function DeliveriesList() {
             onChange={(v) => set("history", v)}
             options={[{ value: "all", label: "Sin conciliación histórica" }, { value: "history", label: "Historial completo" }, { value: "reconciled", label: "Conciliadas históricamente" }]}
             placeholder="Vista de entregas"
-          />
-          <FiltersToolbar.Search
-            value={values.q}
-            onChange={(v) => set("q", v)}
-            placeholder="Buscar entregas…"
           />
           <FiltersToolbar.StatusTabs
             value={values.status}
@@ -145,6 +143,12 @@ function DeliveriesList() {
       rowAction={{ columnId: "delivery_number", label: (d) => `Ver transporte ${d.delivery_number}`, to: (d) => `/deliveries/${d.id}` }}
       onRowClick={(d) => navigate(`/deliveries/${d.id}`)}
       onRowPrefetch={(d) => deliveryQueries.detail(d.id)}
+      activeFilterLabels={[
+        ...(values.q ? [`Búsqueda: ${values.q}`] : []),
+        ...(values.status !== "all" ? [`Estado: ${STATUS_OPTIONS.find((option) => option.value === values.status)?.label ?? values.status}`] : []),
+        ...(values.type !== "all" ? [`Tipo: ${deliveryTypeLabel(values.type)}`] : []),
+        ...(values.history !== "all" ? [`Vista: ${values.history === "reconciled" ? "Conciliadas históricamente" : "Historial completo"}`] : []),
+      ]}
       hasActiveFilters={hasActive}
       onClearFilters={reset}
       emptyMessage="No hay entregas programadas"

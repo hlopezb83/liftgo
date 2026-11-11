@@ -1,6 +1,8 @@
 import { ReactNode, useState } from "react";
 import type { LiftgoTable, TableRowAction } from "@/components/dataTable/v2/types";
 import { type LucideIcon } from "@/components/icons";
+import { ActiveFilterSummary } from "@/components/layout/listPage/ActiveFilterSummary";
+import { focusListControls } from "@/components/layout/listPage/focusListControls";
 import { ListPageBody } from "@/components/layout/listPage/ListPageBody";
 import { ListPageControls } from "@/components/layout/listPage/ListPageControls";
 import { type LoadMoreProps } from "@/components/layout/listPage/LoadMoreFooter";
@@ -28,6 +30,8 @@ interface ListPageLayoutProps<T extends { id?: string }> {
   /** Separa búsqueda y facetas en escritorio; opt-in por listado. */
   stackedControls?: boolean;
   filters?: ReactNode;
+  /** Resumen visible de las facetas aplicadas, también fuera del panel móvil. */
+  activeFilterLabels?: string[];
   /**
    * N-01: aviso persistente (p.ej. truncamiento de lista). Se renderiza entre
    * el encabezado y los filtros, FUERA del Sheet de filtros móvil, para que
@@ -82,6 +86,7 @@ export function ListPageLayout<T extends { id?: string }>({
   search,
   stackedControls = false,
   filters,
+  activeFilterLabels,
   notice,
   isLoading,
   isError = false,
@@ -119,6 +124,9 @@ export function ListPageLayout<T extends { id?: string }>({
     <PageTransition>
       <div
         ref={sentinelRef}
+        role={activeFilterLabels ? "region" : undefined}
+        aria-label={activeFilterLabels ? `${title}: controles y resultados` : undefined}
+        tabIndex={activeFilterLabels ? -1 : undefined}
         className="p-4 sm:p-6 space-y-6"
       >
         <PullToRefreshIndicator
@@ -129,7 +137,7 @@ export function ListPageLayout<T extends { id?: string }>({
         />
         <PageHeader
           title={title}
-          subtitle={buildSubtitle(subtitle, totalCount)}
+          subtitle={buildSubtitle(subtitle, totalCount, isLoading, isError)}
           action={isMobile ? undefined : visibleActions}
         />
         {notice}
@@ -144,6 +152,7 @@ export function ListPageLayout<T extends { id?: string }>({
           filtersOpen={filtersOpen}
           onFiltersOpenChange={setFiltersOpen}
         />
+        <ActiveFilterSummary labels={activeFilterLabels} onClear={onClearFilters} onCleared={() => focusListControls(sentinelRef.current)} />
         <ListPageBody
           hasMoreRows={hasMoreRows}
           rowCount={rowCount}
@@ -180,8 +189,8 @@ function listPageItems<T extends { id?: string }>(table: LiftgoTable<T> | undefi
   return rows.map((row) => row.original);
 }
 
-function buildSubtitle(subtitle: string | undefined, totalCount: number | undefined): string | undefined {
-  if (totalCount === undefined) return subtitle;
-  const suffix = `${totalCount} resultado${totalCount !== 1 ? "s" : ""}`;
+function buildSubtitle(subtitle: string | undefined, totalCount: number | undefined, isLoading: boolean, isError: boolean): string | undefined {
+  if (isError || (!isLoading && totalCount === undefined)) return subtitle;
+  const suffix = isLoading ? "Cargando…" : `${totalCount} resultado${totalCount !== 1 ? "s" : ""}`;
   return subtitle ? `${subtitle} — ${suffix}` : suffix;
 }

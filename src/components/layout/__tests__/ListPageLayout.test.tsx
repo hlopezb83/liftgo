@@ -186,3 +186,29 @@ it("indica filtros activos en el botón móvil fuera del panel", async () => {
   expect(await screen.findByRole("button", { name: "Filtros activos" })).toBeInTheDocument();
   expect(screen.queryByRole("button", { name: "Filtros" })).toBeNull();
 });
+
+describe("ListPageLayout — counts and active filters", () => {
+  it.each([
+    [true, false, "Facturación — Cargando…"],
+    [false, true, "Facturación"],
+    [false, false, "Facturación — 0 resultados"],
+  ])("loading=%s error=%s never claims an unconfirmed zero", async (isLoading, isError, subtitle) => {
+    renderLayout({ subtitle: "Facturación", totalCount: 0, isLoading, isError });
+    expect(await screen.findByText(subtitle)).toBeVisible();
+    if (isLoading || isError) expect(screen.queryByText(/0 resultados/)).toBeNull();
+  });
+
+  it("shows named active filters and clears them without opening the mobile panel", async () => {
+    vi.mocked(useIsMobile).mockReturnValue(true);
+    const onClear = vi.fn();
+    renderLayout({
+      filters: <input aria-label="Faceta dentro del panel" />,
+      activeFilterLabels: ["Cobro: Parcial", "CFDI: Timbrada"], hasActiveFilters: true, onClearFilters: onClear,
+    });
+    expect(await screen.findByRole("list", { name: "Filtros activos" })).toHaveTextContent("Cobro: Parcial");
+    expect(screen.getByText("CFDI: Timbrada")).toBeVisible();
+    expect(screen.queryByRole("dialog")).toBeNull();
+    fireEvent.click(screen.getByRole("button", { name: "Limpiar filtros activos" }));
+    expect(onClear).toHaveBeenCalledOnce();
+  });
+});

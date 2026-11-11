@@ -1,9 +1,10 @@
 import { Buffer } from "node:buffer";
 import { readFileSync, readdirSync } from "node:fs";
 import { expect, type BrowserContext } from "@playwright/test";
+import { invoiceListFixtures } from "./invoiceListFixtures";
 
 const BACKEND = "http://127.0.0.1:54321";
-export type OfflineProfile = "dispatcher" | "portal" | "invoice";
+export type OfflineProfile = "dispatcher" | "portal" | "invoice" | "invoice-list" | "booking-list";
 
 const USER = "00000000-0000-4000-8000-000000000001";
 const ORG = "00000000-0000-4000-8000-000000000002";
@@ -29,6 +30,13 @@ const booking = {
   last_billed_date: null,
   is_e2e: false,
 };
+const bookingListFixtures = [
+  { booking_number: "QA-RES-101", status: "confirmed", start_date: "2000-01-01" },
+  { booking_number: "QA-RES-102", status: "confirmed", start_date: "2099-01-01" },
+  { booking_number: "QA-RES-103", status: "confirmed", start_date: "2099-01-02" },
+  { booking_number: "QA-RES-104", status: "completed", start_date: "2099-01-03" },
+  { booking_number: "QA-RES-105", status: "cancelled", start_date: "2099-01-04" },
+].map((item, index) => ({ ...booking, ...item, id: `00000000-0000-4000-8000-00000000010${index}`, end_date: "2099-01-31" }));
 const rows: Record<string, unknown[]> = {
   user_roles: [{ role: "dispatcher", user_id: USER }],
   role_permissions: [
@@ -240,7 +248,8 @@ export async function installOfflineDispatcher(
   const functions = authenticated
     ? serverFunctionIds(profile)
     : new Map<string, unknown>();
-  const activeRows = profile === "portal" ? portalRows : profile === "invoice" ? invoiceRows : rows;
+  const activeRows = profile === "booking-list" ? { ...rows, bookings: bookingListFixtures } : profile === "portal" ? portalRows : profile === "invoice-list"
+    ? { ...invoiceRows, invoices: invoiceListFixtures } : profile === "invoice" ? invoiceRows : rows;
   const unexpected: string[] = [];
   const observed = new Set<string>();
   const now = Math.floor(Date.now() / 1000);
@@ -399,6 +408,28 @@ export async function installOfflineDispatcher(
       // Unknown table reads are surfaced, not silently treated as empty success.
       if (!(table in activeRows)) return reject();
       let result = activeRows[table];
+      if (profile === "booking-list" && table === "bookings" && url.searchParams.has("start_date")) {
+        const from = url.searchParams.get("start_date")?.replace(/^gte\./, "") ?? "";
+        if (!/^\d{4}-\d{2}-\d{2}$/.test(from) || url.searchParams.getAll("status")[0] !== "in.(confirmed)" ||
+          url.searchParams.get("order") !== "start_date.asc,id.asc" || url.searchParams.get("limit") !== "501") return reject();
+        const status = url.searchParams.getAll("status").find((value) => value.startsWith("eq."))?.slice(3);
+        result = bookingListFixtures.filter((row) => row.start_date >= from && row.status === "confirmed" && (!status || row.status === status))
+          .sort((a, b) => a.start_date.localeCompare(b.start_date));
+      }
+      if (profile === "invoice-list" && table === "invoices") {
+        const ors = url.searchParams.getAll("or");
+        if (url.searchParams.get("cfdi_status") === "eq.stamped") {
+          if (!ors.includes("(cancellation_status.is.null,cancellation_status.not.in.(accepted,pending))")) return reject();
+          result = invoiceListFixtures.filter((row) => row.cfdi_status === "stamped" && !["accepted", "pending"].includes(row.cancellation_status ?? ""));
+        } else if (url.searchParams.get("cancellation_status") === "eq.pending") {
+          if (!ors.includes("(cfdi_status.is.null,cfdi_status.neq.cancelled)")) return reject();
+          result = invoiceListFixtures.filter((row) => row.cancellation_status === "pending" && row.cfdi_status !== "cancelled");
+        } else if (ors.includes("(cfdi_status.eq.cancelled,cancellation_status.eq.accepted)")) {
+          result = invoiceListFixtures.filter((row) => row.cfdi_status === "cancelled" || row.cancellation_status === "accepted");
+        } else if (url.searchParams.has("cfdi_status") || url.searchParams.has("cancellation_status") || ors.some((value) => /cfdi_status|cancellation_status/.test(value))) {
+          return reject();
+        }
+      }
       if (
         profile === "portal" &&
         table === "quotes" &&
