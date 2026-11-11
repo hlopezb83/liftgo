@@ -322,6 +322,14 @@ export async function installOfflineDispatcher(
     if (profile === "invoice") {
       // This RPC only previews the number; it never reserves/increments it.
       readRpcs.peek_next_draft_invoice_number = "QA-FAC-001";
+      if (url.pathname === "/rest/v1/rpc/get_invoice_booking_candidate_page" && method === "POST") {
+        const input = request.postDataJSON();
+        if (input?.p_expected_organization_id !== ORG || input.p_page !== 0 || input.p_page_size !== 50 ||
+          input.p_search !== "" || input.p_customer_id !== null || input.p_include_e2e !== false ||
+          !Array.isArray(input.p_linked_ids) || input.p_linked_ids.length !== 0) return reject();
+        observed.add(rpc);
+        return json({ rows: [], linked: [], hasMore: false, pageIndex: 0 });
+      }
     }
     if (profile === "portal" && method === "POST") {
       if (rpc === "get_portal_invoices_page") {

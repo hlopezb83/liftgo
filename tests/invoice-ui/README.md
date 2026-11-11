@@ -9,8 +9,9 @@ Todos los usuarios, clientes, empresas e importes son fixtures locales.
 El interceptor bloquea escrituras REST, funciones fiscales, RPC no enumerados,
 autenticación real, conexiones externas y websockets. Las funciones de servidor
 permitidas son las dos lecturas ya usadas por el carril móvil; los IDs se extraen
-del artefacto compilado actual. El RPC adicional `peek_next_draft_invoice_number`
-es sólo lectura. Nunca se pulsa un submit válido ni se persiste una factura.
+del artefacto compilado actual. `peek_next_draft_invoice_number` y la primera
+página vacía de `get_invoice_booking_candidate_page` son lecturas. Nunca se
+pulsa un submit válido ni se persiste una factura.
 
 ## Ejecución
 
