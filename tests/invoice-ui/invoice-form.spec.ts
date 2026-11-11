@@ -38,4 +38,5 @@ test("captura local de Nueva factura con datos ficticios", async ({ page, mockBa
   }
   expect(mockBackend.observed.has("organization_customers")).toBe(true);
   expect(mockBackend.observed.has("invoices")).toBe(true);
+  expect(mockBackend.observed.has("get_invoice_booking_candidate_page")).toBe(true);
 });
