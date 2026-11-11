@@ -90,7 +90,14 @@ describe("mobile offline fixture isolation", () => {
     expect(close).toHaveBeenCalledOnce();
   });
 
-  it("supplies nonempty synthetic rows and exactly the two compiled read functions", async () => {
+  const searchPath = "/rest/v1/rpc/get_global_search";
+  const searchInput = {
+    p_expected_organization_id: "00000000-0000-4000-8000-000000000002",
+    p_query: "facturas",
+    p_sections: ["customers", "bookings", "deliveries", "returns"],
+  };
+
+  it("supplies scoped synthetic reads and the two compiled server functions", async () => {
     const { state, request } = await fixture();
     const bookings = await request(`${BACKEND}/rest/v1/bookings`);
     expect(
@@ -105,6 +112,10 @@ describe("mobile offline fixture isolation", () => {
       );
       expect(fn.continue).not.toHaveBeenCalled();
     }
+    const result = await request(BACKEND + searchPath, "POST", {}, searchInput);
+    expect(JSON.parse(result.fulfill.mock.calls[0][0].body)).toMatchObject({ invoices: [], quotes: [] });
+    expect(state.observed.has("get_global_search")).toBe(true);
+    expect(result.fetch).not.toHaveBeenCalled();
     expect(state.observed.has("bookings")).toBe(true);
     expect(state.unexpected).toEqual([]);
   });
@@ -126,29 +137,6 @@ describe("mobile offline fixture isolation", () => {
     expect(result.continue).not.toHaveBeenCalled();
     expect(result.fulfill).not.toHaveBeenCalled();
     expect(state.unexpected).toEqual([`${method} ${new URL(url).pathname}`]);
-  });
-
-  const searchPath = "/rest/v1/rpc/get_global_search";
-  const searchInput = {
-    p_expected_organization_id: "00000000-0000-4000-8000-000000000002",
-    p_query: "facturas",
-    p_sections: ["customers", "bookings", "deliveries", "returns"],
-  };
-
-  it("fulfills scoped dispatcher searches without invoice or quote results", async () => {
-    const { state, request } = await fixture();
-    const result = await request(BACKEND + searchPath, "POST", {}, searchInput);
-    expect(JSON.parse(result.fulfill.mock.calls[0][0].body)).toEqual({
-      invoices: [],
-      quotes: [],
-      customers: [],
-      bookings: [],
-      deliveries: [],
-      returns: [],
-    });
-    expect(state.observed.has("get_global_search")).toBe(true);
-    expect(state.unexpected).toEqual([]);
-    expect(result.fetch).not.toHaveBeenCalled();
   });
 
   it.each([
