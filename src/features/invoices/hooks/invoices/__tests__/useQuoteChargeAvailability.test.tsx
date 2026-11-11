@@ -10,10 +10,21 @@ const invoiceId = "22222222-2222-4222-8222-222222222222";
 function setup(ids = [quoteId], currentInvoiceId?: string) {
   const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   const wrapper = ({ children }: { children: ReactNode }) => <QueryClientProvider client={client}>{children}</QueryClientProvider>;
-  return { ...renderHook(() => useQuoteChargeAvailability(ids, currentInvoiceId), { wrapper }), client };
+  return { ...renderHook(({ ids }) => useQuoteChargeAvailability(ids, currentInvoiceId), { wrapper, initialProps: { ids } }), client };
 }
 afterEach(() => vi.clearAllMocks());
 describe("useQuoteChargeAvailability", () => {
+  it("shares a completed selection read with the new observer and refreshes after invalidation", async () => {
+    rpc.mockResolvedValue({ data: { complete: true, quotes: [{ quote_id: quoteId, legacy_review_required: false, lines: [] }] }, error: null });
+    const { result, rerender, client } = setup([]);
+    await result.current.loadForQuotes([quoteId, quoteId]);
+    rerender({ ids: [quoteId] });
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+    expect(rpc).toHaveBeenCalledTimes(1);
+    await client.invalidateQueries();
+    expect(rpc).toHaveBeenCalledTimes(2);
+    client.clear();
+  });
   it("excludes the invoice being edited and never scans a capped historical invoice list", async () => {
     rpc.mockResolvedValue({ data: { complete: true, quotes: [{ quote_id: quoteId, legacy_review_required: false, lines: [] }] }, error: null });
     const { result, client } = setup([quoteId, quoteId], invoiceId);
