@@ -34,6 +34,7 @@ vi.mock("@/features/bookings", async () => {
   };
 });
 vi.mock("@/features/fleet", () => ({
+  EquipmentAvailabilityLookup: () => <button type="button">Consultar disponibilidad por fechas</button>,
   useForkliftMap: () => ({ forklifts: [fixture.forklift], forkliftMap: new Map(), isLoading: false, isError: false, isFetching: false, refetch: vi.fn() }),
 }));
 vi.mock("../../hooks/useMaintenanceWindows", () => ({

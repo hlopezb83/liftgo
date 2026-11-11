@@ -11,6 +11,7 @@ import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import { FORKLIFT_STATUSES, STATUS_LABELS } from "@/lib/constants";
 import { exportToCsv } from "@/lib/exportCsv";
 import { LIST_PAGE_LIMIT } from "@/lib/supabase/constants";
+import { EquipmentAvailabilityLookup } from "../components/fleet/EquipmentAvailabilityLookup";
 import { FleetExportAction, FleetPageActions, FleetPrimaryAction } from "../components/fleet/FleetPageActions";
 import { FleetMobileCard } from "../components/fleet/FleetRowAndCard";
 import { useFleetColumns } from "../hooks/fleet/useFleetColumns";
@@ -86,7 +87,10 @@ export default function FleetPage() {
     resetKey: filterKey,
   });
 
-  const notice = forkliftPages.hasNextPage ? <p className="text-xs text-muted-foreground">La búsqueda incluye los equipos cargados. Usa «Cargar más» para ampliar la lista; la exportación estará disponible al cargar todos.</p> : null;
+  const notice = <div className="space-y-2">
+    <EquipmentAvailabilityLookup equipment={forklifts} />
+    {forkliftPages.hasNextPage && <p className="text-xs text-muted-foreground">La búsqueda y la consulta de disponibilidad incluyen los equipos cargados. Usa «Cargar más» para ampliar la lista; la exportación estará disponible al cargar todos.</p>}
+  </div>;
 
   const filters = (
     <div className="space-y-3">

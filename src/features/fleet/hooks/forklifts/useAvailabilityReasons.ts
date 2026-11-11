@@ -7,7 +7,7 @@ import { forkliftKeys } from "../../lib/queryKeys";
 import { fetchAvailabilityReasons } from "./fetchAvailabilityReasons";
 import type { DateRange } from "react-day-picker";
 
-export function useAvailabilityReasons(dateRange: DateRange | undefined, open: boolean) {
+export function useAvailabilityReasons(dateRange: DateRange | undefined, open: boolean, forkliftId?: string) {
   const queryClient = useQueryClient();
   const { user } = useAuth();
   const organization = useOrganizationContext();
@@ -22,13 +22,13 @@ export function useAvailabilityReasons(dateRange: DateRange | undefined, open: b
   const query = useQuery({
     // Under lists(): existing booking, fleet, return and maintenance invalidations
     // refresh this evidence too. Identity and permissions are explicit key parts.
-    queryKey: forkliftKeys.list({ purpose: "availability-reasons", userId: user?.id, organizationId, start, end, canReadBookings }),
+    queryKey: forkliftKeys.list({ purpose: "availability-reasons", userId: user?.id, organizationId, forkliftId, start, end, canReadBookings }),
     enabled,
     staleTime: 0,
     refetchOnMount: "always",
     queryFn: ({ signal }) => {
       if (!allowed || !organizationId || !start || !end) throw new Error("Consulta de disponibilidad no autorizada");
-      return fetchAvailabilityReasons({ organizationId, start, end, canReadBookings, signal });
+      return fetchAvailabilityReasons({ organizationId, start, end, canReadBookings, signal, forkliftId });
     },
   });
   // Refresh both this explanation and the existing selectable-fleet query.

@@ -9,7 +9,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useServerTodayMty } from "@/features/availability";
 import { BOOKINGS_RANGE_LIMIT, useBookingsRange, type BookingWithForklift } from "@/features/bookings";
-import { useForkliftMap } from "@/features/fleet";
+import { EquipmentAvailabilityLookup, useForkliftMap } from "@/features/fleet";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { formatDateMty, formatDayMonthMty } from "@/lib/format/dateFormats";
 import { formatMonthLongEs } from "@/lib/format/formatMonthEs";
@@ -120,9 +120,10 @@ export default function CalendarPage() {
       <PageHeader
         title="Calendario de Disponibilidad"
         subtitle="Ver reservas de toda la flota"
+        actions={<EquipmentAvailabilityLookup equipment={forklifts ?? []} initialRange={{ from: rangeStart, to: rangeEnd }} />}
       />
       <p className="text-sm text-muted-foreground">
-        Un hueco en el calendario no confirma disponibilidad operativa. Revisa el estado del equipo y consulta los motivos en Nueva reserva antes de asignarlo; no fuerces el estado Rentado a Disponible.
+        Un hueco en el calendario no confirma disponibilidad operativa. Consulta el equipo y las fechas para conocer los motivos antes de asignarlo.
       </p>
       {summaryReady && <EndingSoonAlert items={endingSoon} forkliftMap={forkliftMap} />}
       {bookingsTruncated && (
