@@ -2,6 +2,7 @@ import { renderHook, act, waitFor } from "@testing-library/react";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { createQueryWrapper } from "@/test/helpers/queryClient";
 import { createSupabaseChainMock } from "@/test/helpers/supabaseChain";
+import { operationSummaryKeys } from "@/lib/query/operationSummaryKeys";
 
 /**
  * useDeliveries — mutaciones de entregas (ENT-/DEV-).
@@ -65,7 +66,7 @@ vi.mock("@/integrations/supabase/client", () => ({
   }),
 }));
 
-import { useCompleteDelivery, useCreateDelivery, useUpdateDelivery, useDeleteDelivery } from "../useDeliveries";
+import { deliveryKeys, useCompleteDelivery, useCreateDelivery, useUpdateDelivery, useDeleteDelivery } from "../useDeliveries";
 
 beforeEach(() => {
   inserts.length = 0; updates.length = 0; deletes.length = 0; completeCalls.length = 0;
@@ -108,6 +109,15 @@ describe("useCreateDelivery", () => {
 });
 
 describe("useUpdateDelivery", () => {
+  it("reprogramar refresca la página de atrasados y el contador del panel", async () => {
+    const { Wrapper, queryClient } = createQueryWrapper();
+    const queueKey = deliveryKeys.byFilter({ purpose: "overdue-page", p_page: 20 });
+    const summaryKey = [...operationSummaryKeys.dashboardStats.all, { organizationId: "org-a" }];
+    for (const key of [queueKey, summaryKey]) queryClient.setQueryData(key, {});
+    const { result } = renderHook(() => useUpdateDelivery(), { wrapper: Wrapper });
+    await act(async () => { await result.current.mutateAsync({ id: "d-1", scheduled_date: "2026-11-20" }); });
+    for (const key of [queueKey, summaryKey]) expect(queryClient.getQueryState(key)?.isInvalidated).toBe(true);
+  });
   it("patch excluye id del update y filtra por eq('id', ...)", async () => {
     const { Wrapper } = createQueryWrapper();
     const { result } = renderHook(() => useUpdateDelivery(), { wrapper: Wrapper });
@@ -140,9 +150,15 @@ describe("useCompleteDelivery", () => {
     const { Wrapper, queryClient } = createQueryWrapper();
     const key = ["bookings", "list", { purpose: "return-inspection" }];
     queryClient.setQueryData(key, []);
+    const queueKey = deliveryKeys.byFilter({ purpose: "overdue-page", p_page: 20 });
+    const summaryKey = [...operationSummaryKeys.dashboardStats.all, { organizationId: "org-a" }];
+    queryClient.setQueryData(queueKey, {});
+    queryClient.setQueryData(summaryKey, {});
     const { result } = renderHook(() => useCompleteDelivery(), { wrapper: Wrapper });
     await act(async () => { await result.current.mutateAsync({ id: "d-1" }); });
     expect(queryClient.getQueryState(key)?.isInvalidated).toBe(true);
+    expect(queryClient.getQueryState(queueKey)?.isInvalidated).toBe(true);
+    expect(queryClient.getQueryState(summaryKey)?.isInvalidated).toBe(true);
   });
 
 
