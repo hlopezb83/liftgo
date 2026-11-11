@@ -6,9 +6,8 @@
  * (algunas invalidaban strings crudos, otras olvidaban toast, otras
  * duplicaban lógica de éxito).
  *
- * Los `onSuccess` custom (navegación, toast personalizado, cache manual)
- * se preservan como callback opcional adicional que corre DESPUÉS de la
- * invalidación estándar.
+ * Los callbacks de éxito esperan la invalidación por defecto. Las mutaciones
+ * con recibo confirmado pueden completar su UI mientras se actualizan lectores.
  *
  * Ejemplo:
  *   const createContract = useEntityMutation({
@@ -25,6 +24,7 @@
 import { useMutation, useQueryClient, type QueryKey, type UseMutationResult } from "@tanstack/react-query";
 import { useRef } from "react";
 import { translateDbError } from "@/lib/errors/dbErrors";
+import { captureOperationalError } from "@/lib/observability/captureOperationalError";
 import { resolveBusinessBlock, type BusinessBlock } from "@/lib/rules/businessBlocks";
 import { notifyError, notifySuccess } from "@/lib/ui/appFeedback";
 
@@ -33,6 +33,8 @@ export interface UseEntityMutationOptions<TVar, TData> {
   mutationFn: (vars: TVar) => Promise<TData>;
   /** Query keys estáticas a invalidar tras éxito. Se ejecutan en paralelo. */
   invalidateKeys?: readonly QueryKey[];
+  /** Las escrituras confirmadas pueden completar su UI durante la recarga. */
+  invalidationMode?: "await" | "background";
   /**
    * Fábrica de query keys dinámicas basadas en el resultado / variables. Útil cuando
    * la key depende de un id del payload (ej: `BANK_LINES_QK(vars.bankAccountId)`).
@@ -45,7 +47,7 @@ export interface UseEntityMutationOptions<TVar, TData> {
   errorMessage?: string | ((error: Error) => string);
   /** Mensaje del toast de éxito. Omite para no mostrar toast. */
   successMsg?: string;
-  /** Callback custom tras éxito, se ejecuta DESPUÉS de invalidar y del toast. */
+  /** Callback tras iniciar la invalidación y mostrar el toast de éxito. */
   onSuccess?: (data: TData, vars: TVar) => void | Promise<void>;
   /**
    * Callback custom tras error. Se ejecuta ANTES del toast estándar. Si devuelve
@@ -70,6 +72,7 @@ export function useEntityMutation<TVar, TData>(
   const {
     mutationFn,
     invalidateKeys = [],
+    invalidationMode = "await",
     invalidateKeysFn,
     errorTitle,
     errorMessage,
@@ -85,9 +88,14 @@ export function useEntityMutation<TVar, TData>(
     onSuccess: async (data, vars) => {
       const dynamicKeys = invalidateKeysFn ? invalidateKeysFn(data, vars) : [];
       const allKeys = [...invalidateKeys, ...dynamicKeys];
-      await Promise.all(
+      const invalidation = Promise.all(
         allKeys.map((key) => queryClient.invalidateQueries({ queryKey: key })),
       );
+      if (invalidationMode === "background") {
+        void invalidation.catch((error: unknown) => captureOperationalError(error, { phase: "query" }));
+      } else {
+        await invalidation;
+      }
       if (successMsg) notifySuccess(successMsg);
       if (onSuccess) await onSuccess(data, vars);
     },

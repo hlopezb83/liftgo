@@ -68,6 +68,7 @@ export function useSaveInvoiceWithBookings(opts?: { onBusinessBlock?: (block: Bu
       }
     },
     invalidateKeys: [invoiceKeys.all, reportKeys.all, invoiceBookingKeys.all, bookingKeys.all, quoteKeys.all],
+    invalidationMode: "background",
     errorTitle: "Error al guardar factura",
     onBusinessBlock: opts?.onBusinessBlock,
   });

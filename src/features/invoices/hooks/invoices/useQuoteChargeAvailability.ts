@@ -3,12 +3,15 @@ import { supabase } from "@/integrations/supabase/client";
 import { invoiceKeys } from "../../lib/queryKeys";
 import { parseQuoteChargeAvailability } from "../../lib/quoteChargeAvailability";
 
+// Share the selection read with the observer mounted after applying that selection.
+const SELECTION_FRESH_MS = 5_000;
+
 function quoteChargeAvailabilityQuery(quoteIds: string[], currentInvoiceId?: string) {
   const ids = [...new Set(quoteIds)].sort();
   return queryOptions({
     queryKey: [...invoiceKeys.all, "quote-charge-availability", ids, currentInvoiceId ?? null],
     enabled: ids.length > 0,
-    staleTime: 0,
+    staleTime: SELECTION_FRESH_MS,
     queryFn: async () => {
       const { data, error } = await supabase.rpc("get_quote_charge_availability", {
         p_quote_ids: ids,
