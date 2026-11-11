@@ -1,0 +1,7 @@
+{
+  "description": "Retira código sin uso de inventario y facturación y limpia archivos temporales del repositorio.",
+  "changes": [
+    "Retira planes antiguos de Lovable y un recurso gráfico sin referencias.",
+    "Ajusta el análisis de código sin uso y corrige verificaciones en Windows."
+  ]
+}

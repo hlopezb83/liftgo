@@ -1,0 +1,2 @@
+# Keep the reviewed bytes used by the offline Deno import map's SHA-256 check.
+scripts/ci/vendor/tslib-2.8.1.mjs -text

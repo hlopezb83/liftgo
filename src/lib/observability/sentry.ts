@@ -20,7 +20,7 @@ export function initClientSentry(): void {
  * la app se recarga sola. Ese caso recuperado no es un incidente; si la guarda
  * de recargas se agota, el fallo persistente sí se reporta.
  */
-export function isRecoveredStaleChunkEvent(event: { message?: string; exception?: { values?: { value?: string }[] } }): boolean {
+function isRecoveredStaleChunkEvent(event: { message?: string; exception?: { values?: { value?: string }[] } }): boolean {
   const texts = [event.message, ...(event.exception?.values ?? []).map((value) => value.value)];
   return texts.some((text) => recoverFromStaleChunk(text));
 }

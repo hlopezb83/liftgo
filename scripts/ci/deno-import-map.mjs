@@ -5,7 +5,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 export const TSLIB_URL = "https://esm.sh/tslib@2.8.1/denonext/tslib.mjs";
-export const TSLIB_SHA256 = "0929993220938091ede542d688b0fdb87dad99a7e77678e1983c32d18a503339";
+const TSLIB_SHA256 = "0929993220938091ede542d688b0fdb87dad99a7e77678e1983c32d18a503339";
 const vendor = new URL("./vendor/tslib-2.8.1.mjs", import.meta.url);
 
 export function offlineImportMap(config, bytes, vendorURL = vendor.href) {

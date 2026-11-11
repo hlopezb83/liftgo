@@ -61,10 +61,9 @@ bun run arch:check
 ## Revisión de código sin uso con Knip
 
 `knip.jsonc` usa el esquema de Knip 6 y reconoce las entradas de TanStack
-Start, las funciones de Cloud, Playwright y los ejecutores de CI. El script
-manual `scripts/cleanup-e2e.ts` también es una entrada: se conserva porque
-forma parte del procedimiento de limpieza documentado en `docs/ci.md`.
-El análisis no ejecuta esa limpieza ni llama a funciones de Cloud.
+Start, las funciones de Cloud, Playwright y los ejecutores de CI. También
+registra la limpieza manual de E2E y las verificaciones locales que se lanzan
+desde la terminal o se pasan como argumentos a un subproceso.
 
 - `bun run knip` revisa archivos, dependencias, exportaciones y tipos.
 - `bun run knip:deep` incluye además las exportaciones de las entradas;
@@ -89,17 +88,13 @@ que quedaron sin uso al adoptar el cliente compartido del SDK. También hizo
 internos los límites de ejecución, el catálogo de módulos y los tipos que
 sólo usan sus propios handlers. Los cuerpos de las funciones no cambian.
 
-El análisis profundo conserva nueve observaciones justificadas:
+La revisión documentó los siguientes contratos de ejecución y compatibilidad.
 
 - Los tres `default` de Vite y Playwright son contratos de sus ejecutores.
 - `extractAttr`, `extractAllAttr` y `extractPagoNodes` siguen expuestos por el
   handler y la entrada de `validate-supplier-rep`: forman parte de la interfaz
   de compatibilidad del endpoint XML heredado. No se retira esa interfaz sólo
   por no tener imports actuales en el ERP.
-
-No se añadieron exclusiones para ocultar estas exportaciones. El reporte
-principal permanece en cero; el profundo es informativo y no cuenta estas
-nueve observaciones como bugs de negocio pendientes.
 
 ## Cómo cambiar un guardrail
 

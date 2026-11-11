@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { invoiceKeys } from "../../lib/queryKeys";
 import { parseQuoteChargeAvailability } from "../../lib/quoteChargeAvailability";
 
-export function quoteChargeAvailabilityQuery(quoteIds: string[], currentInvoiceId?: string) {
+function quoteChargeAvailabilityQuery(quoteIds: string[], currentInvoiceId?: string) {
   const ids = [...new Set(quoteIds)].sort();
   return queryOptions({
     queryKey: [...invoiceKeys.all, "quote-charge-availability", ids, currentInvoiceId ?? null],

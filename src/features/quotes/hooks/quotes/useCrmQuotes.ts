@@ -8,7 +8,7 @@ import type { Quote } from "@/types/rental";
 import { crmQuoteSearchFilter } from "../../lib/crmQuoteSearchFilter";
 
 export type CrmQuote = Pick<Quote, "id" | "quote_number" | "customer_name" | "total" | "currency" | "status"> & { tipo_cambio: number | null };
-export type CrmQuoteNumber = Pick<Quote, "id" | "quote_number">;
+type CrmQuoteNumber = Pick<Quote, "id" | "quote_number">;
 const COLUMNS = "id, quote_number, customer_name, total, currency, tipo_cambio, status";
 export const CRM_QUOTE_PAGE_SIZE = 50;
 export const CRM_QUOTE_ID_BATCH_SIZE = 100;

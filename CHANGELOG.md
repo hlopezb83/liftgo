@@ -1,3 +1,7 @@
+## [8.52.11] - 2026-11-10
+
+- Retira código sin uso de inventario y facturación, un recurso gráfico sin referencias y planes temporales de Lovable. Ajusta Knip y corrige las verificaciones de identidad y de dependencias en Windows.
+
 ## [8.52.10] - 2026-11-10
 
 - Activa Facturapi 6.0.0 mediante el paquete revisado y despliega las 12 funciones existentes. Restaura las dos tareas fiscales tras una pausa breve autorizada sin respaldo automático. 26 pruebas focales pasan; verificación de documentos sandbox y CI del nuevo commit pendientes. Sin emisión por el agente.

@@ -21,7 +21,7 @@ const quoteSchema = z.object({
 });
 const availabilitySchema = z.object({ complete: z.literal(true), quotes: z.array(quoteSchema) });
 export type QuoteChargeAvailability = z.infer<typeof availabilitySchema>;
-export type AvailableQuoteCharge = z.infer<typeof chargeSchema>;
+type AvailableQuoteCharge = z.infer<typeof chargeSchema>;
 
 /** An incomplete result is an error, never evidence that nothing was billed. */
 export function parseQuoteChargeAvailability(value: unknown, requestedQuoteIds: string[]): QuoteChargeAvailability {
@@ -60,7 +60,7 @@ function resolveQuoteChargeAvailability(quoteIds: string[], availability?: Quote
 }
 
 /** Adding quote charges requires verifiable history: never assign by description. */
-export function requireQuoteChargeAvailability(quoteIds: string[], availability?: QuoteChargeAvailability) {
+function requireQuoteChargeAvailability(quoteIds: string[], availability?: QuoteChargeAvailability) {
   return resolveQuoteChargeAvailability(quoteIds, availability).map((quote) => {
     if (quote.lines.length > 0 && quote.legacy_review_required) throw new Error(CHARGE_LEGACY_REVIEW);
     return quote;

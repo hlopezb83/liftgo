@@ -10,7 +10,7 @@ import type {
 } from "./documentDrilldown";
 
 export const STATEMENT_DOCUMENT_PAGE_SIZE = 25;
-export const statementDocumentQueries = defineEntityQueries(
+const statementDocumentQueries = defineEntityQueries(
   "income_statement_documents",
   {
     list:

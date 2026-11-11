@@ -3,11 +3,10 @@ import { afterEach, expect, it, vi } from "vitest";
 const state = vi.hoisted(() => ({
   isEdit: false, fail: false, liveVersion: 4,
   params: new URLSearchParams("extension_id=ext-1&from_quote=quote-1"),
-  save: vi.fn(), navigate: vi.fn(), success: vi.fn(), legacyLink: vi.fn(), legacyQuote: vi.fn(),
+  save: vi.fn(), navigate: vi.fn(), success: vi.fn(), legacyQuote: vi.fn(),
 }));
 vi.mock("@/hooks/useNavigateTransition", () => ({ useNavigateTransition: () => state.navigate }));
 vi.mock("@/lib/ui/appFeedback", () => ({ notifySuccess: state.success }));
-vi.mock("@/features/bookings", () => ({ useLinkExtensionInvoice: () => ({ mutateAsync: state.legacyLink }) }));
 vi.mock("../../hooks/useDamagePrefill", () => ({ useDamagePrefill: () => undefined }));
 vi.mock("../../hooks/useInvoiceFormLogic", async () => {
   const { useForm } = await import("react-hook-form");

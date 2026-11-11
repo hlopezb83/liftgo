@@ -16,7 +16,7 @@ export interface AvailabilityBooking {
   end_date: string;
 }
 
-export type AvailabilityReasonCode = "retired" | "sold" | "maintenance" | "return_pending" | "reservation" | "rented" | "unknown";
+type AvailabilityReasonCode = "retired" | "sold" | "maintenance" | "return_pending" | "reservation" | "rented" | "unknown";
 
 export interface AvailabilityReason {
   code: AvailabilityReasonCode;

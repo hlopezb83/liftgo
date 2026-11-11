@@ -64,25 +64,6 @@ function collectBookingQuoteIds(bookings?: { quote_id?: string | null }[]): stri
   return Array.from(set);
 }
 
-/** Reservas que ya están facturadas (por columna directa o por pivote). */
-export function collectInvoicedBookingIds(
-  invoices: { id?: string; status: string; booking_id?: string | null }[] | undefined,
-  allInvoiceBookings: { invoice_id: string; booking_id: string }[] | undefined,
-  currentInvoiceId?: string,
-): Set<string> {
-  const set = new Set<string>();
-  invoices?.forEach((inv) => {
-    if (currentInvoiceId && inv.id === currentInvoiceId) return;
-    if (inv.status !== "cancelled" && inv.booking_id) set.add(inv.booking_id);
-  });
-  // Excluye las reservas de la factura que se está editando.
-  allInvoiceBookings?.forEach((row) => {
-    if (currentInvoiceId && row.invoice_id === currentInvoiceId) return;
-    set.add(row.booking_id);
-  });
-  return set;
-}
-
 interface QuoteAssignmentStatus {
   isComplete: boolean;
   totalAssigned: number;

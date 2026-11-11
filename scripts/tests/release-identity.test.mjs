@@ -64,9 +64,13 @@ for (const file of [
 
 test("symlinks and missing required roots fail closed", async (t) => {
   const root = await fixture(t);
-  await symlink("/outside/not/read", path.join(root, "src/linked"));
+  const target = path.join(root, "outside-source");
+  const link = path.join(root, "src/linked");
+  await mkdir(target);
+  // Windows junctions exercise the same lstat guard without symlink privileges.
+  await symlink(target, link, process.platform === "win32" ? "junction" : "dir");
   await assert.rejects(sourceIdentity(root), /symlink/);
-  await rm(path.join(root, "src/linked"));
+  await rm(link);
   await rm(path.join(root, "bun.lock"));
   await assert.rejects(sourceIdentity(root), /ENOENT/);
 });
