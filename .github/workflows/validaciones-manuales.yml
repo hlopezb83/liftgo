@@ -294,7 +294,7 @@ jobs:
     timeout-minutes: 25
     if: github.event_name == 'workflow_dispatch' && (inputs.suite == 'rls' || inputs.suite == 'all')
     env:
-      SUPABASE_INTERNAL_IMAGE_REGISTRY: public.ecr.aws
+      SUPABASE_INTERNAL_IMAGE_REGISTRY: ghcr.io
       DB_URL: postgresql://postgres:postgres@127.0.0.1:54322/postgres
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
@@ -590,7 +590,7 @@ jobs:
     timeout-minutes: 35
     if: github.event_name == 'workflow_dispatch' && (inputs.suite == 'multiempresa' || inputs.suite == 'all')
     env:
-      SUPABASE_INTERNAL_IMAGE_REGISTRY: public.ecr.aws
+      SUPABASE_INTERNAL_IMAGE_REGISTRY: ghcr.io
       DB_URL: postgresql://postgres:postgres@127.0.0.1:54322/postgres
       E2E_ISOLATED_BACKEND: "1"
       VITE_SUPABASE_PROJECT_ID: local-ab-ephemeral
