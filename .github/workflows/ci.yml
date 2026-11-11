@@ -199,6 +199,7 @@ jobs:
         env:
           SHARD: ${{ matrix.shard }}
           SHARDS: "4"
+          VITEST_CI_BALANCED: "1"
           NODE_OPTIONS: --max-old-space-size=6144
         run: node node_modules/vitest/vitest.mjs run --shard="$SHARD/$SHARDS"
       - name: Diagnóstico de fallo
