@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import {
   emptyRecurringSelection,
   enforceConsecutiveFutureSelection,
@@ -51,15 +51,15 @@ export function useRecurringPreviewModel({ open, data, isLoading, isError, onSco
   const scope: RecurringPreviewScope = { includeFuturePeriods, ...(includeFuturePeriods ? { futureThroughMonth } : {}) };
   const validMonth = /^\d{4}-\d{2}$/.test(futureThroughMonth) && futureThroughMonth >= minMonth && futureThroughMonth <= maxMonth;
   const { waiting, canConfirm } = previewReadiness({ open, data, isLoading, isError, onScopeChange }, scope, validMonth);
-  const lines = visiblePreviewLines(data, includeFuturePeriods);
+  const lines = useMemo(() => visiblePreviewLines(data, includeFuturePeriods), [data, includeFuturePeriods]);
   // R6-F5: los periodos con `rateWarning` (reserva actualizada después del
   // periodo) sólo se pueden facturar con confirmación explícita.
   const [allowStaleRate, setAllowStaleRate] = useState(false);
-  const isSelectable = (l: RecurringPreviewLine) => isLineSelectable(l, allowStaleRate)
-    && (!includeFuturePeriods || !!l.previewFingerprint);
-  const staleCount = lines.filter((l) => l.eligible && l.rateWarning).length;
+  const isSelectable = useCallback((l: RecurringPreviewLine) => isLineSelectable(l, allowStaleRate)
+    && (!includeFuturePeriods || !!l.previewFingerprint), [allowStaleRate, includeFuturePeriods]);
+  const staleCount = useMemo(() => lines.filter((l) => l.eligible && l.rateWarning).length, [lines]);
   // R9-18: la unidad seleccionable es reserva + periodo.
-  const eligibleIds = lines.filter(isSelectable).map(recurringLineKey);
+  const eligibleIds = useMemo(() => lines.filter(isSelectable).map(recurringLineKey), [lines, isSelectable]);
 
   // R8-05 / R8-12: la selección se reconcilia contra las filas actuales del
   // preview con un reducer puro, en vez de reconstruirse desde cero. Así las
@@ -68,7 +68,7 @@ export function useRecurringPreviewModel({ open, data, isLoading, isError, onSco
   const [selection, setSelection] = useState<RecurringSelectionState>(() =>
     reconcileRecurringSelection(emptyRecurringSelection(), lines, allowStaleRate),
   );
-  const fingerprint = recurringPreviewFingerprint(lines, allowStaleRate);
+  const fingerprint = useMemo(() => recurringPreviewFingerprint(lines, allowStaleRate), [lines, allowStaleRate]);
   const [prevFingerprint, setPrevFingerprint] = useState(fingerprint);
   // R9-02: cada apertura del diálogo es una sesión nueva: sin consentimiento de
   // tarifa heredado y con la selección reconstruida desde el preview actual.
@@ -90,12 +90,12 @@ export function useRecurringPreviewModel({ open, data, isLoading, isError, onSco
 
   const selected = selection.selected as Set<string>;
 
-  const groups = buildCustomerGroups(lines.filter((line) => line.eligible));
+  const groups = useMemo(() => buildCustomerGroups(lines.filter((line) => line.eligible)), [lines]);
 
   const selectedLines = lines.filter((l) => isSelectable(l) && selected.has(recurringLineKey(l)));
   const totalsLabel = rentalTotalsLabel(selectedLines);
 
-  const toggle = (id: string) => setSelection((prev) => enforceConsecutiveFutureSelection(toggleRecurringSelection(prev, id), lines));
+  const toggle = useCallback((id: string) => setSelection((prev) => enforceConsecutiveFutureSelection(toggleRecurringSelection(prev, id), lines)), [lines]);
 
   const toggleGroup = (groupLines: RecurringPreviewLine[]) => {
     const groupEligibleIds = groupLines.filter(isSelectable).map(recurringLineKey);

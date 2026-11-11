@@ -12,13 +12,12 @@ interface ActionsProps {
   onOpenPreview: () => void;
   onExport: () => void;
   onNew: () => void;
-  previewPending: boolean;
   showExport: boolean;
   exportPending?: boolean;
   showNew: boolean;
 }
 
-export function InvoicesActionsBar({ onOpenPreview, onExport, onNew, previewPending, showExport, showNew, exportPending = false }: ActionsProps) {
+export function InvoicesActionsBar({ onOpenPreview, onExport, onNew, showExport, showNew, exportPending = false }: ActionsProps) {
   return (
     <div className="flex flex-wrap gap-2">
       <RoleGuard module="Facturas" minAccess="full" fallback={null}>
@@ -27,11 +26,10 @@ export function InvoicesActionsBar({ onOpenPreview, onExport, onNew, previewPend
           size="sm"
           className="min-w-11"
           onClick={onOpenPreview}
-          disabled={previewPending}
           aria-label="Generar recurrentes"
           title="Generar recurrentes"
         >
-          <RefreshIcon className={`h-4 w-4 sm:mr-1 ${previewPending ? "animate-spin" : ""}`} />
+          <RefreshIcon className="h-4 w-4 sm:mr-1" />
           <span className="hidden sm:inline">Generar Recurrentes</span>
         </Button>
       </RoleGuard>

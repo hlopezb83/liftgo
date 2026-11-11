@@ -1,36 +1,29 @@
 import { parseISO, isValid, subMonths } from "date-fns";
+import { lazy, Suspense, type ComponentType } from "react";
 import { DateRangePickerField } from "@/components/forms/DateRangePickerField";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { PageTransition } from "@/components/layout/PageTransition";
 import { Card, CardContent } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Skeleton } from "@/components/ui/skeleton";
 import { useHasFinancialAccess } from "@/features/users";
 import { formatDateMty, toYMD } from "@/lib/format/dateFormats";
 import { useSearchParams } from "@/lib/router-compat";
 import { nowMty } from "@/lib/utils";
-import { AccountantExportReport } from "../components/accountantExport/AccountantExportReport";
-import { AgingReport } from "../components/reports/AgingReport";
-import { IncomeStatementReport } from "../components/reports/IncomeStatementReport";
-import { MaintenanceCostReport } from "../components/reports/MaintenanceCostReport";
-import { ProfitabilityByModelReport } from "../components/reports/ProfitabilityByModelReport";
-import { RevenueReport } from "../components/reports/RevenueReport";
-import { UtilizationByModelReport } from "../components/reports/UtilizationByModelReport";
-import { UtilizationReport } from "../components/reports/UtilizationReport";
-import type { ComponentType } from "react";
 import type { DateRange } from "react-day-picker";
 
 interface ReportProps { startDate: Date; endDate: Date }
 
 const REPORT_COMPONENTS: Record<string, ComponentType<ReportProps>> = {
-  utilization: UtilizationReport,
-  "utilization-model": UtilizationByModelReport,
-  revenue: RevenueReport,
-  maintenance: MaintenanceCostReport,
-  profitability: ProfitabilityByModelReport,
-  "income-statement": IncomeStatementReport,
-  aging: AgingReport,
-  "accountant-export": AccountantExportReport,
+  utilization: lazy(() => import("../components/reports/UtilizationReport").then((m) => ({ default: m.UtilizationReport }))),
+  "utilization-model": lazy(() => import("../components/reports/UtilizationByModelReport").then((m) => ({ default: m.UtilizationByModelReport }))),
+  revenue: lazy(() => import("../components/reports/RevenueReport").then((m) => ({ default: m.RevenueReport }))),
+  maintenance: lazy(() => import("../components/reports/MaintenanceCostReport").then((m) => ({ default: m.MaintenanceCostReport }))),
+  profitability: lazy(() => import("../components/reports/ProfitabilityByModelReport").then((m) => ({ default: m.ProfitabilityByModelReport }))),
+  "income-statement": lazy(() => import("../components/reports/IncomeStatementReport").then((m) => ({ default: m.IncomeStatementReport }))),
+  aging: lazy(() => import("../components/reports/AgingReport").then((m) => ({ default: m.AgingReport }))),
+  "accountant-export": lazy(() => import("../components/accountantExport/AccountantExportReport").then((m) => ({ default: m.AccountantExportReport }))),
 };
 
 const OPERATIONAL_REPORT_TYPES = new Set(["utilization", "utilization-model"]);
@@ -94,6 +87,7 @@ export default function ReportsPage() {
   };
   const startDate = dateRange?.from ?? subMonths(nowMty(), 3);
   const endDate = dateRange?.to ?? dateRange?.from ?? nowMty();
+  const Report = REPORT_COMPONENTS[reportType];
 
   return (
     <PageTransition>
@@ -133,10 +127,11 @@ export default function ReportsPage() {
 
       {isRestrictedReport ? (
         <p role="alert" className="text-sm text-muted-foreground">No tienes permiso para consultar reportes financieros. Selecciona un reporte operativo.</p>
-      ) : (() => {
-        const Comp = REPORT_COMPONENTS[reportType];
-        return Comp ? <Comp startDate={startDate} endDate={endDate} /> : null;
-      })()}
+      ) : (
+        <Suspense fallback={<Skeleton className="h-64 w-full" role="status" aria-label="Cargando reporte" />}>
+          <Report startDate={startDate} endDate={endDate} />
+        </Suspense>
+      )}
     </PageContainer>
     </PageTransition>
   );

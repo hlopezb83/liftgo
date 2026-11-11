@@ -1,6 +1,6 @@
 import { firstOfMonth, lastOfMonth, toIsoDate } from "./periods.ts";
 
-export const MAX_FUTURE_MONTHS = 24;
+const MAX_FUTURE_MONTHS = 24;
 export type FuturePeriodOptions = {
   includeFuturePeriods?: boolean;
   futureThroughMonth?: string;

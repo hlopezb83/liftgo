@@ -15,10 +15,10 @@ export function useQuoteSaleAssignmentStatus(
   quoteId: string | undefined,
   lineItems: LineItem[],
 ): SaleAssignmentStatus {
-  const { data: assignments } = useQuoteAssignments(quoteId);
+  const saleLines = getSaleLines(lineItems);
+  const { data: assignments } = useQuoteAssignments(saleLines.length ? quoteId : undefined);
 
   return (() => {
-    const saleLines = getSaleLines(lineItems);
     if (saleLines.length === 0) {
       const empty: SaleAssignmentStatus["missingByLine"] = [];
       return { hasSaleLines: false, totalRequired: 0, totalAssigned: 0, isComplete: true, missingByLine: empty };

@@ -52,8 +52,8 @@ const equipmentModelQueries = defineEntityQueries<"equipment_models", EquipmentM
   },
 );
 
-export function useEquipmentModels() {
-  return useQuery(equipmentModelQueries.list());
+export function useEquipmentModels(enabled = true) {
+  return useQuery({ ...equipmentModelQueries.list(), enabled });
 }
 
 export function useEquipmentModelCatalog() {

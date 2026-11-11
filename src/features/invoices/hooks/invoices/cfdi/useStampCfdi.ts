@@ -42,7 +42,6 @@ export function useStampCfdi() {
       });
     },
     invalidateKeys: [invoiceKeys.all],
-    invalidateKeysFn: (_data, invoiceId) => [invoiceKeys.detail(invoiceId)],
     errorTitle: "Error al timbrar CFDI",
     errorMessage: (error) => {
       const raw = error instanceof Error ? error.message : String(error);

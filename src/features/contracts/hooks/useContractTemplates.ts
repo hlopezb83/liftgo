@@ -11,7 +11,6 @@ import {
 import { contractTemplateKeys } from "../lib/queryKeys";
 import { fetchDefaultContractTemplate } from "./contractTemplateData";
 export { fetchDefaultContractTemplate } from "./contractTemplateData";
-export type { ContractTemplate } from "./contractTemplateData";
 export type { ContractClause, ChecklistSection } from "../lib/contractTypes";
 
 export function useDefaultContractTemplate() {

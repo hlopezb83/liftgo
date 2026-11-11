@@ -1,6 +1,8 @@
+import { useMemo } from "react";
 import { EmptyState } from "@/components/feedback/EmptyState";
 import { InvoiceIcon } from "@/components/icons";
 import { Skeleton } from "@/components/ui/skeleton";
+import { blockedFuturePeriodKeys } from "../../lib/recurringSelection";
 import {
   CustomerGroup,
   StaleRateNotice,
@@ -47,6 +49,8 @@ export function RecurringPreviewBody({
 }: Props) {
   const isSelectable = (l: RecurringPreviewLine) =>
     l.eligible && (!l.rateWarning || allowStaleRate) && (!requireFingerprint || !!l.previewFingerprint);
+  const blocked = useMemo(() => blockedFuturePeriodKeys(lines, selected), [lines, selected]);
+  const blockedGroups = useMemo(() => buildCustomerGroups(lines.filter((line) => !line.eligible)), [lines]);
   if (isLoading) {
     return (
       <div className="space-y-2">
@@ -68,7 +72,6 @@ export function RecurringPreviewBody({
       </>
     );
   }
-  const blockedGroups = buildCustomerGroups(lines.filter((line) => !line.eligible));
   return (
     <>
       {requireFingerprint && lines.some((line) => line.eligible && !line.previewFingerprint) && (
@@ -99,7 +102,7 @@ export function RecurringPreviewBody({
               key={key}
               customer={customer}
               groupLines={groupLines}
-              allLines={lines}
+              blocked={blocked}
               selected={selected}
               onToggle={onToggle}
               onToggleGroup={onToggleGroup}
@@ -111,7 +114,7 @@ export function RecurringPreviewBody({
           <section aria-label="Períodos que requieren revisión" className="mt-4 space-y-3">
             <h3 className="text-sm font-semibold">Requieren revisión</h3>
             {blockedGroups.map(({ key, customer, lines: groupLines }) => (
-              <CustomerGroup key={key} customer={customer} groupLines={groupLines} allLines={lines}
+              <CustomerGroup key={key} customer={customer} groupLines={groupLines} blocked={blocked}
                 selected={selected} onToggle={onToggle} onToggleGroup={onToggleGroup}
                 isSelectable={() => false} />
             ))}

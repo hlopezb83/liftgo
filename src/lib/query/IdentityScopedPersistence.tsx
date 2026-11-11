@@ -14,8 +14,9 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { persistQueryClient } from "@tanstack/react-query-persist-client";
 import { useEffect, useState, type ReactNode } from "react";
+import { useAuth } from "@/contexts/AuthContext";
 import { useOrganizationContext } from "@/contexts/OrganizationContext";
-import { isIdentityQueryKey } from "@/lib/query/identityScope";
+import { isActorAccessQueryKey, isIdentityQueryKey } from "@/lib/query/identityScope";
 import {
   createBrowserPersister,
   getBrowserStorage,
@@ -28,6 +29,7 @@ import { syncFormDraftIdentity } from "@/lib/storage/formDraftStorage";
 
 export function IdentityScopedPersistence({ children }: { children: ReactNode }) {
   const queryClient = useQueryClient();
+  const userId = useAuth().user?.id ?? null;
   const scope = useVerifiedIdentityScope();
   const { status } = useOrganizationContext();
   const identityAbsent = status === "signed-out" || status === "no-membership";
@@ -52,18 +54,19 @@ export function IdentityScopedPersistence({ children }: { children: ReactNode })
     // Cambió la identidad (o no hay ninguna): nada de la sesión previa debe
     // sobrevivir, ni siquiera una respuesta que llegue tarde. La purga se hace
     // de forma síncrona, en el mismo commit en que se oculta el contenido.
-    const notIdentity = {
-      predicate: (query: { queryKey: readonly unknown[] }) => !isIdentityQueryKey(query.queryKey),
+    const previousWorkspace = {
+      predicate: ({ queryKey }: { queryKey: readonly unknown[] }) =>
+        !isIdentityQueryKey(queryKey) && !isActorAccessQueryKey(queryKey, userId),
     };
-    void queryClient.cancelQueries(notIdentity);
-    queryClient.removeQueries(notIdentity);
+    void queryClient.cancelQueries(previousWorkspace);
+    queryClient.removeQueries(previousWorkspace);
 
     const run = async () => {
       // Una consulta que ya estaba resolviéndose puede reinsertarse al
       // completarse; se vuelve a purgar tras ceder el turno al microtask.
       await Promise.resolve();
       if (cancelled) return;
-      queryClient.removeQueries(notIdentity);
+      queryClient.removeQueries(previousWorkspace);
 
       if (!scope) {
         // La verificación pendiente o fallida no confirma un cierre de sesión.
@@ -101,7 +104,7 @@ export function IdentityScopedPersistence({ children }: { children: ReactNode })
       cancelled = true;
       unsubscribe?.();
     };
-  }, [scope, identityAbsent, queryClient]);
+  }, [scope, identityAbsent, queryClient, userId]);
 
   // Sin identidad verificada no hay contenido protegido que mostrar: el gate de
   // organización y AuthGuard deciden qué se ve (carga, error, sin membresía).

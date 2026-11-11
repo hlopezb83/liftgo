@@ -63,23 +63,3 @@ export function nextBillingPeriod(
   }
   return { billingStart, billingEnd, isProrated };
 }
-
-/** Count months still due after the bounded loop, not after eligibility stops. */
-export function pendingPeriodsAfter(
-  lastPeriodEnd: string,
-  endDate: string | null | undefined,
-  today: Date,
-): number {
-  const last = dateOnlyToMty(lastPeriodEnd);
-  const next = new Date(
-    Date.UTC(last.getUTCFullYear(), last.getUTCMonth() + 1, 1),
-  );
-  const contractEnd = endDate ? dateOnlyToMty(endDate) : today;
-  const limit = contractEnd < today ? contractEnd : today;
-  if (next > limit) return 0;
-  return Math.max(
-    1,
-    (limit.getUTCFullYear() - next.getUTCFullYear()) * 12 +
-      limit.getUTCMonth() - next.getUTCMonth() + 1,
-  );
-}

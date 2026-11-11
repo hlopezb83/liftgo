@@ -235,13 +235,23 @@ export function toggleRecurringGroup(
 
 
 /** Future periods require explicit selection of every earlier visible pending period. */
-export function hasUnselectedEarlierPeriod(
-  line: RecurringPreviewLine,
+export function blockedFuturePeriodKeys(
   lines: readonly RecurringPreviewLine[],
   selected: ReadonlySet<string>,
-): boolean {
-  return line.isFuture === true && lines.some((earlier) => earlier.bookingId === line.bookingId
-    && earlier.periodStart < line.periodStart && !selected.has(recurringLineKey(earlier)));
+): Set<string> {
+  const firstPending = new Map<string, string>();
+  for (const line of lines) {
+    const earliest = firstPending.get(line.bookingId);
+    if (!selected.has(recurringLineKey(line)) && (earliest === undefined || line.periodStart < earliest)) {
+      firstPending.set(line.bookingId, line.periodStart);
+    }
+  }
+  const blocked = new Set<string>();
+  for (const line of lines) {
+    const earliest = firstPending.get(line.bookingId);
+    if (line.isFuture === true && earliest !== undefined && earliest < line.periodStart) blocked.add(recurringLineKey(line));
+  }
+  return blocked;
 }
 
 /** Forget future consent when an earlier period is removed or materially changes. */
@@ -252,9 +262,7 @@ export function enforceConsecutiveFutureSelection(
   const selected = new Set(state.selected);
   const intentSelected = new Set(state.intentSelected);
   const deselected = new Set(state.deselected);
-  for (const line of [...lines].sort((a, b) => a.periodStart.localeCompare(b.periodStart))) {
-    if (!hasUnselectedEarlierPeriod(line, lines, selected)) continue;
-    const key = recurringLineKey(line);
+  for (const key of blockedFuturePeriodKeys(lines, selected)) {
     selected.delete(key);
     intentSelected.delete(key);
     deselected.add(key);

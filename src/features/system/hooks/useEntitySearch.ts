@@ -1,9 +1,8 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient, type QueryClient, type QueryKey } from "@tanstack/react-query";
 import { useAuth } from "@/contexts/AuthContext";
 import { useOrganizationContext } from "@/contexts/OrganizationContext";
 import { getAccessLevel, hasFinancialAccess, useRolePermissions, useUserRole } from "@/features/users";
 import { EMPTY_SEARCH_RESULTS, normalizeEntitySearchTerm, searchEntities, type EntitySearchPermissions } from "../lib/globalSearchRpc";
-export { searchEntities } from "../lib/globalSearchRpc";
 export type { EntityResults, EntitySearchPermissions } from "../lib/globalSearchRpc";
 
 function useSearchPermissions() {
@@ -30,27 +29,41 @@ function hasSearchScope(authLoading: boolean, userId: string | undefined, organi
   return !authLoading && !!userId && !!organizationId && Object.values(permissions).some(Boolean);
 }
 
-export function useEntitySearch(query: string, enabled: boolean) {
+const SEARCH_STALE_MS = 30_000;
+
+function hasFreshSearchResult(queryClient: QueryClient, queryKey: QueryKey): boolean {
+  const cached = queryClient.getQueryCache().find({ queryKey, exact: true });
+  return cached?.state.status === "success" && !cached.isStaleByTime(SEARCH_STALE_MS);
+}
+
+export function useEntitySearch(query: string, enabled: boolean, debouncedQuery = query) {
   const org = useOrganizationContext();
   const { user, isLoading: authLoading } = useAuth();
   const { role, permissions, loading: permissionsLoading, isAccessError, retryAccess } = useSearchPermissions();
   const userId = user?.id;
   const organizationId = org.status === "ready" ? org.organizationId : undefined;
   const canSearchEntities = hasSearchScope(authLoading, userId, organizationId, permissions);
-  const normalizedQuery = normalizeEntitySearchTerm(query);
-  const searchEnabled = enabled && canSearchEntities && normalizedQuery.length >= 2;
+  const queryClient = useQueryClient();
+  // Role matters even when the module mask matches: RLS may differ by role.
+  const searchKey = (term: string) => ["global-search", organizationId ?? "unresolved", userId ?? "anonymous", role ?? "unresolved", permissions, term];
+  const currentTerm = normalizeEntitySearchTerm(query);
+  const canReuse = enabled && canSearchEntities && currentTerm.length >= 2
+    && hasFreshSearchResult(queryClient, searchKey(currentTerm));
+  const activeQuery = canReuse || currentTerm.length < 2 ? query : debouncedQuery;
+  const normalizedQuery = normalizeEntitySearchTerm(activeQuery);
+  const searchEnabled = enabled && canSearchEntities && normalizedQuery.length >= 2 && normalizedQuery === currentTerm;
   const resolving = [authLoading, org.status === "loading", permissionsLoading].some(Boolean);
   const result = useQuery({
-    // Role matters even when the module mask matches: RLS may differ by role.
-    queryKey: ["global-search", organizationId ?? "unresolved", userId ?? "anonymous", role ?? "unresolved", permissions, searchEnabled ? normalizedQuery : ""],
+    queryKey: searchKey(searchEnabled ? normalizedQuery : ""),
     queryFn: ({ signal }) => searchEnabled ? searchEntities(normalizedQuery, organizationId, permissions, signal) : Promise.resolve(EMPTY_SEARCH_RESULTS),
     enabled: searchEnabled,
-    staleTime: 30_000,
+    staleTime: SEARCH_STALE_MS,
   });
   return {
     ...result,
     // Disabled queries may retain cached data while auth is resolving.
     data: canSearchEntities ? result.data : undefined,
+    activeQuery,
     canSearchEntities,
     isResolvingAccess: enabled && resolving,
     isAccessError,

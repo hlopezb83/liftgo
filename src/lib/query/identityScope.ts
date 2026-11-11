@@ -44,3 +44,11 @@ const IDENTITY_QUERY_ROOT = "organization-context";
 export function isIdentityQueryKey(queryKey: readonly unknown[]): boolean {
   return queryKey[0] === IDENTITY_QUERY_ROOT;
 }
+
+/** Actor-wide checks can run during organization verification. Only the
+ * current user's checks may survive a workspace cache purge. */
+export function isActorAccessQueryKey(queryKey: readonly unknown[], userId: string | null): boolean {
+  if (!userId) return false;
+  return (queryKey[0] === "user_role" && queryKey.length === 2 && queryKey[1] === userId) ||
+    (queryKey[0] === "platform" && queryKey[1] === "operator" && queryKey.length === 3 && queryKey[2] === userId);
+}

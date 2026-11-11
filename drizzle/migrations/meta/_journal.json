@@ -974,6 +974,20 @@
       "when": 1794366415666,
       "tag": "0138_unify_invoice_period_coverage",
       "breakpoints": true
+    },
+    {
+      "idx": 139,
+      "version": "7",
+      "when": 1794375765459,
+      "tag": "0139_dashboard_balance_reads",
+      "breakpoints": true
+    },
+    {
+      "idx": 140,
+      "version": "7",
+      "when": 1794376258959,
+      "tag": "0140_optimize_quote_search",
+      "breakpoints": true
     }
   ]
 }

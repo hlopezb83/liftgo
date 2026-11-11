@@ -15,9 +15,10 @@ const FORKLIFT_COLUMNS = sel(
 
 const STATUS_LOG_COLUMNS = sel("id, forklift_id, from_status, to_status, changed_at, note");
 
-export function useForklifts() {
+export function useForklifts(enabled = true) {
   return useQuery({
     queryKey: forkliftKeys.lists(),
+    enabled,
     staleTime: 60_000,
     queryFn: async () => {
       // Tanda 2 P2-7: límite defensivo. LiftGo hoy tiene <200 equipos; 500 deja

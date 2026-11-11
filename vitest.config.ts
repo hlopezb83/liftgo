@@ -32,10 +32,8 @@ export default defineConfig({
     // workers en frío. Fijar el máximo a todos los núcleos y precalentar un
     // piso de workers reduce el wall time tanto en runners de 4 vCPU como en
     // máquinas grandes. `forks` medido más rápido que `threads` en esta suite.
-    // Vitest 4 eliminó `test.poolOptions`: maxWorkers/minWorkers son top-level.
     pool: "forks",
     maxWorkers: CPUS,
-    minWorkers: Math.min(4, CPUS),
 
     // Zona horaria fija: la aritmética de fechas de negocio (vencimientos,
     // periodos de renta) daba resultados distintos según el TZ del runner.

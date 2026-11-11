@@ -31,7 +31,7 @@ export default function QuoteDetail() {
     isError, refetchQuote,
   } = logic;
 
-  const assignmentStatus = useQuoteSaleAssignmentStatus(quote?.id, lineItems);
+  const assignmentStatus = useQuoteSaleAssignmentStatus(isSale ? quote?.id : undefined, lineItems);
 
   if (isLoading) return <PageContainer><Skeleton className="h-64" /></PageContainer>;
   // GUI-FE-03 (G-ADM-02): un error de red NO es "cotización no encontrada".

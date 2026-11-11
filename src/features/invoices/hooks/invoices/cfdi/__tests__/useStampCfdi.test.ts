@@ -1,4 +1,5 @@
 import { renderHook, waitFor } from "@testing-library/react";
+import { useQuery } from "@tanstack/react-query";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { createQueryWrapper } from "@/test/helpers/queryClient";
 import {
@@ -44,6 +45,20 @@ describe("useStampCfdi", () => {
     result.current.mutate(INVOICE_ID);
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
     expect(result.current.data?.cfdi_uuid).toBe("UUID-OK");
+  });
+
+  it("refresca el detalle activo una sola vez tras el éxito", async () => {
+    stampResp = { data: { cfdi_uuid: "UUID-OK" }, error: null };
+    const { Wrapper } = createQueryWrapper();
+    const detail = vi.fn(async () => ({ id: INVOICE_ID }));
+    const { result } = renderHook(() => {
+      const query = useQuery({ queryKey: invoiceKeys.detail(INVOICE_ID), queryFn: detail });
+      return { stamp: useStampCfdi(), query };
+    }, { wrapper: Wrapper });
+    await waitFor(() => expect(result.current.query.isSuccess).toBe(true));
+    result.current.stamp.mutate(INVOICE_ID);
+    await waitFor(() => expect(result.current.stamp.isSuccess).toBe(true));
+    expect(detail).toHaveBeenCalledTimes(2);
   });
 
   it("propaga error de Facturapi (data.error)", async () => {

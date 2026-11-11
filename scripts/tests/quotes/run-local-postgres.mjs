@@ -15,7 +15,9 @@ const server = net.createServer();
 await new Promise((resolve, reject) => { server.once('error', reject); server.listen(0, '127.0.0.1', resolve); });
 const port = server.address().port;
 await new Promise(resolve => server.close(resolve));
-const pg = (name, args) => execFileSync(path.join(bin, name), args, { encoding: 'utf8', timeout: 30000 });
+const pg = (name, args) => execFileSync(path.join(bin, name), args, {
+  stdio: ['ignore', 'inherit', 'inherit'], timeout: 45000, windowsHide: true,
+});
 let started = false;
 try {
   pg('initdb', ['-D', path.join(directory, 'data'), '-U', 'postgres', '--auth=trust', '--no-locale', '--encoding=UTF8']);
