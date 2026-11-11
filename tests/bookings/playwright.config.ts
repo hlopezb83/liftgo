@@ -33,6 +33,7 @@ export default defineConfig({
     launchOptions: browserLaunchOptions(proxyURL, process.env.SMOKE_CHROMIUM_PATH),
   },
   projects: [
+    { name: "mobile-320", use: { viewport: { width: 320, height: 780 }, isMobile: true, hasTouch: true, deviceScaleFactor: 1 } },
     { name: "mobile-360", use: { viewport: { width: 360, height: 800 }, isMobile: true, hasTouch: true, deviceScaleFactor: 1 } },
     { name: "mobile-390", use: { viewport: { width: 390, height: 800 }, isMobile: true, hasTouch: true, deviceScaleFactor: 1 } },
     { name: "desktop-1440", use: { viewport: { width: 1440, height: 1000 } } },

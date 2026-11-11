@@ -9,7 +9,7 @@ import { Form } from "@/components/ui/form";
 import { toYMD } from "@/lib/format/dateFormats";
 import { formatDateRange, nowMty, parseDateLocal } from "@/lib/utils";
 import { suggestedDateAfterTransportTypeChange, suggestedScheduledTransportDate } from "../../lib/deliveryBookingDate";
-import { selectableBookings } from "./selectableBookings";
+import { selectableBookings, type SelectableBooking } from "./selectableBookings";
 import type { UseFormReturn } from "react-hook-form";
 
 export type DeliveryFormValues = {
@@ -22,7 +22,7 @@ export type DeliveryFormValues = {
 };
 
 type Forklift = { id: string; name: string; model: string };
-type Booking = { id: string; customer_name: string | null; start_date: string; end_date: string; forklift_id: string; status: string };
+type Booking = SelectableBooking;
 type Driver = { id: string; name: string; phone?: string | null };
 
 interface Props {
@@ -34,6 +34,7 @@ interface Props {
   bookingsError?: boolean;
   hasMoreBookings?: boolean;
   onLoadMoreBookings?: () => void;
+  contextLocked?: boolean;
 }
 
 const TYPE_OPTIONS: SelectOption[] = [
@@ -43,9 +44,8 @@ const TYPE_OPTIONS: SelectOption[] = [
 
 export function DeliveryFormFields({
   form, forklifts, bookings, activeDrivers,
-  bookingsLoading, bookingsError, hasMoreBookings, onLoadMoreBookings,
+  bookingsLoading, bookingsError, hasMoreBookings, onLoadMoreBookings, contextLocked,
 }: Props) {
-  const forkliftId = useWatch({ control: form.control, name: "forkliftId" });
   const bookingId = useWatch({ control: form.control, name: "bookingId" });
   const transportType = useWatch({ control: form.control, name: "type" });
   const lastBookingId = useRef("");
@@ -54,7 +54,7 @@ export function DeliveryFormFields({
   // Bug 3: histórico sin operador → pedir justificación de evidencia.
   const alreadyCompleted = useWatch({ control: form.control, name: "alreadyCompleted" });
 
-  const visibleBookings = selectableBookings(bookings, forkliftId);
+  const visibleBookings = selectableBookings(bookings, undefined);
 
   const forkliftOptions: SelectOption[] =
     forklifts?.map((f) => ({ value: f.id, label: `${f.name} — ${f.model}` })) ?? [];
@@ -62,7 +62,7 @@ export function DeliveryFormFields({
   const bookingOptions: SelectOption[] =
     visibleBookings?.map((b) => ({
       value: b.id,
-      label: `${b.customer_name || "Desconocido"} (${formatDateRange(b.start_date, b.end_date)})`,
+      label: `${b.booking_number || "Reserva sin folio"} · ${b.customer_name || "Sin cliente"} · ${b.forklifts?.name || forklifts?.find((f) => f.id === b.forklift_id)?.name || "Equipo sin nombre"} · ${formatDateRange(b.start_date, b.end_date)}`,
     })) ?? [];
 
   const driverName = useWatch({ control: form.control, name: "driverName" });
@@ -135,23 +135,11 @@ export function DeliveryFormFields({
   return (
     <Form {...form}>
       <FormSection title="Detalles" first>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <SelectField control={form.control} name="type" label="Tipo" required options={TYPE_OPTIONS} />
-          <SelectField
-            control={form.control}
-            name="forkliftId"
-            label="Montacargas"
-            required
-            options={forkliftOptions}
-            onValueChange={selectForklift}
-            placeholder="Seleccionar"
-          />
-        </div>
-
         <SelectField
           control={form.control}
           name="bookingId"
           label="Reserva Vinculada"
+          disabled={contextLocked}
           options={bookingOptions}
           onValueChange={selectBooking}
           // GUI-FE-11a (G-DIS-03): la regla exige reserva; el placeholder
@@ -166,6 +154,21 @@ export function DeliveryFormFields({
             Cargar más reservas
           </Button>
         )}
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <SelectField control={form.control} name="type" label="Tipo" required options={TYPE_OPTIONS} disabled={contextLocked} />
+          <SelectField
+            control={form.control}
+            name="forkliftId"
+            label="Montacargas"
+            disabled={contextLocked}
+            description="Se completa al elegir la reserva."
+            required
+            options={forkliftOptions}
+            onValueChange={selectForklift}
+            placeholder="Seleccionar"
+          />
+        </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <DateField control={form.control} name="scheduledDate" label={transportType === "pickup" ? "Fecha de recolección" : "Fecha de entrega"} required />

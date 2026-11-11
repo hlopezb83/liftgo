@@ -1,10 +1,24 @@
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import { BookingFormSummary } from "../BookingFormSummary";
 
 const base = { customerName: "Cliente de maniobras industriales de nombre largo", forkliftName: "MTY Equipo sintético de nombre largo", recurringBilling: false };
 
 describe("BookingFormSummary", () => {
+  it("offers a reversible mobile disclosure without changing the captured review", () => {
+    render(<BookingFormSummary {...base} startDate={new Date(2026, 10, 1)} endDate={new Date(2026, 10, 7)} />);
+    const toggle = screen.getByRole("button", { name: "Resumen de reserva" });
+    const details = document.getElementById(toggle.getAttribute("aria-controls")!);
+    expect(toggle).toHaveAttribute("aria-expanded", "false");
+    expect(details).toHaveTextContent(base.customerName);
+    toggle.focus();
+    fireEvent.click(toggle);
+    expect(toggle).toHaveAttribute("aria-expanded", "true");
+    expect(toggle).toHaveFocus();
+    fireEvent.click(toggle);
+    expect(toggle).toHaveAttribute("aria-expanded", "false");
+    expect(details).toHaveTextContent("7 días de renta · fin incluido");
+  });
   it("muestra los nombres completos y un periodo inclusivo sin inventar importes", () => {
     render(<BookingFormSummary {...base} startDate={new Date(2026, 10, 1)} endDate={new Date(2026, 10, 7)} recurringBilling />);
     expect(screen.getByText(base.customerName)).toBeVisible();

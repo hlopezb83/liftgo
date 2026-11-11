@@ -134,7 +134,7 @@ export default function BookingForm() {
               onCustomerContactChange={(v) => form.setValue("customer_contact", v, { shouldDirty: true })}
             />
           </fieldset>
-          <aside className="sticky bottom-0 z-20 min-w-0 space-y-3 rounded-lg border bg-background/95 p-3 shadow-sm backdrop-blur max-lg:group-has-[input:focus]/booking-form:static max-lg:group-has-[textarea:focus]/booking-form:static lg:bottom-auto lg:top-16 lg:p-4 [@media(max-height:500px)]:static" aria-label="Revisar y crear reserva">
+          <aside className="sticky bottom-0 z-20 min-w-0 space-y-1 rounded-lg border bg-background/95 p-2 shadow-sm backdrop-blur max-lg:has-[[data-expanded=true]]:static max-lg:group-has-[input:focus]/booking-form:static max-lg:group-has-[textarea:focus]/booking-form:static lg:bottom-auto lg:top-16 lg:space-y-3 lg:p-4 [@media(max-height:500px)]:static" aria-label="Revisar y crear reserva">
             <BookingFormSummary
               customerName={summaryCustomerName(customerId, customerName, customers)}
               forkliftName={forkliftName}
@@ -143,7 +143,9 @@ export default function BookingForm() {
               recurringBilling={Boolean(showRecurring && recurringBilling)}
             />
             {submitError && <p role="alert" className="text-sm text-destructive">{submitError}</p>}
-            <FormActions submitLabel="Crear reserva" submitDisabled={draft.submitBlocked} isPending={busy} onCancel={() => navigate(-1)} />
+            <div className="max-lg:[&_button]:min-h-11">
+              <FormActions submitLabel="Crear reserva" submitDisabled={draft.submitBlocked} isPending={busy} onCancel={() => navigate(-1)} />
+            </div>
           </aside>
         </form>
       </Form>

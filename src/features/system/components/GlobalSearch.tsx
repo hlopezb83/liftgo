@@ -204,7 +204,7 @@ export function GlobalSearch() {
         variant="outline"
         size="sm"
         onClick={() => { navigatingRef.current = false; setOpen(true); }}
-        className="h-8 gap-2 text-muted-foreground hover:text-foreground px-2.5 touch:h-11 touch:min-w-11"
+        className="h-8 gap-2 text-muted-foreground hover:text-foreground px-2.5 max-md:h-11 max-md:min-w-11 touch:h-11 touch:min-w-11"
         aria-label="Navegación rápida"
       >
         <SearchIcon className="h-3.5 w-3.5" />

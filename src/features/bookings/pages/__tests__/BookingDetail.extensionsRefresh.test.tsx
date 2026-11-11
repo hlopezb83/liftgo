@@ -15,7 +15,8 @@ vi.mock("../../hooks/bookings/useBookings", () => ({ useBooking: () => ({ data: 
   status: "confirmed", recurring_billing: false,
 } }) }));
 vi.mock("@/features/fleet", () => ({ forkliftKeys: { all: ["forklifts"] } }));
-vi.mock("@/features/deliveries", () => ({ deliveryQueries: { list: () => ({ queryKey: ["deliveries"], queryFn: async () => [] }) } }));
+vi.mock("@/features/deliveries", async (importOriginal) => ({
+  ...await importOriginal<typeof import("@/features/deliveries")>(), deliveryQueries: { list: () => ({ queryKey: ["deliveries"], queryFn: async () => [] }) } }));
 vi.mock("@/features/users", () => ({ useHasModuleAccess: () => true, useHasFinancialAccess: () => true }));
 vi.mock("@/hooks/useNavigateTransition", () => ({ useNavigateTransition: () => state.navigate }));
 vi.mock("../../components/bookings/BookingActions", () => ({ BookingActions: () => null }));

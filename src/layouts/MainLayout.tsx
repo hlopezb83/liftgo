@@ -91,7 +91,7 @@ export default function MainLayout() {
           <AppSidebar />
           <main ref={mainRef} id="main-content" tabIndex={-1} className="flex-1 overflow-auto overscroll-contain pb-[env(safe-area-inset-bottom)]">
             <header data-app-header className="sticky top-0 z-30 h-12 flex items-center gap-3 border-b px-4 bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/80 pt-[env(safe-area-inset-top)] pl-[max(1rem,env(safe-area-inset-left))] pr-[max(1rem,env(safe-area-inset-right))]">
-              <SidebarTrigger className="touch:h-11 touch:w-11" />
+              <SidebarTrigger className="max-md:h-11 max-md:w-11 touch:h-11 touch:w-11" />
               <div className="flex-1 min-w-0">
                 <TopbarBreadcrumbs />
               </div>

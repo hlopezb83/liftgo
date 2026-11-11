@@ -42,6 +42,7 @@ async function capture(page: Page, name: string) {
     sourceSha256: (globalThis as typeof globalThis & { __LIFTGO_SOURCE_ID__?: string }).__LIFTGO_SOURCE_ID__,
     viewport: { width: innerWidth, height: innerHeight, visualHeight: visualViewport?.height },
     activeElement: document.activeElement?.getAttribute("aria-label") ?? document.activeElement?.tagName,
+    capturePanels: [...document.querySelectorAll('[aria-label="Borrador de reserva"], [aria-label="Revisar y crear reserva"]')].map((node) => ({ name: node.getAttribute("aria-label"), height: node.getBoundingClientRect().height, position: getComputedStyle(node).position })),
     widths: [document.documentElement, document.body, document.getElementById("main-content"), document.querySelector('[role="dialog"]')].filter((node): node is HTMLElement => node instanceof HTMLElement).map((node) => ({ tag: node.id || node.tagName, scroll: node.scrollWidth, client: node.clientWidth, scrollTop: node.scrollTop })),
   }));
   writeFileSync(evidencePath(test.info(), `${name}-geometry.json`), JSON.stringify(geometry, null, 2));
@@ -237,12 +238,16 @@ test("desktop reflow at half viewport width simulates the space available at 200
   await expect(trigger).toBeFocused();
 });
 
-async function captureBookingForm(page: Page): Promise<Locator> {
+async function openBookingForm(page: Page) {
   await page.goto("/bookings");
   await expect(page.getByRole("heading", { name: "Reservas", exact: true })).toBeVisible();
   await page.waitForLoadState("networkidle");
   await page.getByRole("button", { name: "Nueva reserva", exact: true }).press("Enter");
   await expect(page.getByRole("heading", { name: "Nueva reserva", exact: true })).toBeVisible();
+}
+
+async function captureBookingForm(page: Page): Promise<Locator> {
+  await openBookingForm(page);
   const from = page.getByRole("textbox", { name: /^Fechas de reserva.*inicio$/ });
   const to = page.getByRole("textbox", { name: /^Fechas de reserva.*fin$/ });
   await expect(from).toBeEnabled();
@@ -260,6 +265,16 @@ async function captureBookingForm(page: Page): Promise<Locator> {
 
 test("new booking keeps one accessible action operational summary draft and keyboard space without submitting", async ({ page, transport }) => {
   const actions = await captureBookingForm(page);
+  const mobile = (page.viewportSize()?.width ?? 1440) < 1024;
+  const toggle = actions.getByRole("button", { name: "Resumen de reserva", exact: true });
+  if (mobile) {
+    await expect(toggle).toHaveAttribute("aria-expanded", "false");
+    await expect(actions.getByText(customerName, { exact: true })).toBeHidden();
+    await toggle.press("Enter");
+    await expect(toggle).toBeFocused();
+    await expect(toggle).toHaveAttribute("aria-expanded", "true");
+    await expect(actions).toHaveCSS("position", "static");
+  }
   await expect(actions.getByText(forkliftName, { exact: true })).toBeVisible();
   await expect(actions.getByText(customerName, { exact: true })).toBeVisible();
   await expect(actions.getByText(/^01\/11\/2026\s*[-–]\s*30\/11\/2026/)).toBeVisible();
@@ -269,6 +284,12 @@ test("new booking keeps one accessible action operational summary draft and keyb
   await expect(page.getByRole("button", { name: "Crear reserva", exact: true })).toBeEnabled();
   await page.getByRole("switch", { name: "Incluir en facturación mensual", exact: true }).check();
   await expect(actions.getByText("Incluida en facturación mensual", { exact: true })).toBeVisible();
+  await capture(page, "new-booking-expanded-summary");
+  if (mobile) {
+    await toggle.press("Space");
+    await expect(toggle).toHaveAttribute("aria-expanded", "false");
+    await expect(actions).toHaveCSS("position", "sticky");
+  }
   const main = page.locator("#main-content");
   await main.evaluate((node) => node.scrollTo({ top: 0, behavior: "instant" }));
   await expect(actions.getByRole("button", { name: "Crear reserva", exact: true })).toBeInViewport({ ratio: 1 });
@@ -310,4 +331,94 @@ test("new booking keeps one accessible action operational summary draft and keyb
   await exitGuard.getByRole("button", { name: "Salir", exact: true }).click();
   await expect(page).toHaveURL(/\/bookings$/);
   await expect(page.getByRole("heading", { name: "Reservas", exact: true })).toBeVisible();
+});
+
+test("mobile capture keeps empty review compact and touch controls usable with optional draft details", async ({ page }) => {
+  await openBookingForm(page);
+  const mobile = (page.viewportSize()?.width ?? 1440) < 1024;
+  const draft = page.getByRole("region", { name: "Borrador de reserva", exact: true });
+  const actions = page.getByRole("complementary", { name: "Revisar y crear reserva", exact: true });
+  const privacy = draft.getByText(/El nombre libre y el contacto no se guardan por privacidad/);
+  const details = draft.getByRole("button", { name: "Detalles del borrador", exact: true });
+  const calendar = page.getByRole("button", { name: "Abrir calendario de Fechas de reserva", exact: true });
+  if (mobile) {
+    await expect(privacy).toBeHidden();
+    expect((await draft.boundingBox())!.height, "The idle draft should not push capture below the first screen").toBeLessThanOrEqual(110);
+    expect((await actions.boundingBox())!.height, "The collapsed review should leave room for capture").toBeLessThanOrEqual(130);
+    await expect(page.getByRole("textbox", { name: /^Fechas de reserva.*inicio$/ })).toBeInViewport({ ratio: 1 });
+    for (const control of [details, calendar, page.getByRole("button", { name: "Volver", exact: true }), page.getByRole("button", { name: "Alternar barra lateral", exact: true }), page.getByRole("button", { name: "Navegación rápida", exact: true }), page.getByRole("button", { name: "Menú de usuario", exact: true }), actions.getByRole("button", { name: "Crear reserva", exact: true }), actions.getByRole("button", { name: "Cancelar", exact: true })]) {
+      const box = await control.boundingBox();
+      expect(box?.width).toBeGreaterThanOrEqual(44);
+      expect(box?.height).toBeGreaterThanOrEqual(44);
+    }
+    await capture(page, "new-booking-empty-compact");
+    const reviewToggle = actions.getByRole("button", { name: "Resumen de reserva", exact: true });
+    await reviewToggle.click();
+    await expect(reviewToggle).toBeInViewport({ ratio: 1 });
+    await reviewToggle.click();
+    await page.locator("#main-content").evaluate((node) => node.scrollTo({ top: 0, behavior: "instant" }));
+    await details.press("Enter");
+    await expect(details).toHaveAttribute("aria-expanded", "true");
+    await expect(details).toBeFocused();
+    await expect(privacy).toBeVisible();
+    await details.press("Space");
+    await expect(privacy).toBeHidden();
+  } else {
+    await expect(details).toBeHidden();
+    await expect(privacy).toBeVisible();
+    await expect(actions.getByText("Sin equipo seleccionado", { exact: true })).toBeVisible();
+  }
+  await calendar.click();
+  const dialog = page.getByRole("dialog", { name: "Fechas de reserva", exact: true });
+  await expect(dialog).toBeVisible();
+  if (mobile) {
+    for (const control of [dialog.getByRole("button", { name: /previous month|mes anterior/i }), dialog.getByRole("button", { name: /next month|mes siguiente|próximo mes/i }), dialog.getByRole("button", { name: "Cancelar", exact: true }), dialog.getByRole("button", { name: "Aplicar", exact: true })]) {
+      // The dialog enters with a scale animation; measure its settled hit area.
+      await expect.poll(async () => (await control.boundingBox())?.width).toBeGreaterThanOrEqual(44);
+      await expect.poll(async () => (await control.boundingBox())?.height).toBeGreaterThanOrEqual(44);
+    }
+  }
+  await capture(page, "new-booking-calendar-targets");
+  await page.keyboard.press("Escape");
+  await expect(calendar).toBeFocused();
+  await actions.getByRole("button", { name: "Crear reserva", exact: true }).click();
+  const from = page.getByRole("textbox", { name: /^Fechas de reserva.*inicio$/ });
+  await expect(from).toBeFocused();
+  await expect(from).toHaveAttribute("aria-invalid", "true");
+  await expect(from).toBeInViewport({ ratio: 1 });
+  if (mobile) await expect(actions).toHaveCSS("position", "static");
+  await capture(page, "new-booking-missing-date-focused");
+});
+
+test("mobile draft conflict keeps recovery and errors visible while review is collapsed", async ({ page, context }) => {
+  const actions = await captureBookingForm(page);
+  const draft = page.getByRole("region", { name: "Borrador de reserva", exact: true });
+  await expect(draft.getByText(/Caduca:/)).toBeVisible();
+  // A second local tab removes only the synthetic capture. This exercises the
+  // real storage event/lease guard without calling any write endpoint.
+  const otherTab = await context.newPage();
+  await otherTab.goto("/bookings");
+  await expect(otherTab.getByRole("heading", { name: "Reservas", exact: true })).toBeVisible();
+  const removed = await otherTab.evaluate(() => {
+    const key = Object.keys(localStorage).find((name) => name.startsWith("liftgo:form-drafts:v1:booking:"));
+    if (key) localStorage.removeItem(key);
+    return Boolean(key);
+  });
+  expect(removed).toBe(true);
+  await otherTab.close();
+  const warning = draft.getByRole("alert");
+  await expect(warning).toContainText("El borrador cambió o se eliminó en otra pestaña");
+  await expect(actions.getByRole("button", { name: "Crear reserva", exact: true })).toBeDisabled();
+  const recovery = draft.getByRole("button", { name: "Descartar mi captura y revisar borrador actual", exact: true });
+  await recovery.scrollIntoViewIfNeeded();
+  await expect(recovery).toBeInViewport({ ratio: 1 });
+  await capture(page, "new-booking-draft-conflict");
+  await recovery.click();
+  const confirmation = page.getByRole("alertdialog");
+  await expect(confirmation).toBeVisible();
+  await confirmation.getByRole("button", { name: "Seguir editando", exact: true }).click();
+  await expect(confirmation).toHaveCount(0);
+  await expect(page.getByRole("textbox", { name: /^Fechas de reserva.*inicio$/ })).toHaveValue("01/11/2026");
+  await expect(warning).toBeVisible();
+  await expect(actions.getByRole("button", { name: "Crear reserva", exact: true })).toBeDisabled();
 });

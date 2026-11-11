@@ -1,4 +1,4 @@
-export type SelectableBooking = { id: string; customer_name: string | null; start_date: string; end_date: string; forklift_id: string; status: string };
+export type SelectableBooking = { id: string; customer_name: string | null; start_date: string; end_date: string; forklift_id: string; status: string; booking_number?: string; forklifts?: { name: string; model: string } | null };
 
 /**
  * R-C6 + F9: reservas seleccionables para una entrega. Sólo las `confirmed`

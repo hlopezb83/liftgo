@@ -5,8 +5,9 @@ import { useForklifts } from "./useForklifts";
  * Returns a Map of forklift ID → forklift object.
  * React Compiler memoiza automáticamente.
  */
-export function useForkliftMap() {
-  const { data: forklifts, isLoading, isError, isFetching, refetch } = useForklifts();
+export function useForkliftMap(enabled = true) {
+  const { data, isLoading, isError, isFetching, refetch } = useForklifts(enabled);
+  const forklifts = enabled ? data : undefined;
   const forkliftMap = new Map<string, Tables<"forklifts">>(
     forklifts?.map((f) => [f.id, f]) || [],
   );
