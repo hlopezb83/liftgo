@@ -1,27 +1,25 @@
-import { useLiftgoTable, type ColumnDef } from "@/components/dataTable/v2";
+import { useLiftgoTable } from "@/components/dataTable/v2";
 import { ListTruncationNotice } from "@/components/feedback/ListTruncationNotice";
-import { StatusBadge } from "@/components/feedback/StatusBadge";
 import { FiltersToolbar } from "@/components/filters/FiltersToolbar";
 import { WarnIcon } from "@/components/icons";
 import { ListPageLayout } from "@/components/layout/ListPageLayout";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Badge } from "@/components/ui/badge";
-import { Untranslated } from "@/components/ui/Untranslated";
+import { Button } from "@/components/ui/button";
 import { useForkliftMap } from "@/features/fleet";
 import { useHasModuleAccess } from "@/features/users";
 import { applyFacetFilters } from "@/hooks/filters/applyFacetFilters";
 import { useTableFilters } from "@/hooks/filters/useTableFilters";
 import { useToggleDialog } from "@/hooks/useDialogState";
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";
-import { formatDateMty } from "@/lib/format/dateFormats";
+import { useSearchParams } from "@/lib/router-compat";
 import { visibleListRows } from "@/lib/supabase/constants";
 import { DeliveryFormDialog } from "../components/deliveries/DeliveryFormDialog";
 import { DeliveryMobileCard } from "../components/deliveries/DeliveryMobileCard";
 import { useDeliveries, deliveryQueries } from "../hooks/useDeliveries";
-import { countOverdueDeliveries, deliveryOverdueDays, deliveryOverdueLabel } from "../lib/deliveryOverdue";
-import { deliveryTypeLabel } from "../lib/deliveryTypeLabel";
-import { isHistoricallyReconciled, selectDeliveryHistory } from "../lib/historicalReconciliation";
-import { resolveDeliveryForkliftName } from "../lib/resolveDeliveryForkliftName";
+import { countOverdueDeliveries } from "../lib/deliveryOverdue";
+import { selectDeliveryHistory } from "../lib/historicalReconciliation";
+import { buildDeliveryColumns } from "./deliveryColumns";
+import { OverdueDeliveriesPage } from "./OverdueDeliveriesPage";
 
 
 type Delivery = NonNullable<ReturnType<typeof useDeliveries>["data"]>[number];
@@ -43,71 +41,12 @@ const TYPE_OPTIONS = [
 ];
 
 
-type ForkliftMap = ReturnType<typeof useForkliftMap>["forkliftMap"];
-
-function buildDeliveryColumns(forkliftMap: ForkliftMap): ColumnDef<Delivery>[] {
-  return [
-    {
-      id: "delivery_number",
-      header: "Entrega #",
-      accessorKey: "delivery_number",
-      cell: ({ row }) => <Untranslated className="font-mono text-sm text-primary">{row.original.delivery_number}</Untranslated>,
-    },
-    {
-      // C2: el tipo (entrega vs recolección) sólo existía en la tarjeta móvil.
-      id: "type",
-      header: "Tipo",
-      accessorFn: (d) => deliveryTypeLabel(d.type),
-      cell: ({ row }) => <span className="text-sm">{deliveryTypeLabel(row.original.type)}</span>,
-    },
-    {
-      id: "scheduled_date",
-      header: "Fecha",
-      accessorKey: "scheduled_date",
-      cell: ({ row }) => {
-        const overdue = deliveryOverdueDays(row.original);
-        return (
-          <div className="flex items-center gap-2">
-            <span className="font-mono text-sm">
-              {formatDateMty(row.original.scheduled_date)}
-              {row.original.scheduled_time ? ` ${row.original.scheduled_time}` : ""}
-            </span>
-            {overdue > 0 && (
-              <Badge variant="destructive" className="text-3xs px-1.5 py-0">{deliveryOverdueLabel(overdue)}</Badge>
-            )}
-          </div>
-        );
-      },
-    },
-    {
-      id: "forklift_name",
-      header: "Montacargas",
-      // R9-P2: la lista de montacargas puede venir filtrada/paginada, así que
-      // el mapa a veces no tenía la unidad y la celda quedaba en "—". La
-      // consulta de entregas ya trae el join `forklifts(name, model)`: se usa
-      // como fuente primaria y el mapa sólo como respaldo.
-      accessorFn: (d) => resolveDeliveryForkliftName(d, forkliftMap) ?? "",
-      cell: ({ row }) => {
-        const name = resolveDeliveryForkliftName(row.original, forkliftMap);
-        return name ? <Untranslated className="font-medium">{name}</Untranslated> : <span className="font-medium">—</span>;
-      },
-    },
-    {
-      id: "driver_name",
-      header: "Operador",
-      accessorFn: (d) => d.driver_name || "",
-      cell: ({ row }) => row.original.driver_name || "—",
-    },
-    {
-      id: "status",
-      header: "Estado",
-      accessorKey: "status",
-      cell: ({ row }) => <div className="flex flex-wrap gap-1"><StatusBadge status={row.original.status} />{isHistoricallyReconciled(row.original) && <Badge variant="secondary">Conciliada históricamente</Badge>}</div>,
-    },
-  ];
+export default function DeliveriesPage() {
+  const [params] = useSearchParams();
+  return params.get("view") === "overdue" ? <OverdueDeliveriesPage /> : <DeliveriesList />;
 }
 
-export default function DeliveriesPage() {
+function DeliveriesList() {
   const navigate = useNavigateTransition();
   const { forkliftMap } = useForkliftMap();
   const { data: deliveriesRaw, isLoading, isError, refetch } = useDeliveries();
@@ -138,7 +77,7 @@ export default function DeliveriesPage() {
   const visibleDeliveries = selectDeliveryHistory(filtered, values.history);
   const overdueCount = countOverdueDeliveries(deliveries);
 
-  const columns = buildDeliveryColumns(forkliftMap);
+  const columns = buildDeliveryColumns<Delivery>(forkliftMap);
 
   const table = useLiftgoTable<Delivery>({
     data: visibleDeliveries,
@@ -152,7 +91,10 @@ export default function DeliveriesPage() {
       subtitle="Programa y rastrea el transporte de equipos"
       totalCount={visibleDeliveries.length}
       onRefresh={refetch}
-      actions={<DeliveryFormDialog open={scheduleDialog.open} onOpenChange={scheduleDialog.setOpen} />}
+      actions={<div className="flex flex-wrap gap-2">
+        <Button variant="outline" size="sm" onClick={() => navigate("/deliveries?view=overdue")}>Transportes atrasados</Button>
+        <DeliveryFormDialog open={scheduleDialog.open} onOpenChange={scheduleDialog.setOpen} />
+      </div>}
       notice={
         <div className="space-y-3">
           {overdueCount > 0 && (
@@ -160,8 +102,8 @@ export default function DeliveriesPage() {
               <WarnIcon className="h-4 w-4" />
               <AlertDescription>
                 {overdueCount === 1
-                  ? "Hay 1 entrega programada con fecha vencida. Reprográmala o márcala como completada."
-                  : `Hay ${overdueCount} entregas programadas con fecha vencida. Reprográmalas o márcalas como completadas.`}
+                  ? "Hay 1 transporte atrasado en la lista cargada. Revisa la vista de transportes atrasados."
+                  : `Hay ${overdueCount} transportes atrasados en la lista cargada. Revisa la vista de transportes atrasados.`}
               </AlertDescription>
             </Alert>
           )}
