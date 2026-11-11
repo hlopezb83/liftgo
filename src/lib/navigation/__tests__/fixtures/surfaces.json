@@ -246,50 +246,50 @@
       "title": "CRM",
       "url": "/crm",
       "icon": "TargetIcon",
-      "group": "Comercial",
-      "keywords": "prospectos pipeline"
+      "group": "Ventas",
+      "keywords": "prospectos pipeline comercial"
     },
     {
       "title": "Clientes",
       "url": "/customers",
       "icon": "UsersIcon",
-      "group": "Comercial"
+      "group": "Ventas"
     },
     {
       "title": "Cotizaciones",
       "url": "/quotes",
       "icon": "DocumentIcon",
-      "group": "Comercial"
+      "group": "Ventas"
     },
     {
       "title": "Reservas",
       "url": "/bookings",
       "icon": "BookOpen",
-      "group": "Comercial"
+      "group": "Operación diaria"
     },
     {
       "title": "Contratos",
       "url": "/contracts",
       "icon": "ScrollText",
-      "group": "Operaciones"
+      "group": "Ventas"
     },
     {
       "title": "Entregas",
       "url": "/deliveries",
       "icon": "DeliveryIcon",
-      "group": "Operaciones"
+      "group": "Operación diaria"
     },
     {
       "title": "Devoluciones",
       "url": "/returns",
       "icon": "ClipboardCheck",
-      "group": "Operaciones"
+      "group": "Operación diaria"
     },
     {
       "title": "Facturas",
       "url": "/invoices",
       "icon": "InvoiceIcon",
-      "group": "Operaciones"
+      "group": "Finanzas"
     },
     {
       "title": "Equipos",
@@ -320,44 +320,46 @@
       "title": "Proveedores",
       "url": "/suppliers",
       "icon": "SupplierIcon",
-      "group": "Administración"
+      "group": "Compras"
     },
     {
-      "title": "Gastos operativos",
+      "title": "Facturas de proveedor",
       "url": "/expenses",
       "icon": "ExpenseIcon",
-      "group": "Administración"
+      "group": "Compras",
+      "keywords": "gastos operativos"
     },
     {
       "title": "Estado de resultados",
       "url": "/income-statement",
       "icon": "ChartIcon",
-      "group": "Administración"
+      "group": "Finanzas"
     },
     {
       "title": "Reportes",
       "url": "/reports",
       "icon": "ChartIcon",
-      "group": "Administración"
+      "group": "Análisis"
     },
     {
       "title": "Actividad",
       "url": "/activity",
       "icon": "ActivityIcon",
-      "group": "Administración"
+      "group": "Auditoría"
     },
     {
       "title": "Bitácora",
       "url": "/audit",
       "icon": "HistoryIcon",
-      "group": "Administración",
+      "group": "Auditoría",
       "keywords": "auditoria audit trail"
     },
     {
-      "title": "Configuración operativa",
+      "title": "Configuración",
       "url": "/settings/operations",
       "icon": "SettingsIcon",
-      "group": "Administración"
+      "group": "Administración",
+      "keywords": "configuracion operativa"
     },
     {
       "title": "Datos fiscales",
@@ -375,13 +377,13 @@
       "title": "Historial de cambios",
       "url": "/changelog",
       "icon": "ScrollText",
-      "group": "Administración"
+      "group": "Soporte"
     },
     {
       "title": "Ayuda",
       "url": "/help",
       "icon": "HelpIcon",
-      "group": "Administración"
+      "group": "Soporte"
     }
   ]
 }

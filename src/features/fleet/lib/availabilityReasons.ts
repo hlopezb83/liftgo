@@ -1,3 +1,5 @@
+import { formatDateMty } from "@/lib/format/dateFormats";
+
 /** Explanations are evidence only. They never replace the availability RPC. */
 export interface AvailabilityUnit {
   id: string;
@@ -62,7 +64,7 @@ export function explainUnavailableUnit({ unit, maintenanceBlocked, overdueUnretu
     return {
       code: "reservation",
       label: "Reserva en las fechas seleccionadas",
-      detail: `Existe una reserva del ${overlappingBooking.start_date} al ${overlappingBooking.end_date}. Ambos días están incluidos.`,
+      detail: `Existe una reserva del ${formatDateMty(overlappingBooking.start_date)} al ${formatDateMty(overlappingBooking.end_date)}. Ambos días están incluidos.`,
       nextAction: "Elige otra unidad u otras fechas. Revisa la reserva en el calendario si tienes acceso.",
     };
   }

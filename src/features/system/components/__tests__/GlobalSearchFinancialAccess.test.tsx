@@ -48,7 +48,7 @@ describe("GlobalSearch — exclusión financiera de despachador", () => {
   it("omite rutas y resultados financieros pero conserva navegación y clientes operativos", () => {
     render(<GlobalSearch />);
     fireEvent.click(screen.getByRole("button", { name: "Navegación rápida" }));
-    for (const text of ["Facturas", "Gastos operativos", "Estado de resultados", "FAC-SECRET", "Cliente financiero"]) {
+    for (const text of ["Facturas", "Facturas de proveedor", "Estado de resultados", "FAC-SECRET", "Cliente financiero"]) {
       expect(screen.queryByText(text)).not.toBeInTheDocument();
     }
     expect(screen.queryByText(/No se pudo buscar en/)).not.toBeInTheDocument();
@@ -77,7 +77,7 @@ describe("GlobalSearch — permisos de navegación compartidos", () => {
   it("oculta administración al despachador sin eliminar operación ni ayuda", () => {
     render(<GlobalSearch />);
     fireEvent.click(screen.getByRole("button", { name: "Navegación rápida" }));
-    for (const label of ["Datos fiscales", "Configuración operativa", "Usuarios"]) {
+    for (const label of ["Datos fiscales", "Configuración", "Usuarios"]) {
       expect(screen.queryByRole("button", { name: label })).not.toBeInTheDocument();
     }
     expect(state.preload).not.toHaveBeenCalled();
@@ -90,7 +90,7 @@ describe("GlobalSearch — permisos de navegación compartidos", () => {
     state.permissions = { auditor: { Configuración: "read", "Gestión de Usuarios": "read" } };
     render(<GlobalSearch />);
     fireEvent.click(screen.getByRole("button", { name: "Navegación rápida" }));
-    for (const label of ["Datos fiscales", "Configuración operativa", "Usuarios", "Ayuda", "Historial de cambios"]) {
+    for (const label of ["Datos fiscales", "Configuración", "Usuarios", "Ayuda", "Historial de cambios"]) {
       expect(screen.getByRole("button", { name: label })).toBeInTheDocument();
     }
     expect(screen.queryByRole("button", { name: "Reservas" })).not.toBeInTheDocument();

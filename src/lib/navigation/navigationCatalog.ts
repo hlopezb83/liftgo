@@ -27,7 +27,8 @@ export type SearchNavigationItem = { title: string; url: string; icon: ElementTy
 
 /** Shared display metadata, not a route registry or an authorization guard.
  * Surface membership and ordering remain explicit below: search intentionally
- * has fewer destinations, its legacy /expenses alias, and different groups.
+ * has fewer destinations and its legacy /expenses alias. Shared destinations
+ * use the same names and groups on both surfaces.
  */
 const DESTINATIONS = {
   home: { title: "Panel", url: "/", icon: DashboardIcon },
@@ -63,7 +64,7 @@ const DESTINATIONS = {
   misReportes: { title: "Mis reportes", url: "/mis-reportes", icon: MessageSquare },
   leaderboard: { title: "Tabla de honor", url: "/leaderboard", icon: TrophyIcon },
   feedback: { title: "Gestión de reportes", url: "/feedback", icon: Megaphone },
-  expenses: { title: "Gastos operativos", url: "/expenses", icon: ExpenseIcon },
+  expenses: { title: "Facturas de proveedor", url: "/expenses", icon: ExpenseIcon },
   settingsCompany: { title: "Datos fiscales", url: "/settings/company", icon: CompanyIcon },
 };
 
@@ -172,27 +173,27 @@ export const NAV_GROUPS: NavGroup[] = [
 export const SEARCH_NAVIGATION_ITEMS: SearchNavigationItem[] = [
   { ...DESTINATIONS.home, group: "General" },
   { ...DESTINATIONS.calendar, group: "General", keywords: "gantt reservas" },
-  { ...DESTINATIONS.crm, group: "Comercial", keywords: "prospectos pipeline" },
-  { ...DESTINATIONS.customers, group: "Comercial" },
-  { ...DESTINATIONS.quotes, group: "Comercial" },
-  { ...DESTINATIONS.bookings, group: "Comercial" },
-  { ...DESTINATIONS.contracts, group: "Operaciones" },
-  { ...DESTINATIONS.deliveries, group: "Operaciones" },
-  { ...DESTINATIONS.returns, group: "Operaciones" },
-  { ...DESTINATIONS.invoices, group: "Operaciones" },
+  { ...DESTINATIONS.crm, group: "Ventas", keywords: "prospectos pipeline comercial" },
+  { ...DESTINATIONS.customers, group: "Ventas" },
+  { ...DESTINATIONS.quotes, group: "Ventas" },
+  { ...DESTINATIONS.bookings, group: "Operación diaria" },
+  { ...DESTINATIONS.contracts, group: "Ventas" },
+  { ...DESTINATIONS.deliveries, group: "Operación diaria" },
+  { ...DESTINATIONS.returns, group: "Operación diaria" },
+  { ...DESTINATIONS.invoices, group: "Finanzas" },
   { ...DESTINATIONS.fleet, group: "Flota", keywords: "montacargas" },
   { ...DESTINATIONS.maintenance, group: "Flota" },
   { ...DESTINATIONS.damage, group: "Flota" },
   { ...DESTINATIONS.inventory, group: "Flota" },
-  { ...DESTINATIONS.suppliers, group: "Administración" },
-  { ...DESTINATIONS.expenses, group: "Administración" },
-  { ...DESTINATIONS.incomeStatement, group: "Administración" },
-  { ...DESTINATIONS.reports, group: "Administración" },
-  { ...DESTINATIONS.activity, group: "Administración" },
-  { ...DESTINATIONS.audit, group: "Administración", keywords: "auditoria audit trail" },
-  { ...DESTINATIONS.settingsOperations, title: "Configuración operativa", group: "Administración" },
+  { ...DESTINATIONS.suppliers, group: "Compras" },
+  { ...DESTINATIONS.expenses, group: "Compras", keywords: "gastos operativos" },
+  { ...DESTINATIONS.incomeStatement, group: "Finanzas" },
+  { ...DESTINATIONS.reports, group: "Análisis" },
+  { ...DESTINATIONS.activity, group: "Auditoría" },
+  { ...DESTINATIONS.audit, group: "Auditoría", keywords: "auditoria audit trail" },
+  { ...DESTINATIONS.settingsOperations, group: "Administración", keywords: "configuracion operativa" },
   { ...DESTINATIONS.settingsCompany, group: "Administración" },
   { ...DESTINATIONS.users, group: "Administración" },
-  { ...DESTINATIONS.changelog, group: "Administración" },
-  { ...DESTINATIONS.help, group: "Administración" },
+  { ...DESTINATIONS.changelog, group: "Soporte" },
+  { ...DESTINATIONS.help, group: "Soporte" },
 ];

@@ -62,7 +62,7 @@ describe("GlobalSearch legacy expenses alias", () => {
     render(<GlobalSearch />);
     fireEvent.click(screen.getByRole("button", { name: "Navegación rápida" }));
     await screen.findByRole("dialog");
-    const item = screen.queryByRole("option", { name: "Gastos operativos" });
+    const item = screen.queryByRole("option", { name: "Facturas de proveedor" });
     if (visible) {
       expect(item).toBeInTheDocument();
       fireEvent.click(item!);
@@ -82,7 +82,7 @@ describe("GlobalSearch legacy expenses alias", () => {
     render(<GlobalSearch />);
     fireEvent.click(screen.getByRole("button", { name: "Navegación rápida" }));
     await screen.findByRole("dialog");
-    expect(screen.queryByRole("option", { name: "Gastos operativos" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("option", { name: "Facturas de proveedor" })).not.toBeInTheDocument();
     expect(state.navigate).not.toHaveBeenCalled();
   });
 
@@ -90,10 +90,10 @@ describe("GlobalSearch legacy expenses alias", () => {
     state.expenses = "read";
     const { rerender } = render(<GlobalSearch />);
     fireEvent.click(screen.getByRole("button", { name: "Navegación rápida" }));
-    expect(await screen.findByRole("option", { name: "Gastos operativos" })).toBeInTheDocument();
+    expect(await screen.findByRole("option", { name: "Facturas de proveedor" })).toBeInTheDocument();
     state.payable = "none";
     rerender(<GlobalSearch />);
-    expect(screen.queryByRole("option", { name: "Gastos operativos" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("option", { name: "Facturas de proveedor" })).not.toBeInTheDocument();
     expect(state.navigate).not.toHaveBeenCalled();
   });
 });

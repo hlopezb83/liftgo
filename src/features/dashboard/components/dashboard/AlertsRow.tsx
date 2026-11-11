@@ -203,7 +203,7 @@ export function AlertsRow({
               key={a.forkliftId}
               primary={a.forkliftName}
               to={`/fleet/${a.forkliftId}`}
-              rightTop={<span className="text-xs text-muted-foreground">Vence: {a.nextDate}</span>}
+              rightTop={<span className="text-xs text-muted-foreground">Vence: {formatDateMty(a.nextDate)}</span>}
               action={canManageMaintenance ? {
                 icon: ClipboardList,
                 title: "Registrar servicio",
