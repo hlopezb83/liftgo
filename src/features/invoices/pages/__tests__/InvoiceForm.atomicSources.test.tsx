@@ -3,13 +3,12 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 const state = vi.hoisted(() => ({
   isEdit: false, fail: false, liveVersion: 4,
   params: new URLSearchParams("extension_id=ext-1&from_quote=quote-1"),
-  save: vi.fn(), navigate: vi.fn(), success: vi.fn(), legacyLink: vi.fn(), legacyQuote: vi.fn(),
+  save: vi.fn(), navigate: vi.fn(), success: vi.fn(), legacyQuote: vi.fn(),
 }));
 vi.mock("@/lib/router-compat", () => ({ useParams: () => ({ id: state.isEdit ? "inv-1" : undefined }), useSearchParams: () => [state.params] }));
 vi.mock("@/hooks/useNavigateTransition", () => ({ useNavigateTransition: () => state.navigate }));
 vi.mock("@/hooks/useUnsavedChangesGuard", () => ({ useUnsavedChangesGuard: () => undefined }));
 vi.mock("@/lib/ui/appFeedback", () => ({ notifySuccess: state.success }));
-vi.mock("@/features/bookings", () => ({ useLinkExtensionInvoice: () => ({ mutateAsync: state.legacyLink }) }));
 vi.mock("../../hooks/useDamagePrefill", () => ({ useDamagePrefill: () => undefined }));
 vi.mock("../../hooks/useInvoiceFormLogic", async () => {
   const { useForm } = await import("react-hook-form");
@@ -42,12 +41,12 @@ beforeEach(() => {
 });
 afterEach(cleanup);
 describe("atomic invoice sources", () => {
-  it("sends sources in the save and finalizes without follow-up writes", async () => {
+  it("sends both sources in the atomic save before navigating", async () => {
     render(<InvoiceForm />);
     fireEvent.click(screen.getByRole("button", { name: "Crear factura" }));
     await waitFor(() => expect(state.navigate).toHaveBeenCalledWith("/invoices/inv-1"));
     expect(state.save.mock.calls[0][0]).toMatchObject({ bookingIds: ["booking-1"], extensionId: "ext-1", acceptQuoteId: "quote-1", quoteExpectedVersion: 4 });
-    expect(state.legacyLink).not.toHaveBeenCalled(); expect(state.legacyQuote).not.toHaveBeenCalled();
+    expect(state.legacyQuote).not.toHaveBeenCalled();
   });
   it("submits the prefilled version after a live refetch", async () => {
     const { rerender } = render(<InvoiceForm />); state.liveVersion = 5; rerender(<InvoiceForm />);
@@ -60,14 +59,14 @@ describe("atomic invoice sources", () => {
     fireEvent.click(screen.getByRole("button", { name: "Crear factura" }));
     await waitFor(() => expect(state.save).toHaveBeenCalledTimes(1));
     expect(state.success).not.toHaveBeenCalled(); expect(state.navigate).not.toHaveBeenCalled();
-    expect(state.legacyLink).not.toHaveBeenCalled(); expect(state.legacyQuote).not.toHaveBeenCalled();
+    expect(state.legacyQuote).not.toHaveBeenCalled();
   });
   it("does not add source side effects to editing", async () => {
     state.isEdit = true; render(<InvoiceForm />);
     fireEvent.click(screen.getByRole("button", { name: "Actualizar factura" }));
     await waitFor(() => expect(state.save).toHaveBeenCalledTimes(1));
     expect(state.save.mock.calls[0][0]).toMatchObject({ invoiceId: "inv-1", expectedVersion: 3, extensionId: null, acceptQuoteId: null, quoteExpectedVersion: null });
-    expect(state.legacyLink).not.toHaveBeenCalled(); expect(state.legacyQuote).not.toHaveBeenCalled();
+    expect(state.legacyQuote).not.toHaveBeenCalled();
   });
 });
 

@@ -1,7 +1,7 @@
 import type { BillableBooking } from "./bookingCompatibility";
 import type { BookingInvoiceClaim } from "./originalBookingPeriod";
 
-export interface RecurringPeriod { start: string; end: string }
+interface RecurringPeriod { start: string; end: string }
 export interface PendingRecurringPeriod { period: RecurringPeriod | null; error: string | null }
 const MAX_MONTHS = 1200;
 const invalidHistory = "No se pudo verificar el historial completo de periodos recurrentes. Revisa las fechas antes de facturar.";

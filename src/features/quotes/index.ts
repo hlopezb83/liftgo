@@ -7,4 +7,4 @@ export { formatQuoteTotal } from "./lib/quoteDisplay";
 export { allocateQuotedRentalLines, hasQuotedDiscount } from "./lib/quotedRentalAllocation";
 export type { QuotedRentalBooking, QuotedRentalUnit, RentalQuoteSource } from "./lib/quotedRentalAllocation";
 export { useCrmQuote, useCrmQuoteNumbers, useCrmQuoteOptions } from "./hooks/quotes/useCrmQuotes";
-export type { CrmQuote, CrmQuoteNumber } from "./hooks/quotes/useCrmQuotes";
+export type { CrmQuote } from "./hooks/quotes/useCrmQuotes";

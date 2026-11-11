@@ -1,5 +1,5 @@
 import type { ExportData, ExportSheet, SupplierPayment } from "./model";
-export type DocumentKind = "Factura" | "Nota de crédito" | "REP cobro" | "Compra" | "REP proveedor";
+type DocumentKind = "Factura" | "Nota de crédito" | "REP cobro" | "Compra" | "REP proveedor";
 export interface DocumentCandidate {
   kind: DocumentKind; id: string; folio: string; uuid: string | null; extension: "xml" | "pdf";
   bucket: "cfdi-files" | "supplier-bill-cfdi-xml"; source: string | null; inlineXml?: string | null;

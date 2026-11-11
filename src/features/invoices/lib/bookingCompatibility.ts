@@ -135,7 +135,7 @@ export function periodOutsideBookingsError(
 }
 
 
-export function isLateRecovery(booking: BillableBooking): boolean {
+function isLateRecovery(booking: BillableBooking): boolean {
   return !!booking.pending_billing_period && booking.pending_billing_period.end > booking.end_date;
 }
 

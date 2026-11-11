@@ -37,7 +37,7 @@ export function originalPeriodBooking<T extends BillableBooking>(booking: T, ext
 
 /** Inclusive date ranges: sharing a day overlaps; adjacent days do not.
  * Legacy claims with missing/invalid dates are not evidence of availability. */
-export function claimOverlapsPeriod(claim: BookingInvoiceClaim, start: string, end: string): boolean {
+function claimOverlapsPeriod(claim: BookingInvoiceClaim, start: string, end: string): boolean {
   const from = claim.billing_period_start;
   const to = claim.billing_period_end;
   return !from || !to || from > to || (from <= end && to >= start);

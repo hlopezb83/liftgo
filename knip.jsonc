@@ -7,6 +7,15 @@
     "src/server.ts",
     // Limpieza manual documentada; nunca se ejecuta durante el análisis.
     "scripts/cleanup-e2e.ts",
+    // Verificaciones locales y archivos lanzados como argumentos de subprocess.
+    "scripts/tests/obsolete-vat.postgres.mjs",
+    "scripts/tests/sale-quote-guard-model.mjs",
+    "scripts/tests/fiscal/vitest.config.ts",
+    "scripts/tests/inventory/inventory-page.integration.mjs",
+    "scripts/tests/operations/run-completed-recurring-lifecycle.cjs",
+    "scripts/tests/operations/run-operational-corrections.mjs",
+    "scripts/tests/quotes/quotes-page.integration.mjs",
+    "scripts/tests/quotes/run-local-postgres.mjs",
     // Edge functions desplegadas en Supabase: son entrypoints propios,
     // no las importa src/ (cron, webhooks y llamadas invoke las referencian).
     "supabase/functions/**/index.ts",
@@ -17,6 +26,12 @@
     "vite.config.ts"
   ],
   "project": ["src/**", "scripts/**", "supabase/functions/**"],
+  "ignoreFiles": [
+    // TypeScript resuelve estas declaraciones al importar el .mjs homónimo.
+    "scripts/browser-test-config.d.mts",
+    "scripts/gen-version.d.mts",
+    "scripts/release-identity.d.mts"
+  ],
   "ignore": [
     "src/components/ui/**",
     "supabase/functions/_shared/**",

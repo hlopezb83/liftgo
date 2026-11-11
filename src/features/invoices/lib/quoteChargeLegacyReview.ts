@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-export const LEGACY_REVIEW_UNAVAILABLE = "No se pudo verificar la revisión histórica completa. Reintenta la consulta.";
+const LEGACY_REVIEW_UNAVAILABLE = "No se pudo verificar la revisión histórica completa. Reintenta la consulta.";
 export const legacyClassifications = {
   charge: "Cargo de esta cotización",
   rental: "Renta o venta de equipo",
