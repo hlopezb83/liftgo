@@ -65,10 +65,13 @@ START_EXCLUDES = {
 # Its body reads test-key exclusivity only when invoked; installation has no
 # business DML, HTTP or cron operations. The journal appends only entry 134;
 # its empty snapshot links to 0133. All earlier migration bytes are unchanged.
+# 0135–0136 add tenant-scoped read RPCs and extend the existing dashboard
+# aggregate. The functions keep invoker RLS; new grants are authenticated-only.
+# No data writes, HTTP or cron operations. Earlier SQL is byte-identical.
 # Any subsequent history change requires explicit source review.
 SOURCE_TREES = {
     "supabase/migrations": "3e3575f5ff6d509ecdd624ae7fc1772508b5dce6",
-    "drizzle/migrations": "d676be459c28e69b83041513ba24c86a84bc3e80",
+    "drizzle/migrations": "5e901bd70653e8e84ec6ed899efbc87ecce92b8a",
 }
 HTTP_SOURCES = {
     "20260721000000_retry_queue_cron.sql": "2aecccd0758961f41769d9fed522d03df14937650b9dde80fce47646a1fa6887",

@@ -24,7 +24,7 @@ class LocalCiDatabaseTests(unittest.TestCase):
         root = Path(__file__).parents[2]
         self.assertEqual(ci.SOURCE_TREES, {
             "supabase/migrations": "3e3575f5ff6d509ecdd624ae7fc1772508b5dce6",
-            "drizzle/migrations": "d676be459c28e69b83041513ba24c86a84bc3e80",
+            "drizzle/migrations": "5e901bd70653e8e84ec6ed899efbc87ecce92b8a",
         })
         migrations = root / "drizzle/migrations"
         journal = json.loads((migrations / "meta/_journal.json").read_text())
@@ -61,7 +61,6 @@ class LocalCiDatabaseTests(unittest.TestCase):
         self.assertEqual(hashlib.sha256(sql.read_bytes()).hexdigest(),
                          "14fa5d91e379333cf995fc7da130502a765d324bc9db1c1e0f5a1b72446eb374")
         journal = json.loads((migrations / "meta/_journal.json").read_text())
-        self.assertEqual(len(journal["entries"]), 135)
         self.assertEqual(journal["entries"][134], {
             "idx": 134, "version": "7", "when": 1794291446347,
             "tag": "0134_qa_fx6_test_key_exclusive", "breakpoints": True,

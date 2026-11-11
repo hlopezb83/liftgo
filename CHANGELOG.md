@@ -1,3 +1,8 @@
+## [8.52.12] - 2026-11-10
+
+- Pagina las reservas de facturación y consulta solo el historial relevante. Aísla los cálculos del editor y refresca las listas en segundo plano al guardar.
+- Agrupa las consultas del panel y de búsqueda global. Carga los gráficos al acercarse a la vista y genera PDF y Excel contable en segundo plano.
+
 ## [8.52.11] - 2026-11-10
 
 - Retira código sin uso de inventario y facturación, un recurso gráfico sin referencias y planes temporales de Lovable. Ajusta Knip y corrige las verificaciones de identidad y de dependencias en Windows.

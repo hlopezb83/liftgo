@@ -1,5 +1,6 @@
 import type { BillableBooking } from "../bookingCompatibility";
 import { describe, expect, it } from "vitest";
+import { indexBillingEvidence } from "../billingEvidenceIndex";
 import { completedRecurringBooking } from "../completedRecurringBooking";
 const booking: BillableBooking & { forklift_id: string } = { id: "b1", forklift_id: "f1", status: "completed", recurring_billing: true, start_date: "2026-07-15", end_date: "2026-09-30" };
 const returned = { booking_id: "b1", forklift_id: "f1", inspected_at: "2026-08-10T18:00:00Z" };
@@ -47,6 +48,13 @@ describe("late-return legacy charge reconciliation", () => {
   });
   it("does not infer attribution for grouped invoices", () => {
     const result = completedRecurringBooking(booking, [covered, { ...covered, booking_id: "b2" }], [late], now);
+    expect(result.error).toMatch(/atribución/);
+  });
+  it("keeps linked bookings visible to attribution checks when claims are indexed", () => {
+    const index = indexBillingEvidence([covered, { ...covered, booking_id: "b2" }], [], [late]);
+    const result = completedRecurringBooking(booking, index.claimsByBooking.get(booking.id) ?? [],
+      [late], now, booking.monthly_rate, index.claimsByInvoice);
+    expect(result.booking).toBeNull();
     expect(result.error).toMatch(/atribución/);
   });
   it("ignores cancelled ambiguous charges", () => {

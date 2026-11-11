@@ -5,6 +5,7 @@ import type { BookingWithForklift } from "@/features/bookings";
 import { useCustomers } from "@/features/customers";
 import { useForklifts, useQuoteAssignments } from "@/features/fleet";
 import { useQuote, useQuoteSaleAssignmentStatus, useQuotesByIds } from "@/features/quotes";
+import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 import { useInitialRecordVersion } from "@/hooks/useInitialRecordVersion";
 import type { LineItem } from "@/lib/domain/invoiceHelpers";
 import { hasLegacyVat } from "@/lib/fiscal/legacyVat";
@@ -31,13 +32,13 @@ import { buildFromInvoice, type ExistingInvoice } from "./invoiceForm/invoiceFor
 import { useInvoiceBookingPeriods } from "./invoiceForm/useInvoiceBookingPeriods";
 import { useInvoiceFormHandlers } from "./invoiceForm/useInvoiceFormHandlers";
 import { useInvoiceFormSubmit } from "./invoiceForm/useInvoiceFormSubmit";
-import { useInvoiceFormTotals } from "./invoiceForm/useInvoiceFormTotals";
 import { useInvoicePrefill } from "./invoiceForm/useInvoicePrefill";
 import { invoiceChargeBlock, useInvoiceQuoteCharges } from "./invoiceForm/useInvoiceQuoteCharges";
 import { useInvoiceBookingCandidates } from "./invoices/useInvoiceBookingCandidates";
 import { useInvoiceBookings } from "./invoices/useInvoiceBookings";
 import { useInvoice } from "./invoices/useInvoices";
 import { useExtensionPrefill } from "./useExtensionPrefill";
+import type { Control } from "react-hook-form";
 
 export type { InvoiceFormValues };
 
@@ -128,6 +129,35 @@ function selectedBillingBookings(ids: string[] | undefined, bookings: BillableBo
   return (ids ?? []).flatMap((id) => bookings?.find((booking) => booking.id === id) ?? []);
 }
 
+function useBookingPicker(control: Control<InvoiceFormValues>, ids: string[], isEdit: boolean, existing?: ExistingInvoice | null) {
+  const [selectedBookingIds, customerId] = useWatch({ control, name: ["bookingIds", "customerId"] });
+  const [picker, setPicker] = useState({ search: "", page: 0, customerId: "" });
+  const page = picker.customerId === customerId ? picker.page : 0;
+  const search = useDebouncedValue(picker.search);
+  const linkedIds = linkedCandidateIds([...ids, ...(selectedBookingIds ?? [])], existing);
+  const bookingsQuery = useInvoiceBookingCandidates(linkedIds, {
+    search, page, customerId: selectedBookingIds?.length ? customerId || null : null, linkedOnly: isEdit,
+  });
+  const bookingPicker = {
+    search: picker.search, page, hasMore: bookingsQuery.hasMore,
+    isLoading: picker.search !== search || bookingsQuery.isPending || !!bookingsQuery.isPlaceholderData,
+    isError: bookingsQuery.isError, onRetry: () => { void bookingsQuery.refetch(); },
+    onSearchChange: (value: string) => setPicker({ search: value, page: 0, customerId }),
+    onPageChange: (next: number) => setPicker({ search: picker.search, page: next, customerId }),
+  };
+  return { selectedBookingIds, bookingsQuery, bookingPicker };
+}
+
+function includeSelectedBookings(available: InvoiceBillingBooking[] | undefined, bookings: BookingWithForklift[] | undefined, selected: Set<string>) {
+  const visible = new Set(available?.map((booking) => booking.id));
+  // Keep a removable chip while a refresh marks a selected row unavailable.
+  return [...(available ?? []), ...(bookings ?? []).filter((booking) => selected.has(booking.id) && !visible.has(booking.id))];
+}
+
+function withEvidenceLoading(picker: ReturnType<typeof useBookingPicker>["bookingPicker"], periods: { isFetching: boolean; ready: boolean }) {
+  return { ...picker, isLoading: picker.isLoading || (periods.isFetching && !periods.ready) };
+}
+
 export function useInvoiceFormLogic({ id, fromQuoteId, extensionId = null }: UseInvoiceFormLogicArgs) {
 
   const isEdit = !!id;
@@ -141,17 +171,15 @@ export function useInvoiceFormLogic({ id, fromQuoteId, extensionId = null }: Use
   const invoiceBookingsQuery = useInvoiceBookings(id);
   const { data: invoiceBookingsRows } = invoiceBookingsQuery;
   const existingBookingIds = (invoiceBookingsRows ?? []).map((r) => r.booking_id);
-  const bookingsQuery = useInvoiceBookingCandidates(linkedCandidateIds(existingBookingIds, existing));
-  const { data: bookings } = bookingsQuery;
-  const candidatesBlock = candidateAvailabilityBlock(bookingsQuery);
-  const periods = useInvoiceBookingPeriods({ bookings, forklifts, isEdit, id, extensionId, existing, existingBookingIds });
-
-  const invoiceVersion = useInitialRecordVersion(id, existing?.id, existing?.version);
-
   const form = useForm<InvoiceFormValues>({
     resolver: zodResolver(invoiceSchemaForEdit(isEdit, existing)),
     defaultValues: buildEmptyInvoiceValues(),
   });
+  const { selectedBookingIds, bookingsQuery, bookingPicker } = useBookingPicker(form.control, existingBookingIds, isEdit, existing);
+  const { data: bookings } = bookingsQuery;
+  const candidatesBlock = candidateAvailabilityBlock(bookingsQuery);
+  const periods = useInvoiceBookingPeriods({ bookings, forklifts, isEdit, id, extensionId, existing, existingBookingIds });
+  const invoiceVersion = useInitialRecordVersion(id, existing?.id, existing?.version);
 
   const quoteAssignmentStatus = useQuoteSaleAssignmentStatus(
     quoteId,
@@ -177,8 +205,9 @@ export function useInvoiceFormLogic({ id, fromQuoteId, extensionId = null }: Use
       }
     },
   });
-  const uniqueBookingQuoteIds = collectBookingQuoteIds(bookings);
-  const { data: bookingSourceQuotes } = useQuotesByIds(uniqueBookingQuoteIds);
+  const selectedIds = new Set(selectedBookingIds);
+  const bookingQuoteSources = useQuotesByIds(collectBookingQuoteIds(bookings?.filter((booking) => selectedIds.has(booking.id))));
+  const { data: bookingSourceQuotes } = bookingQuoteSources;
   const { relatedQuoteIds, chargeAvailability, bookingSourceBlock, chargeAvailabilityError } = useInvoiceQuoteCharges({
     form, bookings, invoiceBookingsRows, existing, fromQuoteId, currentInvoiceId: id,
   });
@@ -186,12 +215,10 @@ export function useInvoiceFormLogic({ id, fromQuoteId, extensionId = null }: Use
     chargeAvailability: chargeAvailability.isError ? undefined : chargeAvailability.data });
   const { handleCustomerSelect, handleBookingSelect, handleBookingsChange, isLoadingCharges, chargeSelectionError, retryChargeSelection } = useInvoiceFormHandlers({
     form, customers, bookings: periods.handlerBookings, forklifts, quotes: bookingSourceQuotes,
+    loadQuoteSources: bookingQuoteSources.loadForIds, loadQuotedBookings: bookingsQuery.loadQuotedBookings,
     loadQuoteCharges: chargeAvailability.loadForQuotes,
   });
-  const selectedBookingIds = useWatch({ control: form.control, name: "bookingIds" });
 
-
-  const totals = useInvoiceFormTotals(form);
 
 
 
@@ -213,6 +240,7 @@ export function useInvoiceFormLogic({ id, fromQuoteId, extensionId = null }: Use
     periods.unavailableIds,
     extensionBookingId,
   );
+  const pickerBookings = includeSelectedBookings(availableBookings, bookings, selectedIds);
 
   const onSubmit = (values: InvoiceFormValues) => {
     const payload = submit.buildPayload({
@@ -276,7 +304,8 @@ export function useInvoiceFormLogic({ id, fromQuoteId, extensionId = null }: Use
     // transaccional un fallo revierte también el bump de versión, así que el
     // reintento usa el mismo expectedVersion sin falso stale_write.)
     invoiceVersion,
-    customers, availableBookings,
+    customers, availableBookings, pickerBookings,
+    bookingPicker: withEvidenceLoading(bookingPicker, periods),
     sourceQuote,
     sourceQuoteVersion,
     saleAssignmentGuard,
@@ -297,7 +326,6 @@ export function useInvoiceFormLogic({ id, fromQuoteId, extensionId = null }: Use
     },
     isLoadingChargeAvailability: [bookingsQuery.isFetching, isLoadingCharges, chargeAvailability.isFetching, periods.isFetching, isLoadingPrefill].some(Boolean),
     saveInvoice: submit.saveInvoice,
-    subtotal: totals.subtotal, taxAmount: totals.taxAmount, total: totals.total,
     isPending: submit.isPending,
   };
 }

@@ -42,6 +42,7 @@ export default defineConfig({
     },
   },
   vite: {
+    worker: { format: "es" },
     build: { sourcemap: process.env.SENTRY_AUTH_TOKEN ? "hidden" : false },
     define: {
       "import.meta.env.VITE_APP_VERSION": JSON.stringify(APP_VERSION),

@@ -4,12 +4,12 @@ import { useDashboardSections } from "../useDashboardSections";
 
 const state = vi.hoisted(() => ({ role: "dispatcher" as string | null, financialQuery: vi.fn(), upcomingQuery: vi.fn() }));
 vi.mock("@/features/users", () => ({ useUserRole: () => ({ data: state.role }), useHasFinancialAccess: () => !!state.role && state.role !== "dispatcher" }));
-vi.mock("@/features/deliveries", () => ({ useDeliveries: () => ({ data: [] }), countOverdueDeliveries: () => 3 }));
 vi.mock("@/features/fleet", () => ({ useInsuranceAlerts: () => ({ data: [] }) }));
 vi.mock("@/features/invoices", () => ({ useUpcomingInvoices: (enabled: boolean) => { state.upcomingQuery(enabled); return { data: [{ id: "cached-invoice" }] }; } }));
 vi.mock("../../useFinancialKpis", () => ({ useFinancialKpis: (enabled: boolean) => { state.financialQuery(enabled); return { data: { mrr: 1000, dso: 10, overdue_total: 200, expiring_contracts: [{ id: "cached-contract" }] }, isError: false, isLoading: false }; } }));
 vi.mock("../../useDashboardStats", () => ({ useDashboardStats: () => ({ data: {
   fleet_counts: { total: 10, available: 7, rented: 3, maintenance: 0, retired: 0, sold: 0 },
+  pending_deliveries_count: 3,
   invoice_stats: { outstanding_revenue: 1000, breakdown: [{ status: "sent", total: 1000, count: 1 }] },
   overdue_invoices: [{ id: "cached-invoice", due_date: "2026-10-01", total: 1000 }],
   cash_flow: [{ month: "Oct", invoiced: 1000, paid: 500 }],

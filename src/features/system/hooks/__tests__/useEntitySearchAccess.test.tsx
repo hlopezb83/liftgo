@@ -8,7 +8,8 @@ const state = vi.hoisted(() => ({
   userId: "user-a" as string | undefined, authLoading: false,
   organizationId: "org-a", orgStatus: "ready", role: "auditor" as AppRole | undefined,
   roleLoading: false, roleError: false, permissionsLoading: false, permissionsError: false,
-  permissions: {} as PermissionsMap, requests: [] as URL[], fetch: vi.fn(),
+  permissions: {} as PermissionsMap, requests: [] as URL[], payloads: [] as { p_expected_organization_id: string; p_query: string; p_sections: string[] }[],
+  signals: [] as (AbortSignal | null | undefined)[], fetch: vi.fn(),
   failed: new Set<string>(), empty: new Set<string>(), holdCustomers: undefined as Promise<void> | undefined,
 }));
 vi.mock("@/contexts/AuthContext", () => ({ useAuth: () => ({ user: state.userId ? { id: state.userId } : null, isLoading: state.authLoading }) }));
@@ -34,11 +35,11 @@ function permit(...allowed: string[]) {
     Object.fromEntries(modules.map(module => [module, allowed.includes(module) ? "read" : "none"])),
   ])) as PermissionsMap;
 }
-function mount(query = "445", enabled = true) {
+function mount(query: string | (() => string) = "445", enabled = true) {
   const client = new QueryClient({ defaultOptions: { queries: { retry: false, gcTime: 0 } } });
   clients.push(client);
   const wrapper = ({ children }: { children: ReactNode }) => <QueryClientProvider client={client}>{children}</QueryClientProvider>;
-  return { ...renderHook(() => useEntitySearch(query, enabled), { wrapper }), client };
+  return { ...renderHook(() => useEntitySearch(typeof query === "function" ? query() : query, enabled), { wrapper }), client };
 }
 const tables = () => state.requests.map(url => url.pathname.split("/").at(-1));
 
@@ -46,49 +47,54 @@ beforeEach(() => {
   state.userId = "user-a"; state.authLoading = false; state.organizationId = "org-a"; state.orgStatus = "ready";
   state.role = "auditor"; state.roleLoading = false; state.roleError = false; state.permissionsLoading = false; state.permissionsError = false;
   state.requests = []; state.failed = new Set(); state.empty = new Set(); state.holdCustomers = undefined; permit(...modules);
-  state.fetch.mockReset().mockImplementation(async (input: RequestInfo | URL) => {
+  state.payloads = [];
+  state.signals = [];
+  state.fetch.mockReset().mockImplementation(async (input: RequestInfo | URL, init: RequestInit) => {
     const url = new URL(String(input)); state.requests.push(url);
-    const table = url.pathname.split("/").at(-1)!;
-    const organization = url.searchParams.get("organization_id")?.replace(/^eq\./, "");
-    const id = `${state.userId}-${organization}-${table}`;
-    if (table === "organization_customers") await state.holdCustomers;
-    if (state.failed.has(table) || state.failed.has(url.searchParams.has("quote_number") ? "quote-exact" : "quote-broad")) {
-      return new Response(JSON.stringify({ message: "private failure", code: "42501" }), { status: 403 });
+    state.signals.push(init.signal);
+    const args = JSON.parse(String(init.body)); state.payloads.push(args);
+    if (args.p_sections.includes("customers")) await state.holdCustomers;
+    const data = { invoices: [], quotes: [], customers: [], bookings: [], deliveries: [], returns: [] } as Record<string, unknown>;
+    const errors: Record<string, string> = {};
+    for (const section of args.p_sections) {
+      const table = section === "customers" ? "organization_customers" : section === "returns" ? "return_inspections" : section;
+      if (state.failed.has(table) || (section === "quotes" && state.failed.has("quote-exact"))) {
+        errors[section] = "No se pudo completar la búsqueda.";
+      }
+      if (state.failed.has(table) || (section === "quotes" && state.failed.has("quote-broad"))) continue;
+      const id = state.userId + "-" + args.p_expected_organization_id + "-" + table;
+      data[section] = state.empty.has(table) ? [] : [{ id, label: "QA 445", url: "/" + section + "/" + id }];
     }
-    const row = table === "organization_customers"
-      ? { customer_id: id, customers: { id, name: "QA 445", rfc: "AAA010101AAA", deleted_at: null } }
-      : { id, invoice_number: "FAC-445", booking_number: "RES-445", delivery_number: "DEL-445", inspection_number: "RET-445", quote_number: "COT-0445", customer_name: "QA 445" };
-    return new Response(JSON.stringify(state.empty.has(table) ? [] : [row]), { headers: { "Content-Type": "application/json" } });
+    const failedAll = args.p_sections.every((section: string) => {
+      const table = section === "customers" ? "organization_customers" : section;
+      return state.failed.has(table) || (section === "quotes" && state.failed.has("quote-exact") && state.failed.has("quote-broad"));
+    });
+    if (failedAll) return new Response(JSON.stringify({ message: "No se pudo completar la búsqueda.", code: "55000" }), { status: 500 });
+    if (Object.keys(errors).length) data.errors = errors;
+    return new Response(JSON.stringify(data), { headers: { "Content-Type": "application/json" } });
   });
 });
 afterEach(() => { cleanup(); for (const client of clients.splice(0)) client.clear(); });
 
 describe("useEntitySearch: real QueryClient and SDK, simulated HTTP only", () => {
   it.each([
-    ["Facturas", ["invoices"]], ["Clientes", ["organization_customers"]], ["Reservas", ["bookings"]],
-    ["Entregas", ["deliveries", "return_inspections"]], ["Cotizaciones", ["quotes", "quotes"]],
-  ] as const)("issues only authorized %s requests, all explicitly scoped", async (module, expected) => {
+    ["Facturas", ["invoices"]], ["Clientes", ["customers"]], ["Reservas", ["bookings"]],
+    ["Entregas", ["deliveries", "returns"]], ["Cotizaciones", ["quotes"]],
+  ] as const)("requests only authorized %s sections in one explicitly scoped RPC", async (module, expected) => {
     permit(module);
     const { result } = mount();
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
-    expect(tables()).toEqual(expected);
-    for (const url of state.requests) {
-      expect(url.searchParams.get("organization_id")).toBe("eq.org-a");
-      expect(url.searchParams.get("limit")).toBe("5");
-    }
+    expect(tables()).toEqual(["get_global_search"]);
+    expect(state.payloads).toEqual([{ p_expected_organization_id: "org-a", p_query: "445", p_sections: expected }]);
     expect(result.current.data?.errors).toBeUndefined();
-    expect(state.requests.some(url => url.pathname.endsWith("/customers"))).toBe(false);
-    if (module === "Clientes") {
-      expect(state.requests[0].searchParams.get("select")).toBe("customer_id,customers!inner(id,name,rfc,deleted_at)");
-      expect(state.requests[0].searchParams.has("customers.organization_id")).toBe(false);
-    }
   });
 
   it("requires invoice module access in addition to the financial exclusion", async () => {
     permit("Clientes");
     const { result } = mount();
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
-    expect(tables()).toEqual(["organization_customers"]);
+    expect(tables()).toEqual(["get_global_search"]);
+    expect(state.payloads[0].p_sections).toEqual(["customers"]);
     expect(result.current.data?.invoices).toEqual([]);
   });
 
@@ -96,7 +102,8 @@ describe("useEntitySearch: real QueryClient and SDK, simulated HTTP only", () =>
     permit("Facturas", "Clientes"); state.role = "dispatcher";
     const { result } = mount();
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
-    expect(tables()).toEqual(["organization_customers"]);
+    expect(tables()).toEqual(["get_global_search"]);
+    expect(state.payloads[0].p_sections).toEqual(["customers"]);
   });
 
   it("with no authorized section makes no requests, including explicit refetch, and no invented error", async () => {
@@ -168,12 +175,30 @@ describe("useEntitySearch: real QueryClient and SDK, simulated HTTP only", () =>
     let release!: () => void;
     state.holdCustomers = new Promise(resolve => { release = resolve; }); permit("Clientes");
     const { result, rerender } = mount();
-    await waitFor(() => expect(tables()).toEqual(["organization_customers"]));
+    await waitFor(() => expect(tables()).toEqual(["get_global_search"]));
     permit("Reservas"); rerender();
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
+    expect(state.signals[0]?.aborted).toBe(true);
     await act(async () => { release(); await new Promise(resolve => setTimeout(resolve, 0)); });
     expect(result.current.data?.customers).toEqual([]);
     expect(result.current.data?.bookings).toHaveLength(1);
+  });
+
+  it("reuses equivalent terms and cancels the previous request when the term changes", async () => {
+    let term = "  ACME ";
+    let release!: () => void;
+    state.holdCustomers = new Promise(resolve => { release = resolve; });
+    permit("Clientes");
+    const { result, rerender } = mount(() => term);
+    await waitFor(() => expect(state.payloads.map(({ p_query }) => p_query)).toEqual(["acme"]));
+    term = "acme"; rerender();
+    expect(state.signals[0]?.aborted).toBe(false);
+    expect(state.payloads).toHaveLength(1);
+    term = "nuevo"; state.holdCustomers = undefined; rerender();
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+    expect(state.signals[0]?.aborted).toBe(true);
+    expect(state.payloads.map(({ p_query }) => p_query)).toEqual(["acme", "nuevo"]);
+    await act(async () => { release(); });
   });
 
   it.each(modules)("revoking %s immediately hides its cached hits without issuing new requests", async module => {
@@ -203,7 +228,7 @@ describe("useEntitySearch: real QueryClient and SDK, simulated HTTP only", () =>
     permit("Clientes"); state.failed.add("organization_customers");
     const { result, rerender } = mount();
     await waitFor(() => expect(result.current.isError).toBe(true));
-    expect(tables()).toEqual(["organization_customers"]);
+    expect(tables()).toEqual(["get_global_search"]);
     permit(); rerender();
     expect(result.current.canSearchEntities).toBe(false);
     expect(result.current.isError).toBe(false);
@@ -216,9 +241,9 @@ describe("useEntitySearch: real QueryClient and SDK, simulated HTTP only", () =>
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
     expect(result.current.data?.customers).toEqual([]);
     expect(result.current.data?.errors).toBeUndefined();
-    expect(tables()).toEqual(["organization_customers"]);
+    expect(tables()).toEqual(["get_global_search"]);
     permit("Clientes", "Reservas"); state.failed.add("bookings"); rerender();
-    await waitFor(() => expect(result.current.data?.errors).toEqual({ bookings: "private failure" }));
+    await waitFor(() => expect(result.current.data?.errors).toEqual({ bookings: "No se pudo completar la búsqueda." }));
     expect(result.current.isSuccess).toBe(true);
     expect(result.current.data?.customers).toEqual([]);
   });
@@ -227,9 +252,9 @@ describe("useEntitySearch: real QueryClient and SDK, simulated HTTP only", () =>
     permit("Clientes", "Reservas"); state.failed.add("organization_customers");
     const { result } = mount();
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
-    expect(result.current.data?.errors).toEqual({ customers: "private failure" });
+    expect(result.current.data?.errors).toEqual({ customers: "No se pudo completar la búsqueda." });
     expect(result.current.data?.bookings).toHaveLength(1);
-    expect(tables()).toEqual(["organization_customers", "bookings"]);
+    expect(tables()).toEqual(["get_global_search"]);
   });
 
   it("quote-only partial lookup failure is partial and both failures are total", async () => {
@@ -240,6 +265,6 @@ describe("useEntitySearch: real QueryClient and SDK, simulated HTTP only", () =>
     state.failed.add("quote-broad");
     await act(async () => { await result.current.refetch(); });
     await waitFor(() => expect(result.current.isError).toBe(true));
-    expect(new Set(tables())).toEqual(new Set(["quotes"]));
+    expect(new Set(tables())).toEqual(new Set(["get_global_search"]));
   });
 });

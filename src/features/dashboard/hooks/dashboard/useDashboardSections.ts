@@ -1,6 +1,5 @@
 
 import { differenceInDays, parseISO } from "date-fns";
-import { useDeliveries, countOverdueDeliveries } from "@/features/deliveries";
 import { useInsuranceAlerts } from "@/features/fleet";
 import { useUpcomingInvoices } from "@/features/invoices";
 import { useHasFinancialAccess, useUserRole } from "@/features/users";
@@ -42,8 +41,9 @@ function computeAgingBuckets(
   }>,
 ) {
   const buckets = { "0-30": 0, "31-60": 0, "61-90": 0, "90+": 0 };
+  const today = nowMty();
   for (const inv of overdueInvoices) {
-    const days = differenceInDays(nowMty(), parseISO(inv.due_date));
+    const days = differenceInDays(today, parseISO(inv.due_date));
     // BL-1.1 R5: usar balance_mxn calculado en `v_invoices_with_balance`
     // para no sumar USD como si fueran MXN.
     // FIX-FE-08: el fallback también debe convertir — sin toMxn una factura en
@@ -92,9 +92,6 @@ export function useDashboardSections() {
   // GUI-FE-05: ventas no consulta facturas (rol SELECT-only-denied → toast Forbidden).
   const { data: upcomingInvoices } = useUpcomingInvoices(canSeeFinancials);
 
-  // Entregas programadas con fecha vencida: mientras no se cierren, la unidad
-  // sigue marcada como disponible en el catálogo.
-  const { data: deliveries } = useDeliveries();
   // La RPC cuenta toda la flota visible con la fecha de Monterrey y RLS por
   // empresa. Los listados de reservas y unidades tienen un límite de 500.
   const counts = stats?.fleet_counts ?? EMPTY_COUNTS;
@@ -106,9 +103,6 @@ export function useDashboardSections() {
   const overdueInvoices = financialStats?.overdue_invoices ?? [];
 
 
-  // Nota: React Compiler memoiza las derivaciones puras siguientes.
-  // Sólo conservamos useMemo para `counts` y `overdueInvoices` porque
-  // sus identidades alimentan cascadas y queremos garantía manual.
   return {
     isLoading,
     isError,
@@ -136,7 +130,7 @@ export function useDashboardSections() {
     }),
     financialsIsFetching: kpisQuery.isFetching,
     refetchFinancials: kpisQuery.refetch,
-    pendingDeliveriesCount: countOverdueDeliveries(deliveries),
+    pendingDeliveriesCount: stats ? stats.pending_deliveries_count : 0,
     alertsProps: buildAlertsProps(stats, canSeeFinancials ? upcomingInvoices : undefined, kpis),
   };
 }

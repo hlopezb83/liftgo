@@ -1,6 +1,6 @@
 import { loadGlobalBrandLogo } from "@/lib/pdf/assets/logo";
 import type { ContractData } from "@/lib/pdf/contract/data";
-import { ContractDocument, type PDFMode } from "@/lib/pdf/documents/ContractDocument";
+import type { PDFMode } from "@/lib/pdf/documents/ContractDocument";
 import { renderAndSave } from "@/lib/pdf/renderAndSave";
 import { notifyWarning } from "@/lib/ui/appFeedback";
 
@@ -33,16 +33,7 @@ export async function buildContractPdf(contract: ContractData, mode: PDFMode): P
 
   const suffix = mode === "full" ? "" : `-${mode}`;
   await renderAndSave(
-    <ContractDocument
-      mode={mode}
-      contract={printableContract}
-      tpl={tpl}
-      vars={vars}
-      logoBase64={logoBase64}
-      company={company}
-      customer={customer}
-      forklift={forklift}
-    />,
+    { kind: "contract", props: { mode, contract: printableContract, tpl, vars, logoBase64, company, customer, forklift } },
     `${printableContract.contract_number}${suffix}.pdf`,
   );
 }

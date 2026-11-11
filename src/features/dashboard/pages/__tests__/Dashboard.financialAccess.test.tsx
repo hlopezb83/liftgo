@@ -1,6 +1,6 @@
 import { render, screen } from "@testing-library/react";
 import type { ReactNode } from "react";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import Dashboard from "../Dashboard";
 
 const state = vi.hoisted(() => ({ loading: false, canSeeFinancials: false }));
@@ -21,13 +21,18 @@ vi.mock("../../components/dashboard/FleetStatusChart", () => ({ FleetStatusChart
 vi.mock("../../components/dashboard/UtilizationCharts", () => ({ UtilizationCharts: () => <div>Utilization operation</div> }));
 vi.mock("../../components/dashboard/CashFlowChart", () => ({ CashFlowChart: () => <div>Facturación y cobros</div> }));
 
-beforeEach(() => { state.loading = false; state.canSeeFinancials = false; });
+beforeEach(() => {
+  state.loading = false;
+  state.canSeeFinancials = false;
+  vi.stubGlobal("IntersectionObserver", undefined);
+});
+afterEach(() => vi.unstubAllGlobals());
 
 describe("Dashboard financial wiring", () => {
-  it("passes the financial restriction to charts and retains operational widgets", () => {
+  it("passes the financial restriction to charts and retains operational widgets", async () => {
     const { rerender } = render(<Dashboard />);
     expect(screen.getByText("Operational KPIs")).toBeInTheDocument();
-    expect(screen.getByText("Fleet operation")).toBeInTheDocument();
+    expect(await screen.findByText("Fleet operation")).toBeInTheDocument();
     expect(screen.queryByText("Facturación y cobros")).not.toBeInTheDocument();
     state.canSeeFinancials = true;
     rerender(<Dashboard />);

@@ -17,6 +17,8 @@ export interface BookingInvoiceClaim {
   billing_period_end: string | null;
 }
 
+export type InvoiceClaimIndex = ReadonlyMap<string, BookingInvoiceClaim[]>;
+
 /** Extension history, not invoice state, defines the original rental term.
  * A cancelled extension invoice does not undo the physical extension. */
 export function originalPeriodBooking<T extends BillableBooking>(booking: T, extensions: BillingExtension[]): T | null {

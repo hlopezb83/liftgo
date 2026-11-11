@@ -2,7 +2,6 @@ import {
   ISSUER_BRANDING_MESSAGES,
   type IssuerDocumentRef,
 } from "@/lib/branding/resolveIssuerBranding";
-import { formatDateMty } from "@/lib/format/dateFormats";
 import { getIssuerBranding } from "@/lib/issuerBranding.functions";
 import { loadGlobalBrandLogo } from "@/lib/pdf/assets/logo";
 
@@ -83,8 +82,4 @@ export async function fetchCompanyDataAndLogo(document?: IssuerDocumentRef | nul
 
 // ─── Shared date formatter ────────────────────────────
 
-export function fmtDate(d: string | null): string {
-  if (!d) return "—";
-  const s = formatDateMty(d);
-  return s || "—";
-}
+export { fmtDate } from "./formatDate";

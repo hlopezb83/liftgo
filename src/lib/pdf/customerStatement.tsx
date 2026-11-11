@@ -1,6 +1,5 @@
 import { format } from "date-fns";
 import type { CustomerSummary } from "@/lib/domain/customerTypes";
-import { CustomerStatementDocument } from "@/lib/pdf/documents/CustomerStatementDocument";
 import { renderAndSave } from "@/lib/pdf/renderAndSave";
 import { fetchCompanyDataAndLogo } from "@/lib/pdf/shared";
 import { nowMty } from "@/lib/utils";
@@ -26,15 +25,10 @@ export async function exportCustomerStatementPdf({ customer, summary }: ExportSt
   const folio = `EC-${format(nowMty(), "yyyyMMdd")}`;
 
   await renderAndSave(
-    <CustomerStatementDocument
-      company={company}
-      logoBase64={logoBase64}
-      folio={folio}
-      customerName={customer.name}
-      customerRfc={customer.rfc ?? null}
-      customerCp={customer.domicilio_fiscal_cp ?? null}
-      summary={summary}
-    />,
+    { kind: "customerStatement", props: {
+      company, logoBase64, folio, customerName: customer.name,
+      customerRfc: customer.rfc ?? null, customerCp: customer.domicilio_fiscal_cp ?? null, summary,
+    } },
     `estado-cuenta-${customer.name.replace(/\s+/g, "-")}-${format(nowMty(), "yyyyMMdd")}.pdf`,
   );
 }

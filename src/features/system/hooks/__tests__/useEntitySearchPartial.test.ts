@@ -1,55 +1,36 @@
-const searchAccess = (invoices = true, quotes = false) => ({ invoices, quotes, customers: true, bookings: true, deliveries: true, returns: true });
-import { beforeEach, describe, it, expect } from "vitest";
-import { vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import { searchEntities } from "../../lib/globalSearchRpc";
 
-const state = vi.hoisted(() => ({ failAll: false }));
-beforeEach(() => { state.failAll = false; });
+const state = vi.hoisted(() => ({ rpc: vi.fn() }));
+vi.mock("@/integrations/supabase/client", () => ({ supabase: { rpc: state.rpc } }));
+const access = { invoices: true, quotes: false, customers: true, bookings: false, deliveries: false, returns: false };
+const empty = { invoices: [], quotes: [], customers: [], bookings: [], deliveries: [], returns: [] };
 
-/**
- * L-6a: si una de las tres consultas de la búsqueda global falla, la sección
- * afectada debe reportarse (no devolverse vacía como "sin resultados").
- */
-vi.mock("@/integrations/supabase/client", () => {
-  const build = (data: unknown, error: { message: string } | null) => {
-    const chain: Record<string, unknown> = {};
-    const ret = { data, error };
-    ["select", "or", "order", "limit", "neq", "is", "eq"].forEach((k) => {
-      chain[k] = vi.fn(() => (k === "limit" ? Promise.resolve(ret) : chain));
+beforeEach(() => state.rpc.mockReset());
+
+describe("global search RPC partial failures", () => {
+  it("reports one failed section and preserves successful hits", async () => {
+    const customer = { id: "c1", label: "Cliente Uno", url: "/customers/c1" };
+    state.rpc.mockResolvedValue({
+      data: { ...empty, customers: [customer], errors: { invoices: "private diagnostic" } }, error: null,
     });
-    return chain;
-  };
-  return {
-    supabase: {
-      auth: {
-        onAuthStateChange: vi.fn(() => ({ data: { subscription: { unsubscribe: vi.fn() } } })),
-        getSession: vi.fn(async () => ({ data: { session: null }, error: null })),
-      },
-      from: (table: string) => {
-        if (state.failAll) return build(null, { message: "offline" });
-        if (table === "invoices") return build(null, { message: "permission denied" });
-        if (table === "organization_customers") {
-          return build([{ customer_id: "c1", customers: { id: "c1", name: "Cliente Uno", rfc: "AAA010101AAA", deleted_at: null } }], null);
-        }
-        if (table === "bookings") return build([{ id: "b1", booking_number: "RSV-1", customer_name: "ACME" }], null);
-        return build([], null);
-      },
-    },
-  };
-});
-
-const { searchEntities } = await import("@/features/system/hooks/useEntitySearch");
-
-describe("searchEntities — fallo parcial", () => {
-  it("no disfraza error total como vacío al omitir la consulta financiera", async () => {
-    state.failAll = true;
-    await expect(searchEntities("ACME", "org-a", searchAccess(false))).rejects.toMatchObject({ message: "offline" });
+    const result = await searchEntities("ACME", "org-a", access);
+    expect(result.customers).toEqual([customer]);
+    expect(result.errors).toEqual({ invoices: "No se pudo completar la búsqueda." });
   });
 
-  it("reporta la sección fallida y conserva las demás", async () => {
-    const res = await searchEntities("ACME", "org-a", searchAccess());
-    expect(res.errors?.invoices).toMatch(/permission denied/);
-    expect(res.errors?.customers).toBeUndefined();
-    expect(res.customers).toHaveLength(1);
-    expect(res.bookings).toHaveLength(1);
+  it("drops data and errors outside the requested permission mask", async () => {
+    state.rpc.mockResolvedValue({
+      data: { ...empty, invoices: [{ id: "secret", label: "Secret", url: "/invoices/secret" }], errors: { quotes: "private" } },
+      error: null,
+    });
+    await expect(searchEntities("ACME", "org-a", { ...access, invoices: false })).resolves.toEqual(empty);
+  });
+
+  it("propagates total errors and rejects malformed successful payloads", async () => {
+    state.rpc.mockResolvedValueOnce({ data: null, error: { message: "offline" } });
+    state.rpc.mockResolvedValueOnce({ data: { invoices: [] }, error: null });
+    await expect(searchEntities("ACME", "org-a", access)).rejects.toMatchObject({ message: "offline" });
+    await expect(searchEntities("ACME", "org-a", access)).rejects.toBeInstanceOf(Error);
   });
 });

@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { CustomerSelector } from "@/features/customers";
 import { useNextInvoiceNumber } from "../../hooks/invoices/useNextInvoiceNumber";
 import { formatYmdMx } from "../../lib/formatYmdMx";
-import { MultiBookingSelector } from "./MultiBookingSelector";
+import { MultiBookingSelector, type BookingPickerControls } from "./MultiBookingSelector";
 import type { Customer } from "../../hooks/invoiceForm/invoiceFormBuilders";
 import type { InvoiceFormValues } from "../../lib/invoiceFormSchema";
 import type { UseFormReturn } from "react-hook-form";
@@ -20,12 +20,13 @@ interface Props {
   form: UseFormReturn<InvoiceFormValues>;
   customers: Customer[] | undefined;
   availableBookings: Booking[] | undefined;
+  bookingPicker?: BookingPickerControls;
   handleCustomerSelect: (id: string, customer?: Customer) => void;
   handleBookingsChange: (ids: string[]) => void;
 }
 
 export function InvoiceDetailsCard({
-  isEdit, form, customers, availableBookings, handleCustomerSelect, handleBookingsChange,
+  isEdit, form, customers, availableBookings, bookingPicker, handleCustomerSelect, handleBookingsChange,
 }: Props) {
   const { data: nextNumber, isLoading: loadingNext } = useNextInvoiceNumber(!isEdit);
   const bookingIds = useWatch({ control: form.control, name: "bookingIds" }) ?? [];
@@ -59,6 +60,7 @@ export function InvoiceDetailsCard({
                   selectedIds={field.value ?? []}
                   onChange={handleBookingsChange}
                   issueDate={issueDate}
+                  remote={bookingPicker}
                 />
               </FormControl>
               <FormMessage />

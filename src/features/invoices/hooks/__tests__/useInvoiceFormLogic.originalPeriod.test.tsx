@@ -227,7 +227,7 @@ describe("completed recurring safety wiring", () => {
     for (const [start, end] of periods) {
       expect(result.current.availableBookings?.[0].pending_billing_period).toEqual({ start, end });
       expect(result.current.validateSelection(period(start, end))).toBeNull();
-      state.claims.push({ ...claim, billing_period_start: start, billing_period_end: end });
+      state.claims = [...state.claims, { ...claim, billing_period_start: start, billing_period_end: end }];
       rerender();
     }
     expect(result.current.availableBookings).toEqual([]);
@@ -247,7 +247,7 @@ describe("completed recurring safety wiring", () => {
   });
   it.each([false, true])("missing return (loading=%s) blocks only its booking, not unrelated invoices", (loading) => {
     state.returns = []; state.returnReady = !loading;
-    state.bookings.push({ ...booking, id: "other" });
+    state.bookings = [...state.bookings, { ...booking, id: "other" }];
     const { result } = renderHook(() => useInvoiceFormLogic({ fromQuoteId: null }));
     expect(result.current.availableBookings?.map((b) => b.id)).toEqual(["other"]);
     expect(result.current.validateSelection(period("2026-07-15", "2026-07-31"))?.message).toMatch(/devolución/);

@@ -94,6 +94,7 @@ export const financialKpisQueries = defineEntityQueries<"dashboard-financial-kpi
 // ---------------------------------------------------------------------------
 
 export interface DashboardStats {
+  pending_deliveries_count: number;
   fleet_counts: {
     total: number;
     available: number;
@@ -162,11 +163,7 @@ export const dashboardStatsQueries = defineEntityQueries<"dashboard-stats", Dash
   operationSummaryKeys.dashboardStats.all[0],
   {
     list: () => async () => {
-      const [stats, fleetCounts] = await Promise.all([
-        callRpc<DashboardStats>("get_dashboard_stats"),
-        callRpc<DashboardStats["fleet_counts"]>("get_dashboard_fleet_counts"),
-      ]);
-      return { ...stats, fleet_counts: fleetCounts };
+      return callRpc<DashboardStats>("get_dashboard_stats");
     },
     staleTime: 30_000,
   },

@@ -94,7 +94,7 @@ export function buildAvailableQuoteChargeLines(quoteIds: string[], availability?
  * Like the database guard, unverifiable legacy history blocks only invoices that
  * carry charges of that quote: rent-only invoices (e.g. extensions) stay allowed. */
 export function quoteChargeSelectionError(
-  quoteIds: string[], lines: LineItemValues[], availability?: QuoteChargeAvailability,
+  quoteIds: string[], lines: ReadonlyArray<Pick<LineItemValues, "source_quote_id" | "source_quote_line_id" | "quantity">>, availability?: QuoteChargeAvailability,
 ): string | null {
   try {
     const quotes = resolveQuoteChargeAvailability(quoteIds, availability);
