@@ -38,6 +38,29 @@ describe("EquipmentAvailabilityLookup", () => {
     expect(screen.queryByText(/Disponible para reservar/)).not.toBeInTheDocument();
   });
 
+  it("associates an inverted period only with the end field and queries again after a same-day correction", () => {
+    render(<EquipmentAvailabilityLookup equipment={equipment} initialRange={dates} />);
+    fireEvent.click(screen.getByRole("button", { name: "Consultar disponibilidad por fechas" }));
+    const from = screen.getByRole("textbox", { name: "Fechas de consulta — inicio" });
+    const to = screen.getByRole("textbox", { name: "Fechas de consulta — fin" });
+    to.focus();
+    fireEvent.change(to, { target: { value: "09/11/2026" } });
+    expect(to).toHaveFocus();
+    expect(to).toHaveAttribute("aria-invalid", "true");
+    expect(to).toHaveAccessibleDescription("La fecha de fin debe ser igual o posterior a la de inicio");
+    expect(from).not.toHaveAttribute("aria-invalid", "true");
+    expect(from).not.toHaveAccessibleDescription(/posterior/);
+    expect(screen.queryByText("Selecciona equipo y ambas fechas para consultar.")).not.toBeInTheDocument();
+    expect(screen.queryByText(/Disponible para reservar/)).not.toBeInTheDocument();
+    expect(mocks.hook).toHaveBeenLastCalledWith({ from: dates.from, to: new Date(2026, 10, 9) }, false, "f1");
+    fireEvent.change(to, { target: { value: "10/11/2026" } });
+    expect(to).toHaveFocus();
+    expect(to).not.toHaveAttribute("aria-invalid", "true");
+    expect(to).not.toHaveAccessibleDescription(/posterior/);
+    expect(mocks.hook).toHaveBeenLastCalledWith({ from: dates.from, to: dates.from }, true, "f1");
+    expect(screen.getByText("Disponible para reservar en las fechas seleccionadas")).toBeVisible();
+  });
+
   it("shows only a verified cause link, and preserves error/retry feedback", () => {
     const unavailable = [{ unit, bookingId: "b1", reason: { code: "reservation", label: "Reserva en las fechas seleccionadas", detail: "Reserva confirmada.", nextAction: "Elige otras fechas." } }];
     mocks.hook.mockReturnValue({ ...ready, data: { ...ready.data, availableUnits: [], unavailable } });

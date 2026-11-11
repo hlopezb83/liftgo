@@ -12,6 +12,16 @@ import type { DateRange } from "react-day-picker";
 
 type EquipmentOption = { id: string; name: string };
 
+function lookupPeriod(dateRange: DateRange | undefined) {
+  const start = toYMD(dateRange?.from);
+  const end = toYMD(dateRange?.to);
+  return {
+    complete: !!start && !!end,
+    valid: !!start && !!end && start <= end,
+    toError: start && end && start > end ? "La fecha de fin debe ser igual o posterior a la de inicio" : undefined,
+  };
+}
+
 export function EquipmentAvailabilityLookup({ equipment, initialRange, triggerLabel = "Consultar disponibilidad por fechas" }: {
   equipment: ReadonlyArray<EquipmentOption>;
   initialRange?: DateRange;
@@ -39,10 +49,9 @@ function EquipmentAvailabilityFields({ equipment, initialRange }: { equipment: R
   const [forkliftId, setForkliftId] = useState(equipment.length === 1 ? equipment[0].id : "");
   const [dateRange, setDateRange] = useState<DateRange | undefined>(initialRange);
   const selected = equipment.some((unit) => unit.id === forkliftId);
-  const start = toYMD(dateRange?.from);
-  const end = toYMD(dateRange?.to);
-  const validDates = !!start && !!end && start <= end;
-  const query = useAvailabilityReasons(dateRange, selected && validDates, forkliftId || undefined);
+  const period = lookupPeriod(dateRange);
+  const canQuery = selected && period.valid;
+  const query = useAvailabilityReasons(dateRange, canQuery, forkliftId || undefined);
   return (
     <div className="space-y-4">
       <div className="space-y-1.5">
@@ -52,10 +61,10 @@ function EquipmentAvailabilityFields({ equipment, initialRange }: { equipment: R
           <SelectContent>{equipment.map((unit) => <SelectItem key={unit.id} value={unit.id}>{unit.name}</SelectItem>)}</SelectContent>
         </Select>
       </div>
-      <DateRangePickerField label="Fechas de consulta" dateRange={dateRange} onSelect={setDateRange} />
-      {!selected || !validDates ? <p className="text-sm text-muted-foreground">Selecciona equipo y ambas fechas para consultar.</p>
-        : query.allowed ? <AvailabilityReasonsContent query={query} singleUnit />
-          : <p role="status" className="text-sm text-muted-foreground">No tienes acceso para consultar este equipo.</p>}
+      <DateRangePickerField label="Fechas de consulta" dateRange={dateRange} onSelect={setDateRange} toError={period.toError} />
+      {(!selected || !period.complete) && <p className="text-sm text-muted-foreground">Selecciona equipo y ambas fechas para consultar.</p>}
+      {canQuery && (query.allowed ? <AvailabilityReasonsContent query={query} singleUnit />
+        : <p role="status" className="text-sm text-muted-foreground">No tienes acceso para consultar este equipo.</p>)}
     </div>
   );
 }
