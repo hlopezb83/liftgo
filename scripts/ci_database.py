@@ -71,10 +71,14 @@ START_EXCLUDES = {
 # 0137–0138 add an invoker conversion wrapper and share the fiscal coverage
 # predicate across reads and existing guards. Installation has no business DML
 # or cron changes. The schema notification only refreshes PostgREST metadata.
+# 0139–0140 consolidate dashboard reads and store the normalized quote search
+# keys. Existing RPCs retain invoker RLS. Only the pure normalizer gains
+# service_role EXECUTE for generated columns. The new DDL does not invoke
+# business mutations, HTTP or cron. Earlier SQL and journal entries are unchanged.
 # Any subsequent history change requires explicit source review.
 SOURCE_TREES = {
     "supabase/migrations": "3e3575f5ff6d509ecdd624ae7fc1772508b5dce6",
-    "drizzle/migrations": "dc964afbbd8820e5ec8f6f961b5b328c119a3cbe",
+    "drizzle/migrations": "2b5a85e19d9abbd71ab2c736e9adc257972d4b96",
 }
 HTTP_SOURCES = {
     "20260721000000_retry_queue_cron.sql": "2aecccd0758961f41769d9fed522d03df14937650b9dde80fce47646a1fa6887",
