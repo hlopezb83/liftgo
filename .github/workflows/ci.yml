@@ -177,7 +177,7 @@ jobs:
           SHARD: ${{ matrix.shard }}
           SHARDS: "4"
           NODE_OPTIONS: --max-old-space-size=6144
-        run: node node_modules/vitest/vitest.mjs run --shard="$SHARD/$SHARDS"
+        run: node node_modules/vitest/vitest.mjs run --shard="$SHARD/$SHARDS" --reporter default --reporter ./scripts/ci/vitest-profile-reporter.mjs
       - name: Diagnóstico de fallo
         if: failure()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
