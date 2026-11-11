@@ -2665,6 +2665,7 @@ export type Database = {
           updated_at: string
           uso_cfdi: string | null
           version: number
+          invoice_occupies_booking_period: boolean | null
         }
         Insert: {
           acuse_pdf_url?: string | null
@@ -6748,6 +6749,21 @@ export type Database = {
           forklift_id: string
         }[]
       }
+      convert_quote_with_customer_scoped: {
+        Args: {
+          p_assignments: Json
+          p_quote_id: string
+          p_recurring: boolean
+          p_replacement_customer_id?: string
+        }
+        Returns: {
+          booking_id: string
+          customer_id: string
+          end_date: string
+          forklift_id: string
+          start_date: string
+        }[]
+      }
       correct_delivery_completed_at: {
         Args: {
           p_completed_at: string
@@ -7115,6 +7131,14 @@ export type Database = {
         Args: { p_forklift_id: string }
         Returns: Json
       }
+      get_global_search: {
+        Args: {
+          p_expected_organization_id: string
+          p_query: string
+          p_sections: string[]
+        }
+        Returns: Json
+      }
       get_income_statement: {
         Args: { p_basis?: string; p_end_date: string; p_start_date: string }
         Returns: Json
@@ -7141,6 +7165,34 @@ export type Database = {
           p_page_size?: number
           p_search?: string
           p_sort?: Json
+        }
+        Returns: Json
+      }
+      get_invoice_booking_billing_evidence: {
+        Args: {
+          p_booking_ids: string[]
+          p_expected_organization_id: string
+          p_include_e2e?: boolean
+        }
+        Returns: Json
+      }
+      get_invoice_booking_billing_evidence_v2: {
+        Args: {
+          p_booking_ids: string[]
+          p_expected_organization_id: string
+          p_include_e2e?: boolean
+        }
+        Returns: Json
+      }
+      get_invoice_booking_candidate_page: {
+        Args: {
+          p_customer_id?: string
+          p_expected_organization_id: string
+          p_include_e2e?: boolean
+          p_linked_ids?: string[]
+          p_page?: number
+          p_page_size?: number
+          p_search?: string
         }
         Returns: Json
       }
@@ -7363,6 +7415,15 @@ export type Database = {
         Returns: number
       }
       internal_get_cron_secret: { Args: never; Returns: string }
+      invoice_booking_period_is_occupied: {
+        Args: {
+          p_cancellation_status: string
+          p_cfdi_status: string
+          p_cfdi_uuid: string
+          p_status: string
+        }
+        Returns: boolean
+      }
       invoice_eligible_for_payment_intent: {
         Args: { p_invoice_id: string }
         Returns: boolean
@@ -7370,6 +7431,12 @@ export type Database = {
       invoice_in_current_organization: {
         Args: { p_invoice_id: string }
         Returns: boolean
+      }
+      invoice_occupies_booking_period: {
+        Args: { "": Database["public"]["Tables"]["invoices"]["Row"] }
+        Returns: {
+          error: true
+        } & "the function public.invoice_occupies_booking_period with parameter or with a single unnamed json/jsonb parameter, but no matches were found in the schema cache"
       }
       is_active_user: { Args: { _user_id: string }; Returns: boolean }
       is_admin_administrativo_auditor: { Args: never; Returns: boolean }
