@@ -133,7 +133,11 @@ export function getBrowserStorage(): Storage | null {
   }
 }
 
-export function createBrowserPersister(scope: string | null, storage = getBrowserStorage()) {
+export function createBrowserPersister(
+  scope: string | null,
+  storage = getBrowserStorage(),
+  isActive: () => boolean = () => true,
+) {
   const inMemory = {
     getItem: () => null,
     setItem: () => undefined,
@@ -150,7 +154,16 @@ export function createBrowserPersister(scope: string | null, storage = getBrowse
 
   purgeForeignPersistedCaches(storage, scope);
   return createSyncStoragePersister({
-    storage,
+    storage: {
+      getItem: (key) => isActive() ? storage.getItem(key) : null,
+      setItem: (key, value) => {
+        // El SDK difiere esta escritura incluso después de desuscribirse.
+        if (isActive()) storage.setItem(key, value);
+      },
+      removeItem: (key) => {
+        if (isActive()) storage.removeItem(key);
+      },
+    },
     key: persistedCacheKey(scope),
     throttleTime: 1000,
   });

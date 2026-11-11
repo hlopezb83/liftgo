@@ -24,7 +24,7 @@ configuración y este documento en el mismo cambio.
 | G2 | `src/lib/domain/` sólo puede contener archivos permitidos por el script. |
 | G3 | No crear `src/api/` en la raíz de `src/`. |
 | G4 | No importar el cliente Supabase desde páginas o componentes de features, salvo Auth. |
-| G5 | Cero imports profundos entre features; usar el barrel público `@/features/<feature>`. |
+| G5 | Cero imports profundos entre features; usar el barrel público `@/features/<feature>`. El render PDF compartido recibe DTOs y no depende de features. |
 
 G4/G5 usan el AST de TypeScript (`scripts/check-feature-imports.mjs`), no una
 lista de subcarpetas ni regex de líneas. Detectan import/export-from, import de

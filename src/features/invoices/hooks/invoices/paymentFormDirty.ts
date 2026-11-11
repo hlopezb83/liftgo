@@ -6,10 +6,6 @@
  * complejidad y poder probar la regla en aislamiento.
  */
 import { toYMD } from "@/lib/format/dateFormats";
-import { nowMty } from "@/lib/utils";
-import { satCodeForMethod } from "../../lib/paymentMethods";
-
-const DEFAULT_PAYMENT_METHOD = "transfer";
 
 export interface PaymentFormSnapshot {
   amount: string;
@@ -18,26 +14,23 @@ export interface PaymentFormSnapshot {
   method: string;
   paymentFormSat: string;
   stampRep: boolean;
+  exchangeRate: string;
   date?: Date;
-}
-
-export interface PaymentFormBaseline {
-  balance: number;
-  ppdStamped: boolean;
 }
 
 export function isPaymentFormDirty(
   values: PaymentFormSnapshot,
-  baseline: PaymentFormBaseline,
+  baseline: PaymentFormSnapshot,
 ): boolean {
   const changed = [
-    values.amount !== baseline.balance.toFixed(2),
-    values.reference.trim() !== "",
-    values.notes.trim() !== "",
-    values.method !== DEFAULT_PAYMENT_METHOD,
-    values.paymentFormSat !== satCodeForMethod(DEFAULT_PAYMENT_METHOD),
-    values.stampRep !== baseline.ppdStamped,
-    toYMD(values.date) !== toYMD(nowMty()),
+    values.amount !== baseline.amount,
+    values.reference.trim() !== baseline.reference,
+    values.notes.trim() !== baseline.notes,
+    values.method !== baseline.method,
+    values.paymentFormSat !== baseline.paymentFormSat,
+    values.stampRep !== baseline.stampRep,
+    values.exchangeRate !== baseline.exchangeRate,
+    toYMD(values.date) !== toYMD(baseline.date),
   ];
   return changed.some(Boolean);
 }

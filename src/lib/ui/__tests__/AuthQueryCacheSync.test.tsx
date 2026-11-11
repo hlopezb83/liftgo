@@ -63,9 +63,22 @@ describe("AuthQueryCacheSync", () => {
     rerenderWith(rerender, { id: "user-2" }, qc);
 
     expect(qc.getQueryData(["forklifts", "list"])).toBeUndefined();
-    // La consulta de identidad se conserva: volver a limpiarla dejaría la
-    // verificación de empresa en bucle.
-    expect(qc.getQueryData(["organization-context", "user-1"])).toBeDefined();
+    expect(qc.getQueryData(["organization-context", "user-1"])).toBeUndefined();
+  });
+
+  it("permite que termine la verificación ya iniciada del usuario entrante", async () => {
+    const qc = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+    const { rerender } = renderWith(null, qc);
+    const queryKey = ["organization-context", "user-2"];
+    let resolveVerification!: (org: { organizationId: string }) => void;
+    const verification = new Promise<{ organizationId: string }>((resolve) => { resolveVerification = resolve; });
+    const result = qc.fetchQuery({ queryKey, queryFn: () => verification });
+
+    rerenderWith(rerender, { id: "user-2" }, qc);
+    resolveVerification({ organizationId: "org-b" });
+    await expect(result).resolves.toEqual({ organizationId: "org-b" });
+    expect(qc.getQueryData(queryKey)).toEqual({ organizationId: "org-b" });
+    qc.clear();
   });
 
   it("purga los datos al cerrar sesión (user pasa a null)", () => {

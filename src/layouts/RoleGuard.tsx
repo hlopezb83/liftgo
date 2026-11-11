@@ -60,9 +60,9 @@ export function RoleGuard({ module, financial = false, minAccess = "read", allow
     return renderFallback(fallback, <NoAccess module={module} reason="role-forbidden" />);
   }
 
-  if (!module || !perms || !role) return <>{children}</>;
+  if (!module) return <>{children}</>;
 
-  const level = getAccessLevel(perms, role, module);
+  const level = getAccessLevel(perms, role ?? undefined, module);
   if (!hasSufficientAccess(level, minAccess)) {
     return renderFallback(
       fallback,

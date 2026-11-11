@@ -1,8 +1,9 @@
+import { renderHook } from "@testing-library/react";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
 /**
  * v7.94.1 · Regresión de useQuoteBookingCreator con la RPC atómica
- * `convert_quote_to_bookings_scoped` (BL-32). Se valida el payload snake_case,
+ * `convert_quote_with_customer_scoped`. Se valida el payload snake_case,
  * el manejo de error de la RPC y las invalidaciones de query.
  */
 
@@ -39,6 +40,8 @@ function buildDeps() {
   const state = {
     setIsConverting: vi.fn(),
     setShowAssignmentDialog: vi.fn(),
+    setShowConvertDialog: vi.fn(),
+    setPendingConversion: vi.fn(),
     setCurrentDeliveryIndex: vi.fn(),
     setPendingDeliveries: vi.fn(),
   } as unknown as Parameters<typeof useQuoteBookingCreator>[1];
@@ -50,7 +53,7 @@ function buildDeps() {
       start_date: "2026-08-01",
       end_date: "2026-08-31",
     },
-    customers: [{ id: "c-1", address: "Calle 1" }],
+    customers: [{ id: "c-1", address: "Calle 1" }, { id: "c-2", address: "Calle 2" }],
     forklifts: [
       { id: "f-1", name: "Toyota A" },
       { id: "f-2", name: "Toyota B" },
@@ -69,47 +72,51 @@ describe("useQuoteBookingCreator (BL-32, v7.94.1)", () => {
     invalidateSpy.mockResolvedValue(undefined);
   });
 
-  it("llama a convert_quote_to_bookings_scoped con payload snake_case y difunde IDs devueltos", async () => {
+  it("convierte en una llamada y construye la entrega con el cliente confirmado", async () => {
     rpcMock.mockResolvedValue({
-      data: [
-        { booking_id: "b-1", forklift_id: "f-1" },
-        { booking_id: "b-2", forklift_id: "f-2" },
-      ],
+      data: ["f-1", "f-2"].map((forklift_id, index) => ({
+        booking_id: `b-${index + 1}`, forklift_id, customer_id: "c-2", start_date: "2026-08-01", end_date: "2026-08-31",
+      })),
       error: null,
     });
     const { state, data } = buildDeps();
-    const { createBookingsFor } = useQuoteBookingCreator(data, state);
+    const { result } = renderHook(() => useQuoteBookingCreator(data, state));
 
-    await createBookingsFor(
+    await result.current.createBookingsFor(
       [
         { forkliftId: "f-1", dailyRate: 100, weeklyRate: 0, monthlyRate: 0 },
         { forkliftId: "f-2", dailyRate: 0, weeklyRate: 500, monthlyRate: 2000 },
       ],
-      true,
+      { quoteId: "q-1", recurring: true, replacementCustomerId: "c-2" },
     );
 
-    expect(rpcMock).toHaveBeenCalledWith("convert_quote_to_bookings_scoped", {
+    expect(rpcMock).toHaveBeenCalledOnce();
+    expect(rpcMock).toHaveBeenCalledWith("convert_quote_with_customer_scoped", {
       p_quote_id: "q-1",
       p_assignments: [
         { forklift_id: "f-1", daily_rate: 100, weekly_rate: 0, monthly_rate: 0 },
         { forklift_id: "f-2", daily_rate: 0, weekly_rate: 500, monthly_rate: 2000 },
       ],
       p_recurring: true,
+      p_replacement_customer_id: "c-2",
     });
     expect(invalidateSpy).toHaveBeenCalledTimes(3);
     expect(notifySuccess).toHaveBeenCalledWith("2 reserva(s) creada(s) desde cotización");
-    expect(state.setPendingDeliveries).toHaveBeenCalledTimes(1);
+    expect(state.setPendingDeliveries).toHaveBeenCalledWith([
+      expect.objectContaining({ bookingId: "b-1", customerAddress: "Calle 2" }),
+      expect.objectContaining({ bookingId: "b-2", customerAddress: "Calle 2" }),
+    ]);
     expect(state.setShowAssignmentDialog).toHaveBeenCalledWith(false);
   });
 
   it("propaga el error de la RPC sin invalidar caches ni cerrar el diálogo", async () => {
     rpcMock.mockResolvedValue({ data: null, error: { message: "no disponible" } });
     const { state, data } = buildDeps();
-    const { createBookingsFor } = useQuoteBookingCreator(data, state);
+    const { result } = renderHook(() => useQuoteBookingCreator(data, state));
 
-    await createBookingsFor(
+    await result.current.createBookingsFor(
       [{ forkliftId: "f-1", dailyRate: 100, weeklyRate: 0, monthlyRate: 0 }],
-      false,
+      { quoteId: "q-1", recurring: false, replacementCustomerId: null },
     );
 
     expect(invalidateSpy).not.toHaveBeenCalled();

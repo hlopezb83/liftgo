@@ -98,6 +98,7 @@ for (const status of ["draft", "stamping", "pending", "rejected", "accepted"]) {
           : null,
         cfdi_uuid: fiscal ? "uuid" : null,
         cancellation_status: fiscal ? status : null,
+        occupies_booking_period: status !== "accepted",
       })],
     });
     assertEquals(
@@ -358,6 +359,7 @@ Deno.test("coverage: accepted December cancellation restores hole despite Januar
         cfdi_status: "stamped",
         cfdi_uuid: "uuid",
         cancellation_status: "accepted",
+        occupies_booking_period: false,
       }),
       invoiceFixture({
         id: "jan",

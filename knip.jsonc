@@ -16,6 +16,8 @@
     "scripts/tests/operations/run-operational-corrections.mjs",
     "scripts/tests/quotes/quotes-page.integration.mjs",
     "scripts/tests/quotes/run-local-postgres.mjs",
+    "scripts/tests/invoice-booking-reads.postgres.mjs",
+    "scripts/tests/dashboard-search.postgres.mjs",
     // Edge functions desplegadas en Supabase: son entrypoints propios,
     // no las importa src/ (cron, webhooks y llamadas invoke las referencian).
     "supabase/functions/**/index.ts",

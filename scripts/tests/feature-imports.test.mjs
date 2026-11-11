@@ -45,4 +45,9 @@ test('only the exact auth page has a Supabase UI exception', () => {
   assert.equal(check(source, path.join(root, 'src/features/auth/pages/Other.tsx')).length, 1);
   assert.deepEqual(check(source, path.join(root, 'src/features/fleet/hooks/useFleet.ts')), []);
 });
+test('shared PDF renderers depend on document data, not feature modules', () => {
+  const pdf = path.join(root, 'src/lib/pdf/documents/ContractDocument.tsx');
+  assert.equal(check('import { value } from "@/features/contracts";', pdf)[0].rule, 'G5');
+  assert.deepEqual(check('import type { ContractData } from "../contract/data";', pdf), []);
+});
 test('repository feature graph respects G4/G5', () => assert.deepEqual(checkFeatureImports(root), []));

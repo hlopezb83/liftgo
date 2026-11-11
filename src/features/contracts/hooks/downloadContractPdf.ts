@@ -1,19 +1,15 @@
-import { loadGlobalBrandLogo } from "@/lib/pdf/assets/logo";
 import type { ContractData } from "@/lib/pdf/contract/data";
+import { buildPlaceholderVars, resolvePagareAmount } from "@/lib/pdf/contract/placeholders";
 import type { PDFMode } from "@/lib/pdf/documents/ContractDocument";
 import { renderAndSave } from "@/lib/pdf/renderAndSave";
 import { notifyWarning } from "@/lib/ui/appFeedback";
+import { contractForPdf, fetchRelatedData, fetchTemplate } from "./contractPdfData";
 
 export async function buildContractPdf(contract: ContractData, mode: PDFMode): Promise<void> {
-  const { fetchRelatedData, fetchTemplate, buildPlaceholderVars, resolvePagareAmount, contractForPdf } =
-    await import("@/lib/pdf/contract/data");
-
   const printableContract = contractForPdf(contract);
-  const { company, customer, forklift } = await fetchRelatedData(contract);
-  const tpl = await fetchTemplate(contract);
+  const [related, tpl] = await Promise.all([fetchRelatedData(contract), fetchTemplate(contract)]);
+  const { company, customer, forklift, logoBase64 } = related;
   const vars = buildPlaceholderVars(printableContract, company, customer, forklift, tpl.local_overrides);
-  // Marca global: mismo asset local de LiftGo para cualquier organización.
-  const logoBase64 = await loadGlobalBrandLogo();
 
   if (!customer?.representante_legal) {
     notifyWarning("El cliente no tiene Representante Legal capturado", {

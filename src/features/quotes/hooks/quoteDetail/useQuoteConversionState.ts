@@ -9,24 +9,26 @@ export interface DeliveryInfo {
   customerAddress: string | null;
 }
 
+export interface QuoteConversion {
+  quoteId: string;
+  recurring: boolean;
+  replacementCustomerId: string | null;
+}
+
 export function useQuoteConversionState() {
   const [pendingDeliveries, setPendingDeliveries] = useState<DeliveryInfo[]>([]);
   const [currentDeliveryIndex, setCurrentDeliveryIndex] = useState(0);
   const [isConverting, setIsConverting] = useState(false);
   const [showConvertDialog, setShowConvertDialog] = useState(false);
-  const [reassignCustomerId, setReassignCustomerId] = useState("");
-  const [reassignCustomerName, setReassignCustomerName] = useState("");
   const [showAssignmentDialog, setShowAssignmentDialog] = useState(false);
-  const [pendingRecurring, setPendingRecurring] = useState(false);
+  const [pendingConversion, setPendingConversion] = useState<QuoteConversion | null>(null);
 
   return {
     pendingDeliveries, setPendingDeliveries,
     currentDeliveryIndex, setCurrentDeliveryIndex,
     isConverting, setIsConverting,
     showConvertDialog, setShowConvertDialog,
-    reassignCustomerId, setReassignCustomerId,
-    reassignCustomerName, setReassignCustomerName,
     showAssignmentDialog, setShowAssignmentDialog,
-    pendingRecurring, setPendingRecurring,
+    pendingConversion, setPendingConversion,
   };
 }

@@ -23,6 +23,8 @@ interface Options<T extends RowData> {
   globalFilter?: string;
   paginated?: boolean;
   resetKey?: string | number;
+  /** En modo key, cambios de contenido conservan la página si aún existe. */
+  paginationReset?: "data" | "key";
   /** Conserva la página al anexar filas sin alterar las ya cargadas. */
   preservePaginationOnAppend?: boolean;
   /** Estado de paginación controlado para páginas obtenidas en el servidor. */
@@ -37,19 +39,18 @@ interface Options<T extends RowData> {
   onSelectionChange?: (ctx: DataTableSelectionContext<T>) => void;
 }
 
-function canKeepPaginationData(previous: string, current: string, preserveAppend: boolean): boolean {
-  return previous === current ||
-    (preserveAppend && previous !== "" && current.startsWith(`${previous}|`));
+function canKeepPaginationData<T>(previous: T[], current: T[], preserveAppend: boolean): boolean {
+  if (previous === current) return true;
+  if (previous.length !== current.length && !(preserveAppend && previous.length < current.length)) return false;
+  return previous.every((row, index) =>
+    row === current[index] || JSON.stringify(row) === JSON.stringify(current[index]));
 }
 
-function isPaginationCurrent<T extends RowData>(
-  snapshot: { dataVersion: string; resetKey: string | number | undefined },
-  dataVersion: string,
-  resetKey: string | number | undefined,
-  preserveAppend: boolean,
-): boolean {
-  return canKeepPaginationData(snapshot.dataVersion, dataVersion, preserveAppend) && snapshot.resetKey === resetKey;
-}
+type PaginationSnapshot<T> = {
+  data: T[];
+  resetKey: string | number | undefined;
+  value: PaginationState;
+};
 
 function resolveSelectable<T extends RowData>(
   setting: boolean | ((row: T) => boolean),
@@ -93,6 +94,7 @@ export function useLiftgoTable<T extends RowData>({
   globalFilter,
   paginated = true,
   resetKey,
+  paginationReset = "data",
   preservePaginationOnAppend = false,
   controlledPagination,
   onControlledPaginationChange,
@@ -106,30 +108,32 @@ export function useLiftgoTable<T extends RowData>({
   const [rowSelection, setRowSelection] = useState<RowSelectionState>({});
   const tableData = useMemo(() => data ?? [], [data]);
 
-  // El contenido determina cuándo volver a la primera página; las listas derivan
-  // arreglos nuevos con frecuencia y su referencia sola no sirve.
-  const dataVersion = useMemo(
-    () => tableData.map((r) => JSON.stringify(r)).join("|"),
-    [tableData],
-  );
-  const [paginationSnapshot, setPaginationSnapshot] = useState(() => ({
-    dataVersion,
+  const [paginationSnapshot, setPaginationSnapshot] = useState<PaginationSnapshot<T>>(() => ({
+    data: tableData,
     resetKey,
-    value: { pageIndex: 0, pageSize: initialPageSize } as PaginationState,
+    value: { pageIndex: 0, pageSize: initialPageSize },
   }));
-  const paginationIsCurrent = isPaginationCurrent(paginationSnapshot, dataVersion, resetKey, preservePaginationOnAppend);
-  const pagination = paginationIsCurrent
-    ? paginationSnapshot.value
-    : { ...paginationSnapshot.value, pageIndex: 0 };
+  const currentPagination = (previous: PaginationSnapshot<T>): PaginationState => {
+    const { value } = previous;
+    if (!paginated || controlledPagination || value.pageIndex === 0) return value;
+    if (previous.resetKey !== resetKey) return { ...value, pageIndex: 0 };
+    if (pageCount !== undefined) return value;
+    if (paginationReset === "data" && !canKeepPaginationData(previous.data, tableData, preservePaginationOnAppend)) {
+      return { ...value, pageIndex: 0 };
+    }
+    const lastPage = Math.max(0, Math.ceil(tableData.length / value.pageSize) - 1);
+    return value.pageIndex <= lastPage ? value : { ...value, pageIndex: lastPage };
+  };
+  const pagination = currentPagination(paginationSnapshot);
+  if (pagination !== paginationSnapshot.value) {
+    setPaginationSnapshot({ data: tableData, resetKey, value: pagination });
+  }
   const effectiveSorting = controlledSorting ?? sorting;
   const handlePaginationChange = (updater: Updater<PaginationState>): void => {
     setPaginationSnapshot((previous) => {
-      const current = canKeepPaginationData(previous.dataVersion, dataVersion, preservePaginationOnAppend) &&
-        previous.resetKey === resetKey
-        ? previous.value
-        : { ...previous.value, pageIndex: 0 };
+      const current = currentPagination(previous);
       return {
-        dataVersion,
+        data: tableData,
         resetKey,
         value: typeof updater === "function" ? updater(current) : updater,
       };

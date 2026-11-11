@@ -72,6 +72,15 @@ describe("ROUTES ↔ active TanStack routes", () => {
     expect(calls(source, node => ts.isIdentifier(node.expression) && node.expression.text === "createFileRoute")).toHaveLength(1);
     expect(source).toContain("throw redirect(");
   });
+  it.each([
+    ["/settings/organizations", "/platform/organizations"],
+    ["/settings/catalogs", "/platform/catalogs"],
+  ])("redirects %s to its canonical platform guard", (legacy, canonical) => {
+    const source = routesByPath.get(legacy)!;
+    expect(activePaths.has(canonical)).toBe(true);
+    expect(source).toContain(`throw redirect({ to: "${canonical}", replace: true })`);
+    expect(calls(source, node => node.expression.kind === ts.SyntaxKind.ImportKeyword)).toEqual([]);
+  });
 });
 
 describe("static chunk prefetch", () => {

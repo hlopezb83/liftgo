@@ -12,3 +12,11 @@ export interface ChecklistSection {
   title: string;
   items: string[];
 }
+
+export interface LegalTemplateOverrides {
+  city: string;
+  jurisdiction: string;
+  legal_representative: string;
+  witness_1: string;
+  witness_2: string;
+}

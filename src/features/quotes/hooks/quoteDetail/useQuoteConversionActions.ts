@@ -1,5 +1,6 @@
 import { ROUTES } from "@/app-routes/routes";
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";
+import { canConvertQuote } from "@/lib/rules/quotes";
 import { notifyError, notifySuccess } from "@/lib/ui/appFeedback";
 import { quoteStatusLabel } from "../../constants";
 import { useUpdateQuote, useDeleteQuote } from "../quotes/useQuotes";
@@ -71,17 +72,11 @@ export function useQuoteConversionActions(id: string | undefined, data: DataResu
     }
   };
 
-  const proceedWithConversion = (recurring: boolean) => {
-    state.setPendingRecurring(recurring);
-    if (isModelBasedQuote) {
-      state.setShowAssignmentDialog(true);
-    } else {
-      void convertLegacy(recurring);
-    }
-  };
+  const canStartConversion = quote && data.bookingLinksStatus === "ready" &&
+    canConvertQuote(quote, { isSale: data.isSale, alreadyConverted: data.alreadyConverted });
 
   const handleConvertClick = () => {
-    state.setShowConvertDialog(true);
+    if (canStartConversion) state.setShowConvertDialog(true);
   };
 
   /**
@@ -92,31 +87,24 @@ export function useQuoteConversionActions(id: string | undefined, data: DataResu
   const handleConvertConfirm = async (payload: {
     recurring: boolean; customerId: string; customerName: string;
   }) => {
-    if (!quote) return;
-    if (isPublicoGeneral(quote.customer_name)) {
-      if (!payload.customerId) return;
-      // A3-01: `lock_accepted_quote_amounts` bloquea el UPDATE directo del
-      // cliente en una cotización aceptada. La reasignación va por la RPC
-      // dedicada, que valida rol y estado antes de permitir el cambio.
-      const { supabase } = await import("@/integrations/supabase/client");
-      const { error } = await supabase.rpc("reassign_quote_customer", {
-        p_quote_id: quote.id,
-        p_customer_id: payload.customerId,
-        p_customer_name: payload.customerName,
-      });
-      if (error) {
-        notifyError({ error, title: "No se pudo reasignar el cliente" });
-        return;
-      }
-      await data.refetchQuote?.();
-      notifySuccess("Cliente actualizado");
+    if (!quote || !canStartConversion) return;
+    const replacementCustomerId = isPublicoGeneral(quote.customer_name) ? payload.customerId : null;
+    if (replacementCustomerId === "") return;
+    const request = { quoteId: quote.id, recurring: payload.recurring, replacementCustomerId };
+    if (isModelBasedQuote) {
+      state.setPendingConversion(request);
+      state.setShowConvertDialog(false);
+      state.setShowAssignmentDialog(true);
+    } else {
+      await convertLegacy(request);
     }
-    state.setShowConvertDialog(false);
-    proceedWithConversion(payload.recurring);
   };
 
-  const handleAssignmentConfirm = (assignments: Assignment[]) =>
-    createBookingsFor(assignments, state.pendingRecurring);
+  const handleAssignmentConfirm = async (assignments: Assignment[]) => {
+    if (canStartConversion && state.pendingConversion) {
+      await createBookingsFor(assignments, state.pendingConversion);
+    }
+  };
 
   return {
     setStatus, handleDelete, handleConvertClick, handleConvertConfirm,

@@ -117,6 +117,12 @@ function makeDeps(opts: {
   const caller = buildSupabaseMock(opts.caller ?? { claims: { sub: USER_ID } });
   const service = buildSupabaseMock({
     ...(opts.service ?? {}),
+    updatesSeq: opts.service?.updatesSeq ?? {
+      invoices: Array.from(
+        { length: 3 },
+        () => ({ data: { id: INVOICE_ID }, error: null }),
+      ),
+    },
     selects: {
       // M-1: authenticateWithDeps ahora verifica profiles.is_active — default
       // cuenta activa para no repetir el mock en cada test.

@@ -11,6 +11,7 @@ export interface BookingInvoiceClaim {
   invoice_id: string;
   booking_id: string;
   status: string;
+  occupies_booking_period?: boolean;
   line_items?: unknown;
   moneda?: string | null;
   billing_period_start: string | null;
@@ -18,6 +19,10 @@ export interface BookingInvoiceClaim {
 }
 
 export type InvoiceClaimIndex = ReadonlyMap<string, BookingInvoiceClaim[]>;
+
+export function bookingClaimOccupiesPeriod(claim: Pick<BookingInvoiceClaim, "status" | "occupies_booking_period">): boolean {
+  return claim.occupies_booking_period ?? (claim.status !== "cancelled");
+}
 
 /** Extension history, not invoice state, defines the original rental term.
  * A cancelled extension invoice does not undo the physical extension. */
@@ -50,7 +55,7 @@ export function bookingPeriodConflict(
   claims: BookingInvoiceClaim[], currentInvoiceId?: string,
 ): boolean {
   return claims.some((claim) => claim.booking_id === bookingId && claim.invoice_id !== currentInvoiceId
-    && claim.status !== "cancelled" && claimOverlapsPeriod(claim, start, end));
+    && bookingClaimOccupiesPeriod(claim) && claimOverlapsPeriod(claim, start, end));
 }
 
 export function originalPeriodUnavailable(
@@ -59,7 +64,7 @@ export function originalPeriodUnavailable(
   if (booking.pending_billing_period) return bookingPeriodConflict(booking.id, booking.pending_billing_period.start, booking.pending_billing_period.end, claims, currentInvoiceId);
   // Active recurring bookings retain their automatic-engine selector policy.
   if (booking.recurring_billing) return claims.some((claim) => claim.booking_id === booking.id
-    && claim.invoice_id !== currentInvoiceId && claim.status !== "cancelled");
+    && claim.invoice_id !== currentInvoiceId && bookingClaimOccupiesPeriod(claim));
   return bookingPeriodConflict(booking.id, booking.start_date, booking.end_date, claims, currentInvoiceId);
 }
 

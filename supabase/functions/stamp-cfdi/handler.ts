@@ -5,6 +5,7 @@ import { handleCors } from "../_shared/cors.ts";
 import { jsonResponse } from "../_shared/http.ts";
 import { isUUID } from "../_shared/validate.ts";
 import { organizationStoragePath } from "../_shared/storagePath.ts";
+import { stampOutcome } from "../_shared/stampOutcome.ts";
 import type { SupabaseLike } from "../_shared/types.ts";
 import {
   describeFacturapiError,
@@ -52,11 +53,8 @@ export async function handleStampCfdi(
   let supabaseRef: SupabaseLike | null = null;
   let invoiceIdRef: string | null = null;
   let claimed = false;
-  // EC-A2: si Facturapi ya emitió el CFDI, no queremos que el outer-catch
-  // resetee la factura a 'error' — quedaría en un estado imposible (UUID +
-  // error). Mejor dejar en 'stamping' para que `reconcile-stamping-invoices`
-  // la recupere.
-  let cfdiPersisted = false;
+  let providerResponded = false;
+  let recoveryReferenceSaved = false;
 
   try {
     const auth = await authenticateWithDeps({
@@ -121,24 +119,43 @@ export async function handleStampCfdi(
       );
     }
 
+    if (inv.status === "cancelled" || inv.cfdi_status === "cancelled") {
+      return json({
+        error: "La factura está cancelada.",
+        ...stampOutcome({ kind: "rejected" }),
+      }, 409);
+    }
+
     // Guard de idempotencia (chequeo rápido — solo evita pagar Facturapi):
-    if (inv.cfdi_status === "stamped" && inv.cfdi_uuid) {
+    if (inv.cfdi_status === "stamped" && typeof inv.cfdi_uuid === "string") {
       console.error("[stamp-cfdi] already stamped", {
         invoice_id,
         uuid: inv.cfdi_uuid,
       });
       return json(
-        { error: "Invoice already stamped", cfdi_uuid: inv.cfdi_uuid },
+        {
+          error: "Invoice already stamped",
+          cfdi_uuid: inv.cfdi_uuid,
+          ...stampOutcome({ kind: "already_issued", cfdi_uuid: inv.cfdi_uuid }),
+        },
         409,
         jsonHeaders,
       );
     }
-    if (inv.facturapi_invoice_id) {
+    if (inv.facturapi_invoice_id || inv.cfdi_uuid) {
+      const recovery = inv.cfdi_status === "stamping" &&
+        Boolean(inv.facturapi_invoice_id);
       return json(
         {
           error:
             "El CFDI ya tiene un ID de Facturapi. Espera la conciliación o revisa su estado antes de reemitir.",
           facturapi_invoice_id: inv.facturapi_invoice_id,
+          ...(recovery ? { code: "STAMP_RECOVERY_REQUIRED" } : {}),
+          ...stampOutcome(
+            recovery
+              ? { kind: "recovery_required", reference: "saved" }
+              : { kind: "rejected" },
+          ),
         },
         409,
         jsonHeaders,
@@ -180,12 +197,24 @@ export async function handleStampCfdi(
       .from("invoices")
       .update({ cfdi_status: "stamping" })
       .eq("id", invoice_id)
+      .eq("organization_id", organizationId)
       .in("cfdi_status", ["pending", "error"])
       .is("cfdi_uuid", null)
+      .is("facturapi_invoice_id", null)
+      .neq("status", "cancelled")
       .select("id")
       .maybeSingle();
-    const claimedRow = (claimRes as { data: unknown }).data;
-    if (!claimedRow) {
+    if (claimRes.error) {
+      console.error("[stamp-cfdi] claim write failed", { invoice_id });
+      if ((claimRes.error as { code?: string }).code === "23514") {
+        return json({
+          error: "La factura ya no cumple las condiciones para timbrarse.",
+          ...stampOutcome({ kind: "rejected" }),
+        }, 409);
+      }
+      return json({ error: "No se pudo tomar el timbrado. Reintenta." }, 503);
+    }
+    if (!claimRes.data) {
       console.error(
         "[stamp-cfdi] claim failed — concurrent stamp in progress",
         {
@@ -193,7 +222,10 @@ export async function handleStampCfdi(
         },
       );
       return json(
-        { error: "Invoice already stamped or in progress" },
+        {
+          error: "Invoice already stamped or in progress",
+          ...stampOutcome({ kind: "in_progress" }),
+        },
         409,
         jsonHeaders,
       );
@@ -214,6 +246,25 @@ export async function handleStampCfdi(
         })
         .eq("id", invoice_id);
     };
+
+    const saveClaim = async (patch: Record<string, unknown>) => {
+      const { data, error } = await supabase.from("invoices").update(patch)
+        .eq("id", invoice_id).eq("organization_id", organizationId)
+        .eq("cfdi_status", "stamping").is("cfdi_uuid", null)
+        .is("facturapi_invoice_id", null).select("id").maybeSingle();
+      return !error && Boolean(data);
+    };
+
+    const unconfirmedRecovery = () =>
+      json({
+        error:
+          "No se confirmó el registro del timbrado. Espera la conciliación antes de reemitir.",
+        code: "STAMP_RECOVERY_REQUIRED",
+        ...stampOutcome({
+          kind: "recovery_required",
+          reference: "unconfirmed",
+        }),
+      }, 503);
 
     // 8.8.7: un error de lectura de company_settings se distingue de "no
     // configurada": se libera el claim y se responde 503, sin timbrar ni caer
@@ -316,18 +367,26 @@ export async function handleStampCfdi(
   <tfd:TimbreFiscalDigital UUID="${mockUuid}" />
 </cfdi:Comprobante>`;
 
-      await supabase.from("invoices")
-        .update({
-          cfdi_uuid: mockUuid,
-          cfdi_xml: mockXml,
-          cfdi_status: "stamped",
-          facturapi_env: "test",
-          ...(inv.status === "draft" ? { status: "sent" } : {}),
-        })
-        .eq("id", invoice_id);
+      const saved = await saveClaim({
+        cfdi_uuid: mockUuid,
+        cfdi_xml: mockXml,
+        cfdi_status: "stamped",
+        facturapi_env: "test",
+        ...(inv.status === "draft" ? { status: "sent" } : {}),
+      });
+      if (!saved) {
+        return json({
+          error: "No se confirmó el registro del timbrado de prueba.",
+        }, 503);
+      }
 
       return json(
-        { success: true, cfdi_uuid: mockUuid, stub: true },
+        {
+          success: true,
+          cfdi_uuid: mockUuid,
+          stub: true,
+          ...stampOutcome({ kind: "issued", cfdi_uuid: mockUuid }),
+        },
         200,
         jsonHeaders,
       );
@@ -399,6 +458,10 @@ export async function handleStampCfdi(
             status: 504,
             detail: desc.detail,
             transient: true,
+            ...stampOutcome({
+              kind: "recovery_required",
+              reference: "unconfirmed",
+            }),
           },
           504,
           jsonHeaders,
@@ -440,7 +503,7 @@ export async function handleStampCfdi(
 
     // A 202 response has an ID but no UUID. The PAC owns this document now;
     // never release the claim or try to create it again while it is pending.
-    cfdiPersisted = true;
+    providerResponded = true;
     const pacResult = classifyPacInvoice(facturApiInvoice);
     if (pacResult.kind !== "hit") {
       const facturapiId = "facturapi_id" in pacResult
@@ -448,13 +511,15 @@ export async function handleStampCfdi(
         : (typeof facturApiInvoice.id === "string"
           ? facturApiInvoice.id
           : null);
-      await supabase.from("invoices").update({
+      const saved = await saveClaim({
         ...(facturapiId ? { facturapi_invoice_id: facturapiId } : {}),
+        facturapi_env: mode === "live" ? "live" : "test",
         cfdi_status: pacResult.kind === "failed" ? "error" : "stamping",
         cfdi_error_message: pacResult.kind === "pending"
           ? "Facturapi aceptó el CFDI; timbrado pendiente de resolución."
           : "Respuesta de Facturapi sin UUID válido. Revisar antes de reemitir.",
-      }).eq("id", invoice_id);
+      });
+      if (!saved) return unconfirmedRecovery();
       return json(
         {
           error: pacResult.kind === "pending"
@@ -462,6 +527,12 @@ export async function handleStampCfdi(
             : "Facturapi no devolvió un UUID válido; requiere conciliación.",
           code: pacResult.kind === "pending" ? "PAC_PENDING" : "PAC_INCOMPLETE",
           ...(facturapiId ? { facturapi_invoice_id: facturapiId } : {}),
+          ...stampOutcome(
+            pacResult.kind === "failed" ? { kind: "rejected" } : {
+              kind: "recovery_required",
+              reference: facturapiId ? "saved" : "unconfirmed",
+            },
+          ),
         },
         pacResult.kind === "pending" ? 202 : 502,
         jsonHeaders,
@@ -483,12 +554,12 @@ export async function handleStampCfdi(
     // A partir de aquí, si algo falla (descarga XML/PDF, storage, UPDATE final),
     // la factura queda recuperable por `reconcile-stamping-invoices` sin
     // riesgo de emitir un CFDI duplicado en Facturapi.
-    await supabase.from("invoices").update({
+    recoveryReferenceSaved = await saveClaim({
       facturapi_invoice_id: facturApiId,
       cfdi_uuid: cfdiUuid,
       facturapi_env: mode === "live" ? "live" : "test",
-    }).eq("id", invoice_id);
-    cfdiPersisted = true;
+    });
+    if (!recoveryReferenceSaved) return unconfirmedRecovery();
 
     let cfdiXml: string | null = null;
     let xmlStoragePath: string | null = null;
@@ -590,16 +661,21 @@ export async function handleStampCfdi(
       ...(facturApiSeries ? { serie: facturApiSeries } : {}),
       ...(facturApiFolio ? { folio: facturApiFolio } : {}),
       ...(inv.status === "draft" ? { status: "sent" } : {}),
-    }).eq("id", invoice_id);
+    }).eq("id", invoice_id).eq("organization_id", organizationId)
+      .eq("cfdi_status", "stamping").eq("facturapi_invoice_id", facturApiId)
+      .select("id").maybeSingle();
 
-    const updateErr = (updRes as { error: unknown }).error;
-    if (updateErr) {
+    if (updRes.error || !updRes.data) {
       console.error("[stamp-cfdi] DB update failed after stamp", {
         invoice_id,
         cfdiUuid,
       });
       return json(
-        { error: "Stamped but failed to save to DB" },
+        {
+          error: "Stamped but failed to save to DB",
+          code: "STAMP_RECOVERY_REQUIRED",
+          ...stampOutcome({ kind: "recovery_required", reference: "saved" }),
+        },
         500,
         jsonHeaders,
       );
@@ -613,6 +689,7 @@ export async function handleStampCfdi(
           error: varianceMessage ??
             "Stamp variance exceeds tolerance; invoice not stamped",
           cfdi_uuid: cfdiUuid,
+          ...stampOutcome({ kind: "rejected" }),
         },
         502,
         jsonHeaders,
@@ -658,6 +735,7 @@ export async function handleStampCfdi(
         facturapi_invoice_id: facturApiId,
         invoice_number: finalInvoiceNumber ?? currentInvNum,
         stub: false,
+        ...stampOutcome({ kind: "issued", cfdi_uuid: cfdiUuid }),
       },
       200,
       jsonHeaders,
@@ -666,10 +744,8 @@ export async function handleStampCfdi(
     console.error("[stamp-cfdi] unhandled exception", err);
     // BL-03 (cierre): liberar el claim ante excepción no manejada para que la
     // factura no quede atascada en 'stamping'.
-    // EC-A2: pero solo si NO alcanzamos a persistir el CFDI — en ese caso
-    // dejamos 'stamping' para que el cron reconcile-stamping-invoices la
-    // recupere sin re-timbrar.
-    if (claimed && !cfdiPersisted && supabaseRef && invoiceIdRef) {
+    // Una respuesta del PAC se concilia incluso si la escritura local falló.
+    if (claimed && !providerResponded && supabaseRef && invoiceIdRef) {
       try {
         await supabaseRef.from("invoices")
           .update({
@@ -686,6 +762,17 @@ export async function handleStampCfdi(
         });
       }
     }
-    return json({ error: "Internal server error" }, 500);
+    return json({
+      error: "Internal server error",
+      ...(providerResponded
+        ? {
+          code: "STAMP_RECOVERY_REQUIRED",
+          ...stampOutcome({
+            kind: "recovery_required",
+            reference: recoveryReferenceSaved ? "saved" : "unconfirmed",
+          }),
+        }
+        : {}),
+    }, 500);
   }
 }

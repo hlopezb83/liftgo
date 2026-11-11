@@ -85,6 +85,10 @@ export default function QuoteDetail() {
             linkedBookingId={linkedBookingId}
             alreadyInvoiced={alreadyInvoiced}
             draftInvoiceId={draftInvoiceId}
+            bookingLinksStatus={logic.bookingLinksStatus}
+            invoiceLinksStatus={logic.invoiceLinksStatus}
+            retryBookingLinks={logic.retryBookingLinks}
+            retryInvoiceLinks={logic.retryInvoiceLinks}
             isConverting={isConverting}
             canInvoice={canInvoice}
             invoiceBlockedReason={invoiceBlockedReason}

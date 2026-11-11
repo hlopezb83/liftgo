@@ -3,7 +3,7 @@
  * identidad verificada y nunca se restaura antes de resolverla.
  */
 import { dehydrate, QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { render, screen, waitFor } from "@testing-library/react";
+import { act, render, screen, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const { useAuthMock, useOrgMock } = vi.hoisted(() => ({
@@ -48,14 +48,18 @@ function setIdentity(user: string | null, organizationId?: string) {
   );
 }
 
-function renderTree(queryClient: QueryClient) {
-  return render(
+function cacheTree(queryClient: QueryClient) {
+  return (
     <QueryClientProvider client={queryClient}>
       <IdentityScopedPersistence>
         <p>Contenido protegido</p>
       </IdentityScopedPersistence>
-    </QueryClientProvider>,
+    </QueryClientProvider>
   );
+}
+
+function renderTree(queryClient: QueryClient) {
+  return render(cacheTree(queryClient));
 }
 
 describe("identidad de caché", () => {
@@ -95,7 +99,7 @@ describe("identidad de caché", () => {
     expect(isForeignPersistedCacheKey(persistedCacheKey(scopeA), null)).toBe(true);
   });
 
-  it("no restaura ni muestra datos protegidos antes de resolver la organización", async () => {
+  it("retira la caché en memoria mientras la organización se está verificando", async () => {
     setIdentity(USER_A); // sesión sí, organización aún no
     const qc = new QueryClient();
     qc.setQueryData(["forklifts", "list"], [{ id: "f1" }]);
@@ -104,6 +108,71 @@ describe("identidad de caché", () => {
 
     await waitFor(() => expect(qc.getQueryData(["forklifts", "list"])).toBeUndefined());
     expect(window.localStorage.getItem(persistedCacheKey(scopeA))).toBeNull();
+  });
+
+  it.each([
+    { user: USER_A, organization: ORG_A, current: scopeA, other: scopeB },
+    { user: USER_B, organization: ORG_B, current: scopeB, other: scopeA },
+  ])("conserva ambos catálogos durante la verificación y restaura sólo el de $user", async ({ user, organization, current, other }) => {
+    setIdentity(null);
+    for (const scope of [scopeA, scopeB]) {
+      const saved = new QueryClient();
+      saved.setQueryData(["forklifts", "list"], [{ id: scope }]);
+      window.localStorage.setItem(persistedCacheKey(scope), JSON.stringify({
+        timestamp: Date.now(), buster: scope, clientState: dehydrate(saved),
+      }));
+      saved.clear();
+    }
+
+    const qc = new QueryClient();
+    qc.setQueryData(["forklifts", "list"], [{ id: "anterior" }]);
+    const view = renderTree(qc);
+    await waitFor(() => expect(qc.getQueryData(["forklifts", "list"])).toBeUndefined());
+    expect(window.localStorage.getItem(persistedCacheKey(current))).not.toBeNull();
+    expect(window.localStorage.getItem(persistedCacheKey(other))).not.toBeNull();
+
+    setIdentity(user);
+    useOrgMock.mockReturnValue({ status: "error", code: "context_request_failed" });
+    view.rerender(cacheTree(qc));
+    expect(window.localStorage.getItem(persistedCacheKey(current))).not.toBeNull();
+
+    setIdentity(user, organization);
+    view.rerender(cacheTree(qc));
+    await waitFor(() => expect(qc.getQueryData(["forklifts", "list"])).toEqual([{ id: current }]));
+    expect(window.localStorage.getItem(persistedCacheKey(other))).toBeNull();
+    qc.clear();
+  });
+
+  it("purga al confirmar el cierre de sesión después de arrancar", async () => {
+    setIdentity(null);
+    window.localStorage.setItem(persistedCacheKey(scopeA), "propia");
+    const qc = new QueryClient();
+    const view = renderTree(qc);
+    useOrgMock.mockReturnValue({ status: "signed-out" });
+    view.rerender(cacheTree(qc));
+    await waitFor(() => expect(window.localStorage.getItem(persistedCacheKey(scopeA))).toBeNull());
+  });
+
+  it("bloquea escrituras diferidas de la identidad anterior después de purgarla", async () => {
+    setIdentity(USER_A, ORG_A);
+    const qc = new QueryClient();
+    const view = renderTree(qc);
+    await waitFor(() => expect(screen.getByText("Contenido protegido")).toBeInTheDocument());
+
+    vi.useFakeTimers();
+    try {
+      qc.setQueryData(["forklifts", "list"], [{ id: "anterior" }]);
+      setIdentity(USER_B, ORG_B);
+      await act(async () => { view.rerender(cacheTree(qc)); });
+      qc.setQueryData(["forklifts", "list"], [{ id: "actual" }]);
+      await act(async () => { await vi.advanceTimersByTimeAsync(1_001); });
+      expect(window.localStorage.getItem(persistedCacheKey(scopeA))).toBeNull();
+      expect(window.localStorage.getItem(persistedCacheKey(scopeB))).toContain("actual");
+    } finally {
+      view.unmount();
+      qc.clear();
+      vi.useRealTimers();
+    }
   });
 
   it("al cambiar de identidad limpia la caché anterior antes de renderizar", async () => {

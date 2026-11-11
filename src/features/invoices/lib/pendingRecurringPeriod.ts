@@ -1,5 +1,5 @@
+import { bookingClaimOccupiesPeriod, type BookingInvoiceClaim } from "./originalBookingPeriod";
 import type { BillableBooking } from "./bookingCompatibility";
-import type { BookingInvoiceClaim } from "./originalBookingPeriod";
 
 interface RecurringPeriod { start: string; end: string }
 export interface PendingRecurringPeriod { period: RecurringPeriod | null; error: string | null }
@@ -26,7 +26,7 @@ interface ClaimedPeriod extends RecurringPeriod { claim: BookingInvoiceClaim }
 function activeRanges(bookingId: string, claims: BookingInvoiceClaim[]): ClaimedPeriod[] | null {
   const ranges: ClaimedPeriod[] = [];
   for (const claim of claims) {
-    if (claim.booking_id !== bookingId || claim.status === "cancelled") continue;
+    if (claim.booking_id !== bookingId || !bookingClaimOccupiesPeriod(claim)) continue;
     const { billing_period_start: start, billing_period_end: end } = claim;
     if (!validDate(start) || !validDate(end) || start > end) return null;
     ranges.push({ start, end, claim });

@@ -1,8 +1,8 @@
 import currency from "currency.js";
 import { firstBillingPeriod } from "@/lib/domain/firstBillingPeriod";
 import { proratedMonthlyCents } from "@/lib/domain/invoiceTotals";
+import { bookingClaimOccupiesPeriod, type BookingInvoiceClaim, type InvoiceClaimIndex } from "./originalBookingPeriod";
 import type { BillableBooking } from "./bookingCompatibility";
-import type { BookingInvoiceClaim, InvoiceClaimIndex } from "./originalBookingPeriod";
 
 const currencyCode = (value: string | null | undefined) => value?.trim().toUpperCase() || "MXN";
 
@@ -11,7 +11,7 @@ export function verifiedRecurringCoverage(booking: BillableBooking, claim: Booki
   claims: BookingInvoiceClaim[], monthlyRate: number | null | undefined, claimsByInvoice?: InvoiceClaimIndex): boolean {
   if (monthlyRate == null || !Number.isFinite(monthlyRate) || monthlyRate < 0) return false;
   const invoiceClaims = claimsByInvoice?.get(claim.invoice_id) ?? claims;
-  if (invoiceClaims.some((other) => other.status !== "cancelled" && other.invoice_id === claim.invoice_id && other.booking_id !== booking.id)) return false;
+  if (invoiceClaims.some((other) => bookingClaimOccupiesPeriod(other) && other.invoice_id === claim.invoice_id && other.booking_id !== booking.id)) return false;
   if (currencyCode(claim.moneda) !== currencyCode(booking.currency)) return false;
   const start = claim.billing_period_start;
   const end = claim.billing_period_end;

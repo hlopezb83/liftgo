@@ -15,7 +15,7 @@ export function ContractPDFButton({ contract }: { contract: ContractData }) {
     setLoading(true);
     try {
       // Lazy: keep @react-pdf/renderer out of the initial bundle.
-      const { buildContractPdf } = await import("@/lib/pdf/contract/build");
+      const { buildContractPdf } = await import("../../hooks/downloadContractPdf");
       await buildContractPdf(contract, mode);
     } catch (err: unknown) {
       notifyError({ error: err, message: "Error al generar PDF" });

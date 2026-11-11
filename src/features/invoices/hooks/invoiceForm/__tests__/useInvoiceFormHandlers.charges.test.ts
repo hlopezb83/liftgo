@@ -78,10 +78,11 @@ describe("booking selection with persistent charges", () => {
       .map((line) => ({ ...line, discount: 10, discount_type: "%" })) };
     const loadQuoteSources = vi.fn().mockResolvedValue([quote]);
     const loadQuotedBookings = vi.fn().mockResolvedValue(siblings);
+    const loadEquipment = vi.fn().mockResolvedValue(units);
     const { result } = renderHook(() => {
       const form = useForm<InvoiceFormValues>({ defaultValues: buildEmptyInvoiceValues() });
-      return { form, ...useInvoiceFormHandlers({ form, customers: [], bookings: [siblings[1]], forklifts: units,
-        loadQuoteSources, loadQuotedBookings, loadQuoteCharges: async () => ({ complete: true,
+      return { form, ...useInvoiceFormHandlers({ form, customers: [], bookings: [siblings[1]],
+        loadEquipment, loadQuoteSources, loadQuotedBookings, loadQuoteCharges: async () => ({ complete: true,
           quotes: [{ quote_id: q, legacy_review_required: false, lines: [] }] }) }) };
     });
     await act(async () => { await result.current.handleBookingsChange([siblings[1].id]); });
@@ -90,6 +91,25 @@ describe("booking selection with persistent charges", () => {
     expect(result.current.form.getValues("lineItems").map((line) => line.discount)).toEqual([425.02, 75.05]);
     expect(loadQuoteSources).toHaveBeenCalledWith([q]);
     expect(loadQuotedBookings).toHaveBeenCalledWith([q]);
+    expect(loadEquipment).toHaveBeenCalledWith(["b", "a"]);
+  });
+
+  it("does not generate a partial rental when a selected booking's equipment is missing", async () => {
+    const second = { ...bookings[1], forklift_id: "archived-unit" };
+    const archivedUnit = { ...forklifts[0], id: second.forklift_id, name: "Equipo histórico" };
+    const loadEquipment = vi.fn().mockResolvedValueOnce(forklifts).mockResolvedValueOnce([...forklifts, archivedUnit]);
+    const { result } = renderHook(() => {
+      const form = useForm<InvoiceFormValues>({ defaultValues: buildEmptyInvoiceValues() });
+      return { form, ...useInvoiceFormHandlers({ form, customers: [], bookings: [bookings[0], second],
+        loadEquipment, quotes, loadQuoteCharges: async () => availability }) };
+    });
+    await act(async () => { await result.current.handleBookingsChange([bookings[0].id, second.id]); });
+    expect(result.current.chargeSelectionError).toMatch(/verificar todos los equipos/);
+    expect(result.current.form.getValues()).toMatchObject({ bookingIds: [], lineItems: [] });
+    await act(async () => { await result.current.retryChargeSelection(); });
+    expect(result.current.chargeSelectionError).toBeNull();
+    expect(result.current.form.getValues("bookingIds")).toEqual([bookings[0].id, second.id]);
+    expect(result.current.form.getValues("lineItems").some((line) => line.description.includes(archivedUnit.name))).toBe(true);
   });
 });
 

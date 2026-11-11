@@ -11,7 +11,7 @@ import { nowMty } from "@/lib/utils";
 import { satCodeForMethod } from "../../lib/paymentMethods";
 import { useCreatePayment } from "../usePayments";
 import { useStampPaymentComplement } from "./cfdi/usePaymentComplement";
-import { isPaymentFormDirty } from "./paymentFormDirty";
+import { isPaymentFormDirty, type PaymentFormSnapshot } from "./paymentFormDirty";
 
 /** L-7: monto máximo de un pago individual (anti-capturas erróneas). */
 const MAX_PAYMENT_AMOUNT = 99_999_999.99;
@@ -35,78 +35,48 @@ interface Args {
   onOpenChange: (open: boolean) => void;
 }
 
+function initialPaymentDraft(balance: number, exchangeRate: string, ppdStamped: boolean): PaymentFormSnapshot {
+  return {
+    amount: balance.toFixed(2),
+    date: nowMty(),
+    method: "transfer",
+    paymentFormSat: satCodeForMethod("transfer"),
+    exchangeRate,
+    reference: "",
+    notes: "",
+    stampRep: ppdStamped,
+  };
+}
+
+const PAYMENT_CURRENCY_CHANGED = "Cambió la moneda de la factura. Vuelve a abrir el registro de pago para capturar en la moneda actual.";
+
 export function useRecordPaymentForm({ open, balance, ppdStamped, invoiceId, invoiceCurrency, invoiceExchangeRate, invoiceIssuedAt, onOpenChange }: Args) {
   const lockedCurrency = (invoiceCurrency ?? "MXN").toUpperCase();
-  // R7 Bloque 14: TC inicial del pago = TC de la factura (o 1 para MXN).
-  const initialRate = lockedCurrency === "MXN"
-    ? "1"
-    : invoiceExchangeRate && invoiceExchangeRate > 0
-      ? String(invoiceExchangeRate)
-      : "1";
-  const [amount, setAmount] = useState(balance.toFixed(2));
-  const [date, setDate] = useState<Date | undefined>(nowMty());
-  const [method, setMethod] = useState("transfer");
-  const [paymentFormSat, setPaymentFormSat] = useState("03");
-  // C-1: divisa bloqueada a la factura hasta que exista soporte multi-moneda.
-  const [currency, setCurrencyState] = useState(lockedCurrency);
-  const [exchangeRate, setExchangeRate] = useState(initialRate);
-  const [reference, setReference] = useState("");
-  const [notes, setNotes] = useState("");
-  const [stampRep, setStampRep] = useState(true);
-  // Bloqueo devuelto por el backend cuando la UI no lo pudo anticipar (carrera
-  // con otro pago). El backend sigue siendo la autoridad final.
+  const initialRate = lockedCurrency !== "MXN" && invoiceExchangeRate && invoiceExchangeRate > 0
+    ? String(invoiceExchangeRate) : "1";
+  const [session, setSession] = useState(() => {
+    const initial = initialPaymentDraft(balance, initialRate, ppdStamped);
+    return { open, invoiceId, currency: lockedCurrency, initial, draft: initial };
+  });
   const [serverBlock, setServerBlock] = useState<BusinessBlock | null>(null);
   const createPayment = useCreatePayment();
   const stampComplement = useStampPaymentComplement();
 
-  // Sincroniza el código SAT sugerido cuando cambia el método (usuario puede override en UI).
-  const [prevMethod, setPrevMethod] = useState(method);
-
-  // Reset local state when the dialog opens or when invoice-derived props change.
-  // Patrón oficial React "adjust state when a prop changes": setState durante render
-  // guardado por comparación con el valor previo — evita el efecto de sincronización.
-  const [prevOpen, setPrevOpen] = useState(open);
-  const [prevBalance, setPrevBalance] = useState(balance);
-  const [prevPpdStamped, setPrevPpdStamped] = useState(ppdStamped);
-  const [prevLockedCurrency, setPrevLockedCurrency] = useState(lockedCurrency);
-  const [prevInitialRate, setPrevInitialRate] = useState(initialRate);
-  if (
-    open !== prevOpen ||
-    balance !== prevBalance ||
-    ppdStamped !== prevPpdStamped ||
-    lockedCurrency !== prevLockedCurrency ||
-    initialRate !== prevInitialRate
-  ) {
-    setPrevOpen(open);
-    setPrevBalance(balance);
-    setPrevPpdStamped(ppdStamped);
-    setPrevLockedCurrency(lockedCurrency);
-    setPrevInitialRate(initialRate);
+  if (open !== session.open || invoiceId !== session.invoiceId) {
     if (open) {
-      // R23-F: el reset era parcial — Referencia, Notas, Método, Fecha y el
-      // código SAT sobrevivían al "Descartar" y reaparecían al reabrir con
-      // datos de un pago anterior.
-      setAmount(balance.toFixed(2));
-      setStampRep(ppdStamped);
-      setCurrencyState(lockedCurrency);
-      setExchangeRate(initialRate);
-      setDate(nowMty());
-      setMethod("transfer");
-      setPrevMethod("transfer");
-      setPaymentFormSat(satCodeForMethod("transfer"));
-      setReference("");
-      setNotes("");
+      const initial = initialPaymentDraft(balance, initialRate, ppdStamped);
+      setSession({ open, invoiceId, currency: lockedCurrency, initial, draft: initial });
+      setServerBlock(null);
+    } else {
+      setSession({ ...session, open, invoiceId });
     }
-  } else if (method !== prevMethod) {
-    setPrevMethod(method);
-    setPaymentFormSat(satCodeForMethod(method));
   }
 
-
-  // C-1: exponer un setter no-op para el select de UI; siempre revierte al
-  // valor bloqueado de la factura.
-  const setCurrency = (_next: string) => setCurrencyState(lockedCurrency);
-
+  const { amount, date, method, paymentFormSat, exchangeRate, reference, notes, stampRep } = session.draft;
+  const currency = session.currency;
+  const currencyChanged = currency !== lockedCurrency;
+  const patchDraft = (patch: Partial<PaymentFormSnapshot>) =>
+    setSession((current) => ({ ...current, draft: { ...current.draft, ...patch } }));
 
   // BL-11 (misma regla que valida el submit): si el monto capturado ya excede
   // el saldo, se explica de antemano en vez de esperar al toast de validación.
@@ -122,6 +92,7 @@ export function useRecordPaymentForm({ open, balance, ppdStamped, invoiceId, inv
   const dateError = isValidPaymentDate(date) ? undefined : INVALID_PAYMENT_DATE_MESSAGE;
 
   const handleSubmit = async () => {
+    if (currencyChanged) { notifyValidation({ message: PAYMENT_CURRENCY_CHANGED }); return; }
     setServerBlock(null);
     const amt = roundMoney(Number(amount));
     if (!amt || amt <= 0) { notifyValidation({ message: "Monto inválido" }); return; }
@@ -190,9 +161,6 @@ export function useRecordPaymentForm({ open, balance, ppdStamped, invoiceId, inv
             stampComplement.mutate(created.id);
           }
           onOpenChange(false);
-          setAmount(balance.toFixed(2));
-          setReference("");
-          setNotes("");
         },
         onError: (err) => {
           // Carrera: otro pago consumió el saldo. Se muestra el mismo bloque
@@ -208,21 +176,19 @@ export function useRecordPaymentForm({ open, balance, ppdStamped, invoiceId, inv
     );
   };
 
-  // R22-A / R23-F: ver `paymentFormDirty.ts`.
-  const isDirty = isPaymentFormDirty(
-    { amount, reference, notes, method, paymentFormSat, stampRep, date },
-    { balance, ppdStamped },
-  );
-
-
   return {
-    amount, setAmount, date, setDate, method, setMethod,
-    paymentFormSat, setPaymentFormSat, currency, setCurrency,
-    lockedCurrency,
-    exchangeRate, setExchangeRate, reference, setReference,
-    notes, setNotes, stampRep, setStampRep,
-    createPayment, stampComplement, handleSubmit, isDirty,
+    amount, setAmount: (value: string) => patchDraft({ amount: value }),
+    date, setDate: (value?: Date) => patchDraft({ date: value }),
+    method, setMethod: (value: string) => patchDraft({ method: value, paymentFormSat: satCodeForMethod(value) }),
+    paymentFormSat, setPaymentFormSat: (value: string) => patchDraft({ paymentFormSat: value }),
+    currency, lockedCurrency, setCurrency: (_value: string) => {},
+    exchangeRate, setExchangeRate: (value: string) => patchDraft({ exchangeRate: value }),
+    reference, setReference: (value: string) => patchDraft({ reference: value }),
+    notes, setNotes: (value: string) => patchDraft({ notes: value }),
+    stampRep, setStampRep: (value: boolean) => patchDraft({ stampRep: value }),
+    createPayment, stampComplement, handleSubmit,
+    isDirty: isPaymentFormDirty(session.draft, session.initial),
     amountBlock, exceedsBalance, dateError,
+    currencyError: currencyChanged ? PAYMENT_CURRENCY_CHANGED : null,
   };
 }
-

@@ -12,7 +12,7 @@ type InvoiceBookingReads = {
     p_linked_ids: string[];
     p_include_e2e: boolean;
   };
-  get_invoice_booking_billing_evidence: {
+  get_invoice_booking_billing_evidence_v2: {
     p_expected_organization_id: string;
     p_booking_ids: string[];
     p_include_e2e: boolean;
@@ -73,6 +73,7 @@ const billingEvidence = z.object({
   bookingIds: z.array(z.string()),
   invoices: z.array(z.object({
     id: z.string(), status: z.string(), line_items: z.json(), moneda: z.string().nullable(),
+    occupies_booking_period: z.literal(true),
     billing_period_start: date.nullable(), billing_period_end: date.nullable(),
   })),
   claims: z.array(z.object({ invoice_id: z.string(), booking_id: z.string() })),
@@ -82,9 +83,9 @@ const billingEvidence = z.object({
 });
 
 export async function readInvoiceBookingBillingEvidence(
-  args: InvoiceBookingReads["get_invoice_booking_billing_evidence"], signal: AbortSignal,
+  args: InvoiceBookingReads["get_invoice_booking_billing_evidence_v2"], signal: AbortSignal,
 ) {
-  const value = billingEvidence.parse(await readRpc("get_invoice_booking_billing_evidence", args, signal));
+  const value = billingEvidence.parse(await readRpc("get_invoice_booking_billing_evidence_v2", args, signal));
   const requested = new Set(args.p_booking_ids);
   const covered = new Set(value.bookingIds);
   const invoices = new Map(value.invoices.map(({ id, ...fields }) => [id, fields]));
@@ -97,7 +98,7 @@ export async function readInvoiceBookingBillingEvidence(
   }
   const claims = value.claims.map((claim) => {
     const fields = invoices.get(claim.invoice_id);
-    if (!fields || fields.status === "cancelled") throw new Error(incomplete);
+    if (!fields) throw new Error(incomplete);
     return { ...fields, ...claim };
   });
   return { claims, extensions: value.extensions, returns: value.returns };

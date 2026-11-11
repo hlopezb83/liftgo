@@ -38,7 +38,7 @@ vi.mock("@/lib/pdf/shared", () => ({
 
 import { supabase } from "@/integrations/supabase/client";
 import { fetchInvoicePdfData } from "@/features/invoices/hooks/invoices/pdf/fetchInvoicePdfData";
-import { fetchRelatedData } from "../contract/fetchers";
+import { fetchRelatedData } from "@/features/contracts/hooks/contractPdfData";
 import { fetchQuotePdfData } from "../quote/build";
 
 describe("documentos con cliente compartido", () => {

@@ -12,6 +12,7 @@ function invoice(id: string, overrides: Partial<HistoricalInvoice> = {}): Histor
     billing_period_end: "2026-09-30",
     status: "draft",
     cfdi_status: null,
+    occupies_booking_period: true,
     line_items: [],
     ...overrides,
   };
@@ -28,12 +29,18 @@ describe("recurring invoice history", () => {
   it("does not treat cancelled invoices as billed periods or charged extras", () => {
     const cancelled = invoice("cancelled", {
       status: "cancelled",
+      occupies_booking_period: false,
       line_items: [{ description: "Logística", total: 100 }],
     });
-    const cancelledCfdi = invoice("cancelled-cfdi", { cfdi_status: "cancelled" });
+    const cancelledCfdi = invoice("cancelled-cfdi", { cfdi_status: "cancelled", occupies_booking_period: false });
     expect(mergeLiveInvoiceHistory(
       [{ invoices: cancelled }, { invoices: cancelledCfdi }],
       [cancelled, cancelledCfdi],
     )).toEqual([]);
+  });
+
+  it("honors the database classification during a pending fiscal cancellation", () => {
+    const pending = invoice("pending", { status: "cancelled", cfdi_status: "stamped", cancellation_status: "pending" });
+    expect(mergeLiveInvoiceHistory([], [pending])).toEqual([pending]);
   });
 });

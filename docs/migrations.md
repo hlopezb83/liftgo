@@ -29,12 +29,12 @@ en el flujo de pruebas SQL.
 
 ## Qué prueba CI
 
-El workflow
-`.github/workflows/rls-db-tests.yml` crea una base efímera, reaplica el
-historial legado, valida el journal de Drizzle, aplica las migraciones
-versionadas y ejecuta suites SQL de RLS. Una base limpia demuestra que la
-cadena del repositorio se reconstruye; no prueba que Lovable Cloud tenga el
-mismo ledger.
+El CI de PR valida el journal y ejecuta contratos SQL de reservas, tablero,
+búsqueda y conversión en PostgreSQL efímero cuando cambian sus fuentes. La
+suite `rls` de `.github/workflows/validaciones-manuales.yml` reconstruye el
+historial legado, aplica Drizzle y ejecuta las pruebas SQL de RLS. El replay
+verifica el historial del repositorio. El ledger de Lovable Cloud se verifica
+por separado.
 
 Después del replay verificado, CI exporta un artefacto de revisión de las dos
 funciones de Estado de Resultados: definición efectiva, hashes, ACL,

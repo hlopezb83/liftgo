@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { contractForPdf, issuerForPdf, readSignedSnapshot, type ContractData } from "../fetchers";
+import { contractForPdf, issuerForPdf, readSignedSnapshot } from "../contractPdfData";
+import type { ContractData } from "@/lib/pdf/contract/data";
 
 function contract(status: string, snapshot: unknown = { customer: { name: "Cliente congelado" } }) {
   return { status, signed_snapshot: snapshot } as unknown as ContractData;

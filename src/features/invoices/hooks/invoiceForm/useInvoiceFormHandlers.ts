@@ -1,6 +1,5 @@
 import { useRef, useState } from "react";
 import { customerTaxRate } from "@/features/customers";
-import type { Forklift } from "@/features/fleet";
 import { hasQuotedDiscount, type QuotedRentalBooking } from "@/features/quotes";
 import { resolveBookingRates } from "@/lib/domain/bookingRates";
 import { firstBillingPeriod, prorateMonthlyLine } from "@/lib/domain/firstBillingPeriod";
@@ -12,6 +11,7 @@ import { prefillBillingPeriod } from "../../lib/bookingCompatibility";
 import { applyQuoteChargeAvailability, buildAvailableQuoteChargeLines, preserveEnteredQuoteChargeLines, type QuoteChargeAvailability } from "../../lib/quoteChargeAvailability";
 import { buildQuotedBookingLines, type BookingQuoteSource } from "../../lib/quotedBookingLines";
 import { cfdiFromCustomer, type Customer } from "./invoiceFormBuilders";
+import { requireInvoiceEquipment, type InvoiceRentalEquipment } from "./useInvoiceRentalEquipment";
 import type { InvoiceFormValues, LineItemValues } from "../../lib/invoiceFormSchema";
 import type { UseFormReturn } from "react-hook-form";
 
@@ -42,7 +42,8 @@ interface Props {
   form: UseFormReturn<InvoiceFormValues>;
   customers: Customer[] | undefined;
   bookings: Booking[] | undefined;
-  forklifts: Forklift[] | undefined;
+  forklifts?: InvoiceRentalEquipment[];
+  loadEquipment?: (ids: readonly string[]) => Promise<InvoiceRentalEquipment[]>;
   /** Cotizaciones origen de las reservas cargadas; se usan para arrastrar
    *  partidas no-renta (logística/entrega) a la factura. */
   quotes?: QuoteSource[] | undefined;
@@ -79,13 +80,13 @@ function monthLabel(ymd: string): string {
   return `${name} ${y}`;
 }
 
-export function buildLinesForBooking(booking: Booking, forklifts: Forklift[] | undefined): LineItemValues[] {
+export function buildLinesForBooking(booking: Booking, forklifts: InvoiceRentalEquipment[] | undefined): LineItemValues[] {
   const forklift = forklifts?.find((f) => f.id === booking.forklift_id);
   if (!forklift) return [];
   // FIX-2: misma regla canónica que las extensiones (`resolveBookingRates`):
   // la tarifa pactada gana SÓLO si es > 0; en 0/null cae a la del catálogo.
   const resolved = resolveBookingRates(forklift, booking);
-  const rated: Forklift = {
+  const rated = {
     ...forklift,
     daily_rate: resolved.daily,
     weekly_rate: resolved.weekly,
@@ -169,8 +170,9 @@ async function availableChargesForBookings(
 }
 
 function discountSiblings(sources: QuoteSource[] | undefined, bookings: Booking[] | undefined, load: Props["loadQuotedBookings"]) {
-  const quoteIds = sources?.filter(hasQuotedDiscount).map((quote) => quote.id) ?? [];
-  return load && quoteIds.length ? load(quoteIds) : bookings ?? [];
+  const quoteIds = new Set(sources?.filter(hasQuotedDiscount).map((quote) => quote.id));
+  if (quoteIds.size === 0) return [];
+  return load ? load([...quoteIds]) : (bookings ?? []).filter((booking) => booking.quote_id && quoteIds.has(booking.quote_id));
 }
 
 function selectedBookingRows(bookings: Booking[] | undefined, selectedIds: string[]) {
@@ -178,6 +180,13 @@ function selectedBookingRows(bookings: Booking[] | undefined, selectedIds: strin
   const selected = selectedIds.flatMap((id) => byId.get(id) ?? []);
   if (selected.length !== new Set(selectedIds).size) throw new Error("No se pudieron cargar todas las reservas seleccionadas. Recarga las reservas y reintenta.");
   return selected;
+}
+
+async function equipmentForSelection(selected: Booking[], siblings: QuotedRentalBooking[], load: Props["loadEquipment"], fallback: Props["forklifts"]) {
+  const ids = [...new Set([...selected, ...siblings].map((booking) => booking.forklift_id))];
+  const equipment = load ? await load(ids) : fallback ?? [];
+  requireInvoiceEquipment(ids, equipment);
+  return equipment;
 }
 
 function applySelectedCustomer(
@@ -227,7 +236,7 @@ function protectLaterEdits(form: UseFormReturn<InvoiceFormValues>): UseFormRetur
   } };
 }
 
-export function useInvoiceFormHandlers({ form, customers, bookings, forklifts, quotes, loadQuoteSources, loadQuotedBookings, loadQuoteCharges }: Props) {
+export function useInvoiceFormHandlers({ form, customers, bookings, forklifts, quotes, loadEquipment, loadQuoteSources, loadQuotedBookings, loadQuoteCharges }: Props) {
 
   const selectionRequest = useRef(0);
   const [isLoadingCharges, setIsLoadingCharges] = useState(false);
@@ -301,8 +310,10 @@ export function useInvoiceFormHandlers({ form, customers, bookings, forklifts, q
         availableChargesForBookings(quoteIds, sources, loadQuoteCharges),
       ]);
       if (request !== selectionRequest.current) return;
-      rentalLines = buildQuotedBookingLines(selected, siblings, forklifts ?? [], sources,
-        (booking) => buildLinesForBooking(booking, forklifts));
+      const equipment = await equipmentForSelection(selected, siblings, loadEquipment, forklifts);
+      if (request !== selectionRequest.current) return;
+      rentalLines = buildQuotedBookingLines(selected, siblings, equipment, sources,
+        (booking) => buildLinesForBooking(booking, equipment));
       const current = form.getValues("lineItems");
       extraLines = preserveEnteredQuoteChargeLines(available, current);
     } catch (error) {

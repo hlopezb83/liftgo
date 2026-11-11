@@ -27,12 +27,13 @@ export async function invokeEdgeFunction<T = unknown>(
   const { data, error } = await supabase.functions.invoke(name, options);
 
   if (error) {
-    const message = await extractEdgeErrorMessage(error);
-    const wrapped = new Error(message);
-    (wrapped as Error & { cause?: unknown }).cause = error;
+    const { message, code } = await extractEdgeError(error);
+    const wrapped: Error & { cause?: unknown; status?: number; code?: string } = new Error(message);
+    wrapped.cause = error;
+    if (code) wrapped.code = code;
     const context = (error as { context?: unknown }).context;
     if (context instanceof Response) {
-      (wrapped as Error & { status?: number }).status = context.status;
+      wrapped.status = context.status;
     }
     throw wrapped;
   }
@@ -71,21 +72,24 @@ function pickErrorField(parsed: Record<string, unknown>): string | null {
   return null;
 }
 
-async function extractEdgeErrorMessage(error: unknown): Promise<string> {
+async function extractEdgeError(error: unknown): Promise<{ message: string; code?: string }> {
   const fallback = getFallbackMessage(error);
   const ctx = (error as { context?: unknown }).context;
-  if (!ctx || typeof (ctx as Response).clone !== "function") return fallback;
+  if (!ctx || typeof (ctx as Response).clone !== "function") return { message: fallback };
 
   try {
     const text = await (ctx as Response).clone().text();
-    if (!text) return fallback;
+    if (!text) return { message: fallback };
     try {
       const parsed = JSON.parse(text) as Record<string, unknown>;
-      return pickErrorField(parsed) ?? fallback;
+      return {
+        message: pickErrorField(parsed) ?? fallback,
+        code: typeof parsed.code === "string" ? parsed.code : undefined,
+      };
     } catch {
-      return text.slice(0, 500);
+      return { message: text.slice(0, 500) };
     }
   } catch {
-    return fallback;
+    return { message: fallback };
   }
 }

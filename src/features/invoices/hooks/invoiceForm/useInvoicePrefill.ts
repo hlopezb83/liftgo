@@ -1,5 +1,4 @@
 import { useEffect, useEffectEvent, useRef, useState } from "react";
-import { usePrefillEffect } from "@/hooks/usePrefillEffect";
 import {
   buildFromInvoice, buildFromQuote, cfdiFromCustomer,
   type Customer, type ExistingInvoice, type SourceQuote, type Forklift, type Assignment,
@@ -11,6 +10,9 @@ interface Props {
   chargeAvailability?: QuoteChargeAvailability;
   existing: (ExistingInvoice & { id: string }) | null | undefined;
   sourceQuote: (SourceQuote & { version?: number }) | null | undefined;
+  requestedQuoteId?: string | null;
+  /** An extension or damage supplies the actual billed lines and receiver. */
+  hasOtherPrefill?: boolean;
   assignments: Assignment[] | undefined;
   forklifts: Forklift[] | undefined;
   customers: Customer[] | undefined;
@@ -85,12 +87,32 @@ function snapshotVersion(snapshot: QuoteSnapshot | null, quote: Props["sourceQuo
   return snapshot.version;
 }
 
-export function useInvoicePrefill({
-  existing, sourceQuote, assignments, forklifts, customers, isEdit, form, existingBookingIds, chargeAvailability,
-}: Props) {
-  const prefilledQuote = useRef<string | undefined>(undefined);
-  const [quoteSnapshot, setQuoteSnapshot] = useState<QuoteSnapshot | null>(null);
-  const [quoteChargePrefillError, setQuoteChargePrefillError] = useState<string | null>(null);
+function changesQuoteReceiverOrPeriod(name: string) {
+  return ["customerId", "customerName", "taxRate", "bookingId", "bookingIds", "billingPeriodStart", "billingPeriodEnd", "cfdi"].includes(name)
+    || name.startsWith("cfdi.") || name.startsWith("bookingIds.");
+}
+
+function applyQuoteDraft(form: Props["form"], values: InvoiceFormValues, edits: Set<string>) {
+  const entered = form.getValues();
+  const enteredLines = [...edits].some((name) => name === "lineItems" || name.startsWith("lineItems."))
+    ? entered.lineItems.map((line) => ({ ...line })) : [];
+  form.reset(values);
+  for (const name of ["notes", "issueDate", "dueDate"] as const) {
+    if (edits.has(name)) form.setValue(name, entered[name], { shouldDirty: true });
+  }
+  // Keep manual rows separate from the quote rows that carry fiscal source IDs.
+  if (enteredLines.length) form.setValue("lineItems", [...values.lineItems, ...enteredLines], { shouldDirty: true });
+}
+
+function assertQuoteEquipment(quote: SourceQuote, assignments: Assignment[] | undefined, forklifts: Forklift[]) {
+  if (quote.quote_type !== "sale") return;
+  const equipment = new Set(forklifts.map((forklift) => forklift.id));
+  if (assignments?.some((assignment) => !equipment.has(assignment.forklift_id))) {
+    throw new Error("No se pudieron verificar los equipos asignados a la cotización. Reintenta la consulta.");
+  }
+}
+
+function useExistingInvoiceHydration({ existing, customers, form, existingBookingIds }: Pick<Props, "existing" | "customers" | "form" | "existingBookingIds">) {
   const invoiceHydration = useRef<InvoiceHydration | null>(null);
   const invoiceId = existing?.id;
   const customer = customers?.find((candidate) => candidate.id === existing?.customer_id);
@@ -133,22 +155,54 @@ export function useInvoicePrefill({
   useEffect(() => {
     hydrate();
   }, [invoiceId, existing?.booking_id, bookingIdsKey]);
+}
 
-  usePrefillEffect(() => {
-    if (!sourceQuote || isEdit || !customers || !forklifts
-      || (sourceQuote.quote_type === "sale" && !assignments)
-      || (sourceQuote.id && !chargeAvailability)) return;
+function matchesRequestedQuote(quote: Props["sourceQuote"], id: string | undefined, availability: Props["chargeAvailability"]): quote is NonNullable<Props["sourceQuote"]> {
+  return !!quote && (!id || quote.id === id) && (!quote.id || !!availability);
+}
+
+export function useInvoicePrefill(props: Props) {
+  useExistingInvoiceHydration(props);
+  const { sourceQuote, requestedQuoteId, hasOtherPrefill, assignments, forklifts, customers, isEdit, form, chargeAvailability } = props;
+  const prefilledQuote = useRef<string | undefined>(undefined);
+  const quoteEdits = useRef(new Set<string>());
+  const quoteId = requestedQuoteId ?? sourceQuote?.id;
+  const [quoteSnapshot, setQuoteSnapshot] = useState<QuoteSnapshot | null>(null);
+  const [quoteChargePrefillError, setQuoteChargePrefillError] = useState<string | null>(null);
+
+  const recordQuoteEdit = useEffectEvent((name?: string) => {
+    if (!name || (prefilledQuote.current && prefilledQuote.current === quoteId)) return;
+    quoteEdits.current.add(name);
+  });
+  useEffect(() => {
+    quoteEdits.current = new Set();
+    if (isEdit || hasOtherPrefill || requestedQuoteId === null) return;
+    // The quote can arrive after the first manual row. Its arrival does not
+    // start a new session when the caller has not supplied an explicit ID.
+    const subscription = form.watch((_values, { name }) => { recordQuoteEdit(name); });
+    return () => subscription.unsubscribe();
+  }, [form, hasOtherPrefill, isEdit, requestedQuoteId]);
+
+  const prefillQuote = useEffectEvent(() => {
+    if (isEdit || !matchesRequestedQuote(sourceQuote, quoteId, chargeAvailability)) return;
     if (sourceQuote.id && prefilledQuote.current === sourceQuote.id) return;
-    try {
-      const values = buildFromQuote({ q: sourceQuote, assignments, forklifts, customers, chargeAvailability });
-      const enteredLines = form.getValues("lineItems").map((line) => ({ ...line }));
-      form.reset(values, { keepDirtyValues: true });
-      // RHF merges dirty arrays by index. A manual row entered while the RPC
-      // was pending must never acquire the hidden identity of a quote row.
-      if (enteredLines.length) {
-        form.setValue("lineItems", [...values.lineItems, ...enteredLines], { shouldDirty: true });
-      }
+    if (hasOtherPrefill) {
       prefilledQuote.current = sourceQuote.id;
+      setQuoteSnapshot(captureQuoteSnapshot(sourceQuote));
+      return;
+    }
+    if (!customers || !forklifts || (sourceQuote.quote_type === "sale" && !assignments)) return;
+    const edits = quoteEdits.current;
+    if ([...edits].some(changesQuoteReceiverOrPeriod)) {
+      setQuoteChargePrefillError("Cambiaste el receptor, los datos fiscales o el periodo mientras cargaba la cotización. Vuelve a abrir Facturar desde la cotización para cargar los datos de origen.");
+      return;
+    }
+    try {
+      assertQuoteEquipment(sourceQuote, assignments, forklifts);
+      const values = buildFromQuote({ q: sourceQuote, assignments, forklifts, customers, chargeAvailability });
+      prefilledQuote.current = sourceQuote.id;
+      quoteEdits.current = new Set();
+      applyQuoteDraft(form, values, edits);
       // Capture the optimistic version with the exact values entering the form.
       // Later refetches must not authorize this older draft with a newer version.
       setQuoteSnapshot(captureQuoteSnapshot(sourceQuote));
@@ -156,7 +210,10 @@ export function useInvoicePrefill({
     } catch (error) {
       setQuoteChargePrefillError(error instanceof Error ? error.message : "No se pudieron verificar los cargos de la cotización.");
     }
-  }, [sourceQuote, customers, isEdit, assignments, forklifts, chargeAvailability]);
+  });
+  // Commit the version together with the one-time synchronization of the RHF draft.
+  // eslint-disable-next-line react-hooks/set-state-in-effect
+  useEffect(() => { prefillQuote(); }, [sourceQuote, quoteId, customers, isEdit, assignments, forklifts, chargeAvailability, hasOtherPrefill]);
   const sourceQuoteVersion = snapshotVersion(quoteSnapshot, sourceQuote, isEdit);
   return { quoteChargePrefillError, sourceQuoteVersion };
 }

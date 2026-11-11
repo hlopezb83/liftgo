@@ -20,7 +20,7 @@ const BOOKING_FIELDS =
 // History only needs coverage/cancellation metadata. Keep quote line_items and
 // charge-availability RPCs intact: their source quantities are fiscal evidence.
 const INVOICE_FIELDS =
-  "id, invoice_number, billing_period_start, billing_period_end, status, cfdi_status, cfdi_uuid, cancellation_status";
+  "id, invoice_number, billing_period_start, billing_period_end, status, cfdi_status, cfdi_uuid, cancellation_status, occupies_booking_period:invoice_occupies_booking_period";
 const FISCAL_FIELDS =
   "organization_id, customer_id, tax_rate, rfc, razon_social, regimen_fiscal, domicilio_fiscal_cp, uso_cfdi";
 
@@ -256,7 +256,8 @@ export async function loadRecurringPlanningData(
         if (
           !requested.has(row.booking_id) || !row.invoices ||
           row.invoice_id !== row.invoices.id ||
-          row.invoices.organization_id !== org || linkedKeys.has(key)
+          row.invoices.organization_id !== org || linkedKeys.has(key) ||
+          typeof row.invoices.occupies_booking_period !== "boolean"
         ) throw new Error("Historial vinculado incompleto o inconsistente");
         linkedKeys.add(key);
         const bucket = linkedByBooking.get(row.booking_id) ?? [];
@@ -266,7 +267,8 @@ export async function loadRecurringPlanningData(
       for (const row of direct) {
         if (
           !requested.has(row.booking_id) || row.organization_id !== org ||
-          directKeys.has(row.id)
+          directKeys.has(row.id) ||
+          typeof row.occupies_booking_period !== "boolean"
         ) throw new Error("Historial directo incompleto o inconsistente");
         directKeys.add(row.id);
         const bucket = directByBooking.get(row.booking_id) ?? [];

@@ -46,7 +46,8 @@ vi.mock("@/lib/pdf/shared", () => ({
   })),
 }));
 
-import { fetchRelatedData, type ContractData } from "../fetchers";
+import { fetchRelatedData } from "../contractPdfData";
+import type { ContractData } from "@/lib/pdf/contract/data";
 
 function contract(overrides: Record<string, unknown> = {}): ContractData {
   return {

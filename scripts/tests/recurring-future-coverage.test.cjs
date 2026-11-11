@@ -29,7 +29,8 @@ const dir = fs.mkdtempSync(path.join(os.tmpdir(), "recurring-0125-"));
 const clients = [];
 function pg(cmd, args) {
   return execFileSync(path.join(bin, cmd), args, {
-    encoding: "utf8",
+    stdio: ["ignore", "inherit", "inherit"],
+    windowsHide: true,
     timeout: 30000,
   });
 }
@@ -47,6 +48,9 @@ async function start() {
     "-U",
     "postgres",
     "--auth=trust",
+    "--encoding=UTF8",
+    "--no-locale",
+    "--no-sync",
   ]);
   // No socket directory, no external listener, no previously initialized database.
   pg("pg_ctl", [
@@ -136,8 +140,11 @@ CREATE TABLE forklifts(id uuid PRIMARY KEY, monthly_rate numeric); CREATE TABLE 
   await c.query(cashBaseline.match(/CREATE OR REPLACE FUNCTION public.get_cash_flow_recurring_bookings[\s\S]*?\$function\$;/)[0]);
   await c.query("REVOKE ALL ON FUNCTION get_cash_flow_recurring_bookings() FROM PUBLIC,anon; GRANT EXECUTE ON FUNCTION get_cash_flow_recurring_bookings() TO authenticated,service_role;");
   const cashAcl = (await c.query("SELECT proacl::text acl FROM pg_proc WHERE oid='get_cash_flow_recurring_bookings()'::regprocedure")).rows[0].acl;
-  if (process.env.RECURRING_COVERAGE_BASELINE !== "1") await c.query(
-    fs.readFileSync(path.join(root, "drizzle/migrations/0125_recurring_future_coverage.sql"), "utf8"));
+  if (process.env.RECURRING_COVERAGE_BASELINE !== "1") {
+    for (const migration of ["0125_recurring_future_coverage", "0138_unify_invoice_period_coverage"]) {
+      await c.query(fs.readFileSync(path.join(root, `drizzle/migrations/${migration}.sql`), "utf8"));
+    }
+  }
   async function reset() {
     await c.query("TRUNCATE invoice_bookings,invoices,bookings");
     for (const n of [10, 11, 12])

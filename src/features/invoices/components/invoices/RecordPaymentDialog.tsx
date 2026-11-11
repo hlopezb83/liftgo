@@ -37,7 +37,7 @@ export function RecordPaymentDialog({ open, onOpenChange, invoiceId, balance, in
     exchangeRate, setExchangeRate, reference, setReference,
     notes, setNotes, stampRep, setStampRep,
     createPayment, stampComplement, handleSubmit, isDirty,
-    amountBlock, exceedsBalance, dateError,
+    amountBlock, exceedsBalance, dateError, currencyError,
   } = useRecordPaymentForm({ open, balance, ppdStamped, invoiceId, invoiceCurrency, invoiceExchangeRate, invoiceIssuedAt, onOpenChange });
 
 
@@ -55,6 +55,7 @@ export function RecordPaymentDialog({ open, onOpenChange, invoiceId, balance, in
         onSubmit={(e) => { e.preventDefault(); handleSubmit(); }}
       >
         <div className="space-y-4">
+          {currencyError && <p role="alert" className="text-sm text-destructive">{currencyError}</p>}
           <div>
             <Label htmlFor="recordPaymentAmount">Monto</Label>
             <div className="relative">
@@ -160,7 +161,7 @@ export function RecordPaymentDialog({ open, onOpenChange, invoiceId, balance, in
           <Button
             type="submit"
             data-testid="record-payment-submit"
-            disabled={createPayment.isPending || stampComplement.isPending || exceedsBalance || !!dateError}
+            disabled={createPayment.isPending || stampComplement.isPending || exceedsBalance || !!dateError || !!currencyError}
           >
             {createPayment.isPending ? "Guardando…" : (stampComplement.isPending ? "Timbrando REP…" : "Registrar pago")}
           </Button>

@@ -960,6 +960,20 @@
       "when": 1794362458791,
       "tag": "0136_dashboard_search_performance",
       "breakpoints": true
+    },
+    {
+      "idx": 137,
+      "version": "7",
+      "when": 1794366415665,
+      "tag": "0137_atomic_quote_conversion",
+      "breakpoints": true
+    },
+    {
+      "idx": 138,
+      "version": "7",
+      "when": 1794366415666,
+      "tag": "0138_unify_invoice_period_coverage",
+      "breakpoints": true
     }
   ]
 }

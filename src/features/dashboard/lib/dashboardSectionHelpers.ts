@@ -123,14 +123,32 @@ export function financialSectionState(flags: {
   return "ready";
 }
 
-export function buildAlertsProps<B, I, C>(
+export type DashboardAlertState<T> =
+  | { status: "hidden" | "loading" }
+  | { status: "error"; error: unknown; isRetrying: boolean; onRetry: () => void }
+  | { status: "ready"; data: T };
+
+export function dashboardAlertState<T>(enabled: boolean, query: {
+  data: T | undefined;
+  isError: boolean;
+  isFetching: boolean;
+  error: unknown;
+  refetch: () => Promise<unknown>;
+}): DashboardAlertState<T> {
+  if (!enabled) return { status: "hidden" };
+  if (query.isError) {
+    return { status: "error", error: query.error, isRetrying: query.isFetching, onRetry: () => void query.refetch() };
+  }
+  if (query.data === undefined) return { status: "loading" };
+  return { status: "ready", data: query.data };
+}
+
+export function buildAlertsProps<B, C>(
   stats: { overdue_bookings?: B[] } | undefined,
-  upcomingInvoices: I[] | undefined,
   kpis: { expiring_contracts?: C[] } | undefined,
 ) {
   return {
     overdueBookings: stats?.overdue_bookings ?? ([] as B[]),
-    upcomingInvoices: upcomingInvoices ?? ([] as I[]),
     expiringContracts: kpis?.expiring_contracts ?? ([] as C[]),
   };
 }

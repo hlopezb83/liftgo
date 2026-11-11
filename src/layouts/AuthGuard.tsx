@@ -1,7 +1,7 @@
 import { useIsRestoring } from "@tanstack/react-query";
 import { Suspense, lazy, useEffect, useState, type ReactNode } from "react";
 import { useAuth } from "@/contexts/AuthContext";
-import { OrganizationGate } from "@/contexts/OrganizationContext";
+import { OrganizationGate, useOrganizationContext } from "@/contexts/OrganizationContext";
 import { useRecoveryStatus } from "@/features/auth/hooks/useRecoveryStatus";
 import { platformEntryDestination, usePlatformOperatorStatus } from "@/features/platform";
 import { useUserRole } from "@/features/users";
@@ -55,9 +55,11 @@ function LoadingError({ onRetry }: { onRetry: () => void }) {
 
 export function AuthGuard({ children }: { children: ReactNode }) {
   const { user, isLoading } = useAuth();
-  const { data: role, isLoading: roleLoading } = useUserRole();
+  const role = useUserRole();
+  const organization = useOrganizationContext();
+  const memberType = organization.status === "ready" ? organization.memberType : undefined;
   const location = useLocation();
-  const inPortal = location.pathname.startsWith("/portal");
+  const inPortal = location.pathname === "/portal" || location.pathname.startsWith("/portal/");
   const recovery = useRecoveryStatus();
   const platform = usePlatformOperatorStatus();
   const platformDestination = platformEntryDestination(location.pathname, location.search);
@@ -69,7 +71,7 @@ export function AuthGuard({ children }: { children: ReactNode }) {
   // Un operador puede entrar sin rol empresarial ni membresía. Se resuelve
   // primero su acceso global; el rol sigue siendo obligatorio para el ERP.
   const stillLoading = authIsLoading({
-    hasUser: !!user, authLoading: isLoading, roleLoading, isRestoring,
+    hasUser: !!user, authLoading: isLoading, roleLoading: memberType === "internal" && !inPortal && role.isLoading, isRestoring,
     destination: platformDestination, platform,
   });
 
@@ -127,7 +129,11 @@ export function AuthGuard({ children }: { children: ReactNode }) {
 
   return (
     <PlatformEntry destination={platformDestination} platform={platform}>
-      <OrganizationWorkspaceGuard role={role} inPortal={inPortal}>{children}</OrganizationWorkspaceGuard>
+      <OrganizationGate fallback={<AppLoader hint="Verificando empresa…" />}>
+        <OrganizationWorkspace memberType={memberType} inPortal={inPortal} role={role}>
+          {children}
+        </OrganizationWorkspace>
+      </OrganizationGate>
     </PlatformEntry>
   );
 }
@@ -156,27 +162,14 @@ function PlatformEntry({ destination, platform, children }: { destination: strin
   return children;
 }
 
-function OrganizationWorkspaceGuard({ role, inPortal, children }: {
-  role: ReturnType<typeof useUserRole>["data"]; inPortal: boolean; children: ReactNode;
+function OrganizationWorkspace({ memberType, inPortal, role, children }: {
+  memberType: "internal" | "portal" | undefined;
+  inPortal: boolean;
+  role: Pick<ReturnType<typeof useUserRole>, "isError" | "refetch">;
+  children: ReactNode;
 }) {
-  // Los clientes viven en /portal/* y los usuarios internos fuera de él.
-  // Antes CustomerPortalRoutes renderizaba el portal en cualquier URL para
-  // clientes; ahora cada árbol tiene su layout y el guard redirige al correcto.
-  // Multi-organización: nada protegido se renderiza hasta que la empresa del
-  // usuario queda verificada contra organization_memberships (y la cuenta del
-  // portal cuando aplica).
-  const gated = (
-    <OrganizationGate fallback={<AppLoader hint="Verificando empresa…" />}>
-      {children}
-    </OrganizationGate>
-  );
-
-  if (role === "customer") {
-    if (!inPortal) return <Navigate to="/portal" replace />;
-    return gated;
-  }
-
-  if (inPortal) return <Navigate to="/" replace />;
-
-  return gated;
+  if (memberType === "portal" && !inPortal) return <Navigate to="/portal" replace />;
+  if (memberType === "internal" && inPortal) return <Navigate to="/" replace />;
+  if (memberType === "internal" && role.isError) return <LoadingError onRetry={() => void role.refetch()} />;
+  return children;
 }

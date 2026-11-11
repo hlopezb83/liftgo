@@ -28,6 +28,35 @@ function invoiceSubmitBlock(chargeBlock: string | null, isEdit: boolean, version
   return isEdit && version == null ? "Cargando la factura…" : undefined;
 }
 
+function readInvoiceSources(params: URLSearchParams) {
+  const read = (name: string) => {
+    const value = params.get(name)?.trim();
+    return value && value !== "null" ? value : null;
+  };
+  return {
+    fromQuoteId: read("from_quote"),
+    extensionId: read("extension_id"),
+    damageId: read("damage_id"),
+  };
+}
+
+function invoiceSourceKey(sources: ReturnType<typeof readInvoiceSources>) {
+  return JSON.stringify([sources.fromQuoteId, sources.extensionId, sources.damageId]);
+}
+
+function sourceKeyForSearch(search: string) {
+  return invoiceSourceKey(readInvoiceSources(new URLSearchParams(search)));
+}
+
+function invoiceAvailability(form: ReturnType<typeof useInvoiceFormLogic>, damage: ReturnType<typeof useDamagePrefill>) {
+  return {
+    chargeBlock: damage.block || form.chargeBlock,
+    bookingAvailabilityBlock: form.bookingAvailabilityBlock,
+    isLoading: damage.isLoading || form.isLoadingChargeAvailability,
+    onRetry: damage.block ? damage.retry : form.retryChargeAvailability,
+  };
+}
+
 function InvoiceNotesCard() {
   const { control } = useFormContext<InvoiceFormValues>();
   return (
@@ -50,33 +79,26 @@ function InvoiceNotesCard() {
 export default function InvoiceForm() {
   const { id } = useParams();
   const [searchParams] = useSearchParams();
-  // Source identity owns the whole draft, including the one-shot prefills.
-  // A new extension must never submit the previous extension's form state.
-  const sourceKey = id ? `invoice:${id}` : `extension:${searchParams.get("extension_id") ?? ""}`;
-  return <InvoiceFormSession key={sourceKey} />;
+  const sources = readInvoiceSources(id ? new URLSearchParams() : searchParams);
+  const sourceKey = id ? `invoice:${id}` : invoiceSourceKey(sources);
+  return <InvoiceFormSession key={sourceKey} id={id} sources={sources} />;
 }
 
-function InvoiceFormSession() {
+function InvoiceFormSession({ id, sources }: { id?: string; sources: ReturnType<typeof readInvoiceSources> }) {
   const navigate = useNavigateTransition();
-  const { id } = useParams();
-  const [searchParams] = useSearchParams();
-  const fromQuoteId = searchParams.get("from_quote");
-  const damageId = searchParams.get("damage_id");
-  const extensionId = searchParams.get("extension_id");
+  const { fromQuoteId, extensionId, damageId } = sources;
 
-  const f = useInvoiceFormLogic({ id, fromQuoteId, extensionId });
+  const f = useInvoiceFormLogic({ id, fromQuoteId, extensionId, damageId });
 
-  useDamagePrefill({
-    isEdit: f.isEdit,
+  const damage = useDamagePrefill({
     damageId,
-    damageCustomerId: searchParams.get("customer_id"),
-    customers: f.customers,
     form: f.form,
     handleCustomerSelect: f.handleCustomerSelect,
   });
 
   const isSubmitting = f.saveInvoice.isPending;
-  const submitBlock = invoiceSubmitBlock(f.chargeBlock, f.isEdit, f.invoiceVersion);
+  const availability = invoiceAvailability(f, damage);
+  const submitBlock = invoiceSubmitBlock(availability.chargeBlock, f.isEdit, f.invoiceVersion);
   // R16 F-03: el guard acepta getter y lo evalúa DENTRO del callback del blocker,
   // así ve `justSavedRef.current=true` justo después de reset()+navigate().
   const justSavedRef = useRef(false);
@@ -84,10 +106,11 @@ function InvoiceFormSession() {
   useUnsavedChangesGuard(
     () => isDirty && !isSubmitting && !justSavedRef.current,
     undefined,
-    id ? false : (search) => new URLSearchParams(search).get("extension_id"),
+    id ? false : sourceKeyForSearch,
   );
 
   const onSubmit = (values: InvoiceFormValues) => {
+    if (submitBlock) return;
     // Regresión v7.423.0 (P2/P3): compatibilidad de la selección y periodo
     // dentro del rango de TODAS las reservas — validado al guardar, no sólo
     // en el filtro visual. El servidor re-valida dentro del RPC.
@@ -113,10 +136,10 @@ function InvoiceFormSession() {
       bookingIds,
       invoiceId: f.isEdit ? f.id ?? null : null,
       expectedVersion: f.isEdit ? f.invoiceVersion : null,
-      damageId: !f.isEdit && damageId && damageId !== "null" ? damageId : null,
-      extensionId: f.isEdit ? null : extensionId,
-      acceptQuoteId: f.isEdit ? null : f.fromQuoteId,
-      quoteExpectedVersion: !f.isEdit && f.fromQuoteId ? f.sourceQuoteVersion ?? null : null,
+      damageId,
+      extensionId,
+      acceptQuoteId: fromQuoteId,
+      quoteExpectedVersion: fromQuoteId ? f.sourceQuoteVersion ?? null : null,
     }, {
       onSuccess: (data) => {
         if (f.isEdit) {
@@ -184,12 +207,7 @@ function InvoiceFormSession() {
 
             <CfdiFieldsCard />
 
-            <InvoiceAvailabilityNotice
-              chargeBlock={f.chargeBlock}
-              bookingAvailabilityBlock={f.bookingAvailabilityBlock}
-              isLoading={f.isLoadingChargeAvailability}
-              onRetry={f.retryChargeAvailability}
-            />
+            <InvoiceAvailabilityNotice {...availability} />
             <div className="grid items-start gap-6 xl:grid-cols-[minmax(0,1fr)_20rem]">
               <EditableLineItemsTable source={invoiceLineItemSource({
                 invoiceId: id, existing: f.existing, isLoadingInvoice: f.isLoadingInvoice,

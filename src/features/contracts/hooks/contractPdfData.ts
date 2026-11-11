@@ -1,37 +1,14 @@
-import {
-  ContractTemplateUnavailableError,
-  resolveSingleDefaultTemplate,
-} from "@/features/contracts/lib/contractTemplateResolution";
-import {
-  normalizeLegalTemplateOverrides,
-  type LegalTemplateOverrides,
-} from "@/features/contracts/lib/legalTemplateOverrides";
 import { supabase } from "@/integrations/supabase/client";
 import type { ContractClause, ChecklistSection } from "@/lib/domain/contractTypes";
 import { parseJsonbArray } from "@/lib/domain/lineItems";
+import type { ContractData, TemplateData } from "@/lib/pdf/contract/data";
 import {
   DEFAULT_INTRO, DEFAULT_DECL_LANDLORD, DEFAULT_DECL_TENANT,
   DEFAULT_CLAUSES, DEFAULT_CHECKLIST, DEFAULT_PAGARE,
 } from "@/lib/pdf/contract/data-templates";
 import { fetchCompanyDataAndLogo } from "@/lib/pdf/shared";
-import type { ContractViewModel } from "@/types/rental";
-
-export type ContractData = Pick<ContractViewModel,
-  | "id"
-  | "contract_number" | "booking_id" | "customer_id" | "forklift_id" | "start_date" | "end_date"
-  | "daily_rate" | "weekly_rate" | "monthly_rate" | "deposit_amount" | "terms_text"
-  | "status" | "signed_at" | "signed_by" | "usage_location" | "max_hours_per_month"
-  | "extra_hour_rate" | "payment_frequency" | "late_interest_rate" | "contract_city"
-  | "witness_1" | "witness_2"
-> & {
-  customer_name?: string | null;
-  /**
-   * A6R2-3: copia inmutable capturada al firmar (cliente, unidad y plantilla).
-   * Cuando existe, el PDF del contrato firmado se rinde desde aquí para que no
-   * cambie si después se editan el cliente, la unidad o la plantilla.
-   */
-  signed_snapshot?: unknown;
-};
+import { normalizeLegalTemplateOverrides } from "../lib/legalTemplateOverrides";
+import { fetchDefaultContractTemplate } from "./contractTemplateData";
 
 interface SignedSnapshot {
   contract?: Partial<ContractData> | null;
@@ -86,16 +63,6 @@ export function issuerForPdf(
   };
 }
 
-
-export interface TemplateData {
-  intro_text: string | null;
-  declarations_landlord: string[];
-  declarations_tenant: string[];
-  clauses: ContractClause[];
-  checklist_sections: ChecklistSection[];
-  pagare_text: string | null;
-  local_overrides: LegalTemplateOverrides;
-}
 
 async function fetchLocalContractCustomer(customerId: string) {
   const { data, error } = await supabase
@@ -159,32 +126,18 @@ export async function fetchRelatedData(contract: ContractData) {
       : Promise.resolve({ data: null }),
     fetchContractForklift(contract, snapshot),
   ]);
-  return { company: issuerForPdf(contract, issuer.company), customer: customerRes.data, forklift: forkliftRes.data };
+  return { company: issuerForPdf(contract, issuer.company), logoBase64: issuer.logoBase64, customer: customerRes.data, forklift: forkliftRes.data };
 }
 
 
-
-/**
- * Subtramo 6.1: la plantilla del PDF se resuelve desde la organización dueña
- * de ESTE contrato (leída de la base bajo RLS, nunca del navegador). Con 0
- * filas se usan los textos por defecto del sistema; con más de una
- * predeterminada se detiene con un mensaje explícito en vez de elegir una.
- */
-async function fetchOrganizationTemplateRow(_contract: ContractData) {
-  const { data, error } = await supabase
-    .rpc("get_effective_legal_template", { p_document_type: "rental_contract" });
-  if (error) throw new ContractTemplateUnavailableError("read_error");
-  const row = resolveSingleDefaultTemplate(data ?? []);
-  return row ?? undefined;
-}
 
 export async function fetchTemplate(contract: ContractData): Promise<TemplateData> {
   // A6R2-3: si el contrato firmado guardó su plantilla, se usa esa copia.
   const snapshot = readSignedSnapshot(contract);
-  const liveRow = snapshot ? undefined : await fetchOrganizationTemplateRow(contract);
-  const data = snapshot?.template ?? (liveRow?.content as Partial<TemplateData> | undefined);
+  const liveTemplate = snapshot ? null : await fetchDefaultContractTemplate();
+  const data = snapshot?.template ?? liveTemplate;
   const localOverrides = normalizeLegalTemplateOverrides(
-    snapshot?.template_local_overrides ?? liveRow?.local_overrides,
+    snapshot?.template_local_overrides ?? liveTemplate?.local_overrides,
   );
 
 

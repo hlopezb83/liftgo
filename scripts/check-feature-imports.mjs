@@ -29,7 +29,8 @@ export function moduleReferences(source, filename = 'module.tsx') {
 export function checkFeatureSource(filename, source, root = process.cwd()) {
   const relative = path.relative(root, filename).split(path.sep).join('/');
   const sourceFeature = /^src\/features\/([^/]+)\//.exec(relative)?.[1];
-  if (!sourceFeature || TEST.test(relative)) return [];
+  const sharedPdf = relative.startsWith('src/lib/pdf/');
+  if ((!sourceFeature && !sharedPdf) || TEST.test(relative)) return [];
   const violations = [];
   for (const reference of moduleReferences(source, filename)) {
     const specifier = reference.specifier;
@@ -38,7 +39,7 @@ export function checkFeatureSource(filename, source, root = process.cwd()) {
     if (!target) continue;
     const targetRelative = path.relative(root, target).split(path.sep).join('/').replace(/\.[cm]?[jt]sx?$/, '');
     const destination = /^src\/features\/([^/]+)(?:\/(.*))?$/.exec(targetRelative);
-    if (destination && destination[1] !== sourceFeature && destination[2] && destination[2] !== 'index') {
+    if (destination && (sharedPdf || (destination[1] !== sourceFeature && destination[2] && destination[2] !== 'index'))) {
       violations.push({ rule: 'G5', file: relative, ...reference, target: targetRelative });
     }
     if (/^src\/features\/[^/]+\/(?:pages|components)\//.test(relative)
@@ -61,6 +62,7 @@ export function checkFeatureImports(root = process.cwd()) {
     }
   }
   walk(path.join(root, 'src/features'));
+  walk(path.join(root, 'src/lib/pdf'));
   return violations;
 }
 
@@ -68,7 +70,7 @@ if (process.argv[1] && import.meta.url === pathToFileURL(path.resolve(process.ar
   const violations = checkFeatureImports();
   for (const finding of violations) console.error(`${finding.rule} ${finding.file}:${finding.line}: ${finding.specifier}`);
   if (violations.length) {
-    console.error(`FAIL — ${violations.length} module boundary violation(s). Use a public feature barrel and keep Supabase I/O outside UI.`);
+    console.error(`FAIL — ${violations.length} module boundary violation(s). Use public feature barrels, keep shared PDF rendering independent, and keep Supabase I/O outside UI.`);
     process.exitCode = 1;
-  } else console.log('OK — 0 Supabase UI imports; 0 cross-feature deep imports (AST, literal specifiers).');
+  } else console.log('OK — UI transport, feature boundaries and PDF independence (AST, literal specifiers).');
 }

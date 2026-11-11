@@ -194,7 +194,7 @@ function parseRentalDate(input: string): Date {
 }
 
 export function generateLineItems(
-  forklift: Forklift,
+  forklift: Pick<Forklift, "name" | "serial_number" | "daily_rate" | "weekly_rate" | "monthly_rate">,
   startDate: string,
   endDate: string
 ): LineItem[] {

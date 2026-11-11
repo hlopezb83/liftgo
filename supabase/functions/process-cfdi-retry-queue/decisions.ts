@@ -12,26 +12,34 @@ export function decideTerminalStatus(
 }
 
 export interface StampInvoiceState {
+  status?: string;
   cfdi_status?: string;
   cfdi_uuid?: string | null;
   facturapi_invoice_id?: string | null;
 }
 
-/**
- * FIX-15: antes de re-timbrar, si la factura ya no está en pending|error o
- * ya tiene cfdi_uuid, el reintento debe tratarse como no-op exitoso (no se
- * vuelve a invocar stamp-cfdi → no hay riesgo de CFDI duplicado).
- */
 export function decideStampRetry(
   st: StampInvoiceState | null,
-): "succeeded_noop_state" | "proceed" {
-  if (
-    !st || st.cfdi_uuid || st.facturapi_invoice_id ||
-    (st.cfdi_status !== "pending" && st.cfdi_status !== "error")
-  ) {
+):
+  | "succeeded_noop_state"
+  | "succeeded_recovery_handoff"
+  | "defer"
+  | "rejected"
+  | "proceed" {
+  if (!st || st.status === "cancelled" || st.cfdi_status === "cancelled") {
+    return "rejected";
+  }
+  if (st.cfdi_status === "stamped" && st.cfdi_uuid) {
     return "succeeded_noop_state";
   }
-  return "proceed";
+  if (st.cfdi_status === "stamping") {
+    return st.facturapi_invoice_id ? "succeeded_recovery_handoff" : "defer";
+  }
+  if (
+    !st.cfdi_uuid && !st.facturapi_invoice_id &&
+    (st.cfdi_status === "pending" || st.cfdi_status === "error")
+  ) return "proceed";
+  return "rejected";
 }
 
 // Multiempresa · Fase 1: la organización del camino de reintento SIEMPRE se

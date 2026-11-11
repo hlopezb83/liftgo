@@ -6,6 +6,7 @@ import net from "node:net";
 import os from "node:os";
 import path from "node:path";
 import postgres from "postgres";
+import { checkAtomicQuoteConversion } from "./quotes/atomic-conversion.mjs";
 
 const bin = process.env.PG_BIN;
 assert(bin && path.isAbsolute(bin), "Set PG_BIN to trusted installed PostgreSQL binaries");
@@ -39,6 +40,7 @@ try {
   await sql.unsafe(helper);
   await sql.unsafe(read("./invoice-booking-reads.fixture.sql"));
   await sql.unsafe(read("../../drizzle/migrations/0135_invoice_billing_read_models.sql"));
+  await sql.unsafe(read("../../drizzle/migrations/0138_unify_invoice_period_coverage.sql"));
   await sql`INSERT INTO organizations VALUES (${org}, true), (${foreignOrg}, true)`;
   await sql`INSERT INTO organization_memberships VALUES (${org}, ${actor}, 'internal'), (${org}, ${deniedActor}, 'internal'), (${org}, ${salesActor}, 'internal')`;
   await sql`INSERT INTO user_roles VALUES (${actor}, 'admin'), (${deniedActor}, 'auditor'), (${salesActor}, 'ventas')`;
@@ -75,7 +77,7 @@ try {
     (await sql`SELECT public.get_invoice_booking_candidate_page(${expected}::uuid, ${search}::text, ${customerId}::uuid,
       ${pageIndex}::int, ${size}::int, ${linked}::uuid[], ${includeE2e}) AS value`)[0].value;
   const evidence = async (bookingIds, expected = org) =>
-    (await sql`SELECT public.get_invoice_booking_billing_evidence(${expected}::uuid, ${bookingIds}::uuid[]) AS value`)[0].value;
+    (await sql`SELECT public.get_invoice_booking_billing_evidence_v2(${expected}::uuid, ${bookingIds}::uuid[]) AS value`)[0].value;
 
   await session(actor);
   const first = await page({ linked: [archived, foreign, hidden] });
@@ -115,12 +117,28 @@ try {
     await assert.rejects(evidence([selected]), { code: "42501" });
   }
   await sql`RESET ROLE`;
+  const pending = id(18), accepted = id(19);
+  await sql`INSERT INTO invoices(id,organization_id,booking_id,status,line_items,billing_period_start,billing_period_end,cfdi_status,cancellation_status)
+    VALUES (${pending}, ${org}, ${selected}, 'cancelled', '[]', '2026-02-01', '2026-02-15', 'stamped', 'pending'),
+           (${accepted}, ${org}, ${selected}, 'sent', '[]', '2026-02-16', '2026-02-28', 'stamped', 'accepted')`;
+  await sql`UPDATE bookings SET recurring_billing=true WHERE id=${selected}`;
+  await session(actor);
+  const classified = await sql`SELECT id, public.invoice_occupies_booking_period(i) AS occupies FROM invoices i
+    WHERE id IN (${pending}, ${accepted}) ORDER BY id`;
+  assert.deepEqual([...classified], [{ id: pending, occupies: true }, { id: accepted, occupies: false }]);
+  const updated = await evidence([selected]);
+  assert.equal(updated.invoices.find((invoice) => invoice.id === pending)?.occupies_booking_period, true);
+  assert.equal(updated.invoices.some((invoice) => invoice.id === accepted), false);
+  const [{ value: projected }] = await sql`SELECT value FROM public.get_cash_flow_recurring_bookings() AS value WHERE value->>'id'=${selected}`;
+  assert.equal(projected.last_billed_date, "2026-02-15");
+  await sql`RESET ROLE`;
   const acl = await sql`SELECT prosecdef, has_function_privilege('anon', oid, 'EXECUTE') AS anon,
     has_function_privilege('service_role', oid, 'EXECUTE') AS service_role FROM pg_proc
-    WHERE proname IN ('get_invoice_booking_candidate_page','get_invoice_booking_billing_evidence')`;
-  assert.equal(acl.length, 2);
+    WHERE proname IN ('get_invoice_booking_candidate_page','get_invoice_booking_billing_evidence','get_invoice_booking_billing_evidence_v2')`;
+  assert.equal(acl.length, 3);
   assert.ok(acl.every((row) => !row.prosecdef && !row.anon && !row.service_role));
   console.log(`Invoice booking reads passed. Scoped evidence ${Buffer.byteLength(JSON.stringify(scoped))} bytes against ${allInvoiceBytes} bytes of visible invoices alone.`);
+  await checkAtomicQuoteConversion(sql, { org, foreignOrg, actor, unit, session });
 } finally {
   await sql?.end();
   if (existsSync(path.join(dataDir, "postmaster.pid"))) pg("pg_ctl", ["-D", dataDir, "-m", "immediate", "stop", "-w"]);

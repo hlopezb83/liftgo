@@ -15,6 +15,7 @@ const INVOICE_ID = "11111111-1111-4111-8111-111111111111";
 const USER_ID = "22222222-2222-4222-8222-222222222222";
 const ORG_ID = "33333333-3333-4333-8333-333333333333";
 const UUID = "55555555-5555-4555-8555-555555555555";
+const returnedInvoice = { data: { id: INVOICE_ID }, error: null };
 const issued = { id: "remote-fixture", uuid: UUID, total: 1160 };
 const unused = () => {
   throw new Error("Unexpected PAC operation");
@@ -56,7 +57,7 @@ function fixture(
       ...options.service?.selects,
     },
     updatesSeq: options.service?.updatesSeq ??
-      { invoices: [{ data: { id: INVOICE_ID }, error: null }] },
+      { invoices: [returnedInvoice, returnedInvoice, returnedInvoice] },
   });
   return {
     service,
@@ -124,6 +125,39 @@ for (const snapshot of snapshots) {
 }
 
 offlineTest(
+  "provider acceptance requires a confirmed local reference",
+  async () => {
+    for (
+      const result of [
+        { data: null, error: null },
+        { data: null, error: { message: "unavailable" } },
+      ]
+    ) {
+      const f = fixture({
+        service: {
+          updatesSeq: {
+            invoices: [{ data: { id: INVOICE_ID }, error: null }, result],
+          },
+        },
+      });
+      const response = await handleStampCfdi(f.request(), f.deps);
+      assertEquals(response.status, 503);
+      assertEquals((await response.json()).stamp_outcome, {
+        kind: "recovery_required",
+        reference: "unconfirmed",
+      });
+      assertEquals(f.service.updates.length, 2);
+      assertEquals(
+        f.service.updates[1].patch.facturapi_invoice_id,
+        "remote-pending",
+      );
+      assertEquals(f.service.updates[1].patch.cfdi_status, "stamping");
+      assertEquals(f.service.uploads, []);
+    }
+  },
+);
+
+offlineTest(
   "auth, tenant, failed claim and idempotency all precede gateway construction",
   async () => {
     for (
@@ -164,6 +198,7 @@ offlineTest(
           invoices: [
             { data: { id: INVOICE_ID }, error: null },
             { data: null, error: null },
+            returnedInvoice,
           ],
         },
       },
@@ -184,8 +219,11 @@ offlineTest(
     assertEquals(creates, 1);
     assertEquals(f.service.updates[0].filters, [
       { col: "id", val: INVOICE_ID },
+      { col: "organization_id", val: ORG_ID },
       { col: "cfdi_status", val: ["pending", "error"] },
       { col: "cfdi_uuid", val: null },
+      { col: "facturapi_invoice_id", val: null },
+      { col: "status", val: "cancelled" },
     ]);
     assertEquals(
       f.service.updates.at(-1)?.patch.facturapi_invoice_id,
@@ -300,10 +338,10 @@ for (
             : {},
           updatesSeq: {
             invoices: [
-              { data: { id: INVOICE_ID }, error: null },
-              { data: null, error: null },
+              returnedInvoice,
+              returnedInvoice,
               {
-                data: null,
+                data: failure === "final-db" ? null : returnedInvoice.data,
                 error: failure === "final-db"
                   ? { message: "synthetic failure" }
                   : null,

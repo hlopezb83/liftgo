@@ -16,6 +16,7 @@ import { isQuoteEditable, canConvertQuote } from "@/lib/rules/quotes";
 import { nowMty, parseDateLocal } from "@/lib/utils";
 import { QuotePDFButton } from "./QuotePDFButton";
 import { RejectQuoteDialog } from "./RejectQuoteDialog";
+import type { QuoteLinkStatus } from "../../hooks/quoteDetail/useQuoteDetailData";
 
 interface Props {
   quote: Tables<"quotes">;
@@ -28,17 +29,30 @@ interface Props {
   canInvoice: boolean;
   invoiceBlockedReason?: string;
   draftInvoiceId?: string | null;
+  bookingLinksStatus: QuoteLinkStatus;
+  invoiceLinksStatus: QuoteLinkStatus;
+  retryBookingLinks: () => void;
+  retryInvoiceLinks: () => void;
   onSetStatus: (status: string, opts?: { rejectionReason?: string }) => void;
   onConvertClick: () => void;
   onDelete: () => void;
 }
 
-function ConvertButton({ quote, isSale, alreadyConverted, linkedBookingId, isConverting, onConvertClick }: {
+function LinkReadState({ status, label, retry }: { status: QuoteLinkStatus; label: string; retry: () => void }) {
+  if (status === "loading") return <span role="status" className="self-center text-sm">Verificando {label}…</span>;
+  return <Button size="sm" variant="outline" onClick={retry}>Reintentar consulta de {label}</Button>;
+}
+
+function ConvertButton({ quote, isSale, alreadyConverted, linkedBookingId, isConverting, onConvertClick, status, retry }: {
   quote: Tables<"quotes">; isSale: boolean; alreadyConverted: boolean;
   linkedBookingId?: string | null; isConverting: boolean; onConvertClick: () => void;
+  status: QuoteLinkStatus; retry: () => void;
 }) {
   const navigate = useNavigateTransition();
   const canConvert = canConvertQuote(quote, { isSale, alreadyConverted });
+  if (status !== "ready") {
+    return canConvert || alreadyConverted ? <LinkReadState status={status} label="reservas" retry={retry} /> : null;
+  }
   if (alreadyConverted) {
     // V26-08: se retira la CTA deshabilitada "Ya convertida a Reserva"
     // (redundante con el badge "Convertida" del encabezado) y la acción útil
@@ -65,12 +79,14 @@ function ConvertButton({ quote, isSale, alreadyConverted, linkedBookingId, isCon
   );
 }
 
-function InvoiceButton({ quote, isSale, alreadyInvoiced, canInvoice, invoiceBlockedReason, draftInvoiceId }: {
+function InvoiceButton({ quote, isSale, alreadyInvoiced, canInvoice, invoiceBlockedReason, draftInvoiceId, status, retry }: {
   quote: Tables<"quotes">; isSale: boolean; alreadyInvoiced: boolean; canInvoice: boolean;
   invoiceBlockedReason?: string; draftInvoiceId?: string | null;
+  status: QuoteLinkStatus; retry: () => void;
 }) {
   const navigate = useNavigateTransition();
   if (!isSale) return null;
+  if (status !== "ready") return <LinkReadState status={status} label="facturas" retry={retry} />;
   // Bloque 3C: un borrador ligado NO bloquea; se retoma para no duplicar la factura.
   if (!alreadyInvoiced && draftInvoiceId) {
     return (
@@ -169,6 +185,7 @@ function CancelQuoteButton({ quoteNumber, onCancel }: { quoteNumber: string; onC
 
 export function QuoteDetailActions({
   quote, isSale, alreadyConverted, linkedBookingId, alreadyInvoiced, draftInvoiceId, isConverting,
+  bookingLinksStatus, invoiceLinksStatus, retryBookingLinks, retryInvoiceLinks,
   canInvoice, invoiceBlockedReason,
   onSetStatus, onConvertClick, onDelete,
 }: Props) {
@@ -195,12 +212,14 @@ export function QuoteDetailActions({
         <ConvertButton
           quote={quote} isSale={isSale} alreadyConverted={alreadyConverted}
           linkedBookingId={linkedBookingId} isConverting={isConverting} onConvertClick={onConvertClick}
+          status={bookingLinksStatus} retry={retryBookingLinks}
         />
       )}
       {canWriteInvoices && <InvoiceButton
         quote={quote} isSale={isSale} alreadyInvoiced={alreadyInvoiced}
         draftInvoiceId={draftInvoiceId}
         canInvoice={canInvoice} invoiceBlockedReason={invoiceBlockedReason}
+        status={invoiceLinksStatus} retry={retryInvoiceLinks}
       />}
       {canWrite && quote.status === "sent" && (() => {
         // R7 Bloque 7: bloquear "Aceptar" si la cotización ya venció.

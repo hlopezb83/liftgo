@@ -215,6 +215,7 @@ Deno.test("history: direct + pivot merge overrides stale cursor, cancelled rows 
         billing_period_end: "2026-09-30",
         status: "cancelled",
         cfdi_status: "cancelled",
+        occupies_booking_period: false,
       }),
     }],
     direct: [

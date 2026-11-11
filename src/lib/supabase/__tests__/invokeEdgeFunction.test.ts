@@ -25,16 +25,20 @@ describe("invokeEdgeFunction", () => {
     expect(out.cfdi_uuid).toBe("X");
   });
 
-  it("extrae body.error JSON de error.context", async () => {
-    const ctx = makeResponse(409, JSON.stringify({ error: "Invoice already stamped" }));
+  it("extrae mensaje y código JSON de error.context", async () => {
+    const ctx = makeResponse(503, JSON.stringify({
+      error: "Timbrado pendiente de conciliación",
+      code: "STAMP_RECOVERY_REQUIRED",
+    }));
     const err: Error & { context?: Response } = new Error(
       "Edge Function returned a non-2xx status code",
     );
     err.context = ctx;
     invokeMock.mockResolvedValue({ data: null, error: err });
     await expect(invokeEdgeFunction("stamp-cfdi", { body: {} })).rejects.toMatchObject({
-      message: "Invoice already stamped",
-      status: 409,
+      message: "Timbrado pendiente de conciliación",
+      status: 503,
+      code: "STAMP_RECOVERY_REQUIRED",
     });
   });
 

@@ -49,6 +49,11 @@ export function useStampCfdi() {
       return translateFacturapiError(raw);
     },
     onError: (error, invoiceId) => {
+      if ((error as { code?: unknown }).code === "STAMP_RECOVERY_REQUIRED") {
+        notifyInfo("La factura requiere conciliación. Consulta su estado antes de volver a timbrar.");
+        void queryClient.invalidateQueries({ queryKey: invoiceKeys.detail(invoiceId) });
+        return true;
+      }
       if (isPacPending(error)) {
         notifyInfo("Solicitud de timbrado recibida. La factura sigue pendiente; consulta su estado para confirmar el resultado.");
         void queryClient.invalidateQueries({ queryKey: invoiceKeys.detail(invoiceId) });
@@ -57,6 +62,7 @@ export function useStampCfdi() {
       const raw = error instanceof Error ? error.message : String(error);
       if (isBenignStampError(raw)) {
         notifyInfo("El timbrado ya está en proceso; actualizando estado…");
+        void queryClient.invalidateQueries({ queryKey: invoiceKeys.detail(invoiceId) });
         return true; // suprime toast de error estándar
       }
       // Toast con traducción SAT + reporte copiable con el payload íntegro
