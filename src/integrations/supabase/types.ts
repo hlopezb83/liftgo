@@ -1993,6 +1993,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "delivery_historical_reconciliations_delivery_id_fkey"
+            columns: ["delivery_id"]
+            isOneToOne: true
+            referencedRelation: "v_overdue_deliveries"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "delivery_historical_reconciliations_organization_id_fkey"
             columns: ["organization_id"]
             isOneToOne: false
@@ -6372,6 +6379,84 @@ export type Database = {
           },
         ]
       }
+      v_overdue_deliveries: {
+        Row: {
+          address: string | null
+          booking_id: string | null
+          delivery_number: string | null
+          driver_name: string | null
+          forklift_id: string | null
+          id: string | null
+          organization_id: string | null
+          scheduled_date: string | null
+          scheduled_time: string | null
+          status: string | null
+          type: string | null
+        }
+        Insert: {
+          address?: string | null
+          booking_id?: string | null
+          delivery_number?: string | null
+          driver_name?: string | null
+          forklift_id?: string | null
+          id?: string | null
+          organization_id?: string | null
+          scheduled_date?: string | null
+          scheduled_time?: string | null
+          status?: string | null
+          type?: string | null
+        }
+        Update: {
+          address?: string | null
+          booking_id?: string | null
+          delivery_number?: string | null
+          driver_name?: string | null
+          forklift_id?: string | null
+          id?: string | null
+          organization_id?: string | null
+          scheduled_date?: string | null
+          scheduled_time?: string | null
+          status?: string | null
+          type?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "deliveries_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "deliveries_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "v_booking_occupancy"
+            referencedColumns: ["booking_id"]
+          },
+          {
+            foreignKeyName: "deliveries_forklift_id_fkey"
+            columns: ["forklift_id"]
+            isOneToOne: false
+            referencedRelation: "forklift_current_location"
+            referencedColumns: ["forklift_id"]
+          },
+          {
+            foreignKeyName: "deliveries_forklift_id_fkey"
+            columns: ["forklift_id"]
+            isOneToOne: false
+            referencedRelation: "forklifts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "deliveries_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       v_overdue_invoices: {
         Row: {
           balance: number | null
@@ -7214,6 +7299,18 @@ export type Database = {
         }[]
       }
       get_organization_display_name: { Args: never; Returns: string }
+      get_overdue_deliveries_page: {
+        Args: {
+          p_expected_organization_id: string
+          p_page?: number
+          p_page_size?: number
+          p_search?: string
+          p_sort?: Json
+          p_status?: string
+          p_type?: string
+        }
+        Returns: Json
+      }
       get_platform_access: { Args: never; Returns: Json }
       get_platform_session: { Args: never; Returns: Json }
       get_portal_collection_account: {
