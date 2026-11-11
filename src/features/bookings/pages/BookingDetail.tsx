@@ -3,16 +3,19 @@ import { EmptyState } from "@/components/feedback/EmptyState";
 import { QueryErrorState } from "@/components/feedback/QueryErrorState";
 import { DetailPageHeader } from "@/components/layout/DetailPageHeader";
 import { PageContainer } from "@/components/layout/PageContainer";
+import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { deliveryQueries } from "@/features/deliveries";
 import { useHasModuleAccess } from "@/features/users";
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import { isValidUuid } from "@/lib/isValidUuid";
 import { useLocation, useParams } from "@/lib/router-compat";
+import { Link } from "@/lib/router-compat-ui";
 import { BookingBillingCard } from "../components/booking-detail/BookingBillingCard";
 import { BookingCustomerCard } from "../components/booking-detail/BookingCustomerCard";
 import { BookingExtensionsCard } from "../components/booking-detail/BookingExtensionsCard";
 import { BookingHourometerCard } from "../components/booking-detail/BookingHourometerCard";
+import { BookingNextStepCard } from "../components/booking-detail/BookingNextStepCard";
 import { BookingSummaryCard } from "../components/booking-detail/BookingSummaryCard";
 import { BookingTransportsCard } from "../components/booking-detail/BookingTransportsCard";
 import { BookingActions } from "../components/bookings/BookingActions";
@@ -35,7 +38,7 @@ export default function BookingDetail() {
   const backTo = bookingBackTo(location.state);
   const { data: booking, isLoading, isError, refetch } = useBooking(id);
   const canReadTransports = useHasModuleAccess("Entregas", "read");
-  const { data: deliveries, isLoading: transportsLoading, isError: transportsError, isFetching: transportsFetching, refetch: refetchTransports } = useQuery({
+  const { data: deliveries, isLoading: transportsLoading, isError: transportsError, isFetching: transportsFetching, fetchStatus: transportsFetchStatus, refetch: refetchTransports } = useQuery({
     ...deliveryQueries.list({ bookingId: id }),
     enabled: canReadTransports,
   });
@@ -101,6 +104,20 @@ export default function BookingDetail() {
         endDate={booking.end_date}
         status={booking.status}
       />
+      <BookingNextStepCard
+        booking={booking} deliveries={readableDeliveries}
+        isLoading={transportsLoading || transportsFetching || transportsFetchStatus === "paused"}
+        isError={transportsError}
+      />
+      <BookingQuoteLink quoteId={booking.quote_id} />
+      <BookingTransportsCard
+        deliveries={readableDeliveries}
+        isLoading={transportsLoading}
+        isError={transportsError}
+        isRetrying={transportsFetching}
+        onRetry={() => { void refetchTransports(); }}
+      />
+      <BookingHourometerCard {...hourometer} />
       <div className="grid gap-4 sm:gap-6 sm:grid-cols-2">
         <BookingCustomerCard
           customerName={booking.customer_name}
@@ -110,15 +127,6 @@ export default function BookingDetail() {
         />
         <BookingBillingCard booking={booking} />
       </div>
-
-      <BookingTransportsCard
-        deliveries={readableDeliveries}
-        isLoading={transportsLoading}
-        isError={transportsError}
-        isRetrying={transportsFetching}
-        onRetry={() => { void refetchTransports(); }}
-      />
-      <BookingHourometerCard {...hourometer} />
       <BookingExtensionsCard
         extensions={extensionsList}
         billingChecking={!extensionsQuery.isFetchedAfterMount || extensionsQuery.fetchStatus !== "idle"}
@@ -130,4 +138,12 @@ export default function BookingDetail() {
       <BookingStatusHistory bookingId={booking.id} />
     </PageContainer>
   );
+}
+
+function BookingQuoteLink({ quoteId }: { quoteId: string | null }) {
+  const canRead = useHasModuleAccess("Cotizaciones", "read");
+  if (!canRead || !quoteId) return null;
+  return <Button asChild variant="outline" className="justify-self-start">
+    <Link to={`/quotes/${quoteId}`}>Ver cotización de origen</Link>
+  </Button>;
 }

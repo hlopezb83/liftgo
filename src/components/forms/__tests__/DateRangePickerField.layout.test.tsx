@@ -40,7 +40,7 @@ describe("DateRangePickerField — distribución responsive V26-03", () => {
     expect(end).toHaveValue(to);
     expect(start.parentElement).toHaveClass("min-w-0", "sm:flex-1");
     expect(end.parentElement).toHaveClass("min-w-0", "sm:flex-1");
-    expect(calendar).toHaveClass("h-10", "w-10");
+    expect(calendar).toHaveClass("h-11", "w-11");
     expect(calendar.parentElement).toContainElement(screen.getByText("Fecha de emisión"));
     expect(controls).toHaveClass("grid", "grid-cols-1", "sm:flex");
   });

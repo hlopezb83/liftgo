@@ -36,7 +36,7 @@ export function BookingTransportsCard({
   const rows = visibleListRows(deliveries);
 
   return (
-    <Card>
+    <Card id="booking-transports" tabIndex={-1}>
       <CardHeader className="pb-3">
         <CardTitle className="text-base flex items-center gap-2">
           <CalendarDays className="h-4 w-4 text-muted-foreground" /> Transportes de la reserva

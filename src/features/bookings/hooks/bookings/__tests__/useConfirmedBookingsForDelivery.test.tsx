@@ -4,16 +4,17 @@ import { createElement, type ReactNode } from "react";
 import { describe, expect, it, vi } from "vitest";
 import { useConfirmedBookingsForDelivery } from "../useBookings";
 
-const state = vi.hoisted(() => ({ statusFiltered: true }));
+const state = vi.hoisted(() => ({ statusFiltered: true, contextSelected: true }));
 vi.mock("@/integrations/supabase/client", async () => {
   const { createSupabaseChainMock } = await import("@/test/helpers/supabaseChain");
   const rows = Array.from({ length: 601 }, (_, index) => ({
-    id: `booking-${index}`, customer_name: `Cliente ${index}`,
+    id: `booking-${index}`, booking_number: `RSV-${index}`, forklifts: { name: "DEMO-LG01", model: "FD50" }, customer_name: `Cliente ${index}`,
     start_date: "2026-09-01", end_date: "2026-09-02", forklift_id: "forklift-1", status: "confirmed",
   }));
   return { supabase: createSupabaseChainMock({ tableResolvers: {
     bookings: (calls) => {
       state.statusFiltered &&= calls.some((call) => call.method === "eq" && call.args[0] === "status" && call.args[1] === "confirmed");
+      state.contextSelected &&= calls.some((call) => call.method === "select" && String(call.args[0]).includes("booking_number") && String(call.args[0]).includes("forklifts(name, model)"));
       const range = calls.find((call) => call.method === "range")?.args ?? [0, 100];
       return { data: rows.slice(Number(range[0]), Number(range[1]) + 1), error: null };
     },
@@ -37,5 +38,7 @@ describe("useConfirmedBookingsForDelivery", () => {
     expect(bookings).toHaveLength(601);
     expect(bookings.at(-1)?.id).toBe("booking-600");
     expect(state.statusFiltered).toBe(true);
+    expect(state.contextSelected).toBe(true);
+    expect(bookings.at(-1)).toMatchObject({ booking_number: "RSV-600", forklifts: { name: "DEMO-LG01" } });
   });
 });

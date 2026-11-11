@@ -254,7 +254,7 @@ export function BookingActions({ booking, deliveries, transportsLoading, transpo
   return (
     <div className="flex flex-wrap gap-2">
       {canCreateContract && (
-        <Button size="sm" className={TOUCH} onClick={() => navigate(`/contracts/new?booking_id=${booking.id}`)}>
+        <Button variant="outline" size="sm" className={TOUCH} onClick={() => navigate(`/contracts/new?booking_id=${booking.id}`)}>
           <DocumentIcon className="h-4 w-4 mr-1" />Crear contrato
         </Button>
       )}

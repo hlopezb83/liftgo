@@ -39,7 +39,7 @@ export function TopbarUserMenu() {
             size="icon"
             aria-label="Menú de usuario"
             title={email}
-            className="rounded-full h-8 w-8 touch:h-11 touch:w-11 bg-primary/10 text-primary hover:bg-primary/20 text-xs font-semibold"
+            className="rounded-full h-8 w-8 max-md:h-11 max-md:w-11 touch:h-11 touch:w-11 bg-primary/10 text-primary hover:bg-primary/20 text-xs font-semibold"
           >
             {getUserInitials(email)}
           </Button>

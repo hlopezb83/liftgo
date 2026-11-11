@@ -67,7 +67,7 @@ function RangeFieldHeading({
             size="icon"
             title={triggerLabel}
             aria-label={`Abrir calendario de ${fieldName}`}
-            className="h-10 w-10 shrink-0"
+            className="h-11 w-11 shrink-0"
           >
             <CalendarIcon className="h-4 w-4" />
           </Button>
@@ -93,7 +93,7 @@ function DateRangeFooter({
 }) {
   const canApply = (!!localRange?.from && !!localRange?.to) || (!required && !localRange?.from && !localRange?.to);
   return (
-    <DialogFooter className="px-4 py-3 border-t flex-row flex-wrap justify-between sm:px-5 sm:justify-between gap-2">
+    <DialogFooter className="px-4 py-3 border-t flex-row flex-wrap justify-between sm:px-5 sm:justify-between gap-2 max-md:[&_button]:min-h-11">
       <Button type="button" variant="ghost" size="sm" onClick={onClear} disabled={!localRange?.from && !localRange?.to}>
         Limpiar
       </Button>

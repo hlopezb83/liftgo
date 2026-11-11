@@ -15,14 +15,15 @@ import BookingDetail from "../BookingDetail";
 
 const useBookingMock = vi.fn();
 const useBookingExtensionsMock = vi.fn();
-const access = vi.hoisted(() => ({ allowed: true }));
+const access = vi.hoisted(() => ({ allowed: true, quotes: true }));
 const transportQueryFn = vi.fn();
 
 vi.mock("../../hooks/bookings/useBookings", () => ({
   useBooking: () => useBookingMock(),
 }));
 
-vi.mock("@/features/deliveries", () => ({
+vi.mock("@/features/deliveries", async (importOriginal) => ({
+  ...await importOriginal<typeof import("@/features/deliveries")>(),
   deliveryQueries: {
     list: ({ bookingId }: { bookingId: string }) => ({
       queryKey: ["deliveries", bookingId],
@@ -30,7 +31,7 @@ vi.mock("@/features/deliveries", () => ({
     }),
   },
 }));
-vi.mock("@/features/users", () => ({ useHasModuleAccess: () => access.allowed, useHasFinancialAccess: () => true }));
+vi.mock("@/features/users", () => ({ useHasModuleAccess: (module: string) => module === "Cotizaciones" ? access.quotes : access.allowed, useHasFinancialAccess: () => true }));
 vi.mock("../../components/bookings/BookingActions", () => ({ BookingActions: () => null }));
 vi.mock("../../components/bookings/BookingStatusHistory", () => ({ BookingStatusHistory: () => null }));
 vi.mock("../../components/booking-detail/BookingBillingCard", () => ({ BookingBillingCard: () => null }));
@@ -67,7 +68,7 @@ beforeEach(() => {
   useBookingExtensionsMock.mockReset();
   transportQueryFn.mockReset();
   transportQueryFn.mockResolvedValue([]);
-  access.allowed = true;
+  access.allowed = true; access.quotes = true;
   useBookingExtensionsMock.mockReturnValue({ data: undefined, isLoading: false, isError: false, isFetchedAfterMount: true, fetchStatus: "idle", refetch: vi.fn() });
 });
 
@@ -135,6 +136,23 @@ describe("BookingDetail (FE4-02)", () => {
     expect(await screen.findByText("No se pudo cargar la reserva")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /Reintentar/i })).toBeInTheDocument();
     expect(screen.queryByText("Reserva no encontrada")).not.toBeInTheDocument();
+  });
+
+  it.each([true, false])("shows the origin quote only with permission (allowed=%s), before operations", async (allowed) => {
+    access.quotes = allowed;
+    useBookingMock.mockReturnValue({
+      data: { id: "bk-1", quote_id: "quote-origin", booking_number: "RSV-0001", status: "confirmed", return_status: null,
+        customer_name: "Cliente", start_date: "2026-11-01", end_date: "2026-11-15" },
+      isLoading: false, isError: false, refetch: vi.fn(),
+    });
+    renderPage();
+    await screen.findByRole("region", { name: "Siguiente paso de la renta" });
+    const origin = screen.queryByRole("link", { name: "Ver cotización de origen" });
+    if (allowed) {
+      expect(origin).toHaveAttribute("href", "/quotes/quote-origin");
+      const transports = screen.getByText("Transportes de la reserva");
+      expect((origin?.compareDocumentPosition(transports) ?? 0) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    } else expect(origin).not.toBeInTheDocument();
   });
 
   it("no consulta transportes ni declara un falso vacío sin permiso de Entregas", async () => {

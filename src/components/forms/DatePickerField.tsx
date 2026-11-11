@@ -120,7 +120,7 @@ export function DatePickerField({
               size="icon"
               title={SHORTCUTS_HINT}
               aria-label={`Abrir calendario de ${label.replace(/\s*\*\s*$/, "")}`}
-              className={cn("shrink-0", !date && "text-muted-foreground")}
+              className={cn("shrink-0 max-md:h-11 max-md:w-11", !date && "text-muted-foreground")}
             >
               <CalendarIcon className="h-4 w-4" />
             </Button>
@@ -148,7 +148,7 @@ export function DatePickerField({
               className="pointer-events-auto"
             />
           </div>
-          <DialogFooter className="px-5 py-3 border-t flex-row justify-between sm:justify-between gap-2">
+          <DialogFooter className="px-5 py-3 border-t flex-row justify-between sm:justify-between gap-2 max-md:[&_button]:min-h-11">
             <Button
               type="button"
               variant="ghost"

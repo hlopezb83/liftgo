@@ -5,3 +5,4 @@ export * from "./hooks/useDeliveries";
 export * from "./lib/deliveryOverdue";
 export * from "./lib/deliveryBookingDate";
 export * from "./lib/historicalReconciliation";
+export { DeliveryFormDialog, type DeliveryBookingContext } from "./components/deliveries/DeliveryFormDialog";

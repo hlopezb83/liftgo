@@ -17,6 +17,35 @@ describe("BookingDraftNotice", () => {
     expect(screen.getByText(/nombre libre y el contacto no se guardan/)).toBeVisible();
     expect(screen.getByText(/No se crea ni se aparta ningún equipo/)).toBeVisible();
   });
+  it("exposes optional details through an associated disclosure without moving focus", () => {
+    render(<BookingDraftNotice draft={draft()} busy={false} />);
+    const toggle = screen.getByRole("button", { name: "Detalles del borrador" });
+    expect(toggle).toHaveAttribute("aria-expanded", "false");
+    const details = document.getElementById(toggle.getAttribute("aria-controls")!);
+    expect(details).toHaveTextContent(/no se guardan por privacidad/);
+    toggle.focus();
+    fireEvent.click(toggle);
+    expect(toggle).toHaveAttribute("aria-expanded", "true");
+    expect(toggle).toHaveFocus();
+    fireEvent.click(toggle);
+    expect(toggle).toHaveAttribute("aria-expanded", "false");
+  });
+  it.each(["conflict", "expired"] as const)("keeps %s warnings and recovery outside optional details", async (status) => {
+    const state = draft({ status, hasChanges: true, expiresAt: Date.now() + 1000 });
+    render(<BookingDraftNotice draft={state} busy={false} />);
+    const toggle = screen.getByRole("button", { name: "Detalles del borrador" });
+    const details = document.getElementById(toggle.getAttribute("aria-controls")!);
+    expect(details).not.toContainElement(screen.getByRole("alert"));
+    if (status === "conflict") expect(details).not.toContainElement(screen.getByText(/Caduca:/));
+    const recovery = screen.getByRole("button", { name: "Descartar mi captura y revisar borrador actual" });
+    expect(details).not.toContainElement(recovery);
+    h.confirm.mockResolvedValueOnce(false);
+    fireEvent.click(recovery);
+    await waitFor(() => expect(h.confirm).toHaveBeenCalledTimes(1));
+    expect(state.reload).not.toHaveBeenCalled();
+    fireEvent.click(recovery);
+    await waitFor(() => expect(state.reload).toHaveBeenCalledTimes(1));
+  });
   it("offers explicit restore/discard without restoring on render; disables actions while creating", () => {
     const state = draft({ candidate: { version: 1, id: "draft", revision: "revision", scope: "scope", epoch: "epoch", createdAt: Date.now(), updatedAt: Date.now(), expiresAt: Date.now() + 1000, values: { forklift_id: "", customer_id: "", recurring_billing: false } } });
     const { rerender } = render(<BookingDraftNotice draft={state} busy={true} />);

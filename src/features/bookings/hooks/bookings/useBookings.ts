@@ -69,14 +69,16 @@ export function useBookings(forkliftId?: string) {
 
 /** Server-filtered, incremental list for the delivery booking selector. */
 type ConfirmedDeliveryBooking = Pick<Tables<"bookings">,
-  "id" | "customer_name" | "start_date" | "end_date" | "forklift_id" | "status">;
+  "id" | "booking_number" | "customer_name" | "start_date" | "end_date" | "forklift_id" | "status"> & {
+  forklifts: { name: string; model: string } | null;
+};
 
 const DELIVERY_BOOKING_PAGE_SIZE = 100;
 
 async function fetchConfirmedDeliveryBookings(page: number, visibility: string): Promise<ConfirmedDeliveryBooking[]> {
   const { data, error } = await supabase
     .from("bookings")
-    .select("id, customer_name, start_date, end_date, forklift_id, status")
+    .select("id, booking_number, customer_name, start_date, end_date, forklift_id, status, forklifts(name, model)")
     .or(visibility)
     .eq("status", "confirmed")
     .order("start_date", { ascending: false })
