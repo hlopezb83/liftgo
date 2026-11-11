@@ -28,19 +28,23 @@ function renderCustomerMobileCard(customer: Customer, open: (id: string) => void
   return <CustomerMobileCard customer={customer} onOpen={open} />;
 }
 
-function useOpenCustomer() {
+function useCustomerNavigation() {
   const navigate = useNavigateTransition();
   const location = useLocation();
-  return (id: string) => navigate(`/customers/${id}`, {
-    state: { customerListBackTo: `${location.pathname}${location.search}${location.hash}` },
-  });
+  const state = { customerListBackTo: `${location.pathname}${location.search}${location.hash}` };
+  const open = (id: string) => navigate(`/customers/${id}`, { state });
+  return { open, table: {
+    onRowClick: (customer: Customer) => open(customer.id),
+    rowAction: { columnId: "name", label: (customer: Customer) => `Ver cliente ${customer.name}`,
+      to: (customer: Customer) => `/customers/${customer.id}`, state: () => state },
+  } };
 }
 
 export default function CustomersPage() {
   const customerPages = useCustomersIncremental();
   const { isLoading, isError, refetch } = customerPages;
   const customers = useMemo(() => customerPages.data?.pages.flatMap((page) => page.slice(0, LIST_PAGE_LIMIT)) ?? [], [customerPages.data]);
-  const openCustomer = useOpenCustomer();
+  const customerNavigation = useCustomerNavigation();
   const [searchParams, setSearchParams] = useSearchParams();
   const searchKey = searchParams.toString();
   const createCustomer = useCreateCustomer();
@@ -183,14 +187,14 @@ export default function CustomersPage() {
           onClick: () => { void customerPages.fetchNextPage(); }, loaded: customers.length }}
         onRetry={() => { void refetch(); }}
         table={table}
-        onRowClick={(c) => openCustomer(c.id)}
+        {...customerNavigation.table}
         hasActiveFilters={hasActive}
         onClearFilters={reset}
         emptyIcon={UsersIcon}
         emptyMessage="No se encontraron clientes"
         emptyActionLabel={canWrite ? "Nuevo cliente" : undefined}
         onEmptyAction={canWrite ? openCreate : undefined}
-        mobileCardRender={(customer) => renderCustomerMobileCard(customer, openCustomer)}
+        mobileCardRender={(customer) => renderCustomerMobileCard(customer, customerNavigation.open)}
         mobileKeyExtractor={(c) => c.id}
         skeletonColumns={6}
       />

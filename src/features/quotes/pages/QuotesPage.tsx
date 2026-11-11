@@ -111,6 +111,7 @@ export default function QuotesPage() {
       isError={isError}
       onRetry={() => { void refetch(); }}
       table={table}
+      rowAction={{ columnId: "quote_number", label: (q) => `Ver cotización ${q.quote_number}`, to: (q) => `/quotes/${q.id}` }}
       onRowClick={(q) => navigate(`/quotes/${q.id}`)}
       onRowPrefetch={(q) => quoteQueries.detail(q.id)}
       hasActiveFilters={hasActive}

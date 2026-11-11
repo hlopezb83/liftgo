@@ -1,3 +1,5 @@
+import type { ReactNode } from "react";
+import { TestRouter } from "@/test/router";
 import { fireEvent, render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -7,6 +9,12 @@ vi.mock("@/hooks/useNavigateTransition", () => ({
 }));
 
 import { AlertsRow } from "../AlertsRow";
+
+async function renderAlerts(content: ReactNode) {
+  const view = render(<TestRouter>{content}</TestRouter>);
+  await screen.findAllByRole("region");
+  return view;
+}
 
 describe("AlertsRow — cobranza", () => {
   beforeEach(() => vi.clearAllMocks());
@@ -26,8 +34,8 @@ describe("AlertsRow — cobranza", () => {
     expect(screen.queryByRole("button", { name: "Ver transportes atrasados →" })).toBeNull();
   });
 
-  it("envía al flujo de pago y no ofrece mutar la factura a paid", () => {
-    render(
+  it("envía al flujo de pago y no ofrece mutar la factura a paid", async () => {
+    await renderAlerts(
       <AlertsRow
         overdueInvoices={[{
           id: "inv-1",
@@ -50,8 +58,8 @@ describe("AlertsRow — cobranza", () => {
     expect(navigate).toHaveBeenCalledWith("/invoices/inv-1");
   });
 
-  it("muestra el saldo pendiente en MXN de una factura parcialmente pagada", () => {
-    render(
+  it("muestra el saldo pendiente en MXN de una factura parcialmente pagada", async () => {
+    await renderAlerts(
       <AlertsRow
         overdueInvoices={[{
           id: "inv-2",
@@ -75,8 +83,8 @@ describe("AlertsRow — cobranza", () => {
     expect(screen.queryByText("$1,000.00")).not.toBeInTheDocument();
   });
 
-  it("cae al total cuando el fixture legacy no trae saldo", () => {
-    render(
+  it("cae al total cuando el fixture legacy no trae saldo", async () => {
+    await renderAlerts(
       <AlertsRow
         overdueInvoices={[{
           id: "inv-3",
@@ -97,8 +105,8 @@ describe("AlertsRow — cobranza", () => {
     expect(screen.getByText("$1,000.00")).toBeInTheDocument();
   });
 
-  it("con permisos de lectura muestra alertas sin ofrecer acciones de escritura", () => {
-    render(<AlertsRow
+  it("con permisos de lectura muestra alertas sin ofrecer acciones de escritura", async () => {
+    await renderAlerts(<AlertsRow
       overdueInvoices={[{
         id: "inv-read", invoice_number: "FAC-004", customer_name: "Cliente",
         total: 100, due_date: "2026-09-01",
@@ -117,12 +125,11 @@ describe("AlertsRow — cobranza", () => {
     expect(screen.queryByRole("button", { name: "Registrar pago" })).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Registrar devolución" })).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Registrar servicio" })).not.toBeInTheDocument();
-    fireEvent.click(screen.getByText("Unidad 2"));
-    expect(navigate).toHaveBeenCalledWith("/bookings/booking-1");
+    expect(screen.getByRole("link", { name: /Unidad 2/ })).toHaveAttribute("href", "/bookings/booking-1");
   });
 
-  it("Enter sobre la acción de servicio no abre además la ficha de flota", () => {
-    render(<AlertsRow
+  it("Enter sobre la acción de servicio no abre además la ficha de flota", async () => {
+    await renderAlerts(<AlertsRow
       overdueInvoices={[]}
       maintenanceAlerts={[{ forkliftName: "Unidad 1", forkliftId: "fork-1", nextDate: "2026-09-01" }]}
       agingBuckets={[]}
@@ -133,6 +140,8 @@ describe("AlertsRow — cobranza", () => {
     />);
 
     const action = screen.getByRole("button", { name: "Registrar servicio" });
+    expect(action.closest("a, [role=button]")).toBeNull();
+    expect(screen.getByRole("link", { name: /Unidad 1/ })).toHaveAttribute("href", "/fleet/fork-1");
     fireEvent.keyDown(action, { key: "Enter" });
     fireEvent.click(action);
     expect(navigate).toHaveBeenCalledTimes(1);

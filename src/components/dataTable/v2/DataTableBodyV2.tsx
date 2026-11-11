@@ -1,11 +1,14 @@
 import { useQueryClient, type QueryClient } from "@tanstack/react-query";
 import { flexRender, type RowData } from "@tanstack/react-table";
-import { useCallback, useEffect, useRef, type ReactNode, type KeyboardEvent as ReactKeyboardEvent } from "react";
+import { useCallback, useEffect, useRef, type ReactNode } from "react";
+import type { TableRowAction } from "@/components/dataTable/v2/types";
 import { EmptyRow } from "@/components/feedback/EmptyRow";
 import { Checkbox } from "@/components/ui/checkbox";
 import { TableBody, TableCell, TableRow } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
 import { resolveColumnKind } from "./columnKind";
+import { DataTableRowAction } from "./DataTableRowAction";
+import { canActivateTableRow } from "./rowInteraction";
 import { alignClass } from "./sorting";
 import type { LiftgoRow } from "./types";
 
@@ -24,6 +27,7 @@ interface Props<T extends RowData> {
    */
   selectionKey?: string;
   onRowClick?: (item: T) => void;
+  rowAction?: TableRowAction<T>;
   rowClassName?: (item: T) => string | undefined;
   onRowPrefetch?: (item: T) => unknown;
 }
@@ -71,15 +75,9 @@ function buildRowHandlers<T>(item: T, ctx: RowHandlerCtx<T>) {
   const { onRowClick, onRowPrefetch, armPrefetch, disarmPrefetch } = ctx;
   const clickHandlers = onRowClick
     ? {
-        onClick: () => onRowClick(item),
-        onKeyDown: (e: ReactKeyboardEvent) => {
-          if (e.key === "Enter" || e.key === " ") {
-            e.preventDefault();
-            onRowClick(item);
-          }
+        onClick: (event: import("react").MouseEvent<HTMLTableRowElement>) => {
+          if (canActivateTableRow(event)) onRowClick(item);
         },
-        tabIndex: 0,
-        role: "button" as const,
       }
     : {};
   const prefetchHandlers = onRowPrefetch
@@ -100,6 +98,7 @@ export function DataTableBodyV2<T extends RowData>({
   showSelection,
   selectionKey = "",
   onRowClick,
+  rowAction,
   rowClassName,
   onRowPrefetch,
 }: Props<T>): ReactNode {
@@ -127,7 +126,7 @@ export function DataTableBodyV2<T extends RowData>({
             className={cn(
               // Oleada 1 (A-8): zebra uniforme en todas las tablas
               rowIndex % 2 === 1 && "bg-muted/40",
-              onRowClick && "cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1",
+              onRowClick && "cursor-pointer",
               rowClassName?.(item),
             )}
             {...buildRowHandlers(item, { onRowClick, onRowPrefetch, armPrefetch, disarmPrefetch })}
@@ -155,7 +154,9 @@ export function DataTableBodyV2<T extends RowData>({
                     meta?.cellClassName,
                   )}
                 >
-                  {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                  <DataTableRowAction item={item} columnId={cell.column.id} action={rowAction} onActivate={onRowClick}>
+                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                  </DataTableRowAction>
                 </TableCell>
               );
             })}

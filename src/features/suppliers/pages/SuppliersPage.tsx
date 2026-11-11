@@ -151,6 +151,7 @@ export default function SuppliersPage() {
           onClick: () => { void supplierPages.fetchNextPage(); }, loaded: suppliers.length }}
         onRetry={() => { void refetch(); }}
         table={table}
+        rowAction={{ columnId: "name", label: (s) => `Ver proveedor ${s.name}`, to: (s) => `/suppliers/${s.id}` }}
         onRowClick={(s) => navigate(`/suppliers/${s.id}`)}
         hasActiveFilters={hasActive}
         onClearFilters={reset}

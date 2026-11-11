@@ -111,3 +111,11 @@ it("sends column sorting to the page query", async () => {
   fireEvent.click(screen.getByRole("button", { name: "Entrega #" }));
   expect(await screen.findByText("ENT-0602")).toBeInTheDocument();
 });
+
+it("preserves native rows and exposes overdue folios as links", async () => {
+  mount();
+  const link = await screen.findByRole("link", { name: "Ver transporte ENT-0001" });
+  expect(link).toHaveAttribute("href", "/deliveries/delivery-0");
+  expect(link.closest("tr")).not.toHaveAttribute("role", "button");
+  expect(link.closest("tr")).not.toHaveAttribute("tabindex");
+});

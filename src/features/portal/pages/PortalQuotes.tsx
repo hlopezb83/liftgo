@@ -104,6 +104,7 @@ export default function PortalQuotes() {
             <DataTableV2
               table={table}
               emptyMessage="Aún no tienes cotizaciones. Cuando solicites una cotización aparecerá aquí; contáctanos para cotizar tu próximo montacargas."
+              rowAction={{ columnId: "quote_number", label: (q) => `Ver cotización ${q.quote_number}`, to: (q) => `/portal/quotes/${q.id}` }}
               onRowClick={(q) => navigate(`/portal/quotes/${q.id}`)}
             />
           )}

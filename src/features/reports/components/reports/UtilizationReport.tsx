@@ -190,6 +190,7 @@ export function UtilizationReport({ startDate, endDate }: Props) {
           <DataTableV2
             table={table}
             emptyMessage="Sin datos en el rango"
+            rowAction={{ columnId: "name", label: (r) => `Ver utilización de ${r.name}` }}
             onRowClick={(r) => setSelected(r)}
           />
         </CardContent>

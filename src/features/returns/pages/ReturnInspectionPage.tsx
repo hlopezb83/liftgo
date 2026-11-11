@@ -134,6 +134,7 @@ export default function ReturnInspectionPage() {
         hasActiveFilters={!!filterDate}
         onClearFilters={() => setFilterDate(undefined)}
         table={table}
+        rowAction={{ columnId: "inspection_number", label: (ins) => `Ver devolución ${ins.inspection_number}`, to: (ins) => `/returns/${ins.id}` }}
         onRowClick={(ins) => navigate(`/returns/${ins.id}`)}
         emptyMessage="No hay inspecciones de devolución"
         emptyActionLabel={canWrite ? "Nueva Devolución" : undefined}

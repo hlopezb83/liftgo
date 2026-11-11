@@ -146,7 +146,8 @@ export function AgingReport({ startDate: _startDate, endDate: _endDate }: AgingR
           {visibleInvoices.length === 0 ? (
             <p className="py-8 text-center text-sm text-muted-foreground">No hay facturas vencidas</p>
           ) : (
-            <DataTableV2 table={table} onRowClick={(i) => navigate(`/invoices/${i.id}`)} />
+            <DataTableV2 table={table} rowAction={{ columnId: "invoice_number", label: (i) => `Ver factura ${i.invoice_number}`, to: (i) => `/invoices/${i.id}` }}
+              onRowClick={(i) => navigate(`/invoices/${i.id}`)} />
           )}
         </CardContent>
       </Card>

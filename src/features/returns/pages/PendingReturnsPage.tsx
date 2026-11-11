@@ -109,6 +109,7 @@ export default function PendingReturnsPage() {
       isError={isError}
       onRetry={() => { void refetch(); }}
       table={table}
+      rowAction={{ columnId: "booking_number", label: (b) => `Ver reserva ${b.booking_number}`, to: (b) => `/bookings/${b.id}` }}
       onRowClick={(b) => navigate(`/bookings/${b.id}`)}
       emptyMessage="No hay devoluciones vencidas pendientes"
       emptyActionLabel={canWrite ? "Registrar devolución" : undefined}

@@ -18,6 +18,14 @@ export type ColumnAlign = "left" | "right" | "center";
 /** R21 C-1: tipo semántico de columna — define alineación, fuente y formato por defecto. */
 export type ColumnKind = "text" | "number" | "money" | "date" | "badge";
 
+/** The primary link or inspector action lives inside a cell, never on the row role. */
+export interface TableRowAction<T> {
+  columnId: string;
+  label: (item: T) => string;
+  to?: (item: T) => string;
+  state?: (item: T) => unknown;
+}
+
 declare module "@tanstack/react-table" {
   interface ColumnMeta<TFeatures extends TableFeatures, TData extends RowData, TValue> {
     align?: ColumnAlign;

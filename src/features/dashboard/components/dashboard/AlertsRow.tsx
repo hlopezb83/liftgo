@@ -137,7 +137,7 @@ export function AlertsRow({
               key={inv.id}
               primary={inv.invoice_number}
               secondary={inv.customer_name}
-              onClick={() => navigate(`/invoices/${inv.id}`)}
+              to={`/invoices/${inv.id}`}
               rightTop={<span className="tabular-nums font-semibold text-destructive text-sm sm:text-base whitespace-nowrap">{formatCurrency(pendingAmountMxn(inv))}</span>}
               rightBottom={`Vence: ${formatDateMty(inv.due_date)}`}
               action={canManageInvoices ? {
@@ -178,9 +178,9 @@ export function AlertsRow({
               key={ob.booking_id}
               primary={ob.forklift_name}
               secondary={ob.customer_name}
-              onClick={() => navigate(canManageReturns
+              to={canManageReturns
                 ? `/returns?booking_id=${ob.booking_id}`
-                : `/bookings/${ob.booking_id}`)}
+                : `/bookings/${ob.booking_id}`}
               rightTop={<span className="tabular-nums font-semibold text-warning-text whitespace-nowrap">{ob.days_overdue} días</span>}
               rightBottom={`Venció: ${formatDateMty(ob.end_date)}`}
               action={canManageReturns ? {
@@ -202,7 +202,7 @@ export function AlertsRow({
             <AlertRow
               key={a.forkliftId}
               primary={a.forkliftName}
-              onClick={() => navigate(`/fleet/${a.forkliftId}`)}
+              to={`/fleet/${a.forkliftId}`}
               rightTop={<span className="text-xs text-muted-foreground">Vence: {a.nextDate}</span>}
               action={canManageMaintenance ? {
                 icon: ClipboardList,

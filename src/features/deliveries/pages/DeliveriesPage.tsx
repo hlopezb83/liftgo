@@ -142,6 +142,7 @@ function DeliveriesList() {
       isError={isError}
       onRetry={() => { void refetch(); }}
       table={table}
+      rowAction={{ columnId: "delivery_number", label: (d) => `Ver transporte ${d.delivery_number}`, to: (d) => `/deliveries/${d.id}` }}
       onRowClick={(d) => navigate(`/deliveries/${d.id}`)}
       onRowPrefetch={(d) => deliveryQueries.detail(d.id)}
       hasActiveFilters={hasActive}

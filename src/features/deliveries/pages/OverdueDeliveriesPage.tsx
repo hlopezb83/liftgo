@@ -83,6 +83,7 @@ export function OverdueDeliveriesPage() {
       isError={isError}
       onRetry={() => { void refetch(); }}
       table={table}
+      rowAction={{ columnId: "delivery_number", label: (row) => `Ver transporte ${row.delivery_number}`, to: (row) => `/deliveries/${row.id}` }}
       onRowClick={(row) => navigate(`/deliveries/${row.id}`)}
       onRowPrefetch={(row) => deliveryQueries.detail(row.id)}
       hasActiveFilters={hasActive}

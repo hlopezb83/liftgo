@@ -162,6 +162,7 @@ export default function ContractsPage() {
         onClick: () => { void contractPages.fetchNextPage(); }, loaded: contracts.length }}
       onRetry={() => { void refetch(); }}
       table={table}
+      rowAction={{ columnId: "contract_number", label: (c) => `Ver contrato ${c.contract_number}`, to: (c) => `/contracts/${c.id}` }}
       onRowClick={(c) => navigate(`/contracts/${c.id}`)}
       onRowPrefetch={(c) => contractQueries.detail(c.id)}
       hasActiveFilters={hasActive}

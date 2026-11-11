@@ -139,6 +139,7 @@ export default function FleetPage() {
       onRetry={() => { void refetch(); void refetchOccupied(); }}
       onRefresh={() => { void refetch(); void refetchOccupied(); }}
       table={table}
+      rowAction={{ columnId: "name", label: (f) => `Ver equipo ${f.name}`, to: (f) => `/fleet/${f.id}` }}
       onRowClick={(f) => navigate(`/fleet/${f.id}`)}
       hasActiveFilters={hasActive}
       onClearFilters={reset}
