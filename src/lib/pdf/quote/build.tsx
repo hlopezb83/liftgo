@@ -1,7 +1,7 @@
 import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
 import { parseLineItems } from "@/lib/domain/lineItems";
-import { QuoteDocument, type QuoteDocumentProps } from "@/lib/pdf/documents/QuoteDocument";
+import type { QuoteDocumentProps } from "@/lib/pdf/documents/QuoteDocument";
 import { renderAndSave } from "@/lib/pdf/renderAndSave";
 import { fetchCompanyDataAndLogo, type PdfLineItem } from "@/lib/pdf/shared";
 
@@ -55,5 +55,5 @@ export async function fetchQuotePdfData(quoteId: string): Promise<QuoteDocumentP
 
 export async function buildQuotePdf(quoteId: string): Promise<void> {
   const data = await fetchQuotePdfData(quoteId);
-  await renderAndSave(<QuoteDocument {...data} />, `${data.quoteNumber}.pdf`);
+  await renderAndSave({ kind: "quote", props: data }, `${data.quoteNumber}.pdf`);
 }

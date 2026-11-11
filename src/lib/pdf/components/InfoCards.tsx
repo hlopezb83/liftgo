@@ -1,6 +1,6 @@
 import { Text, View } from "@react-pdf/renderer";
+import { fmtDate } from "@/lib/pdf/formatDate";
 import type { CompanyData } from "@/lib/pdf/shared";
-import { fmtDate } from "@/lib/pdf/shared";
 import { sharedStyles } from "@/lib/pdf/theme/styles";
 
 interface InfoCardsProps {

@@ -1,5 +1,8 @@
 import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { useVerifiedOrganizationId } from "@/contexts/OrganizationContext";
+import { useVerifiedIdentityScope } from "@/lib/query/useVerifiedIdentityScope";
+import { isE2eDataVisible } from "@/lib/supabase/constants";
+import { readInvoiceBookingBillingEvidence } from "../../lib/invoiceBookingReadRpc";
 import { invoiceKeys } from "../../lib/queryKeys";
 import type { ReturnBillingEvidence } from "../../lib/completedRecurringBooking";
 import type { BillingExtension, BookingInvoiceClaim } from "../../lib/originalBookingPeriod";
@@ -26,49 +29,36 @@ export async function readAllBillingPages<T>(
   throw new Error("No se pudo verificar el historial completo de facturación. Recarga y reintenta.");
 }
 
-interface InvoiceEvidence {
-  id: string; booking_id: string | null; status: string; line_items: unknown; moneda: string | null;
-  billing_period_start: string | null; billing_period_end: string | null;
-}
-interface PivotEvidence {
-  invoice_id: string; booking_id: string;
-  invoices: Omit<InvoiceEvidence, "id" | "booking_id">;
+interface BillingEvidence {
+  claims: BookingInvoiceClaim[];
+  extensions: BillingExtension[];
+  returns: ReturnBillingEvidence[];
 }
 
-export async function fetchBookingInvoiceClaims(signal?: AbortSignal): Promise<BookingInvoiceClaim[]> {
-  const [direct, pivot] = await Promise.all([
-    readAllBillingPages<InvoiceEvidence>((from, to) => {
-      const query = supabase.from("invoices")
-        .select("id, booking_id, status, line_items, moneda, billing_period_start, billing_period_end")
-        .not("booking_id", "is", null).neq("status", "cancelled")
-        .order("id").range(from, to);
-      return signal ? query.abortSignal(signal) : query;
-    }, signal),
-    readAllBillingPages<PivotEvidence>((from, to) => {
-      const query = supabase.from("invoice_bookings")
-        .select("invoice_id, booking_id, invoices!inner(status, line_items, moneda, billing_period_start, billing_period_end)")
-        .neq("invoices.status", "cancelled").order("invoice_id").order("booking_id").range(from, to);
-      return signal ? query.abortSignal(signal) : query;
-    }, signal),
-  ]);
-  return [
-    ...direct.flatMap((row) => row.booking_id ? [{ ...row, booking_id: row.booking_id, invoice_id: row.id }] : []),
-    ...pivot.map((row) => ({ ...row.invoices, invoice_id: row.invoice_id, booking_id: row.booking_id })),
-  ];
-}
+const emptyEvidence: BillingEvidence = { claims: [], extensions: [], returns: [] };
 
-export function useBookingBillingEvidence() {
-  const claims = useQuery({ queryKey: [...invoiceKeys.lists(), "booking-period-claims"], queryFn: ({ signal }) => fetchBookingInvoiceClaims(signal) });
-  const extensions = useQuery({
-    queryKey: ["bookings", "billing-extension-history"],
-    queryFn: ({ signal }) => readAllBillingPages<BillingExtension>((from, to) => supabase.from("booking_extensions")
-      .select("booking_id, original_end_date, new_end_date, invoice_id, pending_invoice_id")
-      .order("id").range(from, to).abortSignal(signal), signal),
+export function useBookingBillingEvidence(bookingIds: readonly string[]) {
+  const organizationId = useVerifiedOrganizationId();
+  const identity = useVerifiedIdentityScope();
+  const scope = { organizationId, identity, bookingIds: [...new Set(bookingIds)].sort(), includeE2e: isE2eDataVisible() };
+  const { data, isError, isSuccess, isFetching, refetch } = useQuery<BillingEvidence>({
+    queryKey: [...invoiceKeys.lists(), "booking-billing-evidence", scope],
+    enabled: (!!organizationId && !!identity) || scope.bookingIds.length === 0,
+    staleTime: 0,
+    queryFn: ({ signal }) => {
+      if (!scope.bookingIds.length) return Promise.resolve(emptyEvidence);
+      if (!organizationId || !identity) throw new Error("Empresa no verificada");
+      return readInvoiceBookingBillingEvidence({
+        p_expected_organization_id: organizationId,
+        p_booking_ids: scope.bookingIds,
+        p_include_e2e: scope.includeE2e,
+      }, signal);
+    },
   });
-  const returns = useQuery({
-    queryKey: ["bookings", "billing-return-history"],
-    queryFn: ({ signal }) => readAllBillingPages<ReturnBillingEvidence>((from, to) => supabase.from("return_inspections")
-      .select("booking_id, forklift_id, inspected_at").order("id").range(from, to).abortSignal(signal), signal),
-  });
-  return { claims, extensions, returns };
+  const state = { isError, isSuccess, isFetching, refetch };
+  return {
+    claims: { ...state, data: data?.claims },
+    extensions: { ...state, data: data?.extensions },
+    returns: { ...state, data: data?.returns },
+  };
 }

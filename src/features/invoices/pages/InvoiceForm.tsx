@@ -1,6 +1,5 @@
 import { useRef } from "react";
-import { useFormContext, useFormState, useWatch } from "react-hook-form";
-import { TotalsSummary } from "@/components/domain/TotalsSummary";
+import { useFormContext, useFormState } from "react-hook-form";
 import { EmptyState } from "@/components/feedback/EmptyState";
 import { FormActions } from "@/components/forms/FormActions";
 import { FormPageHeader } from "@/components/layout/FormPageHeader";
@@ -10,7 +9,6 @@ import { Form, FormControl, FormField, FormItem, FormMessage } from "@/component
 import { Textarea } from "@/components/ui/textarea";
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import { useUnsavedChangesGuard } from "@/hooks/useUnsavedChangesGuard";
-import { formatCurrencyWithCode } from "@/lib/format/formatCurrency";
 import { useParams, useSearchParams } from "@/lib/router-compat";
 import { notifySuccess } from "@/lib/ui/appFeedback";
 import { CfdiFieldsCard } from "../components/invoice-form/CfdiFieldsCard";
@@ -18,6 +16,7 @@ import { EditableLineItemsTable } from "../components/invoice-form/EditableLineI
 import { InvoiceAvailabilityNotice } from "../components/invoice-form/InvoiceAvailabilityNotice";
 import { InvoiceDetailsCard } from "../components/invoice-form/InvoiceDetailsCard";
 import { InvoiceSourceNotice } from "../components/invoice-form/InvoiceSourceNotice";
+import { InvoiceStickySubmitBar, InvoiceTotalsProvider, InvoiceTotalsSummary } from "../components/invoice-form/InvoiceTotals";
 import { SaleAssignmentBlocked } from "../components/invoice-form/SaleAssignmentBlocked";
 import { invoiceLineItemSource } from "../hooks/invoiceForm/invoiceSatDefaults";
 import { useDamagePrefill } from "../hooks/useDamagePrefill";
@@ -27,17 +26,6 @@ import type { InvoiceFormValues } from "../lib/invoiceFormSchema";
 function invoiceSubmitBlock(chargeBlock: string | null, isEdit: boolean, version: number | null | undefined) {
   if (chargeBlock) return chargeBlock;
   return isEdit && version == null ? "Cargando la factura…" : undefined;
-}
-
-function StickySubmitBar({ total, currency, children }: { total: number; currency: string | undefined; children: React.ReactNode }) {
-  return (
-    <div className="sticky bottom-0 z-10 flex flex-col gap-3 rounded-t-lg border-t bg-background/95 py-3 backdrop-blur sm:flex-row sm:items-center sm:justify-between">
-      <p className="text-sm text-muted-foreground">
-        Total <span className="ml-1 font-mono text-base font-semibold text-foreground">{formatCurrencyWithCode(total, currency)}</span>
-      </p>
-      {children}
-    </div>
-  );
 }
 
 function InvoiceNotesCard() {
@@ -87,8 +75,6 @@ function InvoiceFormSession() {
     handleCustomerSelect: f.handleCustomerSelect,
   });
 
-  const taxRate = useWatch({ control: f.form.control, name: "taxRate" });
-  const currency = useWatch({ control: f.form.control, name: "cfdi.moneda" });
   const isSubmitting = f.saveInvoice.isPending;
   const submitBlock = invoiceSubmitBlock(f.chargeBlock, f.isEdit, f.invoiceVersion);
   // R16 F-03: el guard acepta getter y lo evalúa DENTRO del callback del blocker,
@@ -184,58 +170,46 @@ function InvoiceFormSession() {
       <Form {...f.form}>
         {/* eslint-disable-next-line react-hooks/refs -- onSubmit only writes justSavedRef inside async callbacks */}
         <form onSubmit={f.form.handleSubmit(onSubmit)} className="space-y-6">
-          <InvoiceSourceNotice extension={f.extension} quoteNumber={f.sourceQuote?.quote_number ?? null} />
-          <InvoiceDetailsCard
-            isEdit={f.isEdit}
-            form={f.form}
-            customers={f.customers}
-            availableBookings={f.availableBookings}
-            handleCustomerSelect={f.handleCustomerSelect}
-            handleBookingsChange={f.handleBookingsChange}
-          />
-
-          <CfdiFieldsCard />
-
-          <InvoiceAvailabilityNotice
-            chargeBlock={f.chargeBlock}
-            bookingAvailabilityBlock={f.bookingAvailabilityBlock}
-            isLoading={f.isLoadingChargeAvailability}
-            onRetry={f.retryChargeAvailability}
-          />
-          <div className="grid items-start gap-6 xl:grid-cols-[minmax(0,1fr)_20rem]">
-            <EditableLineItemsTable source={invoiceLineItemSource({
-              invoiceId: id, existing: f.existing, isLoadingInvoice: f.isLoadingInvoice,
-              quoteId: fromQuoteId, quote: f.sourceQuote, extensionId, damageId,
-            })} />
-
-            <aside aria-label="Resumen de importes" className="min-w-0 space-y-3 xl:sticky xl:top-20">
-              <h2 className="text-base font-semibold">Resumen de importes</h2>
-              <TotalsSummary
-                subtotal={f.subtotal}
-                taxRate={taxRate}
-                taxAmount={f.taxAmount}
-                total={f.total}
-                currency={currency}
-                onTaxRateChange={(v) => f.form.setValue("taxRate", v, { shouldDirty: true })}
-              />
-
-              {f.form.formState.errors.taxRate?.message && (
-                <p role="alert" className="text-sm text-destructive">{f.form.formState.errors.taxRate.message}</p>
-              )}
-
-            </aside>
-
-            <InvoiceNotesCard />
-          </div>
-
-          {/* R5-16: en edición, bloquear Guardar hasta que `existing` resuelva
-              y haya invoiceVersion; sin ella el UPDATE iría sin bloqueo optimista. */}
-          <StickySubmitBar total={f.total} currency={currency}>
-            <FormActions submitLabel={f.isEdit ? "Actualizar factura" : "Crear factura"} isPending={f.isPending} onCancel={() => navigate(-1)}
-              submitDisabled={!!submitBlock}
-              submitDisabledReason={submitBlock}
+          <InvoiceTotalsProvider>
+            <InvoiceSourceNotice extension={f.extension} quoteNumber={f.sourceQuote?.quote_number ?? null} />
+            <InvoiceDetailsCard
+              isEdit={f.isEdit}
+              form={f.form}
+              customers={f.customers}
+              availableBookings={f.pickerBookings ?? f.availableBookings}
+              bookingPicker={f.bookingPicker}
+              handleCustomerSelect={f.handleCustomerSelect}
+              handleBookingsChange={f.handleBookingsChange}
             />
-          </StickySubmitBar>
+
+            <CfdiFieldsCard />
+
+            <InvoiceAvailabilityNotice
+              chargeBlock={f.chargeBlock}
+              bookingAvailabilityBlock={f.bookingAvailabilityBlock}
+              isLoading={f.isLoadingChargeAvailability}
+              onRetry={f.retryChargeAvailability}
+            />
+            <div className="grid items-start gap-6 xl:grid-cols-[minmax(0,1fr)_20rem]">
+              <EditableLineItemsTable source={invoiceLineItemSource({
+                invoiceId: id, existing: f.existing, isLoadingInvoice: f.isLoadingInvoice,
+                quoteId: fromQuoteId, quote: f.sourceQuote, extensionId, damageId,
+              })} />
+
+              <InvoiceTotalsSummary />
+
+              <InvoiceNotesCard />
+            </div>
+
+            {/* R5-16: en edición, bloquear Guardar hasta que `existing` resuelva
+                y haya invoiceVersion; sin ella el UPDATE iría sin bloqueo optimista. */}
+            <InvoiceStickySubmitBar>
+              <FormActions submitLabel={f.isEdit ? "Actualizar factura" : "Crear factura"} isPending={f.isPending} onCancel={() => navigate(-1)}
+                submitDisabled={!!submitBlock}
+                submitDisabledReason={submitBlock}
+              />
+            </InvoiceStickySubmitBar>
+          </InvoiceTotalsProvider>
         </form>
       </Form>
     </PageContainer>

@@ -39,7 +39,7 @@ beforeEach(() => {
     if (state.failed.has(table)) return new Response(JSON.stringify({ message: "private ACL diagnostic", code: "42501" }), { status: 403 });
     const data = table === "user_roles" ? [{ role: "auditor" }]
       : table === "role_permissions" ? MODULES.map(module => ({ role: "auditor", module, access_level: module === "Clientes" ? state.grant : "none" }))
-        : [{ customer_id: "customer-a", customers: { id: "customer-a", name: "QA", rfc: null, deleted_at: null } }];
+        : { invoices: [], quotes: [], customers: [{ id: "customer-a", label: "QA", url: "/customers/customer-a" }], bookings: [], deliveries: [], returns: [] };
     return new Response(JSON.stringify(data), { headers: { "Content-Type": "application/json" } });
   });
 });
@@ -67,7 +67,7 @@ describe("useEntitySearch access recovery with real permission queries", () => {
     await waitFor(() => expect(result.current.data?.customers).toHaveLength(1));
     expect(result.current.isAccessError).toBe(false);
     expect(result.current.canSearchEntities).toBe(true);
-    expect(entityRequests()).toEqual(["organization_customers"]);
+    expect(entityRequests()).toEqual(["get_global_search"]);
   });
 
   it("failed verification after a cached grant hides hits and recovery to none stays request-free", async () => {

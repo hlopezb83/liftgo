@@ -5,7 +5,8 @@ import { Header } from "@/lib/pdf/components/Header";
 import { InfoCards } from "@/lib/pdf/components/InfoCards";
 import { LineItemsTable } from "@/lib/pdf/components/LineItemsTable";
 import { TotalsBox } from "@/lib/pdf/components/TotalsBox";
-import { fmtDate, type CompanyData, type PdfLineItem } from "@/lib/pdf/shared";
+import { fmtDate } from "@/lib/pdf/formatDate";
+import type { CompanyData, PdfLineItem } from "@/lib/pdf/shared";
 import { sharedStyles } from "@/lib/pdf/theme/styles";
 import { COLORS, FONT_SIZES } from "@/lib/pdf/theme/tokens";
 

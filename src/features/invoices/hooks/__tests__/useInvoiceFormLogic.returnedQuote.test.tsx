@@ -63,11 +63,15 @@ vi.mock("../invoices/useQuoteChargeAvailability", () => ({ useQuoteChargeAvailab
 vi.mock("@/lib/ui/appFeedback", () => ({ notifyWarning: data.notifyWarning }));
 
 import { resolveBusinessBlock, describeBusinessBlock } from "@/lib/rules/businessBlocks";
+import { useInvoiceFormTotals } from "../invoiceForm/useInvoiceFormTotals";
 import { useInvoiceFormLogic } from "../useInvoiceFormLogic";
 
 describe("returned quote-backed monthly booking through the invoice form", () => {
   it("carries raw booking evidence through real hooks into July rent, VAT and save payload", async () => {
-    const { result } = renderHook(() => useInvoiceFormLogic({ fromQuoteId: null }));
+    const { result } = renderHook(() => {
+      const form = useInvoiceFormLogic({ fromQuoteId: null });
+      return { ...form, ...useInvoiceFormTotals(form.form) };
+    });
     expect(data.booking).not.toHaveProperty("pending_billing_period");
     expect(result.current.availableBookings?.[0]).toMatchObject({
       pending_billing_period: { start: "2026-07-15", end: "2026-07-31" },

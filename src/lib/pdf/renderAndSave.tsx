@@ -1,24 +1,5 @@
-import { Font, pdf, type DocumentProps } from "@react-pdf/renderer";
-import type { ReactElement } from "react";
-
-/**
- * Bootstrap único de configuración global de @react-pdf/renderer:
- *
- * - `registerHyphenationCallback((w) => [w])` desactiva el corte automático de
- *   palabras (hyphenation). En español produce cortes incorrectos porque el
- *   algoritmo por defecto está calibrado para inglés. Devolver la palabra sin
- *   dividir es el patrón recomendado por la doc oficial para idiomas donde no
- *   se quiere autohyphenation.
- *
- * Los builders de PDF se importan sólo al descargar un documento, de modo que
- * esta dependencia queda fuera del bundle inicial.
- */
-let bootstrapped = false;
-function bootstrap() {
-  if (bootstrapped) return;
-  Font.registerHyphenationCallback((word) => [word]);
-  bootstrapped = true;
-}
+import { exportInWorker } from "@/lib/exportInWorker";
+import type { PdfExport } from "./renderPdfBlob";
 
 /**
  * Guarda un `Blob` como archivo usando `<a download>` + `URL.createObjectURL`.
@@ -38,26 +19,16 @@ function saveBlob(blob: Blob, filename: string): void {
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
-/**
- * Renderiza un `<Document>` de @react-pdf/renderer a Blob y lo descarga.
- *
- * Consolida el patrón repetido en los 5 builders (`quote/build.tsx`,
- * `contract/build.tsx`, `incomeStatement.tsx`, `customerStatement.tsx`,
- * `features/invoices/lib/pdf/build.tsx`). Cada builder se carga dinámicamente
- * desde su acción de descarga; el renderer queda fuera del bundle inicial.
- *
- * Uso:
- * ```tsx
- * await renderAndSave(<QuoteDocument {...data} />, `${data.quoteNumber}.pdf`);
- * ```
- */
 export async function renderAndSave(
-  doc: ReactElement<DocumentProps>,
+  input: PdfExport,
   filename: string,
   shouldSave?: () => boolean,
 ): Promise<void> {
-  bootstrap();
-  const blob = await pdf(doc).toBlob();
+  const workerBlob = await exportInWorker<PdfExport, Blob>(
+    () => new Worker(new URL("./renderPdf.worker.ts", import.meta.url), { type: "module" }),
+    input,
+  );
+  const blob = workerBlob ?? await (await import("./renderPdfBlob")).renderPdfBlob(input);
   if (shouldSave && !shouldSave()) throw new Error("El reporte cambió. Vuelve a exportar.");
   saveBlob(blob, filename);
 }

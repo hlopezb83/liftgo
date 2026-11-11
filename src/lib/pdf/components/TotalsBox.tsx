@@ -1,6 +1,6 @@
 import { Text, View } from "@react-pdf/renderer";
 import { formatCurrency, formatCurrencyWithCode } from "@/lib/format/formatCurrency";
-import { fmtDate } from "@/lib/pdf/shared";
+import { fmtDate } from "@/lib/pdf/formatDate";
 import { sharedStyles } from "@/lib/pdf/theme/styles";
 
 interface TotalsBoxProps {

@@ -1,4 +1,3 @@
-import { IncomeStatementDocument } from "@/lib/pdf/documents/IncomeStatementDocument";
 import { renderAndSave } from "@/lib/pdf/renderAndSave";
 import { fetchCompanyDataAndLogo } from "@/lib/pdf/shared";
 import type {
@@ -25,10 +24,11 @@ interface ExportPdfParams {
 
 export async function exportIncomeStatementPdf(params: ExportPdfParams): Promise<void> {
   const { company, logoBase64 } = await fetchCompanyDataAndLogo();
-  if (params.shouldSave && !params.shouldSave()) throw new Error("El reporte cambió. Vuelve a exportar.");
+  const { shouldSave, ...report } = params;
+  if (shouldSave && !shouldSave()) throw new Error("El reporte cambió. Vuelve a exportar.");
   await renderAndSave(
-    <IncomeStatementDocument company={company} logoBase64={logoBase64} {...params} />,
+    { kind: "incomeStatement", props: { company, logoBase64, ...report } },
     `estado-resultados${params.selectedYear !== "all" ? `-${params.selectedYear}` : ""}.pdf`,
-    params.shouldSave,
+    shouldSave,
   );
 }

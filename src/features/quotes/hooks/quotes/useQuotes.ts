@@ -1,9 +1,11 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useVerifiedOrganizationId } from "@/contexts/OrganizationContext";
 import { forkliftKeys, quoteAssignedForkliftKeys, statusLogKeys } from "@/features/fleet";
 import { supabase } from "@/integrations/supabase/client";
 import type { TablesInsert, TablesUpdate } from "@/integrations/supabase/types";
 import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
 import { defineEntityQueries } from "@/lib/query/defineEntityQueries";
+import { useVerifiedIdentityScope } from "@/lib/query/useVerifiedIdentityScope";
 import { callRpc } from "@/lib/rpc";
 import { LIST_FETCH_LIMIT } from "@/lib/supabase/constants";
 import type { Quote } from "@/types/rental";
@@ -85,18 +87,36 @@ export function useQuote(id?: string) {
 
 /** Trae una lista puntual de cotizaciones por sus IDs. */
 export function useQuotesByIds(ids: string[] | undefined) {
-  const key = (ids ?? []).slice().sort().join(",");
-  return useQuery({
-    queryKey: quoteKeys.byFilter({ byIds: key }),
-    enabled: !!ids && ids.length > 0,
-    staleTime: 60_000,
-    queryFn: async () => {
-      if (!ids || ids.length === 0) return [];
-      const { data, error } = await supabase.from("quotes").select("id, organization_id, currency, line_items, rental_meta, start_date, end_date").in("id", ids);
-      if (error) throw error;
-      return data;
-    },
-  });
+  const organizationId = useVerifiedOrganizationId();
+  const identity = useVerifiedIdentityScope();
+  const queryClient = useQueryClient();
+  const options = (requested: string[]) => {
+    const selected = [...new Set(requested)].sort();
+    return {
+      queryKey: quoteKeys.byFilter({ byIds: selected.join(","), identity }),
+      enabled: !!organizationId && !!identity && selected.length > 0,
+      staleTime: 60_000,
+      queryFn: async ({ signal }: { signal: AbortSignal }) => {
+        if (!selected.length) return [];
+        if (!organizationId || !identity) throw new Error("Empresa no verificada");
+        const query = (batch: string[]) => supabase.from("quotes")
+          .select("id, organization_id, currency, line_items, rental_meta, start_date, end_date")
+          .eq("organization_id", organizationId).in("id", batch).abortSignal(signal);
+        type Row = NonNullable<Awaited<ReturnType<typeof query>>["data"]>[number];
+        const rows: Row[] = [];
+        for (let index = 0; index < selected.length; index += 50) {
+          signal.throwIfAborted();
+          const { data, error } = await query(selected.slice(index, index + 50));
+          signal.throwIfAborted();
+          if (error) throw error;
+          rows.push(...(data ?? []));
+        }
+        return rows;
+      },
+    };
+  };
+  const result = useQuery(options(ids ?? []));
+  return { ...result, loadForIds: (requested: string[]) => queryClient.fetchQuery(options(requested)) };
 }
 
 export function useCreateQuote() {

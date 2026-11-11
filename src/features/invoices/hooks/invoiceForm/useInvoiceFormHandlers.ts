@@ -1,6 +1,7 @@
 import { useRef, useState } from "react";
 import { customerTaxRate } from "@/features/customers";
 import type { Forklift } from "@/features/fleet";
+import { hasQuotedDiscount, type QuotedRentalBooking } from "@/features/quotes";
 import { resolveBookingRates } from "@/lib/domain/bookingRates";
 import { firstBillingPeriod, prorateMonthlyLine } from "@/lib/domain/firstBillingPeriod";
 import { generateLineItems } from "@/lib/domain/invoiceHelpers";
@@ -45,6 +46,8 @@ interface Props {
   /** Cotizaciones origen de las reservas cargadas; se usan para arrastrar
    *  partidas no-renta (logística/entrega) a la factura. */
   quotes?: QuoteSource[] | undefined;
+  loadQuoteSources?: (quoteIds: string[]) => Promise<QuoteSource[]>;
+  loadQuotedBookings?: (quoteIds: string[]) => Promise<QuotedRentalBooking[]>;
   loadQuoteCharges: (quoteIds: string[]) => Promise<QuoteChargeAvailability>;
 }
 
@@ -154,9 +157,8 @@ export function applyPrimaryCurrency<T extends Pick<Booking, "currency" | "tipo_
 }
 
 async function availableChargesForBookings(
-  selected: Booking[], quotes: QuoteSource[] | undefined, loadQuoteCharges: Props["loadQuoteCharges"],
+  quoteIds: string[], quotes: QuoteSource[] | undefined, loadQuoteCharges: Props["loadQuoteCharges"],
 ): Promise<LineItemValues[]> {
-  const quoteIds = [...new Set(selected.flatMap((booking) => booking.quote_id ? [booking.quote_id] : []))];
   const availability = quoteIds.length ? await loadQuoteCharges(quoteIds) : undefined;
   for (const quoteId of quoteIds) {
     const source = quotes?.find((quote) => quote.id === quoteId);
@@ -164,6 +166,18 @@ async function availableChargesForBookings(
     applyQuoteChargeAvailability(quoteId, source.line_items as LineItemValues[], availability);
   }
   return buildAvailableQuoteChargeLines(quoteIds, availability);
+}
+
+function discountSiblings(sources: QuoteSource[] | undefined, bookings: Booking[] | undefined, load: Props["loadQuotedBookings"]) {
+  const quoteIds = sources?.filter(hasQuotedDiscount).map((quote) => quote.id) ?? [];
+  return load && quoteIds.length ? load(quoteIds) : bookings ?? [];
+}
+
+function selectedBookingRows(bookings: Booking[] | undefined, selectedIds: string[]) {
+  const byId = new Map(bookings?.map((booking) => [booking.id, booking]));
+  const selected = selectedIds.flatMap((id) => byId.get(id) ?? []);
+  if (selected.length !== new Set(selectedIds).size) throw new Error("No se pudieron cargar todas las reservas seleccionadas. Recarga las reservas y reintenta.");
+  return selected;
 }
 
 function applySelectedCustomer(
@@ -213,7 +227,7 @@ function protectLaterEdits(form: UseFormReturn<InvoiceFormValues>): UseFormRetur
   } };
 }
 
-export function useInvoiceFormHandlers({ form, customers, bookings, forklifts, quotes, loadQuoteCharges }: Props) {
+export function useInvoiceFormHandlers({ form, customers, bookings, forklifts, quotes, loadQuoteSources, loadQuotedBookings, loadQuoteCharges }: Props) {
 
   const selectionRequest = useRef(0);
   const [isLoadingCharges, setIsLoadingCharges] = useState(false);
@@ -272,20 +286,23 @@ export function useInvoiceFormHandlers({ form, customers, bookings, forklifts, q
     if (!selectionNeedsReview.current) setChargeSelectionError(null);
     lastSelection.current = selectedIds;
     const defaultsForm = protectLaterEdits(form);
-    const selected = selectedIds
-      .map((id) => bookings?.find((b) => b.id === id))
-      .filter((b): b is Booking => !!b);
-
+    let selected: Booking[];
     let rentalLines: LineItemValues[];
     let extraLines: LineItemValues[];
     pendingSelection.current = true;
     setIsLoadingCharges(true);
     try {
-      if (selected.length !== new Set(selectedIds).size) throw new Error("No se pudieron cargar todas las reservas seleccionadas. Recarga las reservas y reintenta.");
-      rentalLines = buildQuotedBookingLines(selected, bookings ?? [], forklifts ?? [], quotes,
-        (booking) => buildLinesForBooking(booking, forklifts));
-      const available = await availableChargesForBookings(selected, quotes, loadQuoteCharges);
+      selected = selectedBookingRows(bookings, selectedIds);
+      const quoteIds = [...new Set(selected.flatMap((booking) => booking.quote_id ? [booking.quote_id] : []))];
+      const sources = loadQuoteSources && quoteIds.length ? await loadQuoteSources(quoteIds) : quotes;
       if (request !== selectionRequest.current) return;
+      const [siblings, available] = await Promise.all([
+        discountSiblings(sources, bookings, loadQuotedBookings),
+        availableChargesForBookings(quoteIds, sources, loadQuoteCharges),
+      ]);
+      if (request !== selectionRequest.current) return;
+      rentalLines = buildQuotedBookingLines(selected, siblings, forklifts ?? [], sources,
+        (booking) => buildLinesForBooking(booking, forklifts));
       const current = form.getValues("lineItems");
       extraLines = preserveEnteredQuoteChargeLines(available, current);
     } catch (error) {

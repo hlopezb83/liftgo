@@ -1,62 +1,74 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useVerifiedOrganizationId } from "@/contexts/OrganizationContext";
 import { bookingKeys } from "@/features/bookings";
 import { supabase } from "@/integrations/supabase/client";
 import { useVerifiedIdentityScope } from "@/lib/query/useVerifiedIdentityScope";
-import { e2eVisibilityFilter } from "@/lib/supabase/constants";
+import { e2eVisibilityFilter, isE2eDataVisible } from "@/lib/supabase/constants";
+import { readInvoiceBookingCandidatePage } from "../../lib/invoiceBookingReadRpc";
+import { readAllBillingPages } from "./useBookingBillingEvidence";
 
-const PAGE_SIZE = 200;
+const SELECTOR_PAGE_SIZE = 50;
 
-/** Candidates only; billing evidence and the transactional RPC remain authoritative. */
-export async function fetchInvoiceBookingCandidates(
-  organizationId: string,
-  visibility: string,
-  linkedIds: readonly string[],
-  signal: AbortSignal,
-) {
-  if (!organizationId) throw new Error("Empresa no verificada");
-  const baseQuery = () => supabase.from("bookings")
-    .select("*, forklifts(name, model)").eq("organization_id", organizationId).or(visibility);
-  type Row = NonNullable<Awaited<ReturnType<typeof baseQuery>>["data"]>[number];
-  const rows = new Map<string, Row>();
-  let cursor: string | undefined;
-  let complete = false;
-  for (let page = 0; page < 500; page++) {
-    signal.throwIfAborted();
-    let query = baseQuery().in("status", ["confirmed", "completed"])
-      .order("id").limit(PAGE_SIZE);
-    if (cursor) query = query.gt("id", cursor);
-    const { data, error } = await query.abortSignal(signal);
-    signal.throwIfAborted();
-    if (error) throw error;
-    const batch = data ?? [];
-    for (const row of batch) rows.set(row.id, row);
-    if (batch.length < PAGE_SIZE) { complete = true; break; }
-    cursor = batch[batch.length - 1].id;
-  }
-  if (!complete) throw new Error("No se pudo consultar todas las reservas facturables. Recarga y reintenta.");
-  // Historical links must survive editing even when their status is no longer
-  // a candidate. Fetch missing IDs separately without broadening new selections.
-  const missing = [...new Set(linkedIds)].filter((id) => !rows.has(id));
-  for (let from = 0; from < missing.length; from += PAGE_SIZE) {
-    signal.throwIfAborted();
-    const { data, error } = await baseQuery().in("id", missing.slice(from, from + PAGE_SIZE)).abortSignal(signal);
-    signal.throwIfAborted();
-    if (error) throw error;
-    for (const row of data ?? []) rows.set(row.id, row);
-  }
-  return [...rows.values()].sort((a, b) => b.start_date.localeCompare(a.start_date) || a.id.localeCompare(b.id));
+interface CandidatePageFilters {
+  search: string;
+  page: number;
+  customerId: string | null;
+  linkedOnly: boolean;
 }
 
-export function useInvoiceBookingCandidates(linkedIds: readonly string[]) {
+/** Complete siblings only for selected quotes that require discount allocation. */
+async function fetchQuotedBookingSiblings(organizationId: string, visibility: string, quoteIds: string[], signal: AbortSignal) {
+  const query = (ids: string[]) => supabase.from("bookings")
+    .select("id,forklift_id,quote_id,organization_id,currency,status,start_date,end_date,recurring_billing,daily_rate,weekly_rate,monthly_rate,quote_rental_line_index")
+    .eq("organization_id", organizationId).or(visibility).in("quote_id", ids).in("status", ["confirmed", "completed"]);
+  type Row = NonNullable<Awaited<ReturnType<typeof query>>["data"]>[number];
+  const rows: Row[] = [];
+  for (let index = 0; index < quoteIds.length; index += SELECTOR_PAGE_SIZE) {
+    const ids = quoteIds.slice(index, index + SELECTOR_PAGE_SIZE);
+    rows.push(...await readAllBillingPages<Row>((from, to) => query(ids).order("id").range(from, to).abortSignal(signal), signal));
+  }
+  return rows;
+}
+
+export function useInvoiceBookingCandidates(linkedIds: readonly string[], filters: CandidatePageFilters) {
   const organizationId = useVerifiedOrganizationId();
   const identity = useVerifiedIdentityScope();
   const visibility = e2eVisibilityFilter();
+  const includeE2e = isE2eDataVisible();
+  const queryClient = useQueryClient();
   const ids = [...new Set(linkedIds)].sort();
-  return useQuery({
-    queryKey: bookingKeys.byFilter({ purpose: "invoice-candidates", identity, visibility, linkedIds: ids }),
+  const result = useQuery<Awaited<ReturnType<typeof readInvoiceBookingCandidatePage>>>({
+    queryKey: bookingKeys.byFilter({ purpose: "invoice-candidates", identity, visibility, linkedIds: ids, ...filters }),
     enabled: !!identity && !!organizationId,
-    queryFn: ({ signal }) => fetchInvoiceBookingCandidates(organizationId ?? "", visibility, ids, signal),
+    placeholderData: (previous, previousQuery) => {
+      const previousScope = previousQuery?.queryKey[2];
+      return previousScope && typeof previousScope === "object"
+        && "identity" in previousScope && previousScope.identity === identity
+        && "visibility" in previousScope && previousScope.visibility === visibility ? previous : undefined;
+    },
+    queryFn: async ({ signal }) => {
+      if (!organizationId || !identity) throw new Error("Empresa no verificada");
+      if (filters.linkedOnly && ids.length === 0) return { bookings: [], hasMore: false, pageIndex: filters.page };
+      return readInvoiceBookingCandidatePage({
+        p_expected_organization_id: organizationId,
+        p_search: filters.search,
+        p_customer_id: filters.customerId,
+        p_page: filters.page,
+        p_page_size: filters.linkedOnly ? 0 : SELECTOR_PAGE_SIZE,
+        p_linked_ids: ids,
+        p_include_e2e: includeE2e,
+      }, signal);
+    },
     staleTime: 60_000,
   });
+  const loadQuotedBookings = (quoteIds: string[]) => {
+    if (!organizationId || !identity) return Promise.reject(new Error("Empresa no verificada"));
+    const sorted = [...new Set(quoteIds)].sort();
+    return queryClient.fetchQuery({
+      queryKey: bookingKeys.byFilter({ purpose: "invoice-quote-siblings", identity, visibility, quoteIds: sorted }),
+      queryFn: ({ signal }) => fetchQuotedBookingSiblings(organizationId, visibility, sorted, signal),
+      staleTime: 60_000,
+    });
+  };
+  return { ...result, data: result.data?.bookings, hasMore: result.data?.hasMore ?? false, loadQuotedBookings };
 }

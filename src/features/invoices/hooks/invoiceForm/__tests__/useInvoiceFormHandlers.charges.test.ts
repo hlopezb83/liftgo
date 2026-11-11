@@ -2,6 +2,7 @@ import { act, renderHook } from "@testing-library/react";
 import { useForm } from "react-hook-form";
 import { describe, expect, it, vi } from "vitest";
 import type { Forklift } from "@/features/fleet";
+import { generateLineItemsFromModel } from "@/lib/domain/invoiceHelpers";
 import { buildEmptyInvoiceValues, type InvoiceFormValues } from "../../../lib/invoiceFormSchema";
 import { buildAvailableQuoteChargeLines, type QuoteChargeAvailability } from "../../../lib/quoteChargeAvailability";
 import { useInvoiceFormHandlers } from "../useInvoiceFormHandlers";
@@ -64,6 +65,31 @@ describe("booking selection with persistent charges", () => {
     await act(async () => { await result.current.handleBookingsChange(["b2"]); });
     await act(async () => { resolveFirst(availability); await first; });
     expect(result.current.form.getValues("bookingIds")).toEqual(["b2"]);
+  });
+
+  it("preserves the selected unit's share of an odd discount when its sibling is off the page", async () => {
+    const rentalMeta = { modelId: "model", quantity: 2, dailyRate: 750.50, weeklyRate: 4250.25, monthlyRate: 14500.75 };
+    const dates = { start_date: "2026-09-26", end_date: "2026-10-03" };
+    const siblings = ["a", "b"].map((id) => ({ id, forklift_id: id, quote_id: q, ...dates,
+      daily_rate: rentalMeta.dailyRate, weekly_rate: rentalMeta.weeklyRate, monthly_rate: rentalMeta.monthlyRate }));
+    const units = siblings.map(({ forklift_id }) => ({ id: forklift_id, equipment_model_id: "model" })) as Forklift[];
+    const quote = { id: q, ...dates, rental_meta: [rentalMeta], line_items: generateLineItemsFromModel("Toyota",
+      rentalMeta.dailyRate, rentalMeta.weeklyRate, rentalMeta.monthlyRate, dates.start_date, dates.end_date, 2)
+      .map((line) => ({ ...line, discount: 10, discount_type: "%" })) };
+    const loadQuoteSources = vi.fn().mockResolvedValue([quote]);
+    const loadQuotedBookings = vi.fn().mockResolvedValue(siblings);
+    const { result } = renderHook(() => {
+      const form = useForm<InvoiceFormValues>({ defaultValues: buildEmptyInvoiceValues() });
+      return { form, ...useInvoiceFormHandlers({ form, customers: [], bookings: [siblings[1]], forklifts: units,
+        loadQuoteSources, loadQuotedBookings, loadQuoteCharges: async () => ({ complete: true,
+          quotes: [{ quote_id: q, legacy_review_required: false, lines: [] }] }) }) };
+    });
+    await act(async () => { await result.current.handleBookingsChange([siblings[1].id]); });
+    expect(result.current.chargeSelectionError).toBeNull();
+    expect(result.current.form.getValues("bookingIds")).toEqual(["b"]);
+    expect(result.current.form.getValues("lineItems").map((line) => line.discount)).toEqual([425.02, 75.05]);
+    expect(loadQuoteSources).toHaveBeenCalledWith([q]);
+    expect(loadQuotedBookings).toHaveBeenCalledWith([q]);
   });
 });
 

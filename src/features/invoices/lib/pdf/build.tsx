@@ -1,5 +1,4 @@
 import { parseLineItems } from "@/lib/domain/lineItems";
-import { InvoiceDocument } from "@/lib/pdf/documents/InvoiceDocument";
 import { renderAndSave } from "@/lib/pdf/renderAndSave";
 import { fetchCompanyDataAndLogo, type PdfLineItem } from "@/lib/pdf/shared";
 import type { InvoicePdfPayload } from "../../hooks/invoices/pdf/fetchInvoicePdfData";
@@ -28,28 +27,14 @@ export async function buildInvoicePdf(payload: InvoicePdfPayload): Promise<void>
   const currency = invoice.moneda || "MXN";
 
   await renderAndSave(
-    <InvoiceDocument
-      company={company}
-      logoBase64={logoBase64}
-      invoiceLabel={invoiceLabel}
-      customerName={customerName}
-      customerRfc={customerRfc}
-      customerCp={customerCp}
-      issuedAt={invoice.issued_at}
-      dueDate={invoice.due_date}
-      status={invoice.status}
-      formaPago={invoice.forma_pago}
-      metodoPago={invoice.metodo_pago}
-      cfdiStatus={invoice.cfdi_status}
-      cfdiUuid={invoice.cfdi_uuid}
-      lineItems={lineItems}
-      subtotal={Number(invoice.subtotal)}
-      taxRate={Number(invoice.tax_rate)}
-      taxAmount={Number(invoice.tax_amount)}
-      total={Number(invoice.total)}
-      currency={currency}
-      notes={invoice.notes ? String(invoice.notes) : null}
-    />,
+    { kind: "invoice", props: {
+      company, logoBase64, invoiceLabel, customerName, customerRfc, customerCp,
+      issuedAt: invoice.issued_at, dueDate: invoice.due_date, status: invoice.status,
+      formaPago: invoice.forma_pago, metodoPago: invoice.metodo_pago, cfdiStatus: invoice.cfdi_status,
+      cfdiUuid: invoice.cfdi_uuid, lineItems, subtotal: Number(invoice.subtotal), taxRate: Number(invoice.tax_rate),
+      taxAmount: Number(invoice.tax_amount), total: Number(invoice.total), currency,
+      notes: invoice.notes ? String(invoice.notes) : null,
+    } },
     `${invoice.invoice_number}.pdf`,
   );
 }

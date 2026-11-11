@@ -70,7 +70,7 @@ export function useCreateDelivery() {
       if (error) throw error;
       return data;
     },
-    invalidateKeys: [deliveryKeys.all, ["bookings"] as const],
+    invalidateKeys: [deliveryKeys.all, ["bookings"] as const, operationSummaryKeys.dashboardStats.all],
     errorTitle: "Error al crear entrega",
   });
 }
@@ -82,7 +82,7 @@ export function useUpdateDelivery() {
       if (error) throw error;
       return data;
     },
-    invalidateKeys: [deliveryKeys.all, ["bookings"] as const],
+    invalidateKeys: [deliveryKeys.all, ["bookings"] as const, operationSummaryKeys.dashboardStats.all],
     errorTitle: "Error al actualizar entrega",
   });
 }
@@ -153,7 +153,7 @@ export function useDeleteDelivery() {
       if (error) throw error;
       return id;
     },
-    invalidateKeys: [deliveryKeys.all, ["bookings"] as const],
+    invalidateKeys: [deliveryKeys.all, ["bookings"] as const, operationSummaryKeys.dashboardStats.all],
     errorTitle: "Error al eliminar entrega",
   });
 }

@@ -46,7 +46,7 @@ function bookingScopeError(props: Props, ids: string[], scope: BookingSource[]):
 }
 
 function availabilityError(
-  ids: string[], lines: InvoiceFormValues["lineItems"], availability: ReturnType<typeof useQuoteChargeAvailability>,
+  ids: string[], lines: Parameters<typeof quoteChargeSelectionError>[1], availability: ReturnType<typeof useQuoteChargeAvailability>,
 ): string | null {
   if (ids.length === 0) return null;
   if (availability.isError) return CHARGE_AVAILABILITY_UNAVAILABLE;
@@ -58,7 +58,13 @@ function availabilityError(
 export function useInvoiceQuoteCharges(props: Props) {
   const { form, bookings, invoiceBookingsRows, existing, fromQuoteId, currentInvoiceId } = props;
   const selectedIds = useWatch({ control: form.control, name: "bookingIds" });
-  const currentLines = useWatch({ control: form.control, name: "lineItems" });
+  const currentLines = useWatch({
+    control: form.control,
+    name: "lineItems",
+    compute: (lines) => (lines ?? []).flatMap((line) => line?.source_quote_id || line?.source_quote_line_id
+      ? [{ source_quote_id: line.source_quote_id, source_quote_line_id: line.source_quote_line_id, quantity: line.quantity }]
+      : []),
+  });
   const ids = linkedBookingIds(selectedIds, existing, invoiceBookingsRows);
   const scope = quoteScopeBookings(bookings, invoiceBookingsRows);
   const relatedQuoteIds = collectInvoiceChargeQuoteIds({

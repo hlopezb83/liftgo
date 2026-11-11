@@ -1,0 +1,7 @@
+{
+  "description": "Reduce las consultas y el trabajo del navegador en las pantallas de uso diario.",
+  "changes": [
+    "Pagina las reservas de facturación y limita el historial a las reservas relevantes.",
+    "Agrupa consultas del tablero y la búsqueda global y difiere gráficos y exportaciones."
+  ]
+}
