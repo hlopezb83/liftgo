@@ -25,6 +25,15 @@ beforeEach(() => {
 });
 
 describe("availability reasons query lifecycle", () => {
+  it("separates equipment caches and hides the former unit during a selection change", async () => {
+    const { Wrapper } = createQueryWrapper();
+    const { result, rerender } = renderHook(({ id }) => useAvailabilityReasons(dates, true, id), { wrapper: Wrapper, initialProps: { id: "f1" } });
+    await waitFor(() => expect(result.current.data).toEqual(payload));
+    mocks.fetch.mockImplementation(() => new Promise(() => {}));
+    rerender({ id: "f2" });
+    expect(result.current.data).toBeUndefined();
+    expect(mocks.fetch).toHaveBeenLastCalledWith(expect.objectContaining({ forkliftId: "f2", organizationId: "a" }));
+  });
   it("loads lazily only for a verified company and Flota/read", async () => {
     const { Wrapper } = createQueryWrapper();
     const { result, rerender } = renderHook(({ open }) => useAvailabilityReasons(dates, open), { wrapper: Wrapper, initialProps: { open: false } });

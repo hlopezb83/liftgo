@@ -20,6 +20,7 @@ import { RoleGuard } from "@/layouts/RoleGuard";
 import { useParams } from "@/lib/router-compat";
 import { notifyError, notifySuccess } from "@/lib/ui/appFeedback";
 import { cn } from "@/lib/utils";
+import { EquipmentAvailabilityLookup } from "../components/fleet/EquipmentAvailabilityLookup";
 import { DocumentAttachments } from "../components/forklift-detail/DocumentAttachments";
 import { ForkliftBookingsList } from "../components/forklift-detail/ForkliftBookingsList";
 import { ForkliftFinancialCard } from "../components/forklift-detail/ForkliftFinancialCard";
@@ -126,8 +127,7 @@ export default function ForkliftDetail() {
           </>
         }
       />
-
-
+      <EquipmentAvailabilityLookup equipment={[forklift]} />
       <div className={cn("grid grid-cols-1 items-start gap-4 sm:gap-6", canSeeCosts ? "sm:grid-cols-2 lg:grid-cols-3" : "lg:grid-cols-2")}>
         <ForkliftSpecsCard forklift={forklift} currentLocation={locationData} locationError={locationError} />
         <ForkliftRatesCard forklift={forklift} />

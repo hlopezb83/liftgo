@@ -6,7 +6,19 @@ import { explainUnavailableUnit, overlapsRequestedRange, type AvailabilityBookin
 const PAGE_SIZE = 200;
 type AvailabilityUnitRow = Pick<Tables<"forklifts">, keyof AvailabilityUnit>;
 
-async function readUnits(organizationId: string, signal?: AbortSignal): Promise<AvailabilityUnit[]> {
+async function readAvailableUnits(organizationId: string, start: string, end: string, signal?: AbortSignal, forkliftId?: string): Promise<AvailabilityUnitRow[]> {
+  if (!forkliftId) return callRpc<AvailabilityUnitRow[]>("get_available_forklifts", { p_start_date: start, p_end_date: end }, { signal });
+  let request = supabase.rpc("get_available_forklifts", { p_start_date: start, p_end_date: end })
+    .select("id, name, model, status, organization_id")
+    .eq("id", forkliftId)
+    .eq("organization_id", organizationId);
+  if (signal) request = request.abortSignal(signal);
+  const { data, error } = await request;
+  if (error) throw error;
+  return data ?? [];
+}
+
+async function readUnits(organizationId: string, signal?: AbortSignal, forkliftId?: string): Promise<AvailabilityUnit[]> {
   const rows: AvailabilityUnit[] = [];
   for (let offset = 0; ; offset += PAGE_SIZE) {
     let request = supabase.from("forklifts")
@@ -16,6 +28,7 @@ async function readUnits(organizationId: string, signal?: AbortSignal): Promise<
       .or("is_e2e.is.null,is_e2e.eq.false")
       .order("id")
       .range(offset, offset + PAGE_SIZE - 1);
+    if (forkliftId) request = request.eq("id", forkliftId);
     if (signal) request = request.abortSignal(signal);
     const { data, error } = await request;
     if (error) throw error;
@@ -23,14 +36,14 @@ async function readUnits(organizationId: string, signal?: AbortSignal): Promise<
     for (const row of page) {
       // Supabase permits a null organization on legacy fleet rows. Only copy
       // the organization after the equality check has narrowed it to string.
-      if (row.organization_id !== organizationId) continue;
+      if (row.organization_id !== organizationId || (forkliftId && row.id !== forkliftId)) continue;
       rows.push({ ...row, organization_id: row.organization_id });
     }
     if (page.length < PAGE_SIZE) return rows;
   }
 }
 
-async function readBookings(organizationId: string, end: string, signal?: AbortSignal): Promise<AvailabilityBooking[]> {
+async function readBookings(organizationId: string, end: string, signal?: AbortSignal, forkliftId?: string): Promise<AvailabilityBooking[]> {
   const rows: AvailabilityBooking[] = [];
   for (let offset = 0; ; offset += PAGE_SIZE) {
     let request = supabase.from("bookings")
@@ -41,11 +54,12 @@ async function readBookings(organizationId: string, end: string, signal?: AbortS
       .lte("start_date", end)
       .order("id")
       .range(offset, offset + PAGE_SIZE - 1);
+    if (forkliftId) request = request.eq("forklift_id", forkliftId);
     if (signal) request = request.abortSignal(signal);
     const { data, error } = await request;
     if (error) throw error;
     const page = data ?? [];
-    rows.push(...page.filter((row) => row.organization_id === organizationId));
+    rows.push(...page.filter((row) => row.organization_id === organizationId && (!forkliftId || row.forklift_id === forkliftId)));
     if (page.length < PAGE_SIZE) return rows;
   }
 }
@@ -63,17 +77,18 @@ async function mapUnits<T>(units: AvailabilityUnit[], fn: (unit: AvailabilityUni
   return results;
 }
 
-export async function fetchAvailabilityReasons({ organizationId, start, end, canReadBookings, signal }: {
+export async function fetchAvailabilityReasons({ organizationId, start, end, canReadBookings, signal, forkliftId }: {
   organizationId: string;
   start: string;
   end: string;
   canReadBookings: boolean;
   signal?: AbortSignal;
+  forkliftId?: string;
 }) {
   if (!organizationId || !start || !end || end < start) throw new Error("Consulta de disponibilidad inválida");
   const [units, available, today] = await Promise.all([
-    readUnits(organizationId, signal),
-    callRpc<AvailabilityUnitRow[]>("get_available_forklifts", { p_start_date: start, p_end_date: end }, { signal }),
+    readUnits(organizationId, signal, forkliftId),
+    readAvailableUnits(organizationId, start, end, signal, forkliftId),
     callRpc<string>("today_mty", {}, { signal }),
   ]);
   // Match only the verified company's fleet. An unrelated cached/returned row
@@ -83,7 +98,7 @@ export async function fetchAvailabilityReasons({ organizationId, start, end, can
   let bookings: AvailabilityBooking[] = [];
   if (canReadBookings) {
     try {
-      bookings = await readBookings(organizationId, end > today ? end : today, signal);
+      bookings = await readBookings(organizationId, end > today ? end : today, signal, forkliftId);
     } catch (error) {
       if (signal?.aborted) throw error;
       evidenceIncomplete = true;
@@ -92,6 +107,7 @@ export async function fetchAvailabilityReasons({ organizationId, start, end, can
   const unavailable = await mapUnits(units.filter((unit) => !availableIds.has(unit.id)), async (unit) => {
     let maintenanceBlocked: boolean | undefined;
     let overdueUnreturned: boolean | undefined;
+    let overdueBooking: AvailabilityBooking | undefined;
     const unitBookings = bookings.filter((booking) => booking.forklift_id === unit.id);
     // No mutation or manual status correction is part of this read path.
     if (!["retired", "sold", "maintenance"].includes(unit.status)) {
@@ -105,6 +121,7 @@ export async function fetchAvailabilityReasons({ organizationId, start, end, can
             const returned = await callRpc<boolean>("booking_is_returned", { p_booking_id: booking.id }, { signal });
             if (returned === false) {
               overdueUnreturned = true;
+              overdueBooking = booking;
               break;
             }
           }
@@ -117,10 +134,14 @@ export async function fetchAvailabilityReasons({ organizationId, start, end, can
     const overlappingBooking = unitBookings
       .filter((booking) => overlapsRequestedRange(booking, start, end))
       .sort((a, b) => a.start_date.localeCompare(b.start_date) || a.id.localeCompare(b.id))[0];
-    return { unit, reason: explainUnavailableUnit({ unit, maintenanceBlocked, overdueUnreturned, overlappingBooking }) };
+    const reason = explainUnavailableUnit({ unit, maintenanceBlocked, overdueUnreturned, overlappingBooking });
+    const sourceBooking = reason.code === "return_pending" ? overdueBooking
+      : reason.code === "reservation" ? overlappingBooking : undefined;
+    return { unit, reason, bookingId: sourceBooking?.id };
   });
   return {
     unavailable: unavailable.sort((a, b) => a.unit.name.localeCompare(b.unit.name)),
+    availableUnits: units.filter((unit) => availableIds.has(unit.id)),
     reservableWhileRented: units.filter((unit) => availableIds.has(unit.id) && unit.status === "rented"),
     evidenceIncomplete,
   };

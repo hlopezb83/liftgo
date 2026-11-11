@@ -37,6 +37,7 @@ vi.mock("@/features/bookings", () => ({
   useBookingsRange: () => ({ data: [booking], isLoading: false, isError: false, isFetching: false, refetch: vi.fn() }),
 }));
 vi.mock("@/features/fleet", () => ({
+  EquipmentAvailabilityLookup: () => <button type="button">Consultar disponibilidad por fechas</button>,
   useForkliftMap: () => ({ forklifts: [], forkliftMap: new Map(), isLoading: false, isError: false, isFetching: false, refetch: vi.fn() }),
 }));
 vi.mock("../../hooks/useMaintenanceWindows", () => ({

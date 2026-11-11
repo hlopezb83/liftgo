@@ -2,8 +2,8 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createTableChainable, type ChainCall, type SupabaseMockResponse } from "@/test/helpers/supabaseChain";
 import type { AvailabilityBooking, AvailabilityUnit } from "../../../lib/availabilityReasons";
 
-const mocks = vi.hoisted(() => ({ rpc: vi.fn(), from: vi.fn() }));
-vi.mock("@/integrations/supabase/client", () => ({ supabase: { from: mocks.from } }));
+const mocks = vi.hoisted(() => ({ rpc: vi.fn(), from: vi.fn(), availableRpc: vi.fn() }));
+vi.mock("@/integrations/supabase/client", () => ({ supabase: { from: mocks.from, rpc: mocks.availableRpc } }));
 vi.mock("@/lib/rpc", () => ({ callRpc: mocks.rpc }));
 import { fetchAvailabilityReasons } from "../fetchAvailabilityReasons";
 
@@ -23,6 +23,10 @@ const params = { organizationId: "a", start: "2026-10-10", end: "2026-10-12", ca
 beforeEach(() => {
   units = [unit]; bookings = []; available = []; calls = []; returned = false; maintenance = false;
   tableError = undefined; predicateError = undefined;
+  mocks.availableRpc.mockReset().mockImplementation(() => createTableChainable((chain) => {
+    calls.push({ table: "get_available_forklifts", chain });
+    return { data: available, error: null };
+  }));
   mocks.from.mockReset().mockImplementation((table: string) => createTableChainable((chain) => {
     calls.push({ table, chain });
     if (tableError === table) return { data: null, error: { message: "not authorized" } };
@@ -41,6 +45,34 @@ beforeEach(() => {
 });
 
 describe("availability evidence read contract", () => {
+  it("scopes a single equipment lookup before fetching and never checks unrelated units", async () => {
+    units.push({ ...unit, id: "f2", name: "Other unit" });
+    bookings = [booking, { ...booking, id: "b2", forklift_id: "f2" }];
+    const result = await fetchAvailabilityReasons({ ...params, forkliftId: "f1" });
+    expect(result.unavailable.map(({ unit: row }) => row.id)).toEqual(["f1"]);
+    expect(result.unavailable[0].bookingId).toBe("b1");
+    expect(calls.find(({ table }) => table === "forklifts")?.chain).toContainEqual({ method: "eq", args: ["id", "f1"] });
+    expect(calls.find(({ table }) => table === "bookings")?.chain).toContainEqual({ method: "eq", args: ["forklift_id", "f1"] });
+    const availability = calls.find(({ table }) => table === "get_available_forklifts")!.chain;
+    expect(availability).toContainEqual({ method: "eq", args: ["id", "f1"] });
+    expect(availability).toContainEqual({ method: "eq", args: ["organization_id", "a"] });
+    expect(availability.find(({ method }) => method === "select")?.args[0]).not.toMatch(/\*|cost|rate|insurance/);
+    expect(mocks.rpc.mock.calls.filter(([name]) => name === "forklift_has_maintenance_block")).toHaveLength(1);
+  });
+  it("returns the authorized booking reference only for the proven cause", async () => {
+    bookings = [{ ...booking, start_date: params.start, end_date: params.end }];
+    expect((await fetchAvailabilityReasons(params)).unavailable[0].bookingId).toBe("b1");
+    maintenance = true;
+    expect((await fetchAvailabilityReasons(params)).unavailable[0].bookingId).toBeUndefined();
+    expect((await fetchAvailabilityReasons({ ...params, canReadBookings: false })).unavailable[0].bookingId).toBeUndefined();
+  });
+  it("reports the selected available unit without conflating it with a return", async () => {
+    units = [{ ...unit, status: "rented" }]; available = units;
+    const result = await fetchAvailabilityReasons({ ...params, forkliftId: "f1" });
+    expect(result.availableUnits).toEqual(units);
+    expect(result.unavailable).toEqual([]);
+    expect(mocks.rpc).not.toHaveBeenCalledWith("forklift_has_maintenance_block", expect.anything(), expect.anything());
+  });
   it("uses the canonical RPC, scoped narrow reads and no mutations", async () => {
     const result = await fetchAvailabilityReasons(params);
     expect(result.unavailable[0].reason.code).toBe("unknown");
