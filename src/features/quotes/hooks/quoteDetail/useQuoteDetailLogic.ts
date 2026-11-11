@@ -1,12 +1,12 @@
 import { useQuoteConversionActions } from "./useQuoteConversionActions";
 import { useQuoteConversionState } from "./useQuoteConversionState";
-import { useQuoteDetailData, isPublicoGeneral } from "./useQuoteDetailData";
+import { useQuoteDetailData } from "./useQuoteDetailData";
 
 
 /** Orchestrator hook for the Quote Detail page. Composes data + state + actions. */
 export function useQuoteDetailLogic(id: string | undefined) {
-  const data = useQuoteDetailData(id);
   const state = useQuoteConversionState();
+  const data = useQuoteDetailData(id, state);
   const actions = useQuoteConversionActions(id, data, state);
 
   return {
@@ -49,7 +49,9 @@ export function useQuoteDetailLogic(id: string | undefined) {
     // Actions
     ...actions,
 
-    // Helpers
-    isPublicoGeneral,
+    needsCustomer: data.needsCustomer,
+    catalogsError: data.catalogsError,
+    catalogsPending: data.catalogsPending,
+    retryCatalogs: data.retryCatalogs,
   };
 }

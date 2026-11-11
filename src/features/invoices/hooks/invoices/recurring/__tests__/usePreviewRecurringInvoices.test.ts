@@ -27,6 +27,7 @@ describe("recurring preview request ownership", () => {
     await waitFor(() => expect(invoke).toHaveBeenCalledTimes(1));
     act(() => result.current.mutate({ includeFuturePeriods: true, futureThroughMonth: "2026-12" }));
     await waitFor(() => expect(invoke).toHaveBeenCalledTimes(2));
+    expect(invoke.mock.calls[0][1].signal.aborted).toBe(true);
     expect(result.current.data).toBeUndefined();
     await act(async () => latest.resolve({ period: "2026-12", lines: [] }));
     await waitFor(() => expect(result.current.isPending).toBe(false));
@@ -36,6 +37,7 @@ describe("recurring preview request ownership", () => {
     expect(result.current.data?.period).toBe("2026-12");
     expect(invoke).toHaveBeenLastCalledWith("generate-recurring-invoices", {
       body: { preview: true, includeFuturePeriods: true, futureThroughMonth: "2026-12" },
+      signal: expect.any(AbortSignal),
     });
   });
 
@@ -55,5 +57,19 @@ describe("recurring preview request ownership", () => {
     await waitFor(() => expect(result.current.isError).toBe(true));
     expect(result.current.data).toBeUndefined();
     expect(result.current.isPending).toBe(false);
+  });
+
+  it("deduplicates identical pending scopes and cancels when closing", async () => {
+    const pending = deferred();
+    invoke.mockReturnValueOnce(pending.promise);
+    const { Wrapper } = createQueryWrapper();
+    const { result } = renderHook(() => usePreviewRecurringInvoices(), { wrapper: Wrapper });
+    act(() => { result.current.mutate(); result.current.mutate(); });
+    await waitFor(() => expect(invoke).toHaveBeenCalledOnce());
+    act(() => result.current.cancel());
+    expect(invoke.mock.calls[0][1].signal.aborted).toBe(true);
+    await act(async () => pending.reject(new Error("Cancelled")));
+    expect(result.current.data).toBeUndefined();
+    expect(result.current).toMatchObject({ isError: false, isPending: false });
   });
 });

@@ -39,23 +39,17 @@ const INVOICE_COLUMNS = sel(
 // Sin `cfdi_xml` ni `line_items`. Suficiente para render de listas + filtros.
 // Consumidores que necesiten esos campos deben cargar el detalle por id.
 const INVOICE_LIST_FIELDS = [
-  "id", "invoice_number", "folio", "serie", "customer_id", "customer_name",
-  "booking_id", "quote_id", "status", "cfdi_status", "cfdi_uuid", "cfdi_pdf_url",
-  "cfdi_xml_url", "cfdi_error_message", "cancellation_status", "cancellation_motive", "cancellation_reason", "cancelled_at",
-  "substitution_uuid", "acuse_pdf_url", "acuse_xml_url", "facturapi_invoice_id", "facturapi_env", "stamping_attempts",
-  "stamp_variance", "stamp_variance_checked_at", "invoice_type", "forma_pago", "metodo_pago", "uso_cfdi",
-  "moneda", "tipo_cambio", "global_months", "global_periodicity", "global_year", "receptor_rfc",
-  "receptor_razon_social", "receptor_regimen_fiscal", "receptor_domicilio_fiscal_cp", "subtotal", "tax_rate", "tax_amount",
-  "total", "notes", "version", "billing_period_start", "billing_period_end", "issued_at",
-  "due_date", "paid_at", "e2e_scope", "is_e2e", "created_at", "updated_at",
+  "id", "invoice_number", "customer_name", "status", "total", "moneda", "issued_at", "due_date",
 ] as const satisfies readonly (keyof InvoiceRow)[];
 const INVOICE_LIST_COLUMNS = INVOICE_LIST_FIELDS.join(", ");
+const INVOICE_EXPORT_COLUMNS = `${INVOICE_LIST_COLUMNS}, tipo_cambio`;
 
 /** Exact list projection. Load detail before reading document-only fields. */
 export type InvoiceListItem = Pick<InvoiceRow, (typeof INVOICE_LIST_FIELDS)[number]>;
+type InvoiceExportItem = InvoiceListItem & Pick<InvoiceRow, "tipo_cambio">;
 
-function baseInvoiceQuery(normalized: InvoiceListFilters) {
-  let q = supabase.from("invoices").select(INVOICE_LIST_COLUMNS).or(e2eVisibilityFilter());
+function baseInvoiceQuery(normalized: InvoiceListFilters, columns = INVOICE_LIST_COLUMNS) {
+  let q = supabase.from("invoices").select(columns).or(e2eVisibilityFilter());
   if (normalized.status === "overdue") {
     // BL-R8-04 (R8-FE-01): alinear el tab "Vencido" con el criterio canónico de la DB
     // (v_overdue_invoices / get_dashboard_stats, migración 20260729082148 y 20260731191845):
@@ -80,9 +74,10 @@ function baseInvoiceQuery(normalized: InvoiceListFilters) {
   return q;
 }
 
-async function fetchInvoiceList(filters?: InvoiceListFilters) {
+async function fetchInvoiceList(filters: InvoiceListFilters, signal: AbortSignal) {
   const normalized = createInvoiceListFilters(filters);
   const { data, error } = await baseInvoiceQuery(normalized)
+    .abortSignal(signal)
     .order("created_at", { ascending: false })
     .limit(LIST_FETCH_LIMIT)
     .returns<InvoiceListItem[]>();
@@ -90,7 +85,7 @@ async function fetchInvoiceList(filters?: InvoiceListFilters) {
   return data ?? [];
 }
 
-async function fetchInvoicePage(filters: InvoiceListFilters, pageIndex: number, sorting: InvoiceListSorting) {
+async function fetchInvoicePage(filters: InvoiceListFilters, pageIndex: number, sorting: InvoiceListSorting, signal: AbortSignal) {
   const from = pageIndex * INVOICE_PAGE_SIZE;
   const to = from + INVOICE_PAGE_SIZE - 1;
   let query = baseInvoiceQuery(filters);
@@ -100,6 +95,7 @@ async function fetchInvoicePage(filters: InvoiceListFilters, pageIndex: number, 
   if (sorting.length === 0) query = query.order("created_at", { ascending: false });
   // A unique tie-breaker keeps equal values in the same order across pages.
   const { data, error } = await query
+    .abortSignal(signal)
     .order("id", { ascending: false })
     .range(from, to)
     .returns<InvoiceListItem[]>();
@@ -114,18 +110,18 @@ export async function fetchInvoicesForExport(
 ) {
   if (!scope.organizationId) throw new Error("Empresa no verificada");
   const normalized = createInvoiceListFilters(filters);
-  const rows: InvoiceListItem[] = [];
+  const rows: InvoiceExportItem[] = [];
   // Continue to an empty page instead of treating a server row cap as EOF.
   // Advance by the actual count so a smaller server cap cannot skip invoices.
   for (;;) {
     scope.signal.throwIfAborted();
-    const { data, error } = await baseInvoiceQuery(normalized)
+    const { data, error } = await baseInvoiceQuery(normalized, INVOICE_EXPORT_COLUMNS)
       .eq("organization_id", scope.organizationId)
       .abortSignal(scope.signal)
       .order("created_at", { ascending: false })
       .order("id", { ascending: false })
       .range(rows.length, rows.length + LIST_PAGE_LIMIT - 1)
-      .returns<InvoiceListItem[]>();
+      .returns<InvoiceExportItem[]>();
     scope.signal.throwIfAborted();
     if (error) throw error; // Never return a partially downloaded export.
     if (!data?.length) return rows;
@@ -149,7 +145,7 @@ function invoiceListQueryOptions(filters?: InvoiceListFilters) {
   const normalized = createInvoiceListFilters(filters);
   return queryOptions({
     queryKey: createInvoiceListQueryKey(normalized),
-    queryFn: () => fetchInvoiceList(normalized),
+    queryFn: ({ signal }) => fetchInvoiceList(normalized, signal),
     staleTime: INVOICE_STALE_MS,
   });
 }
@@ -194,7 +190,7 @@ export function useInvoicesInfinite(filters?: InvoiceListFilters, sorting: Invoi
   const normalizedSorting = normalizeInvoiceListSorting(sorting);
   return useInfiniteQuery({
     queryKey: [...createInvoiceListQueryKey(normalized), "infinite", normalizedSorting],
-    queryFn: ({ pageParam }) => fetchInvoicePage(normalized, pageParam as number, normalizedSorting),
+    queryFn: ({ pageParam, signal }) => fetchInvoicePage(normalized, pageParam, normalizedSorting, signal),
     initialPageParam: 0,
     getNextPageParam: (last) => last.nextPage,
     staleTime: INVOICE_STALE_MS,

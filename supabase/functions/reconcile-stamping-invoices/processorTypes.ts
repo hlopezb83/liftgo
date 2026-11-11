@@ -2,7 +2,7 @@ import type { getAdminClient } from "../_shared/supabaseClients.ts";
 import type { FacturapiClient } from "../_shared/facturapi/client.ts";
 import type { StuckRow } from "./decisions.ts";
 
-export type ReconciliationAdmin = ReturnType<typeof getAdminClient>;
+type ReconciliationAdmin = ReturnType<typeof getAdminClient>;
 export type DocumentRow = Record<string, unknown>;
 export interface StuckInvoice extends StuckRow {
   organization_id: string;

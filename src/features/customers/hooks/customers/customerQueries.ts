@@ -118,8 +118,8 @@ export const customerQueries = defineEntityQueries<"customers", Customer[], Cust
   },
 );
 
-export function useCustomers() {
-  return useQuery(customerQueries.list());
+export function useCustomers(enabled = true) {
+  return useQuery({ ...customerQueries.list(), enabled });
 }
 
 /** All customer relations stay reachable through explicit server pages. */

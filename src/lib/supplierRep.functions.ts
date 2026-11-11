@@ -17,15 +17,6 @@ import {
   validateRepInput,
   type ValidateSupplierRepInput,
 } from "./supplierRep.validation";
-import {
-  extractAllAttr,
-  extractAttr,
-  extractPagoNodes,
-  isWellFormedXml,
-} from "./supplierRepXml";
-
-// Reexportados para las pruebas y consumidores existentes.
-export { extractAllAttr, extractAttr, extractPagoNodes, isWellFormedXml };
 export type { ValidateSupplierRepInput };
 
 export const validateSupplierRepFn = createServerFn({ method: "POST" })

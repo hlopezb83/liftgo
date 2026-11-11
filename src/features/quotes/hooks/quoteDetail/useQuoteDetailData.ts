@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { differenceInDays } from "date-fns";
 import { bookingKeys } from "@/features/bookings";
-import { useCustomers } from "@/features/customers";
+import { useCustomer, useCustomers } from "@/features/customers";
 import { useEquipmentModels, useForklifts } from "@/features/fleet";
 import { invoiceKeys } from "@/features/invoices";
 import { supabase } from "@/integrations/supabase/client";
@@ -11,6 +11,7 @@ import { isIssuedInvoiceStatus } from "@/lib/domain/invoiceStatus";
 import { parseLineItems, parseRentalMeta } from "@/lib/domain/lineItems";
 import { useQuote } from "../quotes/useQuotes";
 import { resolveLegacyForkliftIds } from "./quoteBookingBuilders";
+import type { useQuoteConversionState } from "./useQuoteConversionState";
 
 export const isPublicoGeneral = (name?: string | null) =>
   !!name && (name.trim().toLowerCase().includes("público en general") || name.trim().toLowerCase().includes("publico en general"));
@@ -103,31 +104,42 @@ function useQuoteLinks(id: string | undefined) {
   };
 }
 
-export function useQuoteDetailData(id: string | undefined) {
+type ConversionDialogsState = Pick<ReturnType<typeof useQuoteConversionState>, "showConvertDialog" | "showAssignmentDialog">;
+
+function useQuoteConversionCatalogs(state: ConversionDialogsState, needsCustomer: boolean, isModelBasedQuote: boolean) {
+  const needsCustomers = needsCustomer && (state.showConvertDialog || state.showAssignmentDialog);
+  const needsEquipment = state.showAssignmentDialog || (state.showConvertDialog && !isModelBasedQuote);
+  const customersQuery = useCustomers(needsCustomers);
+  const forkliftsQuery = useForklifts(needsEquipment);
+  const modelsQuery = useEquipmentModels(needsEquipment);
+  const { data: forklifts } = forkliftsQuery;
+  const { data: equipmentModels } = modelsQuery;
+  const catalogs = [...(needsCustomers ? [customersQuery] : []), ...(needsEquipment ? [forkliftsQuery, modelsQuery] : [])];
+  const catalogsError = catalogs.some((query) => query.isError);
+  const catalogsPending = catalogs.some((query) => query.data === undefined);
+  const retryCatalogs = () => { void Promise.all(catalogs.filter((query) => query.isError).map((query) => query.refetch())); };
+  return { customers: customersQuery.data, forklifts, equipmentModels, catalogsError, catalogsPending, retryCatalogs };
+}
+
+export function useQuoteDetailData(id: string | undefined, state: ConversionDialogsState) {
   const { data: quote, isLoading, isError, refetch } = useQuote(id);
-  const { data: customers } = useCustomers();
-  const { data: forklifts } = useForklifts();
-  const { data: equipmentModels } = useEquipmentModels();
-
   const links = useQuoteLinks(id);
-
-  const customerMatch = customers?.find((c) => c.id === quote?.customer_id);
+  const { data: customerMatch } = useCustomer(quote?.customer_id ?? undefined);
   const quoteType = quote?.quote_type || "rental";
   const isSale = quoteType === "sale";
   const lineItems = parseLineItems<LineItem>(quote?.line_items);
-
   const durationDays = computeDurationDays(quote?.start_date, quote?.end_date);
-
   const rentalMeta = resolveRentalMeta(quote, isSale);
-
   const isModelBasedQuote = rentalMeta.length > 0;
-
-  const unitCount = countQuoteUnits(quote, forklifts, rentalMeta, isModelBasedQuote);
-
+  const needsCustomer = isPublicoGeneral(quote?.customer_name);
+  const catalogs = useQuoteConversionCatalogs(state, needsCustomer, isModelBasedQuote);
+  const customers = needsCustomer ? catalogs.customers : customerMatch ? [customerMatch] : undefined;
+  const unitCount = countQuoteUnits(quote, catalogs.forklifts, rentalMeta, isModelBasedQuote);
 
   return {
-    quote, isLoading, isError, refetchQuote: refetch, customers, forklifts, equipmentModels,
+    ...catalogs, quote, isLoading, isError, refetchQuote: refetch, customers,
     customerMatch, quoteType, isSale, lineItems, durationDays,
+    needsCustomer,
     rentalMeta, isModelBasedQuote, unitCount, ...links,
   };
 }

@@ -1,11 +1,12 @@
 import assert from 'node:assert/strict';
 import { readFileSync, mkdirSync, writeFileSync } from 'node:fs';
+import os from 'node:os';
 import path from 'node:path';
 import postgres from 'postgres';
 
 const directory = process.env.QUOTES_TEST_CLUSTER;
 const port = Number(process.env.QUOTES_TEST_PORT);
-assert.ok(directory?.startsWith(path.join('/tmp', 'liftgo-quotes-pg-')));
+assert.ok(directory?.startsWith(path.join(os.tmpdir(), 'liftgo-quotes-pg-')));
 assert.ok(Number.isInteger(port) && port > 1024 && port <= 65535);
 globalThis.fetch = () => { throw new Error('Network is forbidden in quote SQL tests'); };
 const sql = postgres({ host: '127.0.0.1', port, username: 'postgres', password: '', database: 'postgres', ssl: false, max: 6, onnotice: () => {} });
@@ -58,17 +59,19 @@ async function seed() {
   await sql`INSERT INTO quotes(id,organization_id,quote_number,customer_name,status,created_at,is_e2e) VALUES(${OLD},${ORG},'COT-0445','Antiguo José Muñoz','accepted','2020-01-01Z',NULL),(${uid(1001)},${OTHER},'COT-0445','Otro tenant','accepted','2020-01-01Z',false)`;
   await sql`INSERT INTO quotes(id,organization_id,quote_number,customer_name,is_e2e,notes) VALUES(${uid(1002)},${ORG},'COT-E2E','E2E',true,NULL),(${uid(1003)},${ORG},'COT-HIDDEN','Oculta',false,'hidden-by-policy')`;
   await sql.unsafe(migration);
+  await sql.unsafe(readFileSync('drizzle/migrations/0140_optimize_quote_search.sql', 'utf8'));
 }
 try {
   const [identity]=await sql`SELECT current_setting('data_directory') AS directory,version() AS version`;
-  assert.equal(identity.directory,path.join(directory,'data'));
+  assert.equal(path.normalize(identity.directory),path.join(directory,'data'));
   assert.equal((await sql`SELECT count(*)::int n FROM pg_tables WHERE schemaname='public'`)[0].n,0);
   console.log(identity.version);
   await seed();
   await test('INVOKER, safe search_path and exact ACL including inherited service grants',async()=>{
     for(const signature of ['public.get_quotes_page(uuid,text,text,integer,integer,jsonb)','public.normalize_quote_search(text)']) {
       const [r]=await sql`SELECT prosecdef,proconfig,has_function_privilege('authenticated',${signature},'EXECUTE') AS auth,has_function_privilege('anon',${signature},'EXECUTE') AS anon,has_function_privilege('service_role',${signature},'EXECUTE') AS service FROM pg_proc WHERE oid=${signature}::regprocedure`;
-      assert.equal(r.prosecdef,false); assert.deepEqual(r.proconfig,['search_path=pg_catalog, public']); assert.equal(r.auth,true);assert.equal(r.anon,false);assert.equal(r.service,false);
+      assert.equal(r.prosecdef,false); assert.deepEqual(r.proconfig,['search_path=pg_catalog, public']); assert.equal(r.auth,true);assert.equal(r.anon,false);
+      assert.equal(r.service, signature === 'public.normalize_quote_search(text)');
     }
     await session(undefined,c=>error(c,()=>page(c),'42501'),'anon');
   });
@@ -168,6 +171,36 @@ try {
     await sql`INSERT INTO quotes(id,organization_id,quote_number,customer_name)
       SELECT ('12900000-0000-4000-8000-'||lpad((100000+n)::text,12,'0'))::uuid,${ORG},'PERF-'||n::text,'PERF-CORPUS' FROM generate_series(1,10000) n`;
     await session(USER,async c=>{const start=Date.now();const result=await page(c,{search:'PERF-CORPUS',sort:[{id:'quote_number',desc:false}],page:99,size:100});assert.equal(result.totalCount,10000);assert.equal(result.items.length,100);assert.equal(result.items[0].quote_number,'PERF-9901');assert.equal(result.items.at(-1).quote_number,'PERF-10000');console.log(`Synthetic10k natural-search page wall time: ${Date.now()-start}ms`);});
+  });
+  await test('stored search keys preserve results and avoid per-row normalization under RLS', async () => {
+    const oldFunction = migration.match(/CREATE OR REPLACE FUNCTION public\.get_quotes_page\([\s\S]*?\$function\$;/)?.[0];
+    assert.ok(oldFunction);
+    await sql.unsafe(oldFunction.replace('public.get_quotes_page(', 'public.get_quotes_page_before('));
+    await session(USER, async c => {
+      const before = [], after = [];
+      for (const search of ['PERF-9999', 'PERF-CORPUS']) {
+        for (let i = 0; i < 5; i++) {
+          let start = performance.now();
+          const [legacy] = await c`SELECT public.get_quotes_page_before(${ORG}::uuid, ${search}) AS value`;
+          before.push(performance.now() - start);
+          start = performance.now();
+          const optimized = await page(c, { search });
+          after.push(performance.now() - start);
+          assert.deepEqual(optimized, legacy.value);
+        }
+      }
+      console.log(`Synthetic 10k quote search p50 (mixed selective and broad): ${before.sort((a,b)=>a-b)[4].toFixed(1)} → ${after.sort((a,b)=>a-b)[4].toFixed(1)} ms`);
+    });
+  });
+  await test('service role can write quotes and populate stored search keys', async () => {
+    await sql`GRANT INSERT ON quotes TO service_role`;
+    await sql.begin(async c => {
+      await c`SET LOCAL ROLE service_role`;
+      await c`INSERT INTO quotes(id,organization_id,quote_number,customer_name,is_e2e)
+        VALUES(${uid(8500)},${ORG},'SERVICE-WRITE','Servicio',false)`;
+    });
+    const [stored] = await sql`SELECT search_quote_number, search_customer_name FROM quotes WHERE id = ${uid(8500)}`;
+    assert.deepEqual(stored, { search_quote_number: 'service-write', search_customer_name: 'servicio' });
   });
   const [collation]=await sql`SELECT collversion,pg_collation_actual_version(oid) AS actual FROM pg_collation WHERE oid='public.quotes_natural_order'::regcollation`;
   mkdirSync('reports/quotes-rpc',{recursive:true});writeFileSync('reports/quotes-rpc/sql-integration.json',JSON.stringify({version:identity.version,collation,scope:'Focused synthetic schema with actual existing organization helper and real PostgreSQL RLS; not full product replay',reports},null,2));

@@ -1,9 +1,10 @@
+import { memo } from "react";
 import { InfoAlertIcon } from "@/components/icons";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { formatCurrencyWithCode } from "@/lib/format/formatCurrency";
 import { Link } from "@/lib/router-compat-ui";
-import { hasUnselectedEarlierPeriod, recurringLineKey } from "../../lib/recurringSelection";
+import { recurringLineKey } from "../../lib/recurringSelection";
 import { recurringCurrency } from "./recurringPreviewPresentation";
 import type { RecurringPreviewLine } from "../../hooks/invoices/recurring/usePreviewRecurringInvoices";
 
@@ -105,7 +106,7 @@ export function StaleRateNotice({
   );
 }
 
-function LineRow({
+const LineRow = memo(function LineRow({
   line,
   selected,
   onToggle,
@@ -113,7 +114,7 @@ function LineRow({
   orderBlocked = false,
 }: {
   line: RecurringPreviewLine;
-  selected: Set<string>;
+  selected: boolean;
   onToggle: (id: string) => void;
   selectable: boolean;
   orderBlocked?: boolean;
@@ -122,7 +123,7 @@ function LineRow({
     <div className="flex flex-wrap items-center gap-3 px-3 py-2 text-sm">
       {/* R9-18: selección por reserva + periodo; cada fila es independiente. */}
       <Checkbox
-        checked={selectable && selected.has(recurringLineKey(line))}
+        checked={selectable && selected}
         disabled={!selectable || orderBlocked}
         onCheckedChange={() => onToggle(recurringLineKey(line))}
         aria-label={`Incluir la reserva ${line.bookingCode ?? line.bookingId} del periodo ${line.periodLabel}`}
@@ -157,7 +158,7 @@ function LineRow({
       )}
     </div>
   );
-}
+});
 
 export function CustomerGroup({
   customer,
@@ -166,7 +167,7 @@ export function CustomerGroup({
   onToggle,
   onToggleGroup,
   isSelectable,
-  allLines = groupLines,
+  blocked,
 }: {
   customer: string;
   groupLines: RecurringPreviewLine[];
@@ -174,7 +175,7 @@ export function CustomerGroup({
   onToggle: (id: string) => void;
   onToggleGroup: (groupLines: RecurringPreviewLine[]) => void;
   isSelectable: (line: RecurringPreviewLine) => boolean;
-  allLines?: RecurringPreviewLine[];
+  blocked: ReadonlySet<string>;
 }) {
   const groupEligible = groupLines.filter(isSelectable);
   const allSelected = groupEligible.length > 0
@@ -199,10 +200,10 @@ export function CustomerGroup({
           <LineRow
             key={`${line.bookingId}:${line.periodStart}`}
             line={line}
-            selected={selected}
+            selected={selected.has(recurringLineKey(line))}
             onToggle={onToggle}
             selectable={isSelectable(line)}
-            orderBlocked={hasUnselectedEarlierPeriod(line, allLines, selected)}
+            orderBlocked={blocked.has(recurringLineKey(line))}
           />
         ))}
       </div>

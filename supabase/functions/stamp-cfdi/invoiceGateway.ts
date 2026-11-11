@@ -6,7 +6,7 @@ import {
   retryOnFacturapi5xx,
 } from "../_shared/facturapi/client.ts";
 
-export interface InvoiceGatewayResult {
+interface InvoiceGatewayResult {
   id: string;
   uuid?: string;
   status?: string;

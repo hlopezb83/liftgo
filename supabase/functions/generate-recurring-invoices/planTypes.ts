@@ -1,6 +1,6 @@
 import type { HistoricalInvoice } from "./invoiceHistory.ts";
 
-export type Forklift = {
+type Forklift = {
   name?: string;
   model?: string;
   serial_number?: string | null;

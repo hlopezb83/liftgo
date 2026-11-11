@@ -31,6 +31,8 @@ interface Props {
   /** Si `true`, después de confirmar todavía falta elegir los montacargas. */
   needsAssignment: boolean;
   isPending: boolean;
+  loadingCatalogs?: boolean;
+  retryCatalogs?: () => void;
   onConfirm: (payload: ConvertQuoteConfirmPayload) => void;
 }
 
@@ -44,7 +46,7 @@ interface Props {
  */
 export function ConvertQuoteDialog({
   open, onOpenChange, quote, durationDays, unitCount, needsCustomer,
-  customers, needsAssignment, isPending, onConfirm,
+  customers, needsAssignment, isPending, loadingCatalogs, retryCatalogs, onConfirm,
 }: Props) {
   const canRecur = allowsRecurringBilling(
     quote.start_date ? parseISO(quote.start_date) : undefined,
@@ -65,7 +67,7 @@ export function ConvertQuoteDialog({
     onOpenChange(nextOpen);
   };
 
-  const blocked = needsCustomer && !customerId;
+  const blocked = loadingCatalogs || !!retryCatalogs || (needsCustomer && !customerId);
 
   return (
     <FormDialog
@@ -77,11 +79,16 @@ export function ConvertQuoteDialog({
       description="Revisa los datos antes de generar las reservas. Esta acción bloquea los equipos en el calendario."
     >
       <div className="space-y-4">
+        {retryCatalogs ? (
+          <Alert variant="destructive">
+            <AlertDescription>No se pudieron cargar los datos de conversión. <Button type="button" variant="link" onClick={retryCatalogs}>Reintentar</Button></AlertDescription>
+          </Alert>
+        ) : loadingCatalogs && <p role="status">Cargando datos de conversión…</p>}
         <FormSection title="Resumen" first>
           <ConvertQuoteSummary quote={quote} durationDays={durationDays} unitCount={unitCount} />
         </FormSection>
 
-        {needsCustomer && (
+        {needsCustomer && !loadingCatalogs && !retryCatalogs && (
           <FormSection title="Cliente final">
             <Alert>
               <WarnIcon className="h-4 w-4" />

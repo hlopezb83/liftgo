@@ -225,7 +225,8 @@ jobs:
           path: ~/.cache/ms-playwright
           key: ${{ runner.os }}-${{ runner.arch }}-chromium-v2-${{ hashFiles('bun.lock') }}
       - name: Preparar Chromium
-        run: node node_modules/@playwright/test/cli.js install --with-deps chromium
+        # ubuntu-24.04 already supplies the browser's system libraries.
+        run: node node_modules/@playwright/test/cli.js install chromium
       - name: Contrato de aislamiento de navegador y Worker
         run: node --test scripts/tests/browser-test-*.test.mjs
       - name: Arranque e interacción del Worker

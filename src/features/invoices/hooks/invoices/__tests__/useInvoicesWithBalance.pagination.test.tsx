@@ -22,9 +22,12 @@ describe("cartera con más de 1.000 facturas", () => {
       due_date: "2026-09-01",
       issued_at: "2026-08-01",
     }));
-    rpc.mockImplementation(async (_name, args: { p_offset: number; p_limit: number }) => ({
-      data: rows.slice(args.p_offset, args.p_offset + args.p_limit),
-      error: null,
+    const select = vi.fn();
+    rpc.mockImplementation((_name, args: { p_offset: number; p_limit: number }) => ({
+      select: (fields: string) => {
+        select(fields);
+        return { abortSignal: async () => ({ data: rows.slice(args.p_offset, args.p_offset + args.p_limit), error: null }) };
+      },
     }));
     const { Wrapper } = createQueryWrapper();
     const { result } = renderHook(() => useInvoicesWithBalance({ statuses: ["overdue"] }), { wrapper: Wrapper });
@@ -32,6 +35,7 @@ describe("cartera con más de 1.000 facturas", () => {
     await waitFor(() => expect(result.current.data).toHaveLength(1001));
     expect(rpc).toHaveBeenCalledTimes(2);
     expect(rpc.mock.calls.map(([, args]) => args.p_offset)).toEqual([0, 1000]);
+    expect(select.mock.calls.every(([fields]) => fields.split(", ").length === 15 && !/cfdi_xml|line_items/.test(fields))).toBe(true);
     expect(result.current.data?.reduce((total, row) => total + (row.balance_mxn ?? 0), 0)).toBe(100100);
   });
 });

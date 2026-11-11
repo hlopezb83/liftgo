@@ -60,7 +60,6 @@ export function useStampInvoiceFlow(refetch: () => void) {
       }
       if (hydrated !== invoice) refetch();
       stampCfdi.mutate(invoice.id, {
-        onSuccess: () => refetch(),
         onError: (err) => {
           const raw = err instanceof Error ? err.message : String(err);
           if (isBenignStampError(raw)) return; // toast info ya cubierto

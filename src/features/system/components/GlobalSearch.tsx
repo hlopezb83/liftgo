@@ -173,11 +173,11 @@ export function GlobalSearch() {
     return [...map.entries()];
   }, [perms, role]);
 
-  const entityQuery = useEntitySearch(debouncedInput, open);
+  const entityQuery = useEntitySearch(input, open, debouncedInput);
   // A role/permission switch must not retain links from a privileged query.
   const canVisit = (url: string) => getNavigationAccessLevel(perms, role ?? undefined, url) !== "none";
-  const isSearchLoading = searchIsLoading(input, debouncedInput, entityQuery);
-  const entities = authorizedResults(input === debouncedInput ? entityQuery.data : undefined, canVisit, canSeeFinancials, canSearchQuotes);
+  const isSearchLoading = searchIsLoading(input, entityQuery.activeQuery, entityQuery);
+  const entities = authorizedResults(input === entityQuery.activeQuery ? entityQuery.data : undefined, canVisit, canSeeFinancials, canSearchQuotes);
   const hasEntities = !!entities && (entities.quotes.length + entities.invoices.length + entities.customers.length + entities.bookings.length + entities.deliveries.length + entities.returns.length > 0);
 
   const go = (url: string) => {

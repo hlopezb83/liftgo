@@ -20,19 +20,21 @@ CREATE FUNCTION has_role(uuid, app_role) RETURNS boolean LANGUAGE sql STABLE AS 
   SELECT EXISTS (SELECT 1 FROM user_roles WHERE user_id = $1 AND role = $2);
 $$;
 
-CREATE TABLE customers (id uuid PRIMARY KEY DEFAULT gen_random_uuid(), name text, rfc text, deleted_at timestamptz);
+CREATE TABLE customers (id uuid PRIMARY KEY DEFAULT gen_random_uuid(), name text, rfc text, deleted_at timestamptz, is_e2e boolean);
 CREATE TABLE organization_customers (organization_id uuid, customer_id uuid);
 CREATE TABLE quotes (id uuid PRIMARY KEY DEFAULT gen_random_uuid(), organization_id uuid, quote_number text,
   customer_name text, created_at timestamptz DEFAULT now(), is_e2e boolean);
 CREATE UNIQUE INDEX quotes_org_number ON quotes(organization_id, quote_number);
 CREATE TABLE invoices (id uuid PRIMARY KEY DEFAULT gen_random_uuid(), organization_id uuid, invoice_number text,
   customer_name text, created_at timestamptz DEFAULT now(), status text, is_e2e boolean,
-  total numeric, moneda text, tipo_cambio numeric, cancellation_status text, issued_at timestamptz, paid_at timestamptz);
+  total numeric, moneda text, tipo_cambio numeric, cancellation_status text, issued_at timestamptz, paid_at date);
 CREATE TABLE forklifts (id uuid PRIMARY KEY DEFAULT gen_random_uuid(), organization_id uuid, name text,
-  status text, created_at timestamptz DEFAULT now(), deleted_at timestamptz, is_e2e boolean);
+  status text, created_at timestamptz DEFAULT now(), deleted_at timestamptz, is_e2e boolean, monthly_rate numeric);
 CREATE TABLE bookings (id uuid PRIMARY KEY DEFAULT gen_random_uuid(), organization_id uuid, booking_number text,
   customer_name text, customer_id uuid, forklift_id uuid, status text, return_status text, is_e2e boolean,
-  created_at timestamptz DEFAULT now(), start_date date, end_date date);
+  created_at timestamptz DEFAULT now(), start_date date, end_date date,
+  recurring_billing boolean, monthly_rate numeric, currency text, tipo_cambio numeric);
+CREATE TABLE contracts (id uuid PRIMARY KEY, contract_number text, customer_id uuid, forklift_id uuid, status text, end_date date);
 CREATE TABLE deliveries (id uuid PRIMARY KEY DEFAULT gen_random_uuid(), organization_id uuid, booking_id uuid,
   delivery_number text, type text, address text, scheduled_date date, status text,
   signature_base64 text, created_at timestamptz DEFAULT now());
@@ -44,7 +46,10 @@ CREATE TABLE payments (invoice_id uuid, amount_mxn numeric, amount numeric, exch
 CREATE TABLE credit_notes (id uuid PRIMARY KEY, invoice_id uuid, currency text, total numeric,
   issued_at timestamptz, cfdi_status text, status text, cancellation_status text);
 CREATE VIEW v_invoices_with_balance WITH (security_invoker = true) AS
-  SELECT invoices.*, total AS balance, total AS balance_mxn, issued_at::date AS due_date FROM invoices;
+  SELECT invoices.*, total AS balance,
+    CASE WHEN fx_is_missing(moneda, tipo_cambio) THEN NULL
+      ELSE total * CASE WHEN upper(coalesce(moneda, 'MXN')) = 'MXN' THEN 1 ELSE tipo_cambio END
+    END AS balance_mxn, fx_is_missing(moneda, tipo_cambio) AS fx_missing, issued_at::date AS due_date FROM invoices;
 CREATE VIEW v_booking_occupancy WITH (security_invoker = true) AS
   SELECT forklift_id, is_e2e, start_date AS occ_start, end_date AS occ_end FROM bookings;
 CREATE VIEW v_invoice_forklift_revenue AS

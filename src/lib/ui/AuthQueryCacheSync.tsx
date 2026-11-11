@@ -2,7 +2,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useEffect, useRef } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { clearSentryIdentityForUser } from "@/lib/observability/identity";
-import { isIdentityQueryKey } from "@/lib/query/identityScope";
+import { isActorAccessQueryKey, isIdentityQueryKey } from "@/lib/query/identityScope";
 import { dismissNotifications } from "@/lib/ui/appFeedback";
 import { getAuthSnapshot, setAuthSnapshot } from "@/lib/ui/authSnapshot";
 
@@ -32,7 +32,8 @@ export function AuthQueryCacheSync(): null {
       // commit. Se cancela y retira únicamente la caché ajena a esa verificación.
       const previousSession = {
         predicate: ({ queryKey }: { queryKey: readonly unknown[] }) =>
-          !isIdentityQueryKey(queryKey) || queryKey[1] !== currentUserId,
+          !(isIdentityQueryKey(queryKey) && queryKey[1] === currentUserId) &&
+          !isActorAccessQueryKey(queryKey, currentUserId),
       };
       void queryClient.cancelQueries(previousSession);
       queryClient.removeQueries(previousSession);

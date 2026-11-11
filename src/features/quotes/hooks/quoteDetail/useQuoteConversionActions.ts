@@ -87,7 +87,7 @@ export function useQuoteConversionActions(id: string | undefined, data: DataResu
   const handleConvertConfirm = async (payload: {
     recurring: boolean; customerId: string; customerName: string;
   }) => {
-    if (!quote || !canStartConversion) return;
+    if (!quote || !canStartConversion || data.catalogsPending || data.catalogsError) return;
     const replacementCustomerId = isPublicoGeneral(quote.customer_name) ? payload.customerId : null;
     if (replacementCustomerId === "") return;
     const request = { quoteId: quote.id, recurring: payload.recurring, replacementCustomerId };
@@ -101,7 +101,7 @@ export function useQuoteConversionActions(id: string | undefined, data: DataResu
   };
 
   const handleAssignmentConfirm = async (assignments: Assignment[]) => {
-    if (canStartConversion && state.pendingConversion) {
+    if (canStartConversion && state.pendingConversion && !data.catalogsPending && !data.catalogsError) {
       await createBookingsFor(assignments, state.pendingConversion);
     }
   };

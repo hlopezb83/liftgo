@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
 import { invokeEdgeFunction } from "@/lib/supabase/invokeEdgeFunction";
 
@@ -68,15 +68,21 @@ export interface RecurringPreviewResponse {
  * sin escribir nada. Devuelve elegibles y no-elegibles (con motivo).
  */
 export function usePreviewRecurringInvoices() {
-  const requestId = useRef(0);
+  const active = useRef<{ scope: RecurringPreviewScope; controller: AbortController } | null>(null);
   const [state, setState] = useState<{
     data?: RecurringPreviewResponse; isPending: boolean; isError: boolean;
   }>({ isPending: false, isError: false });
-  const mutation = useEntityMutation<RecurringPreviewScope, RecurringPreviewResponse>({
-    mutationFn: async (scope): Promise<RecurringPreviewResponse> => {
+  const cancelActive = useCallback(() => {
+    active.current?.controller.abort();
+    active.current = null;
+  }, []);
+  useEffect(() => cancelActive, [cancelActive]);
+
+  const mutation = useEntityMutation<{ scope: RecurringPreviewScope; signal: AbortSignal }, RecurringPreviewResponse>({
+    mutationFn: async ({ scope, signal }): Promise<RecurringPreviewResponse> => {
       const res = await invokeEdgeFunction<RecurringPreviewResponse>(
         "generate-recurring-invoices",
-        { body: { preview: true, ...scope } },
+        { body: { preview: true, ...scope }, signal },
       );
       return {
         scope,
@@ -87,17 +93,32 @@ export function usePreviewRecurringInvoices() {
       };
     },
     errorTitle: "Error al calcular vista previa",
+    onError: (_error, { signal }) => signal.aborted,
   });
   // Preview is read-only. Allow a newer horizon while a request is pending,
   // but never publish a late result (including one from a closed session).
   const mutate = (scope: RecurringPreviewScope = { includeFuturePeriods: false }) => {
-    const id = ++requestId.current;
     const requestedScope = { ...scope, futureThroughMonth: scope.includeFuturePeriods ? scope.futureThroughMonth : undefined };
+    const previous = active.current?.scope;
+    if (previous?.includeFuturePeriods === requestedScope.includeFuturePeriods &&
+      previous.futureThroughMonth === requestedScope.futureThroughMonth) return;
+    cancelActive();
+    const request = { scope: requestedScope, controller: new AbortController() };
+    active.current = request;
     setState({ isPending: true, isError: false });
-    void mutation.mutateAsync(requestedScope).then(
-      (data) => { if (id === requestId.current) setState({ data, isPending: false, isError: false }); },
-      () => { if (id === requestId.current) setState({ isPending: false, isError: true }); },
+    const settle = (next: typeof state) => {
+      if (active.current !== request) return;
+      active.current = null;
+      setState(next);
+    };
+    void mutation.mutateAsync({ scope: requestedScope, signal: request.controller.signal }).then(
+      (data) => settle({ data, isPending: false, isError: false }),
+      () => settle({ isPending: false, isError: true }),
     );
   };
-  return { ...state, mutate };
+  const cancel = useCallback(() => {
+    cancelActive();
+    setState({ isPending: false, isError: false });
+  }, [cancelActive]);
+  return { ...state, mutate, cancel };
 }

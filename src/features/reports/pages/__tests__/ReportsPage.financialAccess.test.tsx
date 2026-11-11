@@ -32,13 +32,13 @@ vi.mock("../../components/reports/ProfitabilityByModelReport", () => ({ Profitab
 beforeEach(() => { state.canSeeFinancials = false; state.params = new URLSearchParams(); state.financialMount.mockClear(); });
 
 describe("Reports dispatcher financial boundary", () => {
-  it("keeps operational reports and removes all financial choices", () => {
+  it("keeps operational reports and removes all financial choices", async () => {
     const { rerender } = render(<ReportsPage />);
-    expect(screen.getByText("Operational units")).toBeInTheDocument();
+    expect(await screen.findByText("Operational units")).toBeInTheDocument();
     expect(screen.getAllByRole("option").map((option) => option.getAttribute("value"))).toEqual(["utilization", "utilization-model"]);
     fireEvent.change(screen.getByRole("combobox"), { target: { value: "utilization-model" } });
     rerender(<ReportsPage />);
-    expect(screen.getByText("Operational models")).toBeInTheDocument();
+    expect(await screen.findByText("Operational models")).toBeInTheDocument();
     expect(state.financialMount).not.toHaveBeenCalled();
   });
 
@@ -50,11 +50,11 @@ describe("Reports dispatcher financial boundary", () => {
     expect(screen.queryByText(/^Financial /)).not.toBeInTheDocument();
   });
 
-  it("rechecks authorization when the active role changes on the same report", () => {
+  it("rechecks authorization when the active role changes on the same report", async () => {
     state.canSeeFinancials = true;
     state.params = new URLSearchParams({ type: "revenue" });
     const { rerender } = render(<ReportsPage />);
-    expect(screen.getByText("Financial revenue")).toBeInTheDocument();
+    expect(await screen.findByText("Financial revenue")).toBeInTheDocument();
     expect(screen.getAllByRole("option")).toHaveLength(8);
     state.canSeeFinancials = false;
     state.financialMount.mockClear();
@@ -63,7 +63,7 @@ describe("Reports dispatcher financial boundary", () => {
     expect(state.financialMount).not.toHaveBeenCalled();
   });
 
-  it("rechecks direct navigation while already mounted, and preserves allowed financial roles", () => {
+  it("rechecks direct navigation while already mounted, and preserves allowed financial roles", async () => {
     const { rerender } = render(<ReportsPage />);
     state.params = new URLSearchParams({ type: "aging" });
     rerender(<ReportsPage />);
@@ -71,7 +71,7 @@ describe("Reports dispatcher financial boundary", () => {
     expect(state.financialMount).not.toHaveBeenCalled();
     state.canSeeFinancials = true;
     rerender(<ReportsPage />);
-    expect(screen.getByText("Financial aging")).toBeInTheDocument();
+    expect(await screen.findByText("Financial aging")).toBeInTheDocument();
   });
 });
 

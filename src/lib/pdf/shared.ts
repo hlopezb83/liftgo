@@ -79,7 +79,3 @@ export async function fetchCompanyDataAndLogo(document?: IssuerDocumentRef | nul
   const logoBase64 = await loadGlobalBrandLogo();
   return { company, logoBase64 };
 }
-
-// ─── Shared date formatter ────────────────────────────
-
-export { fmtDate } from "./formatDate";

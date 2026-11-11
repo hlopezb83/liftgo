@@ -35,11 +35,11 @@ function permit(...allowed: string[]) {
     Object.fromEntries(modules.map(module => [module, allowed.includes(module) ? "read" : "none"])),
   ])) as PermissionsMap;
 }
-function mount(query: string | (() => string) = "445", enabled = true) {
-  const client = new QueryClient({ defaultOptions: { queries: { retry: false, gcTime: 0 } } });
+function mount(query: string | (() => string) = "445", enabled = true, debounce?: () => string) {
+  const client = new QueryClient({ defaultOptions: { queries: { retry: false, gcTime: debounce ? 30_000 : 0 } } });
   clients.push(client);
   const wrapper = ({ children }: { children: ReactNode }) => <QueryClientProvider client={client}>{children}</QueryClientProvider>;
-  return { ...renderHook(() => useEntitySearch(typeof query === "function" ? query() : query, enabled), { wrapper }), client };
+  return { ...renderHook(() => useEntitySearch(typeof query === "function" ? query() : query, enabled, debounce?.()), { wrapper }), client };
 }
 const tables = () => state.requests.map(url => url.pathname.split("/").at(-1));
 
@@ -77,6 +77,25 @@ beforeEach(() => {
 afterEach(() => { cleanup(); for (const client of clients.splice(0)) client.clear(); });
 
 describe("useEntitySearch: real QueryClient and SDK, simulated HTTP only", () => {
+  it("returns fresh results before the debounce and waits for new terms and changed permissions", async () => {
+    permit("Clientes");
+    let term = "445";
+    let debounced = "";
+    const { result, rerender } = mount(() => term, true, () => debounced);
+    expect(state.requests).toHaveLength(0);
+    debounced = term; rerender();
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+    term = "other"; rerender();
+    expect(result.current.data).toBeUndefined();
+    expect(state.requests).toHaveLength(1);
+    debounced = ""; term = "445"; rerender();
+    expect(result.current.activeQuery).toBe(term);
+    expect(result.current.data?.customers).toHaveLength(1);
+    expect(state.requests).toHaveLength(1);
+    permit("Reservas"); rerender();
+    expect(result.current.data).toBeUndefined();
+    expect(state.requests).toHaveLength(1);
+  });
   it.each([
     ["Facturas", ["invoices"]], ["Clientes", ["customers"]], ["Reservas", ["bookings"]],
     ["Entregas", ["deliveries", "returns"]], ["Cotizaciones", ["quotes"]],

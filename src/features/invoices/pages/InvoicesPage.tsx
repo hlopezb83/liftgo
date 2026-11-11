@@ -16,18 +16,14 @@ import { useLocation } from "@/lib/router-compat";
 // hasReachedListLimit ya no es necesario: paginación real vía useInvoicesInfinite.
 import { InvoiceMobileCard } from "../components/list/InvoiceMobileCard";
 import { InvoicesActionsBar, InvoicesFiltersBar } from "../components/list/InvoicesToolbar";
-import { RecurringInvoicesPreviewDialog } from "../components/recurring/RecurringInvoicesPreviewDialog";
-import { RecurringInvoicesResultDialog } from "../components/recurring/RecurringInvoicesResultDialog";
-import { useRecurringInvoiceWorkflow } from "../hooks/invoices/recurring/useRecurringInvoiceWorkflow";
+import RecurringInvoiceDialogs from "../components/recurring/RecurringInvoiceDialogs";
 import { useInvoiceCsvExport } from "../hooks/invoices/useInvoiceCsvExport";
 import { invoiceQueries, useInvoicesInfinite, type InvoiceListItem } from "../hooks/invoices/useInvoices";
 import { useInvoicesFilters } from "../hooks/invoices/useInvoicesFilters";
 
 type Invoice = InvoiceListItem;
 
-
-function useInvoiceColumns(): ColumnDef<Invoice>[] {
-  return [
+const invoiceColumns: ColumnDef<Invoice>[] = [
       { id: "invoice_number", header: "Factura #", accessorKey: "invoice_number",
         cell: ({ row }) => <Untranslated className="font-medium">{row.original.invoice_number}</Untranslated> },
       { id: "customer_name", header: "Cliente", accessorFn: (i) => i.customer_name,
@@ -52,8 +48,7 @@ function useInvoiceColumns(): ColumnDef<Invoice>[] {
         cell: ({ row }) => <span className="text-sm text-muted-foreground">{formatDateMty(row.original.due_date)}</span> },
       { id: "view", header: "", enableSorting: false, meta: { cellClassName: "w-12" },
         cell: () => <ViewIcon className="h-4 w-4 text-muted-foreground" /> },
-    ];
-}
+];
 
 export default function InvoicesPage() {
   const location = useLocation();
@@ -69,21 +64,16 @@ export default function InvoicesPage() {
   const isUpdatingFilters = invoicesQuery.isPlaceholderData;
   const invoiceRows = useMemo(() => data?.pages.flatMap((p) => p.rows) ?? [], [data]);
   const navigate = useNavigateTransition();
-  const [previewOpen, setPreviewOpen] = useState(false);
-  const [resultOpen, setResultOpen] = useState(false);
+  const [recurringOpening, setRecurringOpening] = useState(0);
   const canCreate = useHasModuleAccess("Facturas", "full");
   const csvExport = useInvoiceCsvExport(queryFilters);
   const showExport = csvExport.allowed && !isUpdatingFilters && (invoiceRows.length > 0 || !!hasNextPage);
   const showHeaderNew = isLoading || isError || hasActive || showExport;
   usePageActions({ onNew: canCreate ? () => navigate("/invoices/new") : undefined, newLabel: "Nueva factura" });
 
-  const { generateRecurring, previewRecurring, openPreview, handleConfirm, handleRetry } =
-    useRecurringInvoiceWorkflow(setPreviewOpen, setResultOpen);
-
-  const columns = useInvoiceColumns();
   const table = useLiftgoTable<Invoice>({
     data: isUpdatingFilters ? [] : invoiceRows,
-    columns,
+    columns: invoiceColumns,
     getRowId: (i) => i.id,
     ...tableViewState,
     controlledPagination: {
@@ -127,11 +117,10 @@ export default function InvoicesPage() {
         subtitle="Administrar facturación y pagos"
         actions={(canCreate || showExport) &&
           <InvoicesActionsBar
-            onOpenPreview={openPreview}
+            onOpenPreview={() => setRecurringOpening((opening) => opening + 1)}
             onExport={() => { void csvExport.download(); }}
             exportPending={csvExport.busy}
             onNew={() => navigate("/invoices/new")}
-            previewPending={previewRecurring.isPending}
             showExport={showExport}
             showNew={showHeaderNew}
           />
@@ -169,24 +158,7 @@ export default function InvoicesPage() {
         skeletonColumns={7}
         mobileCardRender={(inv) => <InvoiceMobileCard inv={inv} />}
       />
-      <RecurringInvoicesPreviewDialog
-        open={previewOpen}
-        onOpenChange={setPreviewOpen}
-        data={previewRecurring.data}
-        isLoading={previewRecurring.isPending}
-        isError={previewRecurring.isError}
-        onScopeChange={previewRecurring.mutate}
-        isGenerating={generateRecurring.isPending}
-        onConfirm={handleConfirm}
-      />
-      <RecurringInvoicesResultDialog
-        open={resultOpen}
-        onOpenChange={setResultOpen}
-        result={generateRecurring.data}
-        onRetry={handleRetry}
-        retryRequiresReview
-        isRetrying={generateRecurring.isPending}
-      />
+      {canCreate && <RecurringInvoiceDialogs opening={recurringOpening} />}
     </>
   );
 }

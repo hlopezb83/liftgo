@@ -18,6 +18,7 @@ type InvokeBody = Parameters<typeof supabase.functions.invoke>[1] extends infer 
 export interface InvokeEdgeOptions {
   body?: InvokeBody;
   headers?: Record<string, string>;
+  signal?: AbortSignal;
 }
 
 export async function invokeEdgeFunction<T = unknown>(

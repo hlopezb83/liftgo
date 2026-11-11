@@ -34,6 +34,10 @@ try {
   await sql.unsafe(read("./dashboard-search.fixture.sql"));
   await sql.unsafe(read("../../drizzle/migrations/0072_dashboard_fleet_counts_unbounded.sql"));
   await sql.unsafe(read("../../drizzle/migrations/0136_dashboard_search_performance.sql"));
+  const legacyKpis = read("../../supabase/migrations/20260901080020_f395aa5e-1e0c-4dd0-a311-4ff8b1b5ed60.sql")
+    .match(/CREATE OR REPLACE FUNCTION public\.get_financial_kpis\(\)[\s\S]*?\$function\$;/)?.[0];
+  assert.ok(legacyKpis);
+  await sql.unsafe(legacyKpis.replace("SECURITY DEFINER", "SECURITY INVOKER"));
 
   await sql`INSERT INTO user_roles VALUES (${actor}, 'auditor'), (${actor}, 'dispatcher')`;
   for (const module of ["Facturas", "Cotizaciones", "Clientes", "Reservas", "Entregas"]) {
@@ -45,6 +49,13 @@ try {
   await sql`INSERT INTO invoices(organization_id, invoice_number, customer_name, status, total)
     VALUES (${orgA}, 'FAC-445', 'ACME 445', 'draft', 100), (${orgA}, 'FAC-445-cancelled', 'ACME 445', 'cancelled', 100),
            (${orgB}, 'FAC-445-foreign', 'ACME 445', 'draft', 100)`;
+  await sql`INSERT INTO invoices(organization_id, invoice_number, status, total, moneda, tipo_cambio, issued_at, paid_at, is_e2e)
+    VALUES (${orgA}, 'MXN partial', 'partial', 1000, 'MXN', NULL, '2026-10-15', NULL, false),
+           (${orgA}, 'USD with FX', 'overdue', 50, 'USD', 18, '2026-10-16', NULL, false),
+           (${orgA}, 'USD missing FX', 'sent', 20, 'USD', NULL, '2026-10-17', NULL, false),
+           (${orgA}, 'Paid later', 'paid', 300, 'MXN', NULL, '2026-10-18', '2026-11-03', false),
+           (${orgA}, 'E2E', 'overdue', 4500, 'MXN', NULL, '2026-10-19', NULL, true),
+           (${orgB}, 'Other company', 'overdue', 9999, 'MXN', NULL, '2026-10-20', NULL, false)`;
   await sql`INSERT INTO quotes(organization_id, quote_number, customer_name, created_at, is_e2e)
     VALUES (${orgA}, 'COT-0445', 'Exacta antigua', '2020-01-01', false),
            (${orgB}, 'COT-0445', 'Exacta ajena', '2026-01-01', false),
@@ -80,6 +91,15 @@ try {
   await sql`SELECT set_config('fixture.user_id', ${actor}, false), set_config('fixture.organization_id', ${orgA}, false)`;
   await sql`SET ROLE authenticated`;
   const [summary] = await sql`SELECT public.get_dashboard_stats() AS data`;
+  const [legacy] = await sql`SELECT public.get_financial_kpis() AS data`;
+  await sql`RESET ROLE`;
+  await sql.unsafe(read("../../drizzle/migrations/0139_dashboard_balance_reads.sql"));
+  await sql`SET ROLE authenticated`;
+  const [optimized] = await sql`SELECT public.get_dashboard_stats() AS stats, public.get_financial_kpis() AS kpis`;
+  assert.deepEqual(optimized.stats, summary.data, "Dashboard shape and MXN amounts are unchanged under invoker RLS");
+  assert.deepEqual(optimized.kpis, legacy.data, "Current and prior KPI filters give the same amounts and counts");
+  assert.equal(optimized.stats.invoice_stats.outstanding_revenue, 1900);
+  assert.deepEqual(optimized.stats.overdue_invoices.map(row => row.invoice_number), ["MXN partial", "USD with FX"]);
   assert.deepEqual(summary.data.fleet_counts, { total: 610, available: 609, rented: 1, maintenance: 0, retired: 0, sold: 0 });
   assert.equal(summary.data.pending_deliveries_count, 601, "count all overdue and unreconciled rows across the old list cap");
   for (const term of ["445", "0445", "COT-0445", "cot-445", "000445"]) {

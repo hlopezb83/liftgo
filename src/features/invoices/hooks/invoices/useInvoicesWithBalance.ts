@@ -2,6 +2,8 @@ import { queryOptions, useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { invoiceKeys } from "../../lib/queryKeys";
 
+const BALANCE_COLUMNS = "id, invoice_number, customer_name, customer_id, status, total, paid_amount, balance, balance_mxn, fx_missing, due_date, issued_at, booking_id, moneda, tipo_cambio";
+
 interface InvoiceWithBalance {
   id: string;
   invoice_number: string;
@@ -55,28 +57,24 @@ function buildInvoicesWithBalanceQuery(filter: Filter) {
   return queryOptions({
     queryKey: invoiceKeys.withBalance({ statuses, dueFrom, dueTo, withBalanceOnly, limit, offset }),
     staleTime: 60_000,
-    queryFn: async (): Promise<InvoiceWithBalance[]> => {
+    queryFn: async ({ signal }): Promise<InvoiceWithBalance[]> => {
       // SEC-005 + PERF-001: RPC parametrizada que filtra y pagina en servidor.
-      const invoke = supabase.rpc.bind(supabase) as unknown as (
-        fn: string,
-        args: Record<string, unknown>,
-      ) => Promise<{ data: unknown; error: { message?: string } | null }>;
       const pageSize = limit ?? 1000;
-      const rows: Record<string, unknown>[] = [];
+      const rows = [];
       let pageOffset = offset ?? 0;
       // Sin límite explícito, cargar todas las páginas. El RPC limita cada
       // respuesta a 1.000; una única llamada truncaba totales y CSV.
       while (true) {
-        const { data, error } = await invoke("list_invoices_with_balance", {
-          p_statuses: statuses as string[],
-          p_due_from: dueFrom ?? null,
-          p_due_to: dueTo ?? null,
+        const { data, error } = await supabase.rpc("list_invoices_with_balance", {
+          p_statuses: [...statuses],
+          p_due_from: dueFrom,
+          p_due_to: dueTo,
           p_with_balance_only: withBalanceOnly,
           p_limit: pageSize,
           p_offset: pageOffset,
-        });
+        }).select(BALANCE_COLUMNS).abortSignal(signal);
         if (error) throw error;
-        const page = (data ?? []) as Record<string, unknown>[];
+        const page = data ?? [];
         rows.push(...page);
         if (limit !== undefined || page.length < pageSize) break;
         pageOffset += pageSize;
@@ -90,16 +88,16 @@ function buildInvoicesWithBalanceQuery(filter: Filter) {
         return {
           id: r.id as string,
           invoice_number: r.invoice_number as string,
-          customer_name: (r.customer_name as string | null) ?? null,
-          customer_id: (r.customer_id as string | null) ?? null,
+          customer_name: r.customer_name,
+          customer_id: r.customer_id,
           status: r.status as string,
           total: Number(r.total),
           paid_amount: Number(r.paid_amount),
           balance: Number(r.balance),
-          due_date: (r.due_date as string | null) ?? null,
+          due_date: r.due_date,
           issued_at: r.issued_at as string,
-          booking_id: (r.booking_id as string | null) ?? null,
-          moneda: (r.moneda as string | null) ?? null,
+          booking_id: r.booking_id,
+          moneda: r.moneda,
           tipo_cambio: r.tipo_cambio == null ? null : Number(r.tipo_cambio),
           fx_missing: fxMissing,
           balance_mxn: fxMissing

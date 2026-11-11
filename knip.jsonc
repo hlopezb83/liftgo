@@ -42,6 +42,8 @@
   ],
 
   "ignoreDependencies": [
+    // Deno resolves these assertions through its import map and lockfile.
+    "@std/assert",
     // Pin de seguridad transitivo de TanStack; probado por test:dependencies.
     // Retirar cuando sus padres exijan Seroval corregido (docs/security/).
     "seroval",
@@ -78,6 +80,12 @@
     "eslint-plugin-playwright",
     "eslint-plugin-react-compiler"
   ],
+  "ignoreIssues": {
+    // These contract tests inspect intentional transitive resolutions.
+    "scripts/tests/dependency-security.test.mjs": ["unlisted"],
+    // Deno's npm: specifier is resolved by the Edge runtime.
+    "supabase/functions/validate-supplier-rep/handler.ts": ["unlisted"]
+  },
   "ignoreBinaries": ["knip", "tsc", "tsx", "wrangler"],
   "rules": {
     "files": "error",

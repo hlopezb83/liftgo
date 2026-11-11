@@ -114,6 +114,210 @@ function unique(values: Array<string | null>): string[] {
   return [...new Set(values.filter((value): value is string => !!value))];
 }
 
+type PlanningReadScope = {
+  org: string;
+  group: BookingSource[];
+  contexts: Map<string, PlanningContext>;
+  budget: ReadBudget;
+  metrics?: RecurringPerformance;
+};
+
+async function loadFiscalSnapshots(
+  supabase: SupabaseClient,
+  { org, group, contexts, budget, metrics }: PlanningReadScope,
+): Promise<void> {
+  const fiscal = new Map<string, Record<string, unknown>>();
+  for (
+    const ids of batches(unique(group.map((booking) => booking.customer_id)))
+  ) {
+    const requested = new Set(ids);
+    const rows = await readAll<Record<string, unknown>>(
+      (last) => {
+        let query = supabase.from("organization_customers")
+          .select(FISCAL_FIELDS, { count: "exact" }).eq(
+            "organization_id",
+            org,
+          )
+          .in("customer_id", ids).order("customer_id");
+        if (last) query = query.gt("customer_id", last.customer_id);
+        return query;
+      },
+      budget,
+      (row) => [row.customer_id as string],
+      "fiscal",
+      metrics,
+    );
+    for (const row of rows) {
+      const id = String(row.customer_id);
+      if (
+        row.organization_id !== org || !requested.has(id) || fiscal.has(id)
+      ) throw new Error("Contexto fiscal de cliente inconsistente");
+      fiscal.set(id, row);
+    }
+  }
+  for (const booking of group) {
+    contexts.get(booking.id)!.fiscal = fiscal.get(booking.customer_id ?? "") ??
+      null;
+  }
+}
+
+async function loadInvoiceHistory(
+  supabase: SupabaseClient,
+  { org, group, contexts, budget, metrics }: PlanningReadScope,
+): Promise<void> {
+  for (const ids of batches(group.map((booking) => booking.id))) {
+    const requested = new Set(ids);
+    type ScopedInvoice = HistoricalInvoice & {
+      organization_id: string;
+      booking_id: string;
+    };
+    type LinkedInvoice = {
+      invoice_id: string;
+      booking_id: string;
+      invoices: ScopedInvoice | null;
+    };
+    const [linked, direct] = await Promise.all([
+      readAll<LinkedInvoice>(
+        (last) => {
+          let query = supabase.from("invoice_bookings")
+            .select(
+              `booking_id, invoice_id, invoices!inner(${INVOICE_FIELDS}, organization_id)`,
+              { count: "exact" },
+            )
+            .in("booking_id", ids).eq("invoices.organization_id", org)
+            .order("booking_id").order("invoice_id");
+          if (last) {
+            // Quote server-owned IDs rather than interpolating raw PostgREST syntax.
+            const booking = JSON.stringify(last.booking_id);
+            const invoice = JSON.stringify(last.invoice_id);
+            query = query.or(
+              `booking_id.gt.${booking},and(booking_id.eq.${booking},invoice_id.gt.${invoice})`,
+            );
+          }
+          return query;
+        },
+        budget,
+        (row) => [row.booking_id, row.invoice_id],
+        "history_linked",
+        metrics,
+      ),
+      readAll<ScopedInvoice>(
+        (last) => {
+          let query = supabase.from("invoices")
+            .select(`${INVOICE_FIELDS}, organization_id, booking_id`, {
+              count: "exact",
+            })
+            .in("booking_id", ids).eq("organization_id", org).order("id");
+          if (last) query = query.gt("id", last.id);
+          return query;
+        },
+        budget,
+        (row) => [row.id],
+        "history_direct",
+        metrics,
+      ),
+    ]);
+    const linkedByBooking = new Map<string, LinkedInvoice[]>();
+    const directByBooking = new Map<string, ScopedInvoice[]>();
+    const linkedKeys = new Set<string>();
+    const directKeys = new Set<string>();
+    for (const row of linked) {
+      const key = `${row.booking_id}|${row.invoices?.id}`;
+      if (
+        !requested.has(row.booking_id) || !row.invoices ||
+        row.invoice_id !== row.invoices.id ||
+        row.invoices.organization_id !== org || linkedKeys.has(key) ||
+        typeof row.invoices.occupies_booking_period !== "boolean"
+      ) throw new Error("Historial vinculado incompleto o inconsistente");
+      linkedKeys.add(key);
+      const bucket = linkedByBooking.get(row.booking_id) ?? [];
+      bucket.push(row);
+      linkedByBooking.set(row.booking_id, bucket);
+    }
+    for (const row of direct) {
+      if (
+        !requested.has(row.booking_id) || row.organization_id !== org ||
+        directKeys.has(row.id) ||
+        typeof row.occupies_booking_period !== "boolean"
+      ) throw new Error("Historial directo incompleto o inconsistente");
+      directKeys.add(row.id);
+      const bucket = directByBooking.get(row.booking_id) ?? [];
+      bucket.push(row);
+      directByBooking.set(row.booking_id, bucket);
+    }
+    for (const id of ids) {
+      contexts.get(id)!.invoices = mergeLiveInvoiceHistory(
+        linkedByBooking.get(id) ?? [],
+        directByBooking.get(id) ?? [],
+      );
+    }
+  }
+}
+
+async function loadQuoteCharges(
+  supabase: SupabaseClient,
+  { group, contexts, metrics }: PlanningReadScope,
+): Promise<void> {
+  const quoteIds = unique(
+    group.filter((booking) => !contexts.get(booking.id)!.quoteIssue).map((
+      booking,
+    ) => booking.quote_id),
+  );
+  const chargeByQuote = new Map<
+    string,
+    { snapshot: unknown; invalid: boolean }
+  >();
+  metrics?.count("quote_ids", quoteIds.length);
+  for (const ids of batches(quoteIds)) {
+    metrics?.count("charge_batches", 1);
+    const readCharges = () =>
+      supabase.rpc(
+        "get_quote_charge_availability",
+        { p_quote_ids: ids },
+      );
+    const { data, error } = metrics
+      ? await metrics.measure("charges", readCharges)
+      : await readCharges();
+    if (error) throw error;
+    const response = data as {
+      complete?: unknown;
+      quotes?: Array<Record<string, unknown>>;
+    } | null;
+    const rows = Array.isArray(response?.quotes) ? response.quotes : [];
+    const seen = new Set(
+      rows.map((row) => row && typeof row === "object" ? row.quote_id : null),
+    );
+    const complete = response?.complete === true &&
+      rows.length === ids.length && seen.size === ids.length &&
+      ids.every((id) => seen.has(id));
+    for (const id of ids) {
+      const snapshot = complete
+        ? {
+          complete: true,
+          quotes: [rows.find((row) => row.quote_id === id)],
+        }
+        : data;
+      let invalid = !complete;
+      if (complete) {
+        try {
+          recurringQuoteCharges(snapshot, [id]);
+        } catch {
+          invalid = true;
+        }
+      }
+      chargeByQuote.set(id, { snapshot, invalid });
+    }
+  }
+  for (const booking of group) {
+    const context = contexts.get(booking.id)!;
+    const charge = chargeByQuote.get(booking.quote_id ?? "");
+    if (charge && !context.quoteIssue) {
+      context.chargeSnapshot = charge.snapshot;
+      if (charge.invalid) context.quoteIssue = "quote_charge_review";
+    }
+  }
+}
+
 /** Read-only I/O boundary. Every batch is scoped to one source organization. */
 export async function loadRecurringPlanningData(
   supabase: SupabaseClient,
@@ -163,184 +367,14 @@ export async function loadRecurringPlanningData(
     byOrganization.set(booking.organization_id, group);
   }
   for (const [org, group] of byOrganization) {
-    const fiscal = new Map<string, Record<string, unknown>>();
-    for (
-      const ids of batches(unique(group.map((booking) => booking.customer_id)))
-    ) {
-      const requested = new Set(ids);
-      const rows = await readAll<Record<string, unknown>>(
-        (last) => {
-          let query = supabase.from("organization_customers")
-            .select(FISCAL_FIELDS, { count: "exact" }).eq(
-              "organization_id",
-              org,
-            )
-            .in("customer_id", ids).order("customer_id");
-          if (last) query = query.gt("customer_id", last.customer_id);
-          return query;
-        },
-        budget,
-        (row) => [row.customer_id as string],
-        "fiscal",
-        metrics,
-      );
-      for (const row of rows) {
-        const id = String(row.customer_id);
-        if (
-          row.organization_id !== org || !requested.has(id) || fiscal.has(id)
-        ) throw new Error("Contexto fiscal de cliente inconsistente");
-        fiscal.set(id, row);
-      }
-    }
-    for (const booking of group) {
-      contexts.get(booking.id)!.fiscal =
-        fiscal.get(booking.customer_id ?? "") ?? null;
-    }
-
-    for (const ids of batches(group.map((booking) => booking.id))) {
-      const requested = new Set(ids);
-      type ScopedInvoice = HistoricalInvoice & {
-        organization_id: string;
-        booking_id: string;
-      };
-      type LinkedInvoice = {
-        invoice_id: string;
-        booking_id: string;
-        invoices: ScopedInvoice | null;
-      };
-      const linked = await readAll<LinkedInvoice>(
-        (last) => {
-          let query = supabase.from("invoice_bookings")
-            .select(
-              `booking_id, invoice_id, invoices!inner(${INVOICE_FIELDS}, organization_id)`,
-              { count: "exact" },
-            )
-            .in("booking_id", ids).eq("invoices.organization_id", org)
-            .order("booking_id").order("invoice_id");
-          if (last) {
-            // Quote server-owned IDs rather than interpolating raw PostgREST syntax.
-            const booking = JSON.stringify(last.booking_id);
-            const invoice = JSON.stringify(last.invoice_id);
-            query = query.or(
-              `booking_id.gt.${booking},and(booking_id.eq.${booking},invoice_id.gt.${invoice})`,
-            );
-          }
-          return query;
-        },
-        budget,
-        (row) => [row.booking_id, row.invoice_id],
-        "history_linked",
-        metrics,
-      );
-      const direct = await readAll<ScopedInvoice>(
-        (last) => {
-          let query = supabase.from("invoices")
-            .select(`${INVOICE_FIELDS}, organization_id, booking_id`, {
-              count: "exact",
-            })
-            .in("booking_id", ids).eq("organization_id", org).order("id");
-          if (last) query = query.gt("id", last.id);
-          return query;
-        },
-        budget,
-        (row) => [row.id],
-        "history_direct",
-        metrics,
-      );
-      const linkedByBooking = new Map<string, LinkedInvoice[]>();
-      const directByBooking = new Map<string, ScopedInvoice[]>();
-      const linkedKeys = new Set<string>();
-      const directKeys = new Set<string>();
-      for (const row of linked) {
-        const key = `${row.booking_id}|${row.invoices?.id}`;
-        if (
-          !requested.has(row.booking_id) || !row.invoices ||
-          row.invoice_id !== row.invoices.id ||
-          row.invoices.organization_id !== org || linkedKeys.has(key) ||
-          typeof row.invoices.occupies_booking_period !== "boolean"
-        ) throw new Error("Historial vinculado incompleto o inconsistente");
-        linkedKeys.add(key);
-        const bucket = linkedByBooking.get(row.booking_id) ?? [];
-        bucket.push(row);
-        linkedByBooking.set(row.booking_id, bucket);
-      }
-      for (const row of direct) {
-        if (
-          !requested.has(row.booking_id) || row.organization_id !== org ||
-          directKeys.has(row.id) ||
-          typeof row.occupies_booking_period !== "boolean"
-        ) throw new Error("Historial directo incompleto o inconsistente");
-        directKeys.add(row.id);
-        const bucket = directByBooking.get(row.booking_id) ?? [];
-        bucket.push(row);
-        directByBooking.set(row.booking_id, bucket);
-      }
-      for (const id of ids) {
-        contexts.get(id)!.invoices = mergeLiveInvoiceHistory(
-          linkedByBooking.get(id) ?? [],
-          directByBooking.get(id) ?? [],
-        );
-      }
-    }
-
-    const quoteIds = unique(
-      group.filter((booking) => !contexts.get(booking.id)!.quoteIssue).map((
-        booking,
-      ) => booking.quote_id),
-    );
-    const chargeByQuote = new Map<
-      string,
-      { snapshot: unknown; invalid: boolean }
-    >();
-    metrics?.count("quote_ids", quoteIds.length);
-    for (const ids of batches(quoteIds)) {
-      metrics?.count("charge_batches", 1);
-      const readCharges = () =>
-        supabase.rpc(
-          "get_quote_charge_availability",
-          { p_quote_ids: ids },
-        );
-      const { data, error } = metrics
-        ? await metrics.measure("charges", readCharges)
-        : await readCharges();
-      if (error) throw error;
-      const response = data as {
-        complete?: unknown;
-        quotes?: Array<Record<string, unknown>>;
-      } | null;
-      const rows = Array.isArray(response?.quotes) ? response.quotes : [];
-      const seen = new Set(
-        rows.map((row) => row && typeof row === "object" ? row.quote_id : null),
-      );
-      const complete = response?.complete === true &&
-        rows.length === ids.length && seen.size === ids.length &&
-        ids.every((id) => seen.has(id));
-      for (const id of ids) {
-        const snapshot = complete
-          ? {
-            complete: true,
-            quotes: [rows.find((row) => row.quote_id === id)],
-          }
-          : data;
-        let invalid = !complete;
-        if (complete) {
-          try {
-            recurringQuoteCharges(snapshot, [id]);
-          } catch {
-            invalid = true;
-          }
-        }
-        chargeByQuote.set(id, { snapshot, invalid });
-      }
-    }
-    for (const booking of group) {
-      const context = contexts.get(booking.id)!;
-      const charge = chargeByQuote.get(booking.quote_id ?? "");
-      if (charge && !context.quoteIssue) {
-        context.chargeSnapshot = charge.snapshot;
-        if (charge.invalid) context.quoteIssue = "quote_charge_review";
-      }
-    }
+    const scope = { org, group, contexts, budget, metrics };
+    // These reads share the same organization and depend only on the bookings.
+    // Each branch retains sequential keyset pages and the global read budget.
+    await Promise.all([
+      loadFiscalSnapshots(supabase, scope),
+      loadInvoiceHistory(supabase, scope),
+      loadQuoteCharges(supabase, scope),
+    ]);
   }
   return bookings.map((booking) => contexts.get(booking.id)!);
 }
