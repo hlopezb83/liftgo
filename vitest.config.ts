@@ -1,6 +1,7 @@
 import os from "os";
 import react from "@vitejs/plugin-react";
 import { defineConfig } from "vitest/config";
+import BalancedCiSequencer from "./scripts/ci/vitest-balanced-sequencer.mjs";
 
 // Núcleos realmente disponibles para el proceso (respeta cgroups en CI y
 // aprovecha máquinas grandes como el entorno de Lovable, 64 vCPU).
@@ -26,6 +27,7 @@ export default defineConfig({
     // el docblock del archivo.
     environment: "happy-dom",
     globals: true,
+    sequence: process.env.VITEST_CI_BALANCED === "1" ? { sequencer: BalancedCiSequencer } : undefined,
     setupFiles: ["./src/test/setup.ts"],
     include: ["src/**/*.{test,spec}.{ts,tsx}"],
     // Paralelismo explícito: por defecto vitest usa CPUS-1 y arranca los

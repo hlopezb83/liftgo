@@ -136,12 +136,14 @@ jobs:
           cd ../..
           bash scripts/deno-tests-offline.sh
   tests:
-    name: Unitarias ${{ matrix.shard }}/4
+    name: Unitarias ${{ matrix.shard }}/4 (${{ matrix.variant }} ${{ matrix.sample }})
     runs-on: ubuntu-24.04
     timeout-minutes: 6
     strategy:
       fail-fast: false
       matrix:
+        variant: [baseline, balanced]
+        sample: [1, 2, 3]
         shard:
           - 1
           - 2
@@ -176,13 +178,14 @@ jobs:
         env:
           SHARD: ${{ matrix.shard }}
           SHARDS: "4"
+          VITEST_CI_BALANCED: ${{ matrix.variant == 'balanced' && '1' || '0' }}
           NODE_OPTIONS: --max-old-space-size=6144
         run: node node_modules/vitest/vitest.mjs run --shard="$SHARD/$SHARDS"
       - name: Diagnóstico de fallo
         if: failure()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
-          name: unitarias-${{ matrix.shard }}
+          name: unitarias-${{ matrix.variant }}-${{ matrix.sample }}-${{ matrix.shard }}
           path: reports/
           retention-days: 3
           if-no-files-found: ignore
