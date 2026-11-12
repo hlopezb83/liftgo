@@ -1,0 +1,7 @@
+{
+  "description": "Evita el fallo de arranque causado por Array.at cuando esa función no está disponible en el navegador.",
+  "changes": [
+    "Reemplaza accesos al último elemento que dependían de Array.at (Sentry LIFTGO-Q).",
+    "Añade una prueba de regresión del arranque sin Array.at; no establece compatibilidad general con versiones antiguas de Safari."
+  ]
+}

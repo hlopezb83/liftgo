@@ -8,7 +8,7 @@ const labels: Record<string, string> = {
 
 export function quoteFormErrorLabel(name: string) {
   const parts = name.split(".");
-  const label = labels[parts.at(-1) ?? ""] ?? "Campo";
+  const label = labels[parts[parts.length - 1] ?? ""] ?? "Campo";
   return /^\d+$/.test(parts[1] ?? "") ? `Equipo ${Number(parts[1]) + 1} · ${label}` : label;
 }
 
