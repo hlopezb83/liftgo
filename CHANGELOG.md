@@ -1,3 +1,9 @@
+## [8.53.4] - 2026-11-12
+
+### Actualización de versión para verificar Git Sync
+
+- Incremento de versión de mantenimiento para comprobar la sincronización directa entre Lovable y GitHub, sin cambios funcionales nuevos.
+
 ## [8.53.3] - 2026-11-12
 
 ### Actualización de versión para verificar Git Sync
