@@ -55,6 +55,8 @@ bun run build
 bun run migrations:check
 ```
 
+El workflow CI se ejecuta automáticamente en los PR dirigidos a `main` y en los pushes a `main`; publicar el frontend en Lovable es un paso separado.
+
 E2E requiere cuentas de prueba y un backend aislado. Lee
 [tests/e2e/README.md](tests/e2e/README.md) antes de ejecutarlo. Las pruebas A/B
 de empresa y las pruebas SQL de RLS usan una base local efímera; consulta
