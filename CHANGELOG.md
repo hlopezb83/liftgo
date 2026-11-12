@@ -1,6 +1,6 @@
 ## [8.53.1] - 2026-11-12
 
-- La app vuelve a abrir en navegadores antiguos (por ejemplo, Safari anterior a 15.4).
+- Evita el fallo de arranque causado por la ausencia de Array.at y añade una prueba de regresión. No establece compatibilidad general con versiones antiguas de Safari.
 
 ## [8.52.13] - 2026-11-10
 
