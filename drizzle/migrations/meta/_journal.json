@@ -995,6 +995,13 @@
       "when": 1794411000000,
       "tag": "0141_overdue_delivery_page",
       "breakpoints": true
+    },
+    {
+      "idx": 142,
+      "version": "7",
+      "when": 1794524319237,
+      "tag": "0142_0142_inventory_low_stock_filter",
+      "breakpoints": true
     }
   ]
 }

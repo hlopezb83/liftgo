@@ -7250,17 +7250,30 @@ export type Database = {
         Returns: Json
       }
       get_insurance_alerts: { Args: never; Returns: Json }
-      get_inventory_page: {
-        Args: {
-          p_category?: string
-          p_expected_organization_id: string
-          p_page?: number
-          p_page_size?: number
-          p_search?: string
-          p_sort?: Json
-        }
-        Returns: Json
-      }
+      get_inventory_page:
+        | {
+            Args: {
+              p_category?: string
+              p_expected_organization_id: string
+              p_page?: number
+              p_page_size?: number
+              p_search?: string
+              p_sort?: Json
+            }
+            Returns: Json
+          }
+        | {
+            Args: {
+              p_category?: string
+              p_expected_organization_id: string
+              p_low_stock: boolean
+              p_page?: number
+              p_page_size?: number
+              p_search?: string
+              p_sort?: Json
+            }
+            Returns: Json
+          }
       get_invoice_booking_billing_evidence: {
         Args: {
           p_booking_ids: string[]
