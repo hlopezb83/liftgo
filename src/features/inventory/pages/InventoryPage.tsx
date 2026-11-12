@@ -25,14 +25,16 @@ function useInventoryListState() {
   const { values, set, reset, hasActive } = useTableFilters<PartInventory, {
     q: { type: "text"; fields: (keyof PartInventory)[] };
     category: { type: "enum"; field: keyof PartInventory; options: readonly string[] };
+    stock: { type: "enum"; options: readonly string[] };
   }>({ mode: "server", facets: {
     q: { type: "text", fields: ["name", "sku"] },
     category: { type: "enum", field: "category", options: ["all", ...PART_CATEGORIES] },
+    stock: { type: "enum", options: ["all", "low"] },
   } });
   const viewState = useTableViewState();
   const { controlledPagination: pagination, controlledSorting: sorting, onControlledPaginationChange } = viewState;
   const { data, isLoading, isError, refetch } = useInventoryPage({
-    search: values.q, category: values.category, ...pagination, sorting,
+    search: values.q, category: values.category, lowStockOnly: values.stock === "low", ...pagination, sorting,
   });
   useEffect(() => {
     if (data && data.pageIndex !== pagination.pageIndex) {
@@ -89,16 +91,25 @@ export default function InventoryPage() {
                 iconColor="text-destructive"
                 iconBg="bg-destructive/10"
                 valueSize="lg"
+                hint="Ver refacciones con stock bajo"
+                onClick={() => set("stock", "low")}
               />
             )}
         filters={
           <div className="space-y-3">
             <div className="flex flex-col sm:flex-row gap-3">
               <Select value={values.category} onValueChange={(value) => set("category", value)}>
-                <SelectTrigger className="w-full sm:w-[180px]"><SelectValue /></SelectTrigger>
+                <SelectTrigger aria-label="Filtrar por categoría" className="w-full sm:w-[180px]"><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">Todas las categorías</SelectItem>
                   {PART_CATEGORIES.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+                </SelectContent>
+              </Select>
+              <Select value={values.stock} onValueChange={(value) => set("stock", value)}>
+                <SelectTrigger aria-label="Filtrar por existencias" className="w-full sm:w-[180px]"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todas las existencias</SelectItem>
+                  <SelectItem value="low">Stock bajo</SelectItem>
                 </SelectContent>
               </Select>
             </div>

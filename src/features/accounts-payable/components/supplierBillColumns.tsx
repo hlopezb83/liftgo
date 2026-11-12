@@ -6,9 +6,12 @@ import { Untranslated } from "@/components/ui/Untranslated";
 import { formatDateMty } from "@/lib/format/dateFormats";
 import { formatCurrencyWithCode } from "@/lib/format/formatCurrency";
 import { EXPENSE_CATEGORY_LABELS, SUPPLIER_BILL_STATUS_LABELS, APPROVAL_STATUS_LABELS } from "../lib/supplierBillConstants";
-import type { SupplierBillListItem } from "../hooks/useSupplierBills";
+import type { AccountsPayableBillRow } from "../lib/accountsPayableRpc";
 
-export function useSupplierBillColumns(): ColumnDef<SupplierBillListItem>[] {
+type SupplierBillTableRow = Pick<AccountsPayableBillRow,
+  "id" | "bill_number" | "suppliers" | "issue_date" | "due_date" | "total" | "balance" | "currency" | "status" | "approval_status" | "category">;
+
+export function useSupplierBillColumns<T extends SupplierBillTableRow = SupplierBillTableRow>(): ColumnDef<T>[] {
   return [
     {
       id: "bill_number", header: "Folio", accessorKey: "bill_number",
@@ -75,7 +78,7 @@ export function useSupplierBillColumns(): ColumnDef<SupplierBillListItem>[] {
 }
 
 export function renderSupplierBillMobileCard(
-  b: SupplierBillListItem,
+  b: SupplierBillTableRow,
   onClick: (id: string) => void,
 ) {
   return (

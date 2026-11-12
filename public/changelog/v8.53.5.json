@@ -1,0 +1,11 @@
+{
+  "description": "Mejoras puntuales para trabajar con proveedores, identificar filtros y configurar el entorno de desarrollo.",
+  "changes": [
+    "La exportación de proveedores respeta la búsqueda activa y conserva la comprobación de que se haya cargado la lista completa.",
+    "Al regresar de la ficha de un proveedor se conservan la búsqueda, la página y el orden del listado.",
+    "El teléfono del proveedor permite iniciar una llamada desde dispositivos compatibles.",
+    "El filtro de categoría de Refacciones tiene una etiqueta accesible para lectores de pantalla.",
+    "La guía de configuración distingue las variables del navegador y del servidor, y la documentación refleja las herramientas y acciones actuales del portal.",
+    "La configuración de pruebas resuelve correctamente rutas de Windows con espacios."
+  ]
+}

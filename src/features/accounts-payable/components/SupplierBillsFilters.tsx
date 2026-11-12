@@ -16,7 +16,7 @@ interface Supplier { id: string; name: string }
 
 interface Props {
   filters: ReturnType<typeof useAccountsPayableFilters>;
-  kpis: ReturnType<typeof useAccountsPayableKpis>["kpis"];
+  kpis: ReturnType<typeof useAccountsPayableKpis>["kpis"] | undefined;
   suppliers: Supplier[] | undefined;
 }
 

@@ -13,23 +13,18 @@ import SupplierDetailPage from "../SupplierDetailPage";
 const useSupplierMock = vi.fn();
 const useSupplierBillsMock = vi.fn();
 const useMaintenanceLogsMock = vi.fn();
-const useForkliftMapMock = vi.fn();
 
 vi.mock("../../hooks/useSuppliers", () => ({
   useSupplier: () => useSupplierMock(),
   SUPPLIER_CATEGORIES: {},
 }));
 
-vi.mock("@/features/accounts-payable", () => ({
-  useSupplierBills: () => useSupplierBillsMock(),
-}));
-
-vi.mock("@/features/maintenance", () => ({
-  useMaintenanceLogs: () => useMaintenanceLogsMock(),
+vi.mock("../../hooks/useSupplierLinkedActivity", () => ({
+  useSupplierLinkedBills: () => useSupplierBillsMock(),
+  useSupplierLinkedMaintenance: () => useMaintenanceLogsMock(),
 }));
 
 vi.mock("@/features/fleet", () => ({
-  useForkliftMap: () => useForkliftMapMock(),
   DocumentAttachments: () => null,
 }));
 
@@ -51,10 +46,8 @@ beforeEach(() => {
   useSupplierMock.mockReset();
   useSupplierBillsMock.mockReset();
   useMaintenanceLogsMock.mockReset();
-  useForkliftMapMock.mockReset();
   useSupplierBillsMock.mockReturnValue({ data: undefined, isLoading: false, isError: false, refetch: vi.fn() });
   useMaintenanceLogsMock.mockReturnValue({ data: undefined, isLoading: false, isError: false, refetch: vi.fn() });
-  useForkliftMapMock.mockReturnValue({ forkliftMap: new Map(), forklifts: undefined, isLoading: false, isError: false, refetch: vi.fn() });
 });
 
 describe("SupplierDetailPage (FE4-02)", () => {

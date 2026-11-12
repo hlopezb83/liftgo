@@ -7,6 +7,7 @@ vi.mock("@/features/customers", async () => ({
   ...await vi.importActual("@/features/customers/lib/customerTaxRate"), useCustomers: () => ({ data: [] }) }));
 vi.mock("@/features/fleet", () => ({ useQuoteAssignments: () => ({ data: [] }) }));
 vi.mock("../invoiceForm/useInvoiceRentalEquipment", () => ({ useInvoiceRentalEquipment: () => ({ data: [], refetch: state.refetch }) }));
+vi.mock("../invoiceForm/useInvoiceSourceCustomer", () => ({ useInvoiceSourceCustomer: () => ({ loadForId: vi.fn(), dependencies: [], prefillCustomers: [] }) }));
 vi.mock("@/features/quotes", () => ({ useQuote: () => ({ data: undefined }), useQuotesByIds: () => ({ data: [] }), useQuoteSaleAssignmentStatus: () => ({ isComplete: true }) }));
 vi.mock("@/hooks/useInitialRecordVersion", () => ({ useInitialRecordVersion: () => 1 }));
 vi.mock("../invoices/useInvoices", () => ({ useInvoice: () => ({ data: state.existing }) }));

@@ -7,6 +7,7 @@ type OriginState = {
   bookingReturnState?: unknown;
   customerInvoiceBackTo?: unknown;
   customerListBackTo?: unknown;
+  supplierListBackTo?: unknown;
 };
 
 /** Only a captured local route may become a return target. */
@@ -19,6 +20,11 @@ function isOriginFor(value: unknown, pathname: string): value is string {
 export function getCustomerListBackTo(state: unknown): string | undefined {
   const origin = (state as OriginState | null)?.customerListBackTo;
   return isOriginFor(origin, "/customers") ? origin : undefined;
+}
+
+export function getSupplierListBackTo(state: unknown): string | undefined {
+  const origin = (state as OriginState | null)?.supplierListBackTo;
+  return isOriginFor(origin, "/suppliers") ? origin : undefined;
 }
 
 interface InvoiceBackNavigation {

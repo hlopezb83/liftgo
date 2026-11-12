@@ -1,3 +1,18 @@
+## [8.53.6] - 2026-11-12
+
+- La ficha del proveedor consulta únicamente sus facturas y mantenimientos, recorriendo todas las páginas necesarias para sus totales.
+- Una CSF que falla al subir puede reintentarse sobre el proveedor ya guardado, sin repetir el alta.
+- El indicador de stock bajo filtra Refacciones desde el servidor antes de contar y paginar; requiere la migración `0142_inventory_low_stock_filter.sql` en el entorno de destino.
+- El autollenado de facturas desde reservas o cotizaciones consulta al cliente por ID y protege las ediciones manuales y los cambios de selección.
+- CxP valida sus respuestas paginadas y resúmenes; los datos incompletos muestran un error en vez de importes o pagos inventados.
+
+## [8.53.5] - 2026-11-12
+
+- La exportación de proveedores respeta la búsqueda y el regreso desde su ficha conserva filtros, página y orden.
+- El teléfono del proveedor permite iniciar llamadas y el filtro de categoría de Refacciones incorpora una etiqueta accesible.
+- Completa el ejemplo de variables del servidor y actualiza la documentación de herramientas y portal.
+- Corrige la resolución de rutas con espacios en Windows para las pruebas de Vitest.
+
 ## [8.53.4] - 2026-11-12
 
 ### Actualización de versión para verificar Git Sync

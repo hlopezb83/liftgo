@@ -15,14 +15,16 @@ const server = net.createServer();
 await new Promise((resolve, reject) => { server.once('error', reject); server.listen(0, '127.0.0.1', resolve); });
 const port = server.address().port;
 await new Promise(resolve => server.close(resolve));
-const pg = (name, args) => execFileSync(path.join(bin, name), args, { encoding: 'utf8', timeout: 30000 });
+// Inherit handles: pg_ctl's background server can otherwise keep a captured
+// stdout pipe open after pg_ctl has exited successfully on Windows.
+const pg = (name, args) => execFileSync(path.join(bin, name), args, { stdio: 'inherit', timeout: 30000, windowsHide: true });
 let started = false;
 try {
   pg('initdb', ['-D', path.join(directory, 'data'), '-U', 'postgres', '--auth=trust', '--no-locale', '--encoding=UTF8']);
   pg('pg_ctl', ['-D', path.join(directory, 'data'), '-l', path.join(directory, 'postgres.log'), '-o', `-h 127.0.0.1 -p ${port} -c unix_socket_directories= -c jit=off`, 'start']);
   started = true;
   execFileSync(process.execPath, ['scripts/tests/inventory/inventory-page.integration.mjs'], {
-    cwd: root, stdio: 'inherit', timeout: 180000,
+    cwd: root, stdio: 'inherit', timeout: 180000, windowsHide: true,
     env: { ...process.env, INVENTORY_TEST_PORT: String(port), INVENTORY_TEST_CLUSTER: directory },
   });
 } finally {

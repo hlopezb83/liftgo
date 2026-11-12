@@ -9,9 +9,11 @@ import { Card, CardContent } from "@/components/ui/card";
 import { usePageActions } from "@/contexts/pageActions";
 import { useHasModuleAccess } from "@/features/users";
 import { useTableFilters } from "@/hooks/filters/useTableFilters";
+import { useTableViewState } from "@/hooks/filters/useTableViewState";
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import { RoleGuard } from "@/layouts/RoleGuard";
 import { exportToCsv } from "@/lib/exportCsv";
+import { useLocation } from "@/lib/router-compat";
 import { Link } from "@/lib/router-compat-ui";
 import { LIST_PAGE_LIMIT } from "@/lib/supabase/constants";
 import { SupplierFormDialog } from "../components/suppliers/SupplierFormDialog";
@@ -39,6 +41,8 @@ export default function SuppliersPage() {
   const { isLoading, isError, refetch } = supplierPages;
   const suppliers = useMemo(() => supplierPages.data?.pages.flatMap((page) => page.slice(0, LIST_PAGE_LIMIT)) ?? [], [supplierPages.data]);
   const navigate = useNavigateTransition();
+  const location = useLocation();
+  const detailState = { supplierListBackTo: `${location.pathname}${location.search}${location.hash}` };
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editing, setEditing] = useState<Supplier | null>(null);
   const canWrite = useHasModuleAccess("Proveedores", "full");
@@ -95,12 +99,13 @@ export default function SuppliersPage() {
   ];
 
   const table = useLiftgoTable<Supplier>({
+    ...useTableViewState(filtered.length),
     data: filtered,
     columns,
     getRowId: (s) => s.id,
   });
   const showEmptyCreate = !isLoading && !isError && suppliers.length === 0 && !hasActive;
-  const showExport = suppliers.length > 0 && !supplierPages.hasNextPage;
+  const showExport = filtered.length > 0 && !supplierPages.hasNextPage;
 
   const openCreate = () => {
     setEditing(null);
@@ -114,7 +119,7 @@ export default function SuppliersPage() {
   const handleExport = () => {
     exportToCsv(
       "proveedores.csv",
-      (suppliers || []).map((s) => ({
+      filtered.map((s) => ({
         Nombre: s.name,
         RFC: s.rfc || "",
         Categoría: SUPPLIER_CATEGORIES[s.category || ""] || s.category || "",
@@ -151,8 +156,8 @@ export default function SuppliersPage() {
           onClick: () => { void supplierPages.fetchNextPage(); }, loaded: suppliers.length }}
         onRetry={() => { void refetch(); }}
         table={table}
-        rowAction={{ columnId: "name", label: (s) => `Ver proveedor ${s.name}`, to: (s) => `/suppliers/${s.id}` }}
-        onRowClick={(s) => navigate(`/suppliers/${s.id}`)}
+        rowAction={{ columnId: "name", label: (s) => `Ver proveedor ${s.name}`, to: (s) => `/suppliers/${s.id}`, state: () => detailState }}
+        onRowClick={(s) => navigate(`/suppliers/${s.id}`, { state: detailState })}
         hasActiveFilters={hasActive}
         onClearFilters={reset}
         emptyIcon={SupplierIcon}
@@ -162,6 +167,7 @@ export default function SuppliersPage() {
         mobileCardRender={(s) => (
           <Link
             to={`/suppliers/${s.id}`}
+            state={detailState}
             aria-label={`Ver proveedor ${s.name}`}
             className="block rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
           >

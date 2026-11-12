@@ -23,6 +23,21 @@ Otros hooks usan
 para advertir que una lista podría estar incompleta. No asumas que ese límite
 es el tamaño de página de la consulta de facturas: son estrategias distintas.
 
+## Filtro de stock bajo en Refacciones
+
+`useInventoryPage` incluye `lowStockOnly` en la clave de caché y solicita
+`p_low_stock: true` a `get_inventory_page` cuando el filtro está activo. La
+migración `drizzle/migrations/0142_inventory_low_stock_filter.sql` aplica
+`stock_quantity <= min_stock_level` antes del conteo, orden y paginación. El
+indicador mantiene el conteo global de existencias bajas visible para la empresa;
+la tabla combina el filtro con la búsqueda y la categoría.
+
+La migración conserva la firma anterior de seis argumentos y la delega a la
+nueva implementación con el filtro desactivado. Debe aplicarse en el entorno de
+destino antes de habilitar esta opción allí, siguiendo [la política de
+migraciones](./migrations.md). Las pruebas con PostgreSQL efímero verifican el
+contrato y los permisos locales; no acreditan su aplicación en Lovable Cloud.
+
 ## Cuándo evaluar keyset pagination
 
 Evalúa un cursor keyset sólo cuando el

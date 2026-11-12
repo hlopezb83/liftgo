@@ -8,6 +8,7 @@ import type { PaginationState, SortingState } from "@tanstack/react-table";
 export interface InventoryPageFilters extends PaginationState {
   search: string;
   category: string;
+  lowStockOnly?: boolean;
   sorting: SortingState;
 }
 
@@ -24,6 +25,7 @@ function normalizeFilters(filters: InventoryPageFilters): InventoryPageFilters {
   return {
     search: filters.search.trim(),
     category: filters.category || "all",
+    lowStockOnly: filters.lowStockOnly === true,
     pageIndex: Number.isSafeInteger(filters.pageIndex) ? Math.min(100000, Math.max(0, filters.pageIndex)) : 0,
     pageSize: Number.isSafeInteger(filters.pageSize) ? Math.min(100, Math.max(1, filters.pageSize)) : 25,
     sorting,
@@ -48,9 +50,10 @@ export function inventoryPageQueryOptions(organizationId: string | undefined, in
         p_page: filters.pageIndex,
         p_page_size: filters.pageSize,
         p_sort: filters.sorting,
+        ...(filters.lowStockOnly ? { p_low_stock: true as const } : {}),
       }, signal);
       if (error) throw error;
-      return parseInventoryPage(data, filters.pageIndex, filters.pageSize, organizationId);
+      return parseInventoryPage(data, filters.pageIndex, filters.pageSize, organizationId, filters.lowStockOnly);
     },
   });
 }

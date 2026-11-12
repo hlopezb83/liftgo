@@ -12,7 +12,7 @@ vi.mock("../../components/inventory/PartDetailSheet", () => ({ PartDetailSheet: 
 vi.mock("../../components/inventory/PartFormDialog", () => ({ PartFormDialog: () => null }));
 vi.mock("../../components/inventory/ActivatePartDialog", () => ({ ActivatePartDialog: () => null }));
 vi.mock("../../hooks/useInventoryPage", () => ({ useInventoryPage: (f: InventoryPageFilters) => {
-  const rows = Array.from({ length: 501 }, (_, i) => ({ id: `p${i}`, name: i === 500 ? "Z antigua" : `Pieza ${i}`, sku: i === 500 ? "TARGET" : `SKU${i}`, category: i === 500 ? "Baterías" : "Filtros", stock_quantity: i === 500 ? 0 : 10, min_stock_level: 2, unit_cost: 5 })).filter((p) => (!f.search || `${p.name} ${p.sku}`.includes(f.search)) && (f.category === "all" || p.category === f.category));
+  const rows = Array.from({ length: 501 }, (_, i) => ({ id: `p${i}`, name: i === 500 ? "Z antigua" : `Pieza ${i}`, sku: i === 500 ? "TARGET" : `SKU${i}`, category: i === 500 ? "Baterías" : "Filtros", stock_quantity: i === 500 ? 0 : 10, min_stock_level: 2, unit_cost: 5 })).filter((p) => (!f.search || `${p.name} ${p.sku}`.includes(f.search)) && (f.category === "all" || p.category === f.category) && (!f.lowStockOnly || p.stock_quantity <= p.min_stock_level));
   const pageIndex = Math.min(f.pageIndex, Math.max(0, Math.ceil(rows.length / f.pageSize) - 1));
   return { data: state.error || state.loading ? undefined : { items: rows.slice(pageIndex * f.pageSize, (pageIndex + 1) * f.pageSize), totalCount: rows.length, pageIndex, lowStockCount: 1 }, isError: state.error, isLoading: state.loading, refetch: state.retry };
 } }));
@@ -44,5 +44,26 @@ describe.each([false, true])("inventory server UI mobile=%s", (mobile) => {
   it("does not present failed query as empty inventory or a verified KPI", async () => {
     state.error = true; mount(); expect(await screen.findByRole("button", { name: /Reintentar/ })).toBeInTheDocument();
     expect(screen.queryByText("Sin refacciones registradas")).toBeNull(); expect(screen.queryByText("Refacciones con stock bajo")).toBeNull();
+  });
+  it("opens low stock from the global indicator, resets the page and can clear the filter", async () => {
+    mount("/inventory?tablePage=15");
+    fireEvent.click(await screen.findByRole("button", { name: /Refacciones con stock bajo/ }));
+    expect(await screen.findByText("1–1 de 1")).toBeInTheDocument();
+    expect(screen.getByText("TARGET")).toBeInTheDocument();
+    if (!mobile) expect(screen.getByRole("combobox", { name: "Filtrar por existencias" })).toHaveTextContent("Stock bajo");
+    fireEvent.change(screen.getByRole("searchbox"), { target: { value: "absent" } });
+    expect(await screen.findByText("No hay resultados con los filtros actuales")).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Limpiar filtros" }));
+    expect(await screen.findByText("1–25 de 501")).toBeInTheDocument();
+    if (mobile) fireEvent.click(screen.getByRole("button", { name: "Filtros" }));
+    expect(await screen.findByRole("combobox", { name: "Filtrar por existencias" })).toHaveTextContent("Todas las existencias");
+  });
+  it("restores the low-stock filter from the URL together with search and category", async () => {
+    mount("/inventory?stock=low&q=TARGET&category=Bater%C3%ADas&tablePage=12");
+    expect(await screen.findByText("1–1 de 1")).toBeInTheDocument();
+    expect(screen.getByText("TARGET")).toBeInTheDocument();
+    expect(screen.getByRole("searchbox")).toHaveValue("TARGET");
+    if (mobile) fireEvent.click(screen.getByRole("button", { name: "Filtros activos" }));
+    expect(await screen.findByRole("combobox", { name: "Filtrar por existencias" })).toHaveTextContent("Stock bajo");
   });
 });

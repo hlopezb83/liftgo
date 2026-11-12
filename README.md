@@ -23,6 +23,14 @@ Desarrollo y CI usan Node.js **26.13.0 LTS** y Bun **1.4.4**. Los pines están e
 versiones. Instala los runtimes oficiales o selecciónalos con tu gestor local
 de versiones y comprueba `node --version` y `bun --version` antes de instalar.
 
+Antes de iniciar, configura las variables de [.env.example](.env.example) en
+tu entorno local; copia el archivo a `.env` sólo si todavía no existe. El
+navegador usa `VITE_SUPABASE_URL` y `VITE_SUPABASE_PUBLISHABLE_KEY`; las server
+functions autenticadas requieren además `SUPABASE_URL` y
+`SUPABASE_PUBLISHABLE_KEY` con la misma URL y clave pública. La clave secreta
+`SUPABASE_SERVICE_ROLE_KEY` se usa sólo en operaciones administrativas del
+servidor: no es necesaria para mostrar el login y nunca debe llevar `VITE_`.
+
 ```bash
 bun install --frozen-lockfile
 bun run dev

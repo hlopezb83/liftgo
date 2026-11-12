@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { DataTableV2, useLiftgoTable, type ColumnDef } from "@/components/dataTable/v2";
 import { NotesCard } from "@/components/domain/NotesCard";
-import { ListTruncationNotice } from "@/components/feedback/ListTruncationNotice";
 import { QueryErrorState } from "@/components/feedback/QueryErrorState";
 import { DocumentIcon, MaintenanceIcon, ExpenseIcon, EditIcon } from "@/components/icons";
 import { DetailPageHeader } from "@/components/layout/DetailPageHeader";
@@ -10,23 +9,23 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useSupplierBills } from "@/features/accounts-payable";
-import { DocumentAttachments, useForkliftMap } from "@/features/fleet";
-import { useMaintenanceLogs } from "@/features/maintenance";
+import { DocumentAttachments } from "@/features/fleet";
 import { RoleGuard } from "@/layouts/RoleGuard";
 import { formatDateMty } from "@/lib/format/dateFormats";
 import { formatCurrency, formatCurrencyWithCode } from "@/lib/format/formatCurrency";
 import { isFxMissing, sumMoney, toMxn } from "@/lib/money";
-import { useParams } from "@/lib/router-compat";
+import { getSupplierListBackTo } from "@/lib/navigation/customerInvoiceOrigins";
+import { useLocation, useParams } from "@/lib/router-compat";
 import { SupplierBankAccountsSection } from "../components/suppliers/SupplierBankAccountsSection";
 import { SupplierContactCard } from "../components/suppliers/SupplierContactCard";
 import { SupplierContactsSection } from "../components/suppliers/SupplierContactsSection";
 import { SupplierFormDialog } from "../components/suppliers/SupplierFormDialog";
+import { useSupplierLinkedBills, useSupplierLinkedMaintenance, type SupplierLinkedMaintenance } from "../hooks/useSupplierLinkedActivity";
 import { useSupplier, SUPPLIER_CATEGORIES } from "../hooks/useSuppliers";
 
 type LinkedExpense = { id: string; expense_date: string; category: string; description: string | null; amount: number | null; originalAmount: number; currency: string };
 
-type LinkedMaintenance = { id: string; performed_at: string; forklift_id: string; service_type: string; cost: number | null };
+type LinkedMaintenance = SupplierLinkedMaintenance;
 
 function LinkedTotal({ loading, error, total, count, entity, excluded = 0 }: {
   loading: boolean; error: boolean; total: number; count: number; entity: string; excluded?: number;
@@ -42,16 +41,22 @@ function LinkedTotal({ loading, error, total, count, entity, excluded = 0 }: {
   </>;
 }
 
+function useSupplierListReturn() {
+  const location = useLocation();
+  const listBackTo = getSupplierListBackTo(location.state);
+  return { backTo: listBackTo ?? "/suppliers", restoreListFilters: !listBackTo };
+}
+
 export default function SupplierDetailPage() {
   const { id } = useParams();
+  const backNavigation = useSupplierListReturn();
   const { data: supplier, isLoading, isError, refetch } = useSupplier(id);
-  const billsQuery = useSupplierBills();
+  const billsQuery = useSupplierLinkedBills(id);
   const { data: bills } = billsQuery;
-  const maintenanceQuery = useMaintenanceLogs();
+  const maintenanceQuery = useSupplierLinkedMaintenance(id);
   const { data: maintenanceLogs } = maintenanceQuery;
   const expensesLoading = billsQuery.isLoading || !bills;
   const maintenanceLoading = maintenanceQuery.isLoading || !maintenanceLogs;
-  const { forkliftMap } = useForkliftMap();
 
   const [editOpen, setEditOpen] = useState(false);
 
@@ -87,7 +92,7 @@ export default function SupplierDetailPage() {
 
   const maintenanceColumns: ColumnDef<LinkedMaintenance>[] = [
     { id: "performed_at", header: "Fecha", accessorKey: "performed_at", cell: ({ row }) => <span className="font-mono text-sm">{formatDateMty(row.original.performed_at)}</span> },
-    { id: "forklift", header: "Montacargas", accessorFn: (m) => forkliftMap.get(m.forklift_id)?.name ?? "", cell: ({ row }) => forkliftMap.get(row.original.forklift_id)?.name || "—" },
+    { id: "forklift", header: "Montacargas", accessorFn: (m) => m.forklifts?.name ?? "", cell: ({ row }) => row.original.forklifts?.name || "—" },
     { id: "service_type", header: "Tipo de Servicio", accessorKey: "service_type", cell: ({ row }) => row.original.service_type },
     { id: "cost", header: "Costo", accessorFn: (m) => m.cost ?? 0, meta: { kind: "money" }, cell: ({ row }) => formatCurrency(row.original.cost || 0) },
   ];
@@ -123,7 +128,7 @@ export default function SupplierDetailPage() {
   if (!supplier) {
     return (
       <PageContainer>
-        <DetailPageHeader title="Proveedor no encontrado" backTo="/suppliers" />
+        <DetailPageHeader title="Proveedor no encontrado" {...backNavigation} />
       </PageContainer>
     );
   }
@@ -132,7 +137,7 @@ export default function SupplierDetailPage() {
     <PageContainer>
       <DetailPageHeader
         title={supplier.name}
-        backTo="/suppliers"
+        {...backNavigation}
         badges={supplier.category ? <Badge variant="outline">{SUPPLIER_CATEGORIES[supplier.category] || supplier.category}</Badge> : undefined}
         actions={
           <RoleGuard module="Proveedores" minAccess="full" fallback={null}>
@@ -154,13 +159,6 @@ export default function SupplierDetailPage() {
       </div>
 
       <DocumentAttachments entityType="supplier" entityId={supplier.id} accessModule="Proveedores" />
-
-
-
-      {/* FIX B5: los totales de abajo se calculan sobre listas con tope de
-          filas; sin este aviso el usuario creería que ve el total completo. */}
-      <ListTruncationNotice rows={maintenanceLogs} />
-
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <Card>
           <CardContent className="flex items-center gap-4 py-5">

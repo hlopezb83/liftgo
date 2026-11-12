@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { customerTaxRate } from "@/features/customers";
 import { hasQuotedDiscount, type QuotedRentalBooking } from "@/features/quotes";
 import { resolveBookingRates } from "@/lib/domain/bookingRates";
@@ -11,6 +11,7 @@ import { prefillBillingPeriod } from "../../lib/bookingCompatibility";
 import { applyQuoteChargeAvailability, buildAvailableQuoteChargeLines, preserveEnteredQuoteChargeLines, type QuoteChargeAvailability } from "../../lib/quoteChargeAvailability";
 import { buildQuotedBookingLines, type BookingQuoteSource } from "../../lib/quotedBookingLines";
 import { cfdiFromCustomer, type Customer } from "./invoiceFormBuilders";
+import { preserveInvoiceReceiverEdits } from "./preserveInvoiceReceiverEdits";
 import { requireInvoiceEquipment, type InvoiceRentalEquipment } from "./useInvoiceRentalEquipment";
 import type { InvoiceFormValues, LineItemValues } from "../../lib/invoiceFormSchema";
 import type { UseFormReturn } from "react-hook-form";
@@ -44,6 +45,7 @@ interface Props {
   bookings: Booking[] | undefined;
   forklifts?: InvoiceRentalEquipment[];
   loadEquipment?: (ids: readonly string[]) => Promise<InvoiceRentalEquipment[]>;
+  loadCustomer?: (id: string) => Promise<Customer>;
   /** Cotizaciones origen de las reservas cargadas; se usan para arrastrar
    *  partidas no-renta (logística/entrega) a la factura. */
   quotes?: QuoteSource[] | undefined;
@@ -135,13 +137,11 @@ export function buildLinesForBooking(booking: Booking, forklifts: InvoiceRentalE
 function applyPrimaryCustomer(
   form: UseFormReturn<InvoiceFormValues>,
   first: Booking,
-  customers: Customer[] | undefined,
+  customer: Customer | undefined,
 ) {
   form.setValue("customerName", first.customer_name || "", { shouldDirty: true });
   form.setValue("customerId", first.customer_id || "", { shouldDirty: true });
-  if (!first.customer_id || !customers) return;
-  const customer = customers.find((c) => c.id === first.customer_id);
-  if (customer) applyCfdiPatch(form, customer);
+  if (customer && customer.id === first.customer_id) applyCfdiPatch(form, customer);
 }
 
 /** Replace both fields whenever the primary booking changes; otherwise an
@@ -221,22 +221,13 @@ function applyInitialBillingPeriod(form: UseFormReturn<InvoiceFormValues>, first
   form.setValue("billingPeriodEnd", end, { shouldDirty: true });
 }
 
-// Booking defaults may replace earlier defaults, but never edits made while
-// charge availability was loading. Capture scalar values before the request.
-function protectLaterEdits(form: UseFormReturn<InvoiceFormValues>): UseFormReturn<InvoiceFormValues> {
-  const values = form.getValues();
-  const before = new Map<string, unknown>([
-    ["customerId", values.customerId], ["customerName", values.customerName], ["taxRate", values.taxRate],
-    ...Object.entries(values.cfdi).map(([key, value]) => [`cfdi.${key}`, value] as const),
-  ]);
-  return { ...form, setValue: (name, value, options) => {
-    if (before.has(name) && Object.is(form.getValues(name), before.get(name))) {
-      form.setValue(name, value, options);
-    }
-  } };
+function customerForBooking(booking: Booking | undefined, load: Props["loadCustomer"], customers: Props["customers"]) {
+  const id = booking?.customer_id;
+  if (!id) return undefined;
+  return load ? load(id) : customers?.find((customer) => customer.id === id);
 }
 
-export function useInvoiceFormHandlers({ form, customers, bookings, forklifts, quotes, loadEquipment, loadQuoteSources, loadQuotedBookings, loadQuoteCharges }: Props) {
+export function useInvoiceFormHandlers({ form, customers, bookings, forklifts, quotes, loadEquipment, loadCustomer, loadQuoteSources, loadQuotedBookings, loadQuoteCharges }: Props) {
 
   const selectionRequest = useRef(0);
   const [isLoadingCharges, setIsLoadingCharges] = useState(false);
@@ -245,6 +236,7 @@ export function useInvoiceFormHandlers({ form, customers, bookings, forklifts, q
   const pendingSelection = useRef(false);
   const selectionNeedsReview = useRef(false);
   const detachedSelection = useRef<{ customerId: string; ids: string[]; primary: string } | null>(null);
+  useEffect(() => () => { ++selectionRequest.current; }, []);
 
   const handleCustomerSelect = (selectedCustomerId: string, selectedCustomer?: Customer) => {
     // A manual receiver choice supersedes a pending booking request. Do not
@@ -294,8 +286,9 @@ export function useInvoiceFormHandlers({ form, customers, bookings, forklifts, q
     const request = ++selectionRequest.current;
     if (!selectionNeedsReview.current) setChargeSelectionError(null);
     lastSelection.current = selectedIds;
-    const defaultsForm = protectLaterEdits(form);
+    const defaults = preserveInvoiceReceiverEdits(form);
     let selected: Booking[];
+    let primaryCustomer: Customer | undefined;
     let rentalLines: LineItemValues[];
     let extraLines: LineItemValues[];
     pendingSelection.current = true;
@@ -310,8 +303,12 @@ export function useInvoiceFormHandlers({ form, customers, bookings, forklifts, q
         availableChargesForBookings(quoteIds, sources, loadQuoteCharges),
       ]);
       if (request !== selectionRequest.current) return;
-      const equipment = await equipmentForSelection(selected, siblings, loadEquipment, forklifts);
+      const [equipment, customer] = await Promise.all([
+        equipmentForSelection(selected, siblings, loadEquipment, forklifts),
+        customerForBooking(selected[0], loadCustomer, customers),
+      ]);
       if (request !== selectionRequest.current) return;
+      primaryCustomer = customer;
       rentalLines = buildQuotedBookingLines(selected, siblings, equipment, sources,
         (booking) => buildLinesForBooking(booking, equipment));
       const current = form.getValues("lineItems");
@@ -323,6 +320,7 @@ export function useInvoiceFormHandlers({ form, customers, bookings, forklifts, q
       notifyValidation({ message });
       return;
     } finally {
+      defaults.dispose();
       if (request === selectionRequest.current) {
         pendingSelection.current = false;
         setIsLoadingCharges(false);
@@ -336,8 +334,8 @@ export function useInvoiceFormHandlers({ form, customers, bookings, forklifts, q
 
     if (selected.length === 0) return;
 
-    applyPrimaryCustomer(defaultsForm, selected[0], customers);
-    applyPrimaryCurrency(defaultsForm, selected[0]);
+    applyPrimaryCustomer(defaults.form, selected[0], primaryCustomer);
+    applyPrimaryCurrency(defaults.form, selected[0]);
 
     form.setValue("lineItems", [...rentalLines, ...extraLines], { shouldDirty: true });
     selectionNeedsReview.current = false;

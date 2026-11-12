@@ -46,7 +46,7 @@ export function SupplierContactCard({ supplier }: { supplier: SupplierContactInf
           {supplier.phone && (
             <div className="flex items-center gap-2 text-sm">
               <PhoneIcon className="h-4 w-4 text-muted-foreground" />
-              <span>{supplier.phone}</span>
+              <a className="break-words hover:underline focus-visible:underline" href={`tel:${supplier.phone.replace(/[^\d+]/g, "")}`}>{supplier.phone}</a>
             </div>
           )}
           {supplier.website && (

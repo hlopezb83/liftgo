@@ -1,0 +1,10 @@
+{
+  "description": "Mejoras de consultas, reintentos y validación para proveedores, refacciones y facturación.",
+  "changes": [
+    "La ficha de cada proveedor carga sólo sus facturas y mantenimientos y recorre el historial completo para calcular los totales.",
+    "Si falla la carga de una CSF, puedes reintentar el archivo sin volver a crear al proveedor.",
+    "El indicador de stock bajo permite filtrar Refacciones y combinar el resultado con búsqueda y categoría.",
+    "Las facturas obtienen el cliente de la reserva o cotización directamente por ID, conservando los cambios manuales mientras se carga la información.",
+    "Cuentas por Pagar detecta respuestas incompletas y muestra un error en lugar de presentar ceros que podrían confundirse con saldos reales."
+  ]
+}

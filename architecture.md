@@ -15,7 +15,7 @@ LiftGo es un ERP interno para la operación de una empresa de renta y venta de m
 - **Finanzas**: facturación CFDI 4.0, pagos, gastos operativos, estado de resultados, MRR, proveedores.
 - **Administración**: gestión de usuarios, permisos por rol, configuración de empresa, bitácora de auditoría, ayuda y changelog.
 - **Feedback interno**: reportes de usuarios (FAB), `/mis-reportes`, leaderboard público y gestión Kanban admin.
-- **Portal de cliente**: vista de solo lectura para clientes finales.
+- **Portal de cliente**: consulta de documentos y rentas, aceptación/rechazo de cotizaciones y reporte de transferencias para revisión.
 
 **Audiencia**: desarrolladores y nuevos integrantes del equipo. Contexto de despliegue: aplicación interna, optimizada para escritorio (≈99% del uso), localizada para México (es-MX, zona horaria `America/Monterrey`, MXN).
 
@@ -36,9 +36,9 @@ LiftGo es un ERP interno para la operación de una empresa de renta y venta de m
 | Despliegue | Build SSR con Nitro, preset `cloudflare-module` → `dist/client` + `dist/server` (ver `wrangler.jsonc`) |
 | Documentos | `@react-pdf/renderer` ^4.x (declarativo, JSX → PDF, carga diferida) |
 | Notificaciones | sonner |
-| Tests | Vitest 4 + @testing-library/react + happy-dom (jsdom opt-in por archivo); Playwright para E2E |
+| Tests | Vitest 5.0.5 + @testing-library/react + happy-dom (jsdom opt-in por archivo); Playwright para E2E |
 | Integraciones externas | Facturapi (CFDI 4.0), Lovable AI Gateway |
-| Observabilidad | Sentry (`@sentry/react` + `@sentry/vite-plugin`) |
+| Observabilidad | Sentry (`@sentry/react` en cliente, `@sentry/cloudflare` en SSR y `@sentry/bundler-plugins/vite` para sourcemaps) |
 
 Desarrollo y CI fijan Node `26.13.0` y Bun `1.4.4` (ver `.nvmrc`, `.node-version` y `package.json`). El rango de `engines.node` conserva Node 22/24 para el preview Lovable observado en 22.23.4; el build de publicación sigue sin verificar. El Worker desplegado y Deno no cambian de runtime.
 
@@ -412,9 +412,10 @@ programados y trabajo con privilegios de servicio:
 ## 8. Portal de cliente
 
 - Aislado bajo `/portal/*` con `CustomerPortalLayout` y autenticación independiente (`/portal/login`).
-- Páginas: `PortalDashboard`, `PortalRentals`, `PortalInvoices`, `PortalInvoiceDetail`, `PortalContracts`.
+- Páginas: `PortalDashboard`, `PortalRentals`, `PortalInvoices`, `PortalInvoiceDetail`, `PortalContracts`, `PortalQuotes`, `PortalQuoteDetail` y `PortalInvoicePayment`.
 - Hooks dedicados (`useCustomerPortal`, `usePortalInvoices`, `usePortalBookings`) que **nunca** comparten queries con el backoffice.
-- Modelo de seguridad: los clientes invitados desde la server function `inviteCustomer` (`src/lib/customerPortal.functions.ts`) quedan vinculados a un `customer_id`. Las policies RLS filtran por ese `customer_id`. Acceso **solo lectura**.
+- Modelo de seguridad: los clientes invitados desde la server function `inviteCustomer` (`src/lib/customerPortal.functions.ts`) quedan vinculados a un `customer_id`. Las consultas y acciones se limitan al cliente y organización verificados mediante RLS y las validaciones de cada RPC.
+- Acciones permitidas: aceptar o rechazar cotizaciones mediante `accept_quote_from_portal` y `reject_quote_from_portal` (`src/features/portal/hooks/usePortalQuotes.ts`), y reportar transferencias para revisión (`ReportTransferDialog` y `useCreatePaymentIntent`). Reportar una transferencia no equivale a confirmar un pago.
 - Sin acceso a módulos internos (gastos, P&L, mantenimiento, etc.).
 
 ---
@@ -515,7 +516,7 @@ Documentar aquí cualquier regla que NO sea evidente del código y que, si se vi
 
 ### 15.1 Frontend (Vitest)
 
-- Vitest 4 + @testing-library/react sobre **happy-dom** (`vitest.config.ts`); los archivos que requieran jsdom lo declaran con `// @vitest-environment jsdom`. La suite es offline: la config fuerza `TZ=UTC` y credenciales de Supabase de loopback para no tocar el backend real.
+- Vitest 5.0.5 + @testing-library/react sobre **happy-dom** (`vitest.config.ts`); los archivos que requieran jsdom lo declaran con `// @vitest-environment jsdom`. La suite es offline: la config fuerza `TZ=UTC` y credenciales de Supabase de loopback para no tocar el backend real.
 - Helpers de test reutilizables en `src/test/helpers/` (`supabaseChain.ts` para encadenar mocks de Supabase, `queryClient.tsx`, `time.ts`) y wrapper de router en `src/test/routerWrapper.tsx`.
 - Cobertura de flujos críticos: `bookingFlow`, `invoiceFlow`, `paymentFlow`, `formatCurrency`, `exportCsv`, `invoiceHelpers`, `constants`, `rolePermissions`, `coerce`, `rpc`, `templateUtils`, `activityTranslations`, `contractPlaceholders`, `lineItems`.
 - Suites de hooks/libs en `src/**/__tests__/`: `useDebouncedValue`, `useDialogState`, `useListFilters`, `formatCurrency`, `partFormSchema`, `markdown`.

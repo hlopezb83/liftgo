@@ -29,7 +29,8 @@ import {
   useReleaseStalePaymentLocks,
   STALE_LOCK_HOURS,
 } from "../hooks/useReleaseStalePaymentLocks";
-import type { SupplierBillListItem } from "../hooks/useSupplierBills";
+import type { AccountsPayableKpis } from "../hooks/useAccountsPayableKpis";
+import type { AccountsPayableBillRow } from "../lib/accountsPayableRpc";
 
 export default function CuentasPorPagarPage() {
   const summary = useAccountsPayableSummary();
@@ -83,8 +84,8 @@ export default function CuentasPorPagarPage() {
   const createActions = buildCreateActions(canCreate, createDialog.openDialog);
   usePageActions({ ...createActions, newLabel: "Nueva factura de proveedor" });
 
-  const columns = useSupplierBillColumns();
-  const table = useLiftgoTable<SupplierBillListItem>({
+  const columns = useSupplierBillColumns<AccountsPayableBillRow>();
+  const table = useLiftgoTable<AccountsPayableBillRow>({
     data: pageQuery.data?.items,
     columns,
     getRowId: (b) => b.id,
@@ -99,7 +100,7 @@ export default function CuentasPorPagarPage() {
 
   return (
     <>
-      <ListPageLayout<SupplierBillListItem>
+      <ListPageLayout<AccountsPayableBillRow>
         title="Facturas de Proveedor"
         subtitle="Facturas de proveedores y su seguimiento de pago"
         totalCount={pageQuery.data?.totalCount}
@@ -114,7 +115,7 @@ export default function CuentasPorPagarPage() {
           onBatches={batchesDialog.openDialog}
           onRelease={() => releaseLocks.mutate(STALE_LOCK_HOURS)}
         />}
-        notice={<FxMissingBillsNotice isError={isError} count={summary.kpis.fxMissingCount} />}
+        notice={<FxMissingBillsNotice isError={isError} kpis={summary.kpis} />}
         filters={
           <div className="space-y-3">
             <SupplierBillsFilters filters={f} kpis={summary.kpis} suppliers={suppliers} />
@@ -159,8 +160,9 @@ function clampTablePageIndex(pageIndex: number, pageCount: number, totalCount: n
   return Math.min(pageIndex, Math.max(0, pageCount - 1));
 }
 
-function FxMissingBillsNotice({ isError, count }: { isError: boolean; count: number }) {
-  if (isError || count === 0) return null;
+function FxMissingBillsNotice({ isError, kpis }: { isError: boolean; kpis: AccountsPayableKpis | undefined }) {
+  const count = kpis?.fxMissingCount;
+  if (isError || count === undefined || count === 0) return null;
   const singular = count === 1;
   return (
     <p className="rounded-md border border-warning/30 bg-warning/10 px-3 py-2 text-xs text-muted-foreground">

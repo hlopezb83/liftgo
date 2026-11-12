@@ -1,7 +1,8 @@
 import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
-import type { Json } from "@/integrations/supabase/types";
-import { supplierBillKeys, type SupplierBillListItem } from "./useSupplierBills";
+import { callAccountsPayableBillPageRpc, parseAccountsPayableBillPage } from "../lib/accountsPayableRpc";
+import { supplierBillKeys } from "./useSupplierBills";
+
+export type { AccountsPayableBillPage } from "../lib/accountsPayableRpc";
 
 export interface AccountsPayableBillPageRequest {
   search: string;
@@ -18,37 +19,6 @@ export interface AccountsPayableBillPageRequest {
   enabled?: boolean;
 }
 
-export interface AccountsPayableBillPage {
-  items: SupplierBillListItem[];
-  totalCount: number;
-}
-
-const EMPTY_REP_SUMMARY: SupplierBillListItem["rep_summary"] = {
-  pending: 0,
-  received: 0,
-  rejected: 0,
-  total: 0,
-  worst: "not_required",
-};
-
-function parsePage(data: Json | null): AccountsPayableBillPage {
-  if (!data || typeof data !== "object" || Array.isArray(data)) {
-    throw new Error("El servidor devolvió una página de CxP inválida");
-  }
-  const payload = data as unknown as Partial<AccountsPayableBillPage>;
-  if (!Array.isArray(payload.items) || typeof payload.totalCount !== "number") {
-    throw new Error("El servidor devolvió una página de CxP incompleta");
-  }
-  return {
-    items: (payload.items as SupplierBillListItem[]).map((item) => ({
-      ...item,
-      rep_summary: EMPTY_REP_SUMMARY,
-      payments: [],
-    })),
-    totalCount: payload.totalCount,
-  };
-}
-
 export function useAccountsPayableBillPage(request: AccountsPayableBillPageRequest) {
   const {
     search, status, supplierId, category, month, approval, rep,
@@ -60,7 +30,7 @@ export function useAccountsPayableBillPage(request: AccountsPayableBillPageReque
       pageIndex, pageSize, sortBy, sortDesc,
     }],
     queryFn: async () => {
-      const { data, error } = await supabase.rpc("get_supplier_bills_page", {
+      const { data, error } = await callAccountsPayableBillPageRpc({
         p_search: search.trim() || null,
         p_status: status,
         p_supplier_id: supplierId === "all" ? null : supplierId,
@@ -72,9 +42,9 @@ export function useAccountsPayableBillPage(request: AccountsPayableBillPageReque
         p_page_size: pageSize,
         p_sort_by: sortBy,
         p_sort_desc: sortDesc,
-      } as never);
+      });
       if (error) throw error;
-      return parsePage(data);
+      return parseAccountsPayableBillPage(data, pageIndex, pageSize);
     },
     enabled,
     staleTime: 30_000,

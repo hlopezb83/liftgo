@@ -35,6 +35,7 @@ import { useInvoiceFormSubmit } from "./invoiceForm/useInvoiceFormSubmit";
 import { invoiceChargeBlock, useInvoiceQuoteCharges } from "./invoiceForm/useInvoiceQuoteCharges";
 import { useInvoiceQuoteSource } from "./invoiceForm/useInvoiceQuoteSource";
 import { useInvoiceRentalEquipment } from "./invoiceForm/useInvoiceRentalEquipment";
+import { useInvoiceSourceCustomer } from "./invoiceForm/useInvoiceSourceCustomer";
 import { useInvoiceBookingCandidates } from "./invoices/useInvoiceBookingCandidates";
 import { useInvoiceBookings } from "./invoices/useInvoiceBookings";
 import { useInvoice } from "./invoices/useInvoices";
@@ -180,6 +181,7 @@ export function useInvoiceFormLogic({ id, fromQuoteId, extensionId = null, damag
   const { data: existing, isLoading: isLoadingExisting } = useInvoice(id);
   const quoteQuery = useQuote(quoteId);
   const { data: sourceQuote } = quoteQuery;
+  const sourceCustomer = useInvoiceSourceCustomer({ isEdit, quoteId, quote: sourceQuote, extensionId, damageId, customers });
   const assignmentsQuery = useQuoteAssignments(quoteId);
   const { data: assignments } = assignmentsQuery;
   const invoiceBookingsQuery = useInvoiceBookings(id);
@@ -228,13 +230,13 @@ export function useInvoiceFormLogic({ id, fromQuoteId, extensionId = null, damag
   const { relatedQuoteIds, chargeAvailability, bookingSourceBlock, chargeAvailabilityError } = useInvoiceQuoteCharges({
     form, bookings, invoiceBookingsRows, existing, fromQuoteId, currentInvoiceId: id,
   });
-  const quotePrefill = useInvoiceQuoteSource({ existing, sourceQuote, assignments, forklifts, customers, isEdit, form,
-    existingBookingIds, requestedQuoteId: fromQuoteId }, { extensionId, damageId }, chargeAvailability,
-    [quoteQuery, assignmentsQuery, { isError: equipment.isError, refetch: equipment.retry }]);
+  const quotePrefill = useInvoiceQuoteSource({ existing, sourceQuote, assignments, forklifts,
+    customers: sourceCustomer.prefillCustomers, isEdit, form, existingBookingIds, requestedQuoteId: fromQuoteId }, { extensionId, damageId }, chargeAvailability,
+    [quoteQuery, assignmentsQuery, { isError: equipment.isError, refetch: equipment.retry }, ...sourceCustomer.dependencies]);
   const { handleCustomerSelect, handleBookingSelect, handleBookingsChange, isLoadingCharges, chargeSelectionError, retryChargeSelection } = useInvoiceFormHandlers({
     form, customers, bookings: periods.handlerBookings, loadEquipment: equipment.loadForIds, quotes: bookingSourceQuotes,
     loadQuoteSources: bookingQuoteSources.loadForIds, loadQuotedBookings: bookingsQuery.loadQuotedBookings,
-    loadQuoteCharges: chargeAvailability.loadForQuotes,
+    loadQuoteCharges: chargeAvailability.loadForQuotes, loadCustomer: sourceCustomer.loadForId,
   });
 
 
@@ -345,7 +347,8 @@ export function useInvoiceFormLogic({ id, fromQuoteId, extensionId = null, damag
       return chargeSelectionError ? retryChargeSelection() : chargeAvailability.refetch();
     },
     isLoadingChargeAvailability: [bookingsQuery.isFetching, isLoadingCharges, chargeAvailability.isFetching,
-      periods.isFetching, isLoadingPrefill, equipment.isFetching, quoteQuery.isFetching, assignmentsQuery.isFetching].some(Boolean),
+      periods.isFetching, isLoadingPrefill, equipment.isFetching, quoteQuery.isFetching, assignmentsQuery.isFetching,
+      sourceCustomer.isLoading].some(Boolean),
     saveInvoice: submit.saveInvoice,
     isPending: submit.isPending,
   };

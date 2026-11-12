@@ -14,9 +14,11 @@ vi.mock("../../hooks/useSuppliers", () => ({
   useSupplier: () => ({ data: { id: "sp-1", name: "QA Supplier", notes: "" }, isLoading: false, isError: false, refetch: vi.fn() }),
   SUPPLIER_CATEGORIES: {},
 }));
-vi.mock("@/features/accounts-payable", () => ({ useSupplierBills: () => queries.bills }));
-vi.mock("@/features/maintenance", () => ({ useMaintenanceLogs: () => queries.maintenance }));
-vi.mock("@/features/fleet", () => ({ useForkliftMap: () => ({ forkliftMap: new Map() }), DocumentAttachments: () => null }));
+vi.mock("../../hooks/useSupplierLinkedActivity", () => ({
+  useSupplierLinkedBills: () => queries.bills,
+  useSupplierLinkedMaintenance: () => queries.maintenance,
+}));
+vi.mock("@/features/fleet", () => ({ DocumentAttachments: () => null }));
 vi.mock("@/layouts/RoleGuard", () => ({ RoleGuard: () => null }));
 vi.mock("../../components/suppliers/SupplierContactsSection", () => ({ SupplierContactsSection: () => null }));
 vi.mock("../../components/suppliers/SupplierBankAccountsSection", () => ({ SupplierBankAccountsSection: () => null }));

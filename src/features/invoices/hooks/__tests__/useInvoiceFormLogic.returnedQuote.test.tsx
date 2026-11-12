@@ -41,6 +41,10 @@ vi.mock("../invoiceForm/useInvoiceRentalEquipment", async (original) => ({
   ...await original<typeof import("../invoiceForm/useInvoiceRentalEquipment")>(),
   useInvoiceRentalEquipment: () => ({ data: data.forklifts, loadForIds: async () => data.forklifts, refetch: data.refetch }),
 }));
+vi.mock("../invoiceForm/useInvoiceSourceCustomer", () => ({ useInvoiceSourceCustomer: () => ({
+  dependencies: [], prefillCustomers: data.customers,
+  loadForId: async (id: string) => data.customers.find((customer) => customer.id === id),
+}) }));
 vi.mock("@/features/quotes", async () => ({
   ...await vi.importActual<typeof import("@/features/quotes")>("@/features/quotes"),
   useQuote: () => ({ data: undefined }), useQuotesByIds: () => ({ data: data.quotes }),
