@@ -81,10 +81,18 @@ START_EXCLUDES = {
 # The guarded dashboard patch only replaces its count with that same view;
 # all existing grants, response fields and earlier migration bytes are unchanged.
 # Installation performs no business-data writes, HTTP or cron operations.
+# Official 0142, reviewed at 619d8071d, adds the low-stock inventory overload
+# and preserves the six-argument RPC as an INVOKER/STABLE compatibility wrapper.
+# Both functions retain tenant/permission checks, RLS and authenticated EXECUTE
+# with PUBLIC/anon/service_role denied. Installation defines functions, comments
+# and ACLs only; no business DML, HTTP or cron operations. The delta appends
+# journal entry 142 and an empty snapshot linking to 0138. All earlier sources
+# and Supabase bytes are unchanged.
+# See docs/qa/migration-0142-ci-source-review.md for the exact reviewed identity.
 # Any subsequent history change requires explicit source review.
 SOURCE_TREES = {
     "supabase/migrations": "3e3575f5ff6d509ecdd624ae7fc1772508b5dce6",
-    "drizzle/migrations": "6408a4d74bb180047a379980ea79e0eb851db0e3",
+    "drizzle/migrations": "214482342a44fa8c79ce7092454b463035319e3b",
 }
 HTTP_SOURCES = {
     "20260721000000_retry_queue_cron.sql": "2aecccd0758961f41769d9fed522d03df14937650b9dde80fce47646a1fa6887",

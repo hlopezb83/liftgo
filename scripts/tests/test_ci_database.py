@@ -24,7 +24,7 @@ class LocalCiDatabaseTests(unittest.TestCase):
         root = Path(__file__).parents[2]
         self.assertEqual(ci.SOURCE_TREES, {
             "supabase/migrations": "3e3575f5ff6d509ecdd624ae7fc1772508b5dce6",
-            "drizzle/migrations": "6408a4d74bb180047a379980ea79e0eb851db0e3",
+            "drizzle/migrations": "214482342a44fa8c79ce7092454b463035319e3b",
         })
         migrations = root / "drizzle/migrations"
         journal = json.loads((migrations / "meta/_journal.json").read_text())
@@ -75,6 +75,37 @@ class LocalCiDatabaseTests(unittest.TestCase):
         old_trees = [
             "040000 tree 3e3575f5ff6d509ecdd624ae7fc1772508b5dce6\tsupabase/migrations",
             "040000 tree 9f580d5bfd5344aab55f1cec3a2338526b34cd35\tdrizzle/migrations",
+        ]
+        with mock.patch.object(ci, "command_lines", return_value=old_trees) as commands, \
+                mock.patch.object(ci, "check_http_sources") as inspect_sql, self.assertRaises(ValueError):
+            ci.preflight_sources()
+        self.assertEqual(commands.call_count, 1)
+        inspect_sql.assert_not_called()
+
+    def test_inventory142_has_exact_source_identity_and_snapshot_chain(self):
+        migrations = Path(__file__).parents[2] / "drizzle/migrations"
+        sql = migrations / "0142_0142_inventory_low_stock_filter.sql"
+        self.assertEqual(hashlib.sha256(sql.read_bytes()).hexdigest(),
+                         "710d52246c3de495f487992932a081c0172b0c9de8f23233ef625621a7140687")
+        journal = json.loads((migrations / "meta/_journal.json").read_text())
+        self.assertEqual(journal["entries"][142], {
+            "idx": 142, "version": "7", "when": 1794524319237,
+            "tag": "0142_0142_inventory_low_stock_filter", "breakpoints": True,
+        })
+        snapshot = json.loads((migrations / "meta/0142_snapshot.json").read_text())
+        self.assertEqual(snapshot["id"], "fe00535c-9e38-420c-8b85-5af65357866d")
+        self.assertEqual(snapshot["prevId"],
+                         json.loads((migrations / "meta/0138_snapshot.json").read_text())["id"])
+        self.assertEqual(snapshot["version"], "7")
+        self.assertEqual(snapshot["dialect"], "postgresql")
+        for field in ["tables", "enums", "schemas", "views", "sequences", "roles", "policies"]:
+            self.assertEqual(snapshot[field], {})
+        self.assertEqual(snapshot["_meta"], {"columns": {}, "schemas": {}, "tables": {}})
+
+    def test_inventory142_previous_reviewed_tree_fails_before_sql_inspection(self):
+        old_trees = [
+            "040000 tree 3e3575f5ff6d509ecdd624ae7fc1772508b5dce6\tsupabase/migrations",
+            "040000 tree 6408a4d74bb180047a379980ea79e0eb851db0e3\tdrizzle/migrations",
         ]
         with mock.patch.object(ci, "command_lines", return_value=old_trees) as commands, \
                 mock.patch.object(ci, "check_http_sources") as inspect_sql, self.assertRaises(ValueError):
@@ -286,10 +317,12 @@ class GuardedBootstrapTests(unittest.TestCase):
             self.replay = self.config.read_bytes()
             yield fixture
 
-    def test_real_runner_pipeline_rejects_qa134_source_drift_before_patching(self):
+    def test_real_runner_pipeline_rejects_reviewed_source_drift_before_patching(self):
         paths = [
             "drizzle/migrations/0134_qa_fx6_test_key_exclusive.sql",
             "drizzle/migrations/meta/0134_snapshot.json",
+            "drizzle/migrations/0142_0142_inventory_low_stock_filter.sql",
+            "drizzle/migrations/meta/0142_snapshot.json",
             "drizzle/migrations/meta/_journal.json",
         ]
         for name in paths:

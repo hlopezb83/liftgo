@@ -1,3 +1,7 @@
+## [8.53.7] - 2026-11-12
+
+- Actualiza el registro de integridad de las migraciones revisadas para que CI reconozca el filtro de stock bajo y siga rechazando cambios inesperados en el historial.
+
 ## [8.53.6] - 2026-11-12
 
 - La ficha del proveedor consulta únicamente sus facturas y mantenimientos, recorriendo todas las páginas necesarias para sus totales.

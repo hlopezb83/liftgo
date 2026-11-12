@@ -1,0 +1,6 @@
+{
+  "description": "Actualización de la verificación de integridad para publicar las mejoras de proveedores y refacciones.",
+  "changes": [
+    "La verificación de CI reconoce la migración revisada del filtro de stock bajo y conserva los controles que detectan cambios inesperados en el historial."
+  ]
+}
