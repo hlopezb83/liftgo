@@ -34,7 +34,7 @@ describe("InvoiceForm linked validation summary", () => {
     render(<InvoiceForm />);
     fireEvent.submit(screen.getByRole("button", { name: "Crear factura" }).closest("form")!);
     const summary = await screen.findByRole("region", { name: "Revisa los campos marcados" });
-    expect(summary).toHaveFocus();
+    await waitFor(() => expect(summary).toHaveFocus());
     const link = within(summary).getByRole("link", { name: "Partida 2 · Descripción: Descripción requerida" });
     expect(document.getElementById(decodeURIComponent(link.getAttribute("href")!.slice(1)))).toBeTruthy();
     fireEvent.click(link);
