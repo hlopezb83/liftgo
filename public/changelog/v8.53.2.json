@@ -1,0 +1,6 @@
+{
+  "description": "Incrementa la versión del ERP de 8.53.1 a 8.53.2, sin cambios funcionales nuevos.",
+  "changes": [
+    "Actualiza los metadatos de versión y el historial de cambios."
+  ]
+}

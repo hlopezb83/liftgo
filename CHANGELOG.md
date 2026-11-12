@@ -1,3 +1,7 @@
+## [8.53.2] - 2026-11-12
+
+- Actualización de versión de mantenimiento de 8.53.1 a 8.53.2, sin cambios funcionales nuevos.
+
 ## [8.53.1] - 2026-11-12
 
 - Evita el fallo de arranque causado por la ausencia de Array.at y añade una prueba de regresión. No establece compatibilidad general con versiones antiguas de Safari.
