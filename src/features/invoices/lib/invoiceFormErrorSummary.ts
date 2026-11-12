@@ -10,7 +10,7 @@ const labels: Record<string, string> = {
 
 export function invoiceFormErrorLabel(name: string) {
   const parts = name.split(".");
-  const label = labels[parts.at(-1) ?? ""] ?? "Datos de la partida";
+  const label = labels[parts[parts.length - 1] ?? ""] ?? "Datos de la partida";
   return parts[0] === "lineItems" && /^\d+$/.test(parts[1] ?? "") ? `Partida ${Number(parts[1]) + 1} · ${label}` : label;
 }
 

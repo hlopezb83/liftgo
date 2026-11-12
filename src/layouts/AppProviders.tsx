@@ -20,7 +20,7 @@ const WorkspaceProviders = lazy(() => import("./WorkspaceProviders").then((modul
  * Plataforma usa un cliente en memoria por actor, sin contexto de empresa.
  */
 export function AppProviders({ queryClient, children }: { queryClient: QueryClient; children: ReactNode }) {
-  const isAuthRoute = useRouterState({ select: (state) => state.matches.at(-1)?.routeId === "/auth" });
+  const isAuthRoute = useRouterState({ select: (state) => state.matches[state.matches.length - 1]?.routeId === "/auth" });
   return (
     <ThemeProvider attribute="class" defaultTheme="light" enableSystem storageKey="forklift-theme">
       <QueryClientProvider client={queryClient}>

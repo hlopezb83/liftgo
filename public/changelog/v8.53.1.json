@@ -1,0 +1,6 @@
+{
+  "description": "La app ya abre en navegadores anteriores, como Safari previo a 15.4.",
+  "changes": [
+    "Se reemplazó una función de listas no disponible en navegadores antiguos que impedía abrir la app (Sentry LIFTGO-Q)."
+  ]
+}

@@ -1,3 +1,7 @@
+## [8.53.1] - 2026-11-12
+
+- La app vuelve a abrir en navegadores antiguos (por ejemplo, Safari anterior a 15.4).
+
 ## [8.52.13] - 2026-11-10
 
 - Protege las partidas y el origen de los borradores de facturas y cobros. Unifica la cobertura de periodos con la facturación recurrente.

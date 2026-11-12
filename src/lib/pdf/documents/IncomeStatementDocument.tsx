@@ -142,7 +142,7 @@ export function IncomeStatementDocument(props: IncomeStatementDocumentProps) {
 function pageSegmentLabel(props: IncomeStatementDocumentProps): string {
   if (props.isComparison) return `Comparativo: ${props.availableYears.join(" / ")}`;
   if (!props.filteredData.length) return "Sin meses";
-  return `Meses: ${props.filteredData[0].month} a ${props.filteredData.at(-1)?.month ?? ""}`;
+  return `Meses: ${props.filteredData[0].month} a ${props.filteredData[props.filteredData.length - 1]?.month ?? ""}`;
 }
 
 function StatementPage(props: IncomeStatementDocumentProps) {

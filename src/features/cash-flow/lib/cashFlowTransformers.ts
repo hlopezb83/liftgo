@@ -257,7 +257,7 @@ function isValidCoveragePeriod(period: { periodStart: string | null; periodEnd: 
 function mergeCoveragePeriods(periods: Array<{ periodStart: string; periodEnd: string }>): Array<{ periodStart: string; periodEnd: string }> {
   const merged: Array<{ periodStart: string; periodEnd: string }> = [];
   for (const period of [...periods].sort((a, b) => a.periodStart.localeCompare(b.periodStart))) {
-    const previous = merged.at(-1);
+    const previous = merged[merged.length - 1];
     const adjacentEnd = previous && toYmdUtc(new Date(Date.parse(`${previous.periodEnd}T00:00:00Z`) + 86_400_000));
     if (previous && adjacentEnd && period.periodStart <= adjacentEnd) {
       if (period.periodEnd > previous.periodEnd) previous.periodEnd = period.periodEnd;

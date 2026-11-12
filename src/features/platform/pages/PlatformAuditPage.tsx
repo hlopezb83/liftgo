@@ -101,14 +101,14 @@ function AuditContent({
   const input = {
     organization_id: organization,
     target_type: target,
-    before_id: cursors.at(-1),
+    before_id: cursors[cursors.length - 1],
     limit: 25,
   };
   const filtersValid = validFilters(input, invalidTarget);
   const query = usePlatformAudit(input, filtersValid);
   const events = query.data?.events ?? [];
   function next() {
-    const last = events.at(-1);
+    const last = events[events.length - 1];
     if (last && query.data?.has_more)
       setCursors((previous) => [...previous, last.id]);
   }
