@@ -27,7 +27,7 @@ es el tamaño de página de la consulta de facturas: son estrategias distintas.
 
 `useInventoryPage` incluye `lowStockOnly` en la clave de caché y solicita
 `p_low_stock: true` a `get_inventory_page` cuando el filtro está activo. La
-migración `drizzle/migrations/0142_inventory_low_stock_filter.sql` aplica
+migración `drizzle/migrations/0142_0142_inventory_low_stock_filter.sql` aplica
 `stock_quantity <= min_stock_level` antes del conteo, orden y paginación. El
 indicador mantiene el conteo global de existencias bajas visible para la empresa;
 la tabla combina el filtro con la búsqueda y la categoría.

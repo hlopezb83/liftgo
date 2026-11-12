@@ -2,7 +2,7 @@
 
 - La ficha del proveedor consulta únicamente sus facturas y mantenimientos, recorriendo todas las páginas necesarias para sus totales.
 - Una CSF que falla al subir puede reintentarse sobre el proveedor ya guardado, sin repetir el alta.
-- El indicador de stock bajo filtra Refacciones desde el servidor antes de contar y paginar; requiere la migración `0142_inventory_low_stock_filter.sql` en el entorno de destino.
+- El indicador de stock bajo filtra Refacciones desde el servidor antes de contar y paginar; requiere la migración `0142_0142_inventory_low_stock_filter.sql` en el entorno de destino.
 - El autollenado de facturas desde reservas o cotizaciones consulta al cliente por ID y protege las ediciones manuales y los cambios de selección.
 - CxP valida sus respuestas paginadas y resúmenes; los datos incompletos muestran un error en vez de importes o pagos inventados.
 
