@@ -21,7 +21,7 @@ async function installTransport(context: BrowserContext, origin: string) {
     if (request.method() === "OPTIONS") return route.fulfill({ status: 204, headers });
     state.reads.push(params.toString());
     expect(params.get("organization_id")).toBe(`eq.${organizationId}`);
-    const search = params.getAll("or").find(value => value.includes("customer_name.ilike"))?.match(/ilike\.%(.*?)%/)?.[1]?.toLowerCase();
+    const search = params.getAll("or").find(value => value.includes("customer_name.ilike"))?.match(/ilike\."%(.*?)%"/)?.[1]?.toLowerCase();
     const filtered = rows.filter(row => (!search || `${row.customer_name} ${row.booking_number}`.toLowerCase().includes(search))
       && (!params.has("status") || params.get("status") === `eq.${row.status}`));
     const order = (params.get("order") ?? "").split(",");

@@ -1,6 +1,7 @@
 import { QueryClient } from "@tanstack/react-query";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createSupabaseChainMock, type ChainCall, type SupabaseMockResponse } from "@/test/helpers/supabaseChain";
+import { bookingSearchFilter } from "../../../lib/bookingSearchFilter";
 import { bookingPageQueryOptions, type BookingPageFilters } from "../useBookingPage";
 
 let requests: ChainCall[][] = [];
@@ -16,6 +17,26 @@ const query = (overrides: Partial<BookingPageFilters> = {}) => bookingPageQueryO
 beforeEach(() => { requests = []; responses = []; });
 
 describe("booking pages", () => {
+  it("preserves punctuation in customer names and quotes PostgREST values", async () => {
+    await new QueryClient().fetchQuery(query({ q: " ACME S.A. de C.V., (Norte) " }));
+    expect(requests[0]).toContainEqual({ method: "or", args: [
+      'customer_name.ilike."%ACME S.A. de C.V., (Norte)%",booking_number.ilike."%ACME S.A. de C.V., (Norte)%"',
+    ] });
+  });
+
+  it("treats underscore and percent in folios as literal characters", () => {
+    expect(bookingSearchFilter("RES_100%")).toBe(String.raw`customer_name.ilike."%RES\\_100\\%%",booking_number.ilike."%RES\\_100\\%%"`);
+  });
+
+  it("uses a quoted literal regex for stars, quotes and backslashes", () => {
+    const term = 'ACME* ("Norte")\\1';
+    const filter = bookingSearchFilter(term);
+    const encoded = filter.slice("customer_name.imatch.".length, filter.indexOf(",booking_number.imatch."));
+    const pattern = JSON.parse(encoded) as string;
+    expect(new RegExp(pattern, "i").test(term)).toBe(true);
+    expect(new RegExp(pattern, "i").test('ACME algo ("Norte")\\1')).toBe(false);
+  });
+
   it("reads beyond the former 500-row limit with exact count, org and stable ordering", async () => {
     const client = new QueryClient();
     responses.push({ data: [{ id: "booking-751" }], count: 1001, error: null });

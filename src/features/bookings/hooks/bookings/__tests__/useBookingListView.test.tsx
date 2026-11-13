@@ -58,13 +58,13 @@ function setup(origin: string, showPage = false) {
 describe("Próximas reservas", () => {
   it("applies MTY cutoff, eligible statuses and user filters before the server limit", async () => {
     const client = new QueryClient();
-    await client.fetchQuery(bookingPageQueryOptions("org-a", { q: " Acme,()%_ ", status: "confirmed", upcoming: true, pageIndex: 0, pageSize: 25, sorting: [] }));
+    await client.fetchQuery(bookingPageQueryOptions("org-a", { q: " Acme ", status: "confirmed", upcoming: true, pageIndex: 0, pageSize: 25, sorting: [] }));
     const calls = requests[0];
     const operations = calls.map((call) => [call.method, ...call.args]);
     expect(operations).toEqual(expect.arrayContaining([
       ["or", "is_e2e.is.null,is_e2e.eq.false"], ["eq", "organization_id", "org-a"],
       ["gte", "start_date", "2026-11-11"], ["eq", "status", "confirmed"],
-      ["or", "customer_name.ilike.%Acme%,booking_number.ilike.%Acme%"],
+      ["or", 'customer_name.ilike."%Acme%",booking_number.ilike."%Acme%"'],
       ["order", "start_date", { ascending: true, nullsFirst: false }], ["order", "id", { ascending: true }],
     ]));
     expect(operations.at(-1)).toEqual(["range", 0, 24]);
@@ -82,7 +82,7 @@ describe("Próximas reservas", () => {
     await waitFor(() => expect(screen.getByTestId("list")).toHaveTextContent('"raw":1'));
     expect(requests).toHaveLength(1);
     expect(requests[0]).toContainEqual({ method: "eq", args: ["status", "confirmed"] });
-    expect(requests[0]).toContainEqual({ method: "or", args: ["customer_name.ilike.%otra%,booking_number.ilike.%otra%"] });
+    expect(requests[0]).toContainEqual({ method: "or", args: ['customer_name.ilike."%otra%",booking_number.ilike."%otra%"'] });
     expect(requests[0]).toContainEqual({ method: "range", args: [0, 24] });
   });
 

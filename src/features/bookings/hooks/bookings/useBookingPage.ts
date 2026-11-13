@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { BOOKING_STATUSES } from "@/lib/constants";
 import { todayKeyMty } from "@/lib/format/dateFormats";
 import { e2eVisibilityFilter } from "@/lib/supabase/constants";
+import { bookingSearchFilter } from "../../lib/bookingSearchFilter";
 import { bookingKeys } from "../../lib/queryKeys";
 import type { useBookings } from "./useBookings";
 import type { PaginationState, SortingState } from "@tanstack/react-table";
@@ -24,7 +25,7 @@ export function bookingPageQueryOptions(organizationId: string | undefined, inpu
   const seen = new Set<string>();
   const filters = {
     ...input,
-    q: input.q.replace(/[\\%_",().]/g, " ").trim(),
+    q: input.q.trim(),
     status: BOOKING_STATUSES.some(status => status === input.status) ? input.status : "all",
     pageIndex: Number.isSafeInteger(input.pageIndex) ? Math.max(0, Math.min(100000, input.pageIndex)) : 0,
     pageSize: Number.isSafeInteger(input.pageSize) ? Math.max(1, Math.min(100, input.pageSize)) : 25,
@@ -47,7 +48,7 @@ export function bookingPageQueryOptions(organizationId: string | undefined, inpu
           .eq("organization_id", organizationId).or(visibility);
         if (filters.upcoming) query = query.eq("status", "confirmed").gte("start_date", today);
         else if (filters.status !== "all") query = query.eq("status", filters.status);
-        if (filters.q) query = query.or(`customer_name.ilike.%${filters.q}%,booking_number.ilike.%${filters.q}%`);
+        if (filters.q) query = query.or(bookingSearchFilter(filters.q));
         return query.abortSignal(signal);
       };
       const fetchPage = (pageIndex: number) => {
