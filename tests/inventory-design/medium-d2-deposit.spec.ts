@@ -66,7 +66,8 @@ test("depósito: conflicto conserva borrador, recarga fallida conserva formulari
     await card.getByRole("button", { name: "Guardar estado del depósito" }).click();
     await expect(card.getByRole("button", { name: "Guardar estado del depósito" })).toBeDisabled();
     await expect.poll(() => saves.length).toBe(2);
-    await expect(card.getByText("Revisado después de recargar", { exact: true })).toBeVisible();
+    await expect(card.getByRole("paragraph").filter({ hasText: "Revisado después de recargar" })).toBeVisible();
+    await expect(card.getByLabel("Notas", { exact: true })).toHaveValue("Revisado después de recargar");
     await page.screenshot({ path: `test-results/inventory-design/${info.project.name}-d2-deposit.png`, fullPage: true });
   } finally {
     expect(await closeOfflinePages(context)).toEqual([]);
