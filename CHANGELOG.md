@@ -1,3 +1,8 @@
+## [8.53.26] - 2026-11-13
+
+- El resumen de cierre distingue la carga y los errores del desglose de costos.
+- Cuando falta información muestra el último total registrado y permite reintentar sin presentar costos parciales como definitivos.
+
 ## [8.53.25] - 2026-11-13
 
 - El selector de montacargas en mantenimiento ajusta nombres y modelos largos al espacio disponible.

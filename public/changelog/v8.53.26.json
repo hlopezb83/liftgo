@@ -1,0 +1,7 @@
+{
+  "description": "Resumen de cierre con desglose verificable",
+  "changes": [
+    "El resumen de cierre distingue la carga y los errores del desglose de costos.",
+    "Cuando falta información muestra el último total registrado y permite reintentar sin presentar costos parciales como definitivos."
+  ]
+}
