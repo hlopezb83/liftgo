@@ -1,3 +1,9 @@
+## [8.53.18] - 2026-11-13
+
+- El listado general de entregas filtra y ordena en el servidor antes de contar y paginar, incluyendo la conciliación histórica vigente.
+- La navegación conserva búsqueda, estado, tipo y página; los errores permiten reintentar sin presentar una lista vacía.
+- La consulta de transportes vencidos conserva su comportamiento y los detalles siguen disponibles mediante sus lecturas específicas.
+
 ## [8.53.17] - 2026-11-13
 
 - Las reservas se filtran, ordenan y paginan en el servidor con conteo completo, también para registros posteriores a las primeras 500 filas.
