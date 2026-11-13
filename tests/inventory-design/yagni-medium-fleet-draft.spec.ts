@@ -48,15 +48,26 @@ test("Flota conserva captura y candado tras refetch y sólo recarga al confirmar
   await expect(page.getByText(/otro usuario modificó este montacargas/).first()).toBeVisible();
   expect(writes[0]).toMatchObject({ notes: "Mi captura pendiente", expectedVersion: `eq.${originalVersion}` });
   await expect(notes).toHaveValue("Mi captura pendiente");
+  const notifications = page.getByRole("region", { name: "Notificaciones alt+T", exact: true })
+    .getByRole("button", { name: "Cerrar notificación", exact: true });
+  for (let count = await notifications.count(); count > 0; count = await notifications.count()) {
+    await notifications.first().click();
+    await expect(notifications).toHaveCount(count - 1);
+  }
 
-  await page.getByRole("button", { name: "Recargar datos", exact: true }).click();
+  const reload = page.getByRole("button", { name: "Recargar datos", exact: true });
+  await reload.evaluate(button => button.scrollIntoView({ block: "center" }));
+  await reload.click();
   const dialog = page.getByRole("alertdialog", { name: "¿Recargar los datos del equipo?", exact: true });
   await dialog.getByRole("button", { name: "Seguir editando", exact: true }).click();
   await expect(notes).toHaveValue("Mi captura pendiente");
-  await page.getByRole("button", { name: "Recargar datos", exact: true }).click();
+  await reload.evaluate(button => button.scrollIntoView({ block: "center" }));
+  await reload.click();
   await dialog.getByRole("button", { name: "Recargar y descartar", exact: true }).click();
   await expect(notes).toHaveValue("Nota remota");
   await expect(page.getByRole("spinbutton", { name: "Tarifa Diaria ($)", exact: true })).toHaveValue("900");
+  // FormActions releases its existing duplicate-submit guard 400 ms after busy.
+  await page.clock.runFor(450);
   await notes.fill("Captura sobre la versión actual");
   await page.getByRole("button", { name: "Guardar cambios", exact: true }).click();
   await expect(page).toHaveURL(new RegExp(`/fleet/${forkliftId}$`));
