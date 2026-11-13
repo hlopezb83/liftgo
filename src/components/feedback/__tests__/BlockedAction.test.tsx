@@ -61,4 +61,23 @@ describe("BlockedActionButton", () => {
     fireEvent.click(await screen.findByRole("button", { name: "Vender" }));
     expect(onClick).toHaveBeenCalledTimes(1);
   });
+
+  it.each([false, true])("el portal optativo %s conserva el bloqueo y su ubicación", async (portal) => {
+    const onClick = vi.fn();
+    renderWithRouter(
+      <div data-testid="scroll-container" style={{ overflow: "hidden" }}>
+        <BlockedActionButton block={block} portal={portal} onClick={onClick}>Vender</BlockedActionButton>
+      </div>,
+    );
+    const container = await screen.findByTestId("scroll-container");
+    const button = await screen.findByRole("button", { name: "Vender" });
+    fireEvent.click(button);
+    const tooltip = await screen.findByRole("tooltip");
+    expect(container.contains(button)).toBe(true);
+    expect(container.contains(tooltip)).toBe(!portal);
+    expect(tooltip).toHaveTextContent(block.reason);
+    expect(tooltip).toHaveTextContent(block.nextStep);
+    expect(button).toHaveAttribute("aria-disabled", "true");
+    expect(onClick).not.toHaveBeenCalled();
+  });
 });

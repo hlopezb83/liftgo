@@ -1,3 +1,4 @@
+import { Portal as TooltipPortal } from "@radix-ui/react-tooltip";
 import { useId, useState, type ComponentProps, type ReactNode } from "react";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
@@ -11,6 +12,8 @@ interface BlockedActionButtonProps extends Omit<ButtonProps, "disabled"> {
   block: BusinessBlock | null;
   /** Deshabilitado por otra razón (mutación en curso, etc.). */
   disabled?: boolean;
+  /** Escapa el recorte de tablas con scroll; los demás usos conservan su layout. */
+  portal?: boolean;
   children: ReactNode;
 }
 
@@ -23,6 +26,7 @@ interface BlockedActionButtonProps extends Omit<ButtonProps, "disabled"> {
 export function BlockedActionButton({
   block,
   disabled,
+  portal = false,
   children,
   ...buttonProps
 }: BlockedActionButtonProps) {
@@ -52,6 +56,11 @@ export function BlockedActionButton({
   if (!block) return button;
 
   const summary = businessBlockSummary(block);
+  const content = (
+    <TooltipContent id={tooltipId} className="max-w-xs" collisionPadding={portal ? 8 : undefined}>
+      {summary}
+    </TooltipContent>
+  );
 
   return (
     // Provider local: el componente debe funcionar en cualquier árbol (el
@@ -61,9 +70,7 @@ export function BlockedActionButton({
         <TooltipTrigger asChild>
           {button}
         </TooltipTrigger>
-        <TooltipContent id={tooltipId} className="max-w-xs">
-          {summary}
-        </TooltipContent>
+        {portal ? <TooltipPortal>{content}</TooltipPortal> : content}
       </Tooltip>
     </TooltipProvider>
   );
