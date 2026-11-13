@@ -1,3 +1,8 @@
+## [8.53.19] - 2026-11-13
+
+- Los listados de entregas aceptan los identificadores históricos válidos de la base de datos sin perder la validación de empresa y paginación.
+- Pruebas de regresión cubren identificadores históricos en entregas generales y atrasadas.
+
 ## [8.53.18] - 2026-11-13
 
 - El listado general de entregas filtra y ordena en el servidor antes de contar y paginar, incluyendo la conciliación histórica vigente.
