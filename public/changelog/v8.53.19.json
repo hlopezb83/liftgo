@@ -1,0 +1,7 @@
+{
+  "description": "Entregas compatibles con identificadores históricos",
+  "changes": [
+    "Los listados de entregas aceptan los identificadores históricos válidos de la base de datos sin perder la validación de empresa y paginación.",
+    "Pruebas de regresión cubren identificadores históricos en entregas generales y atrasadas."
+  ]
+}
