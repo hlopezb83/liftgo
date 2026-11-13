@@ -6,7 +6,7 @@ test("maintenance equipment options remain readable within the viewport", async 
   const transport = await installGroupCTransport(context, new URL(baseURL!).origin);
   await context.route("http://127.0.0.1:54321/rest/v1/mechanics?**", async (route) => {
     if (route.request().method() !== "GET") return route.fallback();
-    return route.fulfill({ contentType: "application/json", body: "[]" });
+    return route.fulfill({ contentType: "application/json", headers: { "access-control-allow-origin": new URL(baseURL!).origin }, body: "[]" });
   });
   try {
     await page.goto("/maintenance");
