@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useLayoutEffect, useRef, useState } from "react";
 import { useCompanySettings } from "@/features/company-settings";
 import { useSuppliers } from "@/features/suppliers";
 import { notifyError, notifyWarning } from "@/lib/ui/appFeedback";
@@ -6,7 +6,7 @@ import { nowMty } from "@/lib/utils";
 import { parseCfdiXml, CfdiParseError, type CfdiParsed } from "../lib/parseCfdiXml";
 import { validateCfdiTotal } from "../lib/validateCfdiTotal";
 import { checkSupplierBillCfdiUuid } from "./useCheckSupplierBillCfdiUuid";
-import { useUploadSupplierBillXml, type UploadedCfdiXml } from "./useUploadSupplierBillXml";
+import { discardImportedCfdiXml, useUploadSupplierBillXml, type UploadedCfdiXml } from "./useUploadSupplierBillXml";
 import type { SupplierBillFormData } from "./useSupplierBillForm";
 
 export interface ImportedCfdi {
@@ -83,25 +83,43 @@ export function useImportSupplierBillCfdi() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<ImportedCfdi | null>(null);
+  const operation = useRef(0);
+  const mounted = useRef(false);
+  const pending = useRef(false);
+  useLayoutEffect(() => {
+    mounted.current = true;
+    return () => { mounted.current = false; operation.current += 1; };
+  }, []);
 
   const { data: suppliers } = useSuppliers();
   const { data: company } = useCompanySettings();
   const uploadXml = useUploadSupplierBillXml();
 
   const reset = () => {
+    operation.current += 1;
+    pending.current = false;
     setBusy(false);
     setError(null);
     setResult(null);
   };
 
   const importXml = async (file: File): Promise<ImportedCfdi | null> => {
+    if (!mounted.current || pending.current) return null;
+    const currentOperation = ++operation.current;
+    const shouldContinue = () => mounted.current && operation.current === currentOperation;
+    pending.current = true;
     setError(null);
     setBusy(true);
     try {
       const parsed = await parseAndValidateXml(file);
+      if (!shouldContinue()) return null;
       const supplierId = matchSupplierId(parsed.emitterRfc, suppliers);
       const initialValues = buildInitialValues(parsed, supplierId);
-      const uploaded = await uploadXml.mutateAsync({ file, uuid: parsed.uuid ?? "" });
+      const uploaded = await uploadXml.mutateAsync({ file, uuid: parsed.uuid ?? "", shouldContinue });
+      if (!shouldContinue()) {
+        await discardImportedCfdiXml(uploaded.path);
+        return null;
+      }
 
       warnIfRfcMismatch(parsed.receiverRfc, company?.rfc);
       warnIfSupplierMissing(supplierId, parsed.emitterRfc);
@@ -110,13 +128,17 @@ export function useImportSupplierBillCfdi() {
       setResult(next);
       return next;
     } catch (e: unknown) {
+      if (!shouldContinue()) return null;
       setError(extractImportErrorMessage(e));
       if (!(e instanceof CfdiParseError)) {
         notifyError({ error: e, message: "Error al importar XML" });
       }
       return null;
     } finally {
-      setBusy(false);
+      if (shouldContinue()) {
+        pending.current = false;
+        setBusy(false);
+      }
     }
   };
 
