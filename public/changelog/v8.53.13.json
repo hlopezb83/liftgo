@@ -1,0 +1,8 @@
+{
+  "description": "Edición de equipos sin pérdida de captura al actualizar",
+  "changes": [
+    "Las consultas en segundo plano conservan los campos editados y la versión con la que se abrió el equipo.",
+    "Recargar datos avisa antes de descartar cambios y renueva juntos el formulario y su versión; los errores conservan la captura.",
+    "Se mantiene la confirmación al salir con cambios y la salida normal después de guardar."
+  ]
+}
