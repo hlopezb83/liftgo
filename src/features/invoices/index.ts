@@ -7,6 +7,7 @@ export * from "./hooks/usePayments";
 // v7.218.0 · ARQ2-A5: exponer queryKeys y helpers cross-feature.
 export * from "./lib/queryKeys";
 export { downloadCfdiBlob } from "./lib/downloadCfdiBlob";
+export { getPaymentMethodLabel } from "./lib/paymentMethods";
 export {
   usePortalPaymentIntents,
   useCreatePaymentIntent,

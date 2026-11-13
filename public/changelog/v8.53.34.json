@@ -1,0 +1,7 @@
+{
+  "description": "Datos fiscales y métodos de pago legibles",
+  "changes": [
+    "El detalle de factura muestra código y nombre de forma de pago, método de pago y uso CFDI.",
+    "El portal muestra nombres de métodos de pago en español usando el catálogo existente, sin cambiar los valores guardados."
+  ]
+}

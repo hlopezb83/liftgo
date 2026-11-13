@@ -1,5 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import type { Tables } from "@/integrations/supabase/types";
+import { FORMA_PAGO, METODO_PAGO, USO_CFDI } from "@/lib/domain/satCatalogs";
 import type { ReactNode } from "react";
 
 interface InvoiceFiscalDataCardProps {
@@ -7,25 +8,29 @@ interface InvoiceFiscalDataCardProps {
   extraActions?: ReactNode;
 }
 
-const FIELDS: Array<{ key: keyof Tables<"invoices">; label: string }> = [
+const FIELDS: Array<{
+  key: keyof Tables<"invoices">;
+  label: string;
+  catalog?: ReadonlyArray<{ code: string; label: string }>;
+}> = [
   { key: "serie", label: "Serie" },
   { key: "folio", label: "Folio" },
-  { key: "forma_pago", label: "Forma de Pago" },
-  { key: "metodo_pago", label: "Método de Pago" },
+  { key: "forma_pago", label: "Forma de Pago", catalog: FORMA_PAGO },
+  { key: "metodo_pago", label: "Método de Pago", catalog: METODO_PAGO },
   { key: "moneda", label: "Moneda" },
-  { key: "uso_cfdi", label: "Uso CFDI" },
+  { key: "uso_cfdi", label: "Uso CFDI", catalog: USO_CFDI },
 ];
 
 function FiscalFieldsGrid({ invoice }: { invoice: Tables<"invoices"> }) {
   return (
     <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-sm">
-      {FIELDS.map(({ key, label }) => {
+      {FIELDS.map(({ key, label, catalog }) => {
         const value = invoice[key];
         if (!value) return null;
         return (
-          <div key={key}>
+          <div key={key} className="min-w-0 break-words">
             <span className="text-muted-foreground block">{label}</span>
-            {String(value)}
+            {catalog?.find((entry) => entry.code === String(value))?.label ?? String(value)}
           </div>
         );
       })}

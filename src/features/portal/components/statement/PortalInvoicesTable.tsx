@@ -10,6 +10,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { usePortalInvoicePayments } from "@/features/customers";
+import { getPaymentMethodLabel } from "@/features/invoices";
 import { formatDateMty } from "@/lib/format/dateFormats";
 import { formatCurrencyWithCode } from "@/lib/format/formatCurrency";
 
@@ -63,7 +64,7 @@ function PaymentDetailTable({ payments, currency }: { payments: PortalPayment[];
         {payments.map((p) => (
           <TableRow key={p.id}>
             <TableCell>{formatDateMty(p.payment_date)}</TableCell>
-            <TableCell>{p.payment_method ?? "—"}</TableCell>
+            <TableCell>{getPaymentMethodLabel(p.payment_method)}</TableCell>
             <TableCell>{p.reference_number ?? "—"}</TableCell>
             <TableCell className="text-right font-mono tabular-nums">
               {formatCurrencyWithCode(Number(p.amount), currency)}
