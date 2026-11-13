@@ -22,8 +22,16 @@ vi.mock("@dnd-kit/sortable", () => ({
     };
   },
 }));
+vi.mock("@/lib/query/useVerifiedIdentityScope", () => ({ useVerifiedIdentityScope: () => "org-a:user" }));
+vi.mock("../../../hooks/maintenance/useMaintenancePartOptions", () => ({
+  MAINTENANCE_PART_PAGE_SIZE: 25,
+  useMaintenancePartOptions: () => ({
+    pageQuery: { data: { items: [], totalCount: 0, pageIndex: 0 }, isSuccess: true, isFetching: false, isError: false },
+    selectedQuery: { data: null, isSuccess: true, isFetching: false, isError: false },
+    contextError: false,
+  }),
+}));
 vi.mock("@/features/inventory", () => ({
-  usePartsInventory: () => ({ data: [], isLoading: false }),
   useMaintenanceParts: () => ({ data: [], isLoading: false }),
   useAddMaintenancePart: () => ({ mutate: vi.fn(), isPending: false }),
 }));
