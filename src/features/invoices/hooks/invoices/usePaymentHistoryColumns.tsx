@@ -192,7 +192,7 @@ export function usePaymentHistoryColumns(ppdStamped: boolean, allowRepMutations:
             variant="ghost" size="icon" className="h-7 w-7"
             onClick={() => !block && setEditingPayment(p)}
             aria-label="Editar pago" title={block ? undefined : "Editar pago"}
-            block={block}
+            block={block} portal
           >
             <EditIcon className="h-3.5 w-3.5" />
           </BlockedActionButton>

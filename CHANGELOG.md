@@ -1,3 +1,9 @@
+## [8.53.35] - 2026-11-13
+
+- Las etiquetas Inicio y Fin del periodo de facturación identifican y enfocan su campo de fecha.
+- Se conservan los valores y las validaciones del periodo vinculado a reservas.
+- Las explicaciones de pagos bloqueados por REP se leen completas en pantallas pequeñas.
+
 ## [8.53.34] - 2026-11-13
 
 - El detalle de factura muestra código y nombre de forma de pago, método de pago y uso CFDI.
