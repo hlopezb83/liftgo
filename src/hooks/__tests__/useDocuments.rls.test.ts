@@ -40,7 +40,7 @@ describe("useDocuments — RLS contract", () => {
   it("staff recibe documentos con signed URL inyectada", async () => {
     fromResp = {
       data: [
-        { id: "d1", entity_type: "forklift", entity_id: "f-1", file_url: "https://x.com/documents/path/a.pdf" },
+        { id: "d1", entity_type: "forklift", entity_id: "f-1", file_url: "https://x.com/storage/v1/object/public/documents/path/a.pdf" },
       ],
       error: null,
     };

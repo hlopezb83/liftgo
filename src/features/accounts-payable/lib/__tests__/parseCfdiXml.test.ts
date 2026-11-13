@@ -88,4 +88,21 @@ describe("parseCfdiXml", () => {
   it("lanza CfdiParseError si no es un Comprobante", () => {
     expect(() => parseCfdiXml("<foo/>")).toThrow(CfdiParseError);
   });
+
+  it.each(["EUR", "XXX", "usd", "", null])("rechaza moneda %s sin convertirla a MXN", (currency) => {
+    const xml = XML_SIN_IMPUESTOS.replace('Moneda="MXN"', currency === null ? "" : `Moneda="${currency}" TipoCambio="23"`);
+    expect(() => parseCfdiXml(xml)).toThrow(CfdiParseError);
+    expect(() => parseCfdiXml(xml)).toThrow("Solo se aceptan MXN y USD");
+  });
+
+  it.each([
+    { currency: "MXN", rate: 'TipoCambio="23"', expected: 1 },
+    { currency: "USD", rate: 'TipoCambio="20.5"', expected: 20.5 },
+    { currency: "USD", rate: "", expected: null },
+  ])("conserva la moneda $currency y el tipo de cambio $expected", ({ currency, rate, expected }) => {
+    const parsed = parseCfdiXml(XML_SIN_IMPUESTOS.replace('Moneda="MXN"', `Moneda="${currency}" ${rate}`));
+    expect(parsed.currency).toBe(currency);
+    expect(parsed.exchangeRate).toBe(expected);
+    expect(parsed.total).toBe(500);
+  });
 });

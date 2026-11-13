@@ -1,4 +1,5 @@
 import { useRef, type ChangeEvent as ReactChangeEvent } from "react";
+import { QueryErrorState } from "@/components/feedback/QueryErrorState";
 import { useConfirm } from "@/components/feedback/useConfirm";
 import { Paperclip, DeleteIcon, UploadIcon, DocumentIcon, Image, File } from "@/components/icons";
 import { Button } from "@/components/ui/button";
@@ -17,7 +18,7 @@ function FileIcon({ mime }: { mime?: string | null }) {
 
 export function DocumentAttachments({ entityType, entityId, accessModule }: { entityType: string; entityId: string; accessModule: "Flota" | "Proveedores" }) {
   const canManage = useHasModuleAccess(accessModule, "full");
-  const { data: documents, isLoading } = useDocuments(entityType, entityId);
+  const { data: documents, isLoading, isError, isFetching, error, refetch } = useDocuments(entityType, entityId);
   const uploadDoc = useUploadDocument();
   const deleteDoc = useDeleteDocument();
   const confirm = useConfirm();
@@ -85,7 +86,9 @@ export function DocumentAttachments({ entityType, entityId, accessModule }: { en
       </CardHeader>
       <CardContent>
         {isLoading ? (
-          <p className="text-sm text-muted-foreground">Cargando…</p>
+          <p role="status" className="text-sm text-muted-foreground">Cargando adjuntos…</p>
+        ) : isError ? (
+          <QueryErrorState bare entity="los adjuntos" error={error} onRetry={() => { void refetch(); }} isRetrying={isFetching} />
         ) : documents && documents.length > 0 ? (
           <div className="space-y-2">
             {documents.map((doc) => (

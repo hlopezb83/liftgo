@@ -18,26 +18,38 @@ function extractStoragePath(fileUrl: string): string | null {
 
 export { extractStoragePath };
 
+function documentSigningPath(fileUrl: string): string | null {
+  try {
+    const url = new URL(fileUrl);
+    // External links are not Storage objects, even if their path contains /documents/.
+    if (!/^\/storage\/v1\/object\/(?:public|sign|authenticated)\/documents\//.test(url.pathname)) return null;
+  } catch { /* Relative Storage paths retain the legacy extraction. */ }
+  return extractStoragePath(fileUrl);
+}
+
 async function attachSignedUrls<T extends { file_url: string }>(rows: T[]): Promise<T[]> {
   if (rows.length === 0) return rows;
   // Bulk: una sola llamada a Storage por hasta 100 paths, en vez de N round-trips.
-  const paths: (string | null)[] = rows.map((r) => extractStoragePath(r.file_url));
+  const paths: (string | null)[] = rows.map((r) => documentSigningPath(r.file_url));
   const validPaths = paths.filter((p): p is string => p !== null);
   if (validPaths.length === 0) return rows;
 
   const { data, error } = await supabase.storage
     .from("documents")
     .createSignedUrls(validPaths, SIGNED_URL_TTL_SECONDS);
-  if (error || !data) return rows;
+  if (error) throw error;
+  if (!data) throw new Error("No se pudieron generar los enlaces de los adjuntos. Reintenta la consulta.");
 
   const byPath = new Map<string, string>();
   for (const entry of data) {
-    if (entry.path && entry.signedUrl) byPath.set(entry.path, entry.signedUrl);
+    if (!entry.error && entry.path && entry.signedUrl) byPath.set(entry.path, entry.signedUrl);
   }
   return rows.map((row, i) => {
     const p = paths[i];
-    const signed = p ? byPath.get(p) : undefined;
-    return signed ? { ...row, file_url: signed } : row;
+    if (!p) return row;
+    const signed = byPath.get(p);
+    if (!signed) throw new Error("No se pudieron generar todos los enlaces de los adjuntos. Reintenta la consulta.");
+    return { ...row, file_url: signed };
   });
 }
 

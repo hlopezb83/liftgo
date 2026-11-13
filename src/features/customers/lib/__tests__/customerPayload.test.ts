@@ -1,4 +1,4 @@
-import { describe, it, expect } from "vitest";
+import { afterEach, describe, it, expect, vi } from "vitest";
 import { buildCustomerPayload, getE2ECustomerMetadata } from "../customerPayload";
 import type { CustomerFormData } from "../customerFormSchema";
 
@@ -17,6 +17,8 @@ const base: CustomerFormData = {
   representante_legal: "",
   tax_rate: "",
 };
+
+afterEach(() => { vi.restoreAllMocks(); window.localStorage.clear(); });
 
 describe("buildCustomerPayload", () => {
   it("convierte strings vacíos a null y duplica name en company", () => {
@@ -40,6 +42,21 @@ describe("buildCustomerPayload", () => {
     window.localStorage.setItem("liftgo:e2e", "true");
     window.localStorage.setItem("liftgo:e2e_scope", "customer-create-test");
     expect(getE2ECustomerMetadata()).toEqual({ is_e2e: true, e2e_scope: "customer-create-test" });
+  });
+
+  it("permite el alta si el navegador bloquea el acceso al almacenamiento", () => {
+    vi.spyOn(window, "localStorage", "get").mockImplementation(() => {
+      throw new DOMException("Storage blocked", "SecurityError");
+    });
+    expect(getE2ECustomerMetadata()).toEqual({});
+  });
+
+  it("omite toda la metadata opcional si falla la lectura de su alcance", () => {
+    vi.spyOn(window.localStorage, "getItem").mockImplementation((key) => {
+      if (key === "liftgo:e2e") return "true";
+      throw new DOMException("Storage blocked", "SecurityError");
+    });
+    expect(getE2ECustomerMetadata()).toEqual({});
   });
 });
 

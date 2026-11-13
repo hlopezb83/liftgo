@@ -2,6 +2,7 @@ import { supabase } from "@/integrations/supabase/client";
 import type { TablesInsert } from "@/integrations/supabase/types";
 import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
 import { callRpc } from "@/lib/rpc";
+import { assertRowsAffected } from "@/lib/supabase/assertRowsAffected";
 import { partInventoryKeys } from "../lib/queryKeys";
 import type { PartInventory } from "./usePartsInventory";
 
@@ -73,11 +74,13 @@ export function useAdjustPartStock() {
 export function useDeletePart() {
   return useEntityMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from("parts_inventory")
         .update({ is_active: false })
-        .eq("id", id);
+        .eq("id", id)
+        .select("id");
       if (error) throw error;
+      assertRowsAffected(data, "Desactivar refacción");
     },
     invalidateKeys: [partInventoryKeys.all],
     errorTitle: "Error al desactivar refacción",

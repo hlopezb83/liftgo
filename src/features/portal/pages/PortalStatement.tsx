@@ -47,10 +47,11 @@ export default function PortalStatement() {
   };
 
   useEffect(() => {
-    if (page <= totalPages) return;
+    // Una página aún sin respuesta no confirma que el resultado se haya reducido.
+    if (il || ie || !invoicePage || page <= totalPages) return;
     const timer = window.setTimeout(() => setPage(totalPages), 0);
     return () => window.clearTimeout(timer);
-  }, [page, totalPages]);
+  }, [il, ie, invoicePage, page, totalPages]);
 
 
 

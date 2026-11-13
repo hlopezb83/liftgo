@@ -1,3 +1,14 @@
+## [8.53.9] - 2026-11-12
+
+- La importación de CFDI rechaza monedas no soportadas en vez de interpretarlas como pesos.
+- El estado de cuenta conserva la página solicitada mientras carga y permite reintentar errores sin regresar al inicio.
+- El alta de clientes funciona aunque el navegador bloquee el almacenamiento local.
+- Los adjuntos muestran los errores de lectura y ofrecen reintento, sin confundirse con una lista vacía.
+- Los documentos no muestran rutas internas como enlaces cuando falla la generación de enlaces temporales.
+- Desactivar una refacción comprueba que el registro haya sido actualizado.
+- La edición de equipos solicita confirmación antes de abandonar cambios sin guardar y permite salir después de guardar correctamente.
+- Los reportes de pago del cliente muestran carga, errores y reintento en el detalle de factura.
+
 ## [8.53.8] - 2026-11-12
 
 - La dispersión excluye facturas canceladas y las acciones de cancelar o eliminar comprueban que el registro haya sido afectado.

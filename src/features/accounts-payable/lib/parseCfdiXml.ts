@@ -130,8 +130,12 @@ function parseAndValidateDoc(xml: string): Element {
 }
 
 function extractCurrency(comprobante: Element): { currency: "MXN" | "USD"; exchangeRate: number | null } {
-  const monedaAttr = comprobante.getAttribute("Moneda");
-  const currency: "MXN" | "USD" = monedaAttr === "USD" ? "USD" : "MXN";
+  const currency = comprobante.getAttribute("Moneda");
+  if (currency !== "MXN" && currency !== "USD") {
+    throw new CfdiParseError(currency
+      ? `Moneda del CFDI no soportada: "${currency}". Solo se aceptan MXN y USD.`
+      : "El CFDI no indica una moneda válida. Solo se aceptan MXN y USD.");
+  }
   const parsedRate = num(comprobante.getAttribute("TipoCambio"));
   // R7-08: en MXN el TC es 1 por definición; en divisa, sin atributo válido
   // devolvemos null para que el usuario capture el tipo de cambio real.
