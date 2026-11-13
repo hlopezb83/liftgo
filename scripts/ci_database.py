@@ -102,10 +102,14 @@ START_EXCLUDES = {
 # Candidate 0145 extends the existing locked maintenance-child guard to archived
 # parents. Function body/ACL only: no business DML, policies, HTTP or cron.
 # All earlier sources are unchanged. See docs/qa/migration-0145-ci-source-review.md.
+# Candidate 0146 adds one INVOKER RPC for atomic OT/SKU increments with captured
+# cost preservation, tenant/permission checks and restricted EXECUTE. Installation
+# defines function/ACL/comment and schema notification only; no business DML.
+# See docs/qa/migration-0146-ci-source-review.md. Earlier bytes remain unchanged.
 # Any subsequent history change requires explicit source review.
 SOURCE_TREES = {
     "supabase/migrations": "3e3575f5ff6d509ecdd624ae7fc1772508b5dce6",
-    "drizzle/migrations": "a6d4f8c07af1f2f3997a9f631eb687540d944b8b",
+    "drizzle/migrations": "e71152572b72f71a594fdff6328a2211bba5045e",
 }
 HTTP_SOURCES = {
     "20260721000000_retry_queue_cron.sql": "2aecccd0758961f41769d9fed522d03df14937650b9dde80fce47646a1fa6887",

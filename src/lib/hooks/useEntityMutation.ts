@@ -31,6 +31,8 @@ import { notifyError, notifySuccess } from "@/lib/ui/appFeedback";
 export interface UseEntityMutationOptions<TVar, TData> {
   /** Función que ejecuta la mutación (llamada Supabase, RPC, etc.). Debe lanzar en error. */
   mutationFn: (vars: TVar) => Promise<TData>;
+  /** Non-idempotent writes can explicitly disable retries, including client defaults. */
+  retry?: false;
   /** Query keys estáticas a invalidar tras éxito. Se ejecutan en paralelo. */
   invalidateKeys?: readonly QueryKey[];
   /** Las escrituras confirmadas pueden completar su UI durante la recarga. */
@@ -71,6 +73,7 @@ export function useEntityMutation<TVar, TData>(
   const queryClient = useQueryClient();
   const {
     mutationFn,
+    retry,
     invalidateKeys = [],
     invalidationMode = "await",
     invalidateKeysFn,
@@ -85,6 +88,7 @@ export function useEntityMutation<TVar, TData>(
 
   const result = useMutation<TData, Error, TVar>({
     mutationFn,
+    ...(retry === false ? { retry: false } : {}),
     onSuccess: async (data, vars) => {
       const dynamicKeys = invalidateKeysFn ? invalidateKeysFn(data, vars) : [];
       const allKeys = [...invalidateKeys, ...dynamicKeys];

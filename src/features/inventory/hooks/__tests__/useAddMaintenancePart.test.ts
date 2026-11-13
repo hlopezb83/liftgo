@@ -1,123 +1,76 @@
 import { renderHook, act, waitFor } from "@testing-library/react";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { createQueryWrapper } from "@/test/helpers/queryClient";
-import { createSupabaseChainMock } from "@/test/helpers/supabaseChain";
 
-/**
- * useAddMaintenancePart — v7.93.0+:
- *   El stock de parts_inventory y el `cost` agregado en maintenance_logs
- *   los recalculan triggers en el servidor (BL-28/29). El hook sólo debe
- *   insertar la fila en maintenance_parts.
- *
- *   - No debe escribir en maintenance_logs desde el cliente.
- *   - `currentLogCost` (metadato UI) NO debe persistirse.
- *   - Errores de insert se propagan con notifyError.
- */
-
-const { notifyErrorMock } = vi.hoisted(() => ({ notifyErrorMock: vi.fn() }));
+const m = vi.hoisted(() => ({ rpc: vi.fn(), from: vi.fn(), notifyError: vi.fn() }));
+vi.mock("@/integrations/supabase/client", () => ({ supabase: { rpc: m.rpc, from: m.from } }));
 vi.mock("@/lib/ui/appFeedback", () => ({
-  notifyError: notifyErrorMock,
-  notifySuccess: vi.fn(),
-  notifyInfo: vi.fn(),
-  notifyWarning: vi.fn(),
-  notifyValidation: vi.fn(),
-  notifyAsync: vi.fn(),
+  notifyError: m.notifyError, notifySuccess: vi.fn(), notifyInfo: vi.fn(),
+  notifyWarning: vi.fn(), notifyValidation: vi.fn(), notifyAsync: vi.fn(),
 }));
-
-const partInserts: unknown[] = [];
-const logCalls: Array<{ method: string; args: unknown[] }> = [];
-
-let insertResp: { data: unknown; error: { message: string } | null } = {
-  data: { id: "mp-1" },
-  error: null,
-};
-
-vi.mock("@/integrations/supabase/client", () => ({
-  supabase: createSupabaseChainMock({
-    tableResolvers: {
-      maintenance_parts: (calls) => {
-        const ins = calls.find((c) => c.method === "insert");
-        if (ins) {
-          partInserts.push(ins.args[0]);
-          return insertResp;
-        }
-        return { data: null, error: null };
-      },
-      maintenance_logs: (calls) => {
-        for (const c of calls) logCalls.push(c);
-        return { data: null, error: null };
-      },
-    },
-  }),
-}));
-
 import { useAddMaintenancePart } from "../usePartInventoryMutations";
 
+const id = (n: number) => `14600000-0000-a000-7000-${String(n).padStart(12, "0")}`;
+const input = { maintenance_log_id: id(1), part_id: id(2), quantity_used: 2 };
+const receipt = { id: id(3), organization_id: id(4), ...input, quantity_used: 5, cost_at_time: 100 };
+function setup() {
+  const { Wrapper, queryClient } = createQueryWrapper();
+  // An additive write must never inherit a future shared retry policy.
+  queryClient.setDefaultOptions({ mutations: { retry: 3, retryDelay: 0 } });
+  return { ...renderHook(() => useAddMaintenancePart(), { wrapper: Wrapper }), queryClient };
+}
 beforeEach(() => {
-  partInserts.length = 0;
-  logCalls.length = 0;
-  notifyErrorMock.mockReset();
-  insertResp = { data: { id: "mp-1" }, error: null };
+  vi.clearAllMocks();
+  m.rpc.mockResolvedValue({ data: receipt, error: null });
 });
 
-describe("useAddMaintenancePart", () => {
-  it("inserta la pieza sin escribir en maintenance_logs (lo hacen los triggers)", async () => {
-    const { Wrapper } = createQueryWrapper();
-    const { result } = renderHook(() => useAddMaintenancePart(), { wrapper: Wrapper });
-
-    await act(async () => {
-      await result.current.mutateAsync({
-        maintenance_log_id: "log-1",
-        part_id: "p-1",
-        quantity_used: 3,
-        cost_at_time: 250,
-        currentLogCost: 1_000,
-      } as never);
+describe("useAddMaintenancePart atomic consumption", () => {
+  it("sends only IDs and additional quantity; accepts cumulative quantity and captured cost", async () => {
+    const { result, queryClient } = setup();
+    const invalidate = vi.spyOn(queryClient, "invalidateQueries");
+    let saved: unknown;
+    await act(async () => { saved = await result.current.mutateAsync({ ...input, cost_at_time: 999, currentLogCost: 10_000 }); });
+    expect(saved).toEqual(receipt);
+    expect(m.rpc).toHaveBeenCalledExactlyOnceWith("add_maintenance_part_quantity", {
+      p_maintenance_log_id: id(1), p_part_id: id(2), p_quantity: 2,
     });
-
-    expect(partInserts[0]).toMatchObject({
-      maintenance_log_id: "log-1",
-      part_id: "p-1",
-      quantity_used: 3,
-      cost_at_time: 250,
-    });
-    // currentLogCost es metadato UI, no debe persistirse.
-    expect((partInserts[0] as Record<string, unknown>).currentLogCost).toBeUndefined();
-    // El cliente ya no toca maintenance_logs — lo hace el trigger.
-    expect(logCalls).toHaveLength(0);
+    expect(m.from).not.toHaveBeenCalled();
+    expect(invalidate).toHaveBeenCalledWith({ queryKey: ["maintenance_parts"] });
+    expect(invalidate).toHaveBeenCalledWith({ queryKey: ["maintenance_logs"] });
   });
-
-  it("omite currentLogCost aunque cost_at_time sea undefined", async () => {
-    const { Wrapper } = createQueryWrapper();
-    const { result } = renderHook(() => useAddMaintenancePart(), { wrapper: Wrapper });
-
-    await act(async () => {
-      await result.current.mutateAsync({
-        maintenance_log_id: "log-1",
-        part_id: "p-1",
-        quantity_used: 2,
-      } as never);
-    });
-
-    expect((partInserts[0] as Record<string, unknown>).currentLogCost).toBeUndefined();
-    expect(logCalls).toHaveLength(0);
+  it("preserves a legitimate captured zero", async () => {
+    m.rpc.mockResolvedValue({ data: { ...receipt, cost_at_time: 0 }, error: null });
+    const { result } = setup();
+    await act(async () => { expect((await result.current.mutateAsync(input)).cost_at_time).toBe(0); });
+    expect(m.rpc).toHaveBeenCalledTimes(1);
   });
-
-  it("propaga error del insert vía notifyError", async () => {
-    insertResp = { data: null, error: { message: "fk part_id" } };
-    const { Wrapper } = createQueryWrapper();
-    const { result } = renderHook(() => useAddMaintenancePart(), { wrapper: Wrapper });
-
-    await act(async () => {
-      await result.current
-        .mutateAsync({ maintenance_log_id: "log-1", part_id: "x", quantity_used: 1 } as never)
-        .catch(() => {});
-    });
-
-    await waitFor(() => expect(notifyErrorMock).toHaveBeenCalled());
-    expect(logCalls).toHaveLength(0);
-    expect(notifyErrorMock.mock.calls[0][0]).toMatchObject({
-      title: "Error al agregar refacción",
-    });
+  it.each([
+    ["23514", "La orden está archivada. Restáurala antes de modificar refacciones o mano de obra."],
+    ["23514", "Existencias insuficientes para agregar esta cantidad."],
+    ["42501", "No tienes permiso para registrar refacciones en mantenimiento."],
+  ])("keeps useful server error %s without retrying", async (code, message) => {
+    m.rpc.mockResolvedValue({ data: null, error: { code, message } });
+    const { result, queryClient } = setup();
+    const invalidate = vi.spyOn(queryClient, "invalidateQueries");
+    await act(async () => { await expect(result.current.mutateAsync(input)).rejects.toMatchObject({ code, message }); });
+    expect(m.rpc).toHaveBeenCalledTimes(1);
+    expect(m.notifyError).toHaveBeenCalledWith(expect.objectContaining({ description: message, severity: "warning" }));
+    expect(invalidate).not.toHaveBeenCalled();
+  });
+  it.each(["transport", "receipt"])("does not resend an uncertain %s result despite global retries", async (kind) => {
+    if (kind === "transport") m.rpc.mockRejectedValue(new TypeError("Failed to fetch"));
+    else m.rpc.mockResolvedValue({ data: { ...receipt, part_id: id(99) }, error: null });
+    const { result, queryClient } = setup();
+    const invalidate = vi.spyOn(queryClient, "invalidateQueries");
+    await act(async () => { await expect(result.current.mutateAsync(input)).rejects.toBeDefined(); });
+    await waitFor(() => expect(result.current.isError).toBe(true));
+    expect(m.rpc).toHaveBeenCalledTimes(1);
+    expect(m.notifyError).toHaveBeenCalledWith(expect.objectContaining({ description: expect.stringMatching(/recarga las refacciones utilizadas/i) }));
+    expect(invalidate).not.toHaveBeenCalled();
+  });
+  it.each([0, -1, 1.5, NaN, Infinity])("rejects invalid additional quantity %s before dispatch", async (quantity_used) => {
+    const { result } = setup();
+    await act(async () => { await expect(result.current.mutateAsync({ ...input, quantity_used })).rejects.toMatchObject({ code: "23514" }); });
+    expect(m.rpc).not.toHaveBeenCalled();
   });
 });
