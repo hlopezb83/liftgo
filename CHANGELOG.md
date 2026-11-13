@@ -1,3 +1,8 @@
+## [8.53.32] - 2026-11-13
+
+- La edición distingue los errores temporales de lectura de una factura inexistente y permite reintentar.
+- Los borradores ya cargados conservan la captura cuando falla una actualización de datos.
+
 ## [8.53.31] - 2026-11-13
 
 - La conciliación muestra el código de moneda en cada importe para distinguir pesos, dólares y otras divisas.

@@ -1,0 +1,7 @@
+{
+  "description": "Reintento de carga al editar facturas",
+  "changes": [
+    "La edición distingue los errores temporales de lectura de una factura inexistente y permite reintentar.",
+    "Los borradores ya cargados conservan la captura cuando falla una actualización de datos."
+  ]
+}

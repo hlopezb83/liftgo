@@ -178,7 +178,7 @@ export function useInvoiceFormLogic({ id, fromQuoteId, extensionId = null, damag
   const quoteId = fromQuoteId || undefined;
 
   const { data: customers } = useCustomers();
-  const { data: existing, isLoading: isLoadingExisting } = useInvoice(id);
+  const { data: existing, isLoading: isLoadingExisting, ...invoiceRead } = useInvoice(id);
   const quoteQuery = useQuote(quoteId);
   const { data: sourceQuote } = quoteQuery;
   const sourceCustomer = useInvoiceSourceCustomer({ isEdit, quoteId, quote: sourceQuote, extensionId, damageId, customers });
@@ -316,7 +316,7 @@ export function useInvoiceFormLogic({ id, fromQuoteId, extensionId = null, damag
 
   return {
     form, isEdit, id, fromQuoteId,
-    existing,
+    existing, invoiceRead,
     isLoadingInvoice: isLoadingExisting,
     invoiceNumber: existing?.invoice_number ?? null,
     // R4-25: versión al abrir el formulario, para bloqueo optimista al guardar.
