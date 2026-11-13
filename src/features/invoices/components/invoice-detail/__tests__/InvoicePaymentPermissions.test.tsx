@@ -1,4 +1,4 @@
-import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { Tables } from "@/integrations/supabase/types";
@@ -27,10 +27,10 @@ const payments = [
 ] as unknown as Tables<"payments">[];
 const props = { payments, totalPaid: 350, creditedAmount: 200, balance: 842, ppdStamped: true, currency: "USD", exchangeRate: 17.5 };
 
-function renderSummary(allowRepMutations = true) {
+function renderSummary(allowRepMutations = true, ppdStamped = true) {
   const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   const view = () => <QueryClientProvider client={client}>
-    <InvoicePaymentSummary {...props} allowRepMutations={allowRepMutations} />
+    <InvoicePaymentSummary {...props} ppdStamped={ppdStamped} allowRepMutations={allowRepMutations} />
   </QueryClientProvider>;
   const result = render(view());
   return { ...result, refresh: () => result.rerender(view()) };
@@ -59,7 +59,7 @@ describe("Historial de pagos — permisos y moneda", () => {
     fireEvent.click(screen.getByRole("button", { name: "Consultar estado SAT" }));
     expect(mocks.refresh).toHaveBeenCalledWith("p-cancel");
     const edit = screen.getAllByRole("button", { name: "Editar pago" });
-    expect(edit.filter((button) => button.hasAttribute("disabled"))).toHaveLength(2);
+    expect(edit.filter((button) => button.getAttribute("aria-disabled") === "true")).toHaveLength(2);
     fireEvent.click(edit[0]);
     expect(screen.getByRole("dialog")).toHaveTextContent("Editar pago abierto");
     expect(mocks.editDialogProps).toHaveBeenCalledWith(expect.objectContaining({
@@ -74,6 +74,56 @@ describe("Historial de pagos — permisos y moneda", () => {
     expect(screen.getByRole("dialog")).toBeInTheDocument();
     mocks.canWrite = false;
     refresh();
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+  });
+
+  it("explica el bloqueo de REP con foco y clic sin abrir edición ni ejecutar operaciones", async () => {
+    mocks.canWrite = true;
+    renderSummary();
+    const edit = screen.getAllByRole("button", { name: "Editar pago" })[1];
+    expect(edit).toHaveAttribute("aria-disabled", "true");
+    expect(edit).not.toBeDisabled();
+    await act(async () => { edit.focus(); });
+    expect(document.activeElement).toBe(edit);
+    fireEvent.click(edit);
+    expect(await screen.findByRole("tooltip")).toHaveTextContent("Cancela el REP si necesitas corregir el monto o la fecha.");
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    expect(mocks.editDialogProps).not.toHaveBeenCalled();
+    expect(mocks.stamp).not.toHaveBeenCalled();
+    expect(mocks.refresh).not.toHaveBeenCalled();
+  });
+
+  it.each([true, false])("si la cancelación está pendiente ofrece consultar el estado, con mutaciones REP=%s", async (allowRepMutations) => {
+    mocks.canWrite = true;
+    renderSummary(allowRepMutations);
+    fireEvent.click(screen.getAllByRole("button", { name: "Editar pago" })[2]);
+    const tooltip = await screen.findByRole("tooltip");
+    expect(tooltip).toHaveTextContent("Usa «Consultar estado SAT» y espera su resolución antes de editar.");
+    expect(tooltip).not.toHaveTextContent("Cancela el REP si necesitas");
+    expect(screen.getByRole("button", { name: "Consultar estado SAT" })).toBeInTheDocument();
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    expect(mocks.refresh).not.toHaveBeenCalled();
+  });
+
+  it("no indica cancelar un REP cuando la factura no permite esa acción", async () => {
+    mocks.canWrite = true;
+    renderSummary(false);
+    fireEvent.click(screen.getAllByRole("button", { name: "Editar pago" })[1]);
+    const tooltip = await screen.findByRole("tooltip");
+    expect(tooltip).toHaveTextContent("La cancelación del REP no está disponible desde esta factura.");
+    expect(tooltip).toHaveTextContent("Solicita al responsable de Facturación revisar el caso.");
+    expect(screen.queryByRole("button", { name: "Cancelar REP" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+  });
+
+  it("si no hay columna REP, dirige la revisión sin ofrecer una consulta SAT ausente", async () => {
+    mocks.canWrite = true;
+    renderSummary(false, false);
+    fireEvent.click(screen.getAllByRole("button", { name: "Editar pago" })[2]);
+    const tooltip = await screen.findByRole("tooltip");
+    expect(tooltip).toHaveTextContent("Solicita al responsable de Facturación revisar su estado antes de editar.");
+    expect(tooltip).not.toHaveTextContent("Usa «Consultar estado SAT»");
+    expect(screen.queryByRole("button", { name: "Consultar estado SAT" })).not.toBeInTheDocument();
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
   });
 

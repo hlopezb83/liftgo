@@ -1,3 +1,8 @@
+## [8.53.33] - 2026-11-13
+
+- El motivo que impide editar un pago con REP timbrado se puede consultar con teclado o toque.
+- El siguiente paso respeta la disponibilidad de acciones fiscales y el estado de cancelación.
+
 ## [8.53.32] - 2026-11-13
 
 - La edición distingue los errores temporales de lectura de una factura inexistente y permite reintentar.

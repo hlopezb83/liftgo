@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { type ColumnDef } from "@/components/dataTable/v2";
+import { BlockedActionButton } from "@/components/feedback/BlockedActionButton";
 import { EditIcon, StampIcon, DocumentIcon, FileCode2, ErrorIcon, RefreshIcon } from "@/components/icons";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -8,7 +9,7 @@ import { useHasModuleAccess } from "@/features/users";
 import type { Tables } from "@/integrations/supabase/types";
 import { formatDateMty } from "@/lib/format/dateFormats";
 import { formatCurrencyWithCode } from "@/lib/format/formatCurrency";
-import { businessBlockSummary, describeBusinessBlock } from "@/lib/rules/businessBlocks";
+import { describeBusinessBlock } from "@/lib/rules/businessBlocks";
 import { notifyError } from "@/lib/ui/appFeedback";
 import { RepBadge } from "../../components/invoice-detail/RepBadge";
 import { canStampPaymentRep } from "../../lib/canStampPaymentRep";
@@ -23,6 +24,19 @@ const PAYMENT_METHOD_LABELS: Record<string, string> = Object.fromEntries(
 );
 
 type Payment = Tables<"payments">;
+
+function getEditPaymentBlock(payment: Payment, hasRepColumn: boolean, canMutateRep: boolean) {
+  if (payment.rep_cfdi_status !== "stamped") return null;
+  let nextStep: string | undefined;
+  if (payment.rep_cancellation_status === "pending") {
+    nextStep = hasRepColumn
+      ? "La cancelación del REP está en proceso. Usa «Consultar estado SAT» y espera su resolución antes de editar."
+      : "La cancelación del REP está en proceso. Solicita al responsable de Facturación revisar su estado antes de editar.";
+  } else if (!hasRepColumn || !canMutateRep) {
+    nextStep = "La cancelación del REP no está disponible desde esta factura. Solicita al responsable de Facturación revisar el caso.";
+  }
+  return describeBusinessBlock("payment_rep_stamped_locked", nextStep ? { nextStep } : undefined);
+}
 
 function getStampRepActionState(stampRep: ReturnType<typeof useStampPaymentComplement>, paymentId: string) {
   const retryBlocked = stampRep.retryBlockedPaymentIds?.has(paymentId) ?? false;
@@ -177,19 +191,16 @@ export function usePaymentHistoryColumns(ppdStamped: boolean, allowRepMutations:
         const p = row.original;
         // R10 Bloque 6: si el pago tiene REP timbrado, editar montos/fecha
         // rompería el complemento CFDI. Bloqueo explicable compartido.
-        const repLocked = (p.rep_cfdi_status as string | null) === "stamped";
-        const block = repLocked ? describeBusinessBlock("payment_rep_stamped_locked") : null;
-        const title = block ? businessBlockSummary(block) : "Editar pago";
+        const block = getEditPaymentBlock(p, ppdStamped, canMutateRep);
         return (
-          <Button
+          <BlockedActionButton
             variant="ghost" size="icon" className="h-7 w-7"
-            onClick={() => !repLocked && setEditingPayment(p)}
-            aria-label="Editar pago"
-            title={title}
-            disabled={repLocked}
+            onClick={() => !block && setEditingPayment(p)}
+            aria-label="Editar pago" title={block ? undefined : "Editar pago"}
+            block={block}
           >
             <EditIcon className="h-3.5 w-3.5" />
-          </Button>
+          </BlockedActionButton>
         );
       },
     });

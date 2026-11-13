@@ -1,0 +1,7 @@
+{
+  "description": "Bloqueo de pagos con REP explicado",
+  "changes": [
+    "El motivo que impide editar un pago con REP timbrado se puede consultar con teclado o toque.",
+    "El siguiente paso respeta la disponibilidad de acciones fiscales y el estado de cancelación."
+  ]
+}
