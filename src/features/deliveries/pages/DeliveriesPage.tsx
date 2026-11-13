@@ -1,29 +1,28 @@
+import { useEffect } from "react";
 import { useLiftgoTable } from "@/components/dataTable/v2";
-import { ListTruncationNotice } from "@/components/feedback/ListTruncationNotice";
 import { FiltersToolbar } from "@/components/filters/FiltersToolbar";
 import { WarnIcon } from "@/components/icons";
 import { ListPageLayout } from "@/components/layout/ListPageLayout";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
-import { useForkliftMap } from "@/features/fleet";
 import { useHasModuleAccess } from "@/features/users";
-import { applyFacetFilters } from "@/hooks/filters/applyFacetFilters";
 import { useTableFilters } from "@/hooks/filters/useTableFilters";
+import { useTableViewState } from "@/hooks/filters/useTableViewState";
 import { useToggleDialog } from "@/hooks/useDialogState";
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import { useSearchParams } from "@/lib/router-compat";
-import { visibleListRows } from "@/lib/supabase/constants";
 import { DeliveryFormDialog } from "../components/deliveries/DeliveryFormDialog";
 import { DeliveryMobileCard } from "../components/deliveries/DeliveryMobileCard";
-import { useDeliveries, deliveryQueries } from "../hooks/useDeliveries";
-import { countOverdueDeliveries } from "../lib/deliveryOverdue";
+import { deliveryQueries } from "../hooks/useDeliveries";
+import { useDeliveriesPage } from "../hooks/useDeliveriesPage";
 import { deliveryTypeLabel } from "../lib/deliveryTypeLabel";
-import { selectDeliveryHistory } from "../lib/historicalReconciliation";
 import { buildDeliveryColumns } from "./deliveryColumns";
 import { OverdueDeliveriesPage } from "./OverdueDeliveriesPage";
+import type { DeliveryPageItem } from "../lib/deliveriesPageRpc";
 
 
-type Delivery = NonNullable<ReturnType<typeof useDeliveries>["data"]>[number];
+type Delivery = DeliveryPageItem;
+const EMPTY_FLEET = new Map<string, { name?: string | null }>();
 
 const DELIVERY_STATUSES = ["scheduled", "in_transit", "completed", "cancelled"] as const;
 const STATUS_OPTIONS = [
@@ -41,6 +40,26 @@ const TYPE_OPTIONS = [
   { value: "return", label: "Devolución" },
 ];
 
+function deliveryFilterLabels(values: { q: string; status: string; type: string; history: string }) {
+  const labels: string[] = [];
+  if (values.q) labels.push(`Búsqueda: ${values.q}`);
+  if (values.status !== "all") labels.push(`Estado: ${STATUS_OPTIONS.find((option) => option.value === values.status)?.label ?? values.status}`);
+  if (values.type !== "all") labels.push(`Tipo: ${deliveryTypeLabel(values.type)}`);
+  if (values.history !== "all") labels.push(`Vista: ${values.history === "reconciled" ? "Conciliadas históricamente" : "Historial completo"}`);
+  return labels;
+}
+
+function DeliveryOverdueNotice({ count }: { count: number }) {
+  if (count === 0) return null;
+  return <Alert variant="destructive">
+    <WarnIcon className="h-4 w-4" />
+    <AlertDescription>
+      {count === 1
+        ? "Hay 1 transporte atrasado pendiente de atender. Revisa la vista de transportes atrasados."
+        : `Hay ${count} transportes atrasados pendientes de atender. Revisa la vista de transportes atrasados.`}
+    </AlertDescription>
+  </Alert>;
+}
 
 export default function DeliveriesPage() {
   const [params] = useSearchParams();
@@ -49,9 +68,6 @@ export default function DeliveriesPage() {
 
 function DeliveriesList() {
   const navigate = useNavigateTransition();
-  const { forkliftMap } = useForkliftMap();
-  const { data: deliveriesRaw, isLoading, isError, refetch } = useDeliveries();
-  const deliveries = visibleListRows(deliveriesRaw);
   // Control externo del diálogo para abrirlo también desde el CTA del
   // EmptyState (mismo patrón que InventoryPage/PartFormDialog).
   const scheduleDialog = useToggleDialog();
@@ -59,7 +75,7 @@ function DeliveriesList() {
 
   // Ronda C (C2): filtros estándar por estado y tipo — antes la lista mezclaba
   // entregas, recolecciones y completadas sin manera de separarlas.
-  const { values, set, reset, hasActive, facets } = useTableFilters<Delivery, {
+  const { values, set, reset, hasActive } = useTableFilters<Delivery, {
     q: { type: "text"; fields: (keyof Delivery)[] };
     status: { type: "enum"; field: keyof Delivery; options: readonly string[] };
     history: { type: "enum"; options: readonly string[] };
@@ -74,43 +90,37 @@ function DeliveriesList() {
     },
   });
 
-  const filtered = applyFacetFilters(deliveries ?? [], { q: facets.q, status: facets.status, type: facets.type }, values);
-  const visibleDeliveries = selectDeliveryHistory(filtered, values.history);
-  const overdueCount = countOverdueDeliveries(deliveries);
-
-  const columns = buildDeliveryColumns<Delivery>(forkliftMap);
-
+  const view = useTableViewState(undefined, [{ id: "scheduled_date", desc: false }]);
+  const { controlledPagination: pagination, controlledSorting: sorting, onControlledPaginationChange } = view;
+  const { data, isLoading, isError, refetch } = useDeliveriesPage({
+    search: values.q, status: values.status, type: values.type, history: values.history, ...pagination, sorting,
+  });
+  useEffect(() => {
+    if (data && data.pageIndex !== pagination.pageIndex) {
+      onControlledPaginationChange({ ...pagination, pageIndex: data.pageIndex });
+    }
+  }, [data, pagination, onControlledPaginationChange]);
   const table = useLiftgoTable<Delivery>({
-    data: visibleDeliveries,
-    columns,
+    ...view,
+    data: data?.items,
+    columns: buildDeliveryColumns<Delivery>(EMPTY_FLEET, data?.today),
     getRowId: (d) => d.id,
+    pageCount: Math.ceil((data?.totalCount ?? 0) / pagination.pageSize),
+    manualSorting: true,
   });
 
   return (
     <ListPageLayout
       title="Entregas"
       subtitle="Programa y rastrea el transporte de equipos"
-      totalCount={visibleDeliveries.length}
+      totalCount={isLoading || isError ? undefined : data?.totalCount}
+      rowCount={data?.totalCount}
       onRefresh={refetch}
       actions={<div className="flex flex-wrap gap-2">
         <Button variant="outline" size="sm" onClick={() => navigate("/deliveries?view=overdue")}>Transportes atrasados</Button>
         <DeliveryFormDialog open={scheduleDialog.open} onOpenChange={scheduleDialog.setOpen} />
       </div>}
-      notice={
-        <div className="space-y-3">
-          {overdueCount > 0 && (
-            <Alert variant="destructive">
-              <WarnIcon className="h-4 w-4" />
-              <AlertDescription>
-                {overdueCount === 1
-                  ? "Hay 1 transporte atrasado en la lista cargada. Revisa la vista de transportes atrasados."
-                  : `Hay ${overdueCount} transportes atrasados en la lista cargada. Revisa la vista de transportes atrasados.`}
-              </AlertDescription>
-            </Alert>
-          )}
-          <ListTruncationNotice rows={deliveriesRaw} />
-        </div>
-      }
+      notice={<DeliveryOverdueNotice count={data?.overdueCount ?? 0} />}
       search={<FiltersToolbar.Search value={values.q} onChange={(v) => set("q", v)} placeholder="Buscar entregas…" className="w-full sm:w-64 sm:flex-none" />}
       stackedControls
       filters={
@@ -143,19 +153,14 @@ function DeliveriesList() {
       rowAction={{ columnId: "delivery_number", label: (d) => `Ver transporte ${d.delivery_number}`, to: (d) => `/deliveries/${d.id}` }}
       onRowClick={(d) => navigate(`/deliveries/${d.id}`)}
       onRowPrefetch={(d) => deliveryQueries.detail(d.id)}
-      activeFilterLabels={[
-        ...(values.q ? [`Búsqueda: ${values.q}`] : []),
-        ...(values.status !== "all" ? [`Estado: ${STATUS_OPTIONS.find((option) => option.value === values.status)?.label ?? values.status}`] : []),
-        ...(values.type !== "all" ? [`Tipo: ${deliveryTypeLabel(values.type)}`] : []),
-        ...(values.history !== "all" ? [`Vista: ${values.history === "reconciled" ? "Conciliadas históricamente" : "Historial completo"}`] : []),
-      ]}
+      activeFilterLabels={deliveryFilterLabels(values)}
       hasActiveFilters={hasActive}
       onClearFilters={reset}
       emptyMessage="No hay entregas programadas"
       emptyActionLabel={canSchedule ? "Programar entrega" : undefined}
       onEmptyAction={canSchedule ? scheduleDialog.openDialog : undefined}
       mobileCardRender={(d) => (
-        <DeliveryMobileCard d={d} forkliftMap={forkliftMap} />
+        <DeliveryMobileCard d={d} forkliftMap={EMPTY_FLEET} today={data?.today} />
       )}
     />
   );

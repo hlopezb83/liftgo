@@ -94,10 +94,15 @@ START_EXCLUDES = {
 # function definitions/ACL/comments and PostgREST schema notification run at
 # installation; no business DML, HTTP or cron. Earlier bytes are unchanged.
 # See docs/qa/migration-0143-ci-source-review.md for canonical SQL/journal hashes.
+# Candidate 0144 adds the general deliveries page RPC, retaining INVOKER/RLS,
+# tenant and module checks, bounded results and an allowlisted stable sort.
+# Installation defines one function/ACL and reloads PostgREST metadata only;
+# no business DML, policies, HTTP or cron. 0141 and all earlier bytes are unchanged.
+# See docs/qa/migration-0144-ci-source-review.md for canonical SQL/journal hashes.
 # Any subsequent history change requires explicit source review.
 SOURCE_TREES = {
     "supabase/migrations": "3e3575f5ff6d509ecdd624ae7fc1772508b5dce6",
-    "drizzle/migrations": "b335ac252ed357de4487da78d951d36ee2503c63",
+    "drizzle/migrations": "ef9d72b05a227a0bdc50bd68632cc89f802f78e7",
 }
 HTTP_SOURCES = {
     "20260721000000_retry_queue_cron.sql": "2aecccd0758961f41769d9fed522d03df14937650b9dde80fce47646a1fa6887",
