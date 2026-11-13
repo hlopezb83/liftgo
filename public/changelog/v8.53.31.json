@@ -1,0 +1,7 @@
+{
+  "description": "Conciliación con moneda original visible",
+  "changes": [
+    "La conciliación muestra el código de moneda en cada importe para distinguir pesos, dólares y otras divisas.",
+    "El total convertido a MXN y la exportación conservan sus cálculos y reglas existentes."
+  ]
+}

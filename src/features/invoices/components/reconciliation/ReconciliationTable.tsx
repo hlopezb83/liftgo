@@ -5,9 +5,9 @@ import {
   type ColumnDef,
 } from "@/components/dataTable/v2";
 import { Badge } from "@/components/ui/badge";
+import { APP_CONFIG } from "@/lib/config";
 import { STATUS_LABELS } from "@/lib/constants";
 import { formatDateMty } from "@/lib/format/dateFormats";
-import { formatCurrency } from "@/lib/format/formatCurrency";
 import { Link } from "@/lib/router-compat-ui";
 
 interface Row {
@@ -21,6 +21,7 @@ interface Row {
   facturapi_invoice_id: string | null;
   facturapi_env: string | null;
   total: number | string;
+  moneda: string | null;
 }
 
 function EnvBadge({ env }: { env: string | null }) {
@@ -112,9 +113,17 @@ export function ReconciliationTable({ rows, isLoading }: { rows: Row[]; isLoadin
         header: "Total",
         meta: { kind: "money" },
         accessorFn: (r) => Number(r.total),
-        cell: ({ row }) => (
-          <span className="text-right font-mono">{formatCurrency(Number(row.original.total))}</span>
-        ),
+        cell: ({ row }) => {
+          const currency = (row.original.moneda ?? "MXN").trim().toUpperCase();
+          const amount = Number(row.original.total);
+          const formatted = /^[A-Z]{3}$/.test(currency) && Number.isFinite(amount)
+            ? new Intl.NumberFormat(APP_CONFIG.LOCALE, {
+              style: "currency", currency, currencyDisplay: "code",
+              minimumFractionDigits: 2, maximumFractionDigits: 2,
+            }).format(amount)
+            : "—";
+          return <span className="text-right font-mono whitespace-nowrap">{formatted}</span>;
+        },
       },
     ],
     [],
