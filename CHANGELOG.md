@@ -1,3 +1,9 @@
+## [8.53.17] - 2026-11-13
+
+- Las reservas se filtran, ordenan y paginan en el servidor con conteo completo, también para registros posteriores a las primeras 500 filas.
+- La búsqueda conserva los caracteres de nombres y folios; la vista Próximas mantiene únicamente confirmadas desde hoy.
+- Página, orden y filtros siguen en la URL; una consulta fallida no restablece la página y una página eliminada se ajusta después de confirmar el conteo.
+
 ## [8.53.16] - 2026-11-13
 
 - El selector de refacciones busca por SKU o nombre y consulta el catálogo activo por páginas, sin el límite anterior de 500 registros.
