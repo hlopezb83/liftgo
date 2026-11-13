@@ -1,0 +1,6 @@
+{
+  "description": "Filtro de montacargas legible en móvil",
+  "changes": [
+    "Los nombres largos en el filtro de montacargas se ajustan al ancho disponible y pueden ocupar varias líneas."
+  ]
+}

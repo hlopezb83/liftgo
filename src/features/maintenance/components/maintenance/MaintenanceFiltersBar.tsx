@@ -44,10 +44,12 @@ export function MaintenanceFiltersBar({
         <SelectTrigger className="w-full sm:w-[200px] h-9">
           <SelectValue placeholder="Todos los montacargas" />
         </SelectTrigger>
-        <SelectContent>
+        <SelectContent className="w-[var(--radix-select-trigger-width)] max-w-[calc(100vw-2rem)]">
           <SelectItem value="all">Todos los montacargas</SelectItem>
           {forklifts?.map((f) => (
-            <SelectItem key={f.id} value={f.id}>{f.name}</SelectItem>
+            <SelectItem key={f.id} value={f.id} className="[&>span:last-child]:min-w-0">
+              <span className="block whitespace-normal [overflow-wrap:anywhere]">{f.name}</span>
+            </SelectItem>
           ))}
         </SelectContent>
       </Select>

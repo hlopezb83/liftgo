@@ -1,3 +1,7 @@
+## [8.53.29] - 2026-11-13
+
+- Los nombres largos en el filtro de montacargas se ajustan al ancho disponible y pueden ocupar varias líneas.
+
 ## [8.53.28] - 2026-11-13
 
 - El formulario de mantenimiento identifica el costo manual y explica que refacciones y mano de obra se suman por separado.
