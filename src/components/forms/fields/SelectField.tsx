@@ -19,6 +19,8 @@ interface SelectFieldProps<TFieldValues extends FieldValues, TContext = unknown,
   required?: boolean;
   disabled?: boolean;
   className?: string;
+  /** Keep long option labels readable within the trigger and viewport width. */
+  wrapOptions?: boolean;
   /** Runs after the field value changes through user selection. */
   onValueChange?: (value: string) => void;
 }
@@ -33,6 +35,7 @@ export function SelectField<TFieldValues extends FieldValues, TContext = unknown
   required,
   disabled,
   className,
+  wrapOptions = false,
   onValueChange,
 }: SelectFieldProps<TFieldValues, TContext, TTransformedValues>) {
   return (
@@ -57,10 +60,11 @@ export function SelectField<TFieldValues extends FieldValues, TContext = unknown
                 <SelectValue placeholder={placeholder} />
               </SelectTrigger>
             </FormControl>
-            <SelectContent>
+            <SelectContent className={wrapOptions ? "w-[var(--radix-select-trigger-width)] max-w-[calc(100vw-2rem)]" : undefined}>
               {options.map((opt) => (
-                <SelectItem key={opt.value} value={opt.value} disabled={opt.disabled}>
-                  {opt.label}
+                <SelectItem key={opt.value} value={opt.value} disabled={opt.disabled}
+                  className={wrapOptions ? "[&>span:last-child]:min-w-0" : undefined}>
+                  {wrapOptions ? <span className="block whitespace-normal [overflow-wrap:anywhere]">{opt.label}</span> : opt.label}
                 </SelectItem>
               ))}
             </SelectContent>
