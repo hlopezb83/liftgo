@@ -1,0 +1,7 @@
+{
+  "description": "Importación XML vinculada a su captura",
+  "changes": [
+    "Los resultados de una importación anterior no modifican una factura nueva al cerrar, reabrir o cambiar de contexto.",
+    "El formulario espera a que termine la importación antes de registrar la factura."
+  ]
+}

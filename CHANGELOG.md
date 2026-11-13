@@ -1,3 +1,8 @@
+## [8.53.21] - 2026-11-13
+
+- Los resultados de una importación anterior no modifican una factura nueva al cerrar, reabrir o cambiar de contexto.
+- El formulario espera a que termine la importación antes de registrar la factura.
+
 ## [8.53.20] - 2026-11-13
 
 - Las órdenes archivadas conservan refacciones y mano de obra en modo consulta, incluso desde pestañas abiertas antes del archivado.
