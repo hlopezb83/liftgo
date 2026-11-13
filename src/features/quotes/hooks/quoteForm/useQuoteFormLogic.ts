@@ -1,5 +1,6 @@
 import { useMemo } from "react";
-import { useWatch } from "react-hook-form";
+import { useWatch, type UseFormReturn } from "react-hook-form";
+import { useConfirm } from "@/components/feedback/useConfirm";
 import { useCustomers } from "@/features/customers";
 import { useEquipmentModels } from "@/features/fleet";
 import { useInitialRecordVersion } from "@/hooks/useInitialRecordVersion";
@@ -14,9 +15,31 @@ import { useQuote, useCreateQuote, useUpdateQuote } from "../quotes/useQuotes";
 import { unchangedHistoricalQuoteFiscal, preserveHistoricalQuoteFiscal } from "./legacyQuoteFiscal";
 import { buildSaleItems, buildRentalItems } from "./quoteFormBuilders";
 import { buildQuotePayload } from "./quoteFormPayload";
-import { EMPTY_RENTAL_LINE, EMPTY_SALE_LINE, useQuoteForm } from "./useQuoteForm";
+import { EMPTY_RENTAL_LINE, EMPTY_SALE_LINE, hasQuoteTypeData, useQuoteForm } from "./useQuoteForm";
 import { useQuotePrefillValues } from "./useQuotePrefill";
 import type { QuoteFormValues } from "../../lib/quoteFormSchema";
+
+function useQuoteTypeChange(form: UseFormReturn<QuoteFormValues>) {
+  const confirm = useConfirm();
+  return async (type: string) => {
+    const t = (type === "sale" ? "sale" : "rental") as "rental" | "sale";
+    const values = form.getValues();
+    if (t === values.quoteType) return;
+    if (hasQuoteTypeData(values) && !await confirm({
+      title: "¿Cambiar el tipo de cotización?",
+      description: "Se perderán las partidas, fechas de renta, logística y seguro capturados.",
+      confirmLabel: "Cambiar y limpiar partidas", cancelLabel: "Seguir editando", destructive: true,
+    })) return;
+    form.setValue("quoteType", t, { shouldDirty: true });
+    form.setValue("rentalLines", [{ ...EMPTY_RENTAL_LINE }], { shouldDirty: true });
+    form.setValue("saleLines", [{ ...EMPTY_SALE_LINE }], { shouldDirty: true });
+    form.setValue("dateRange", undefined, { shouldDirty: true });
+    form.setValue("includeLogistics", false, { shouldDirty: true });
+    form.setValue("logisticsCost", 0, { shouldDirty: true });
+    form.setValue("includeInsurance", false, { shouldDirty: true });
+    form.setValue("insuranceCost", 0, { shouldDirty: true });
+  };
+}
 
 export function useQuoteFormLogic() {
   const { id } = useParams();
@@ -38,6 +61,7 @@ export function useQuoteFormLogic() {
     existingQuote, equipmentModels, quoteReady: quoteSuccess, modelsReady: modelsSuccess,
   });
   const form = useQuoteForm(prefillValues, !!id);
+  const handleTypeChange = useQuoteTypeChange(form);
 
   // P1-3: una cotización aceptada (o ya convertida a booking) no puede cambiar
   // de montos — el cliente ya firmó esas cifras. V3-3: la DB tampoco permite
@@ -158,18 +182,6 @@ export function useQuoteFormLogic() {
     notifyValidation({ title: "Revisa los campos marcados", message: "Hay datos incompletos en el formulario" });
   });
 
-
-  const handleTypeChange = (type: string) => {
-    const t = (type === "sale" ? "sale" : "rental") as "rental" | "sale";
-    form.setValue("quoteType", t, { shouldDirty: true });
-    form.setValue("rentalLines", [{ ...EMPTY_RENTAL_LINE }], { shouldDirty: true });
-    form.setValue("saleLines", [{ ...EMPTY_SALE_LINE }], { shouldDirty: true });
-    form.setValue("dateRange", undefined, { shouldDirty: true });
-    form.setValue("includeLogistics", false, { shouldDirty: true });
-    form.setValue("logisticsCost", 0, { shouldDirty: true });
-    form.setValue("includeInsurance", false, { shouldDirty: true });
-    form.setValue("insuranceCost", 0, { shouldDirty: true });
-  };
 
   return {
     id,

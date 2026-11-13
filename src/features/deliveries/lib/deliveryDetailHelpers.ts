@@ -1,7 +1,4 @@
 import { computeHourometer } from "@/features/bookings";
-import type { Tables } from "@/integrations/supabase/types";
-
-type Delivery = Tables<"deliveries">;
 
 /**
  * Bloque 3A: se usa la última lectura válida y completada (orden determinista),
@@ -9,7 +6,7 @@ type Delivery = Tables<"deliveries">;
  */
 export const computeHoursUsed = (
   bookingId: string | null,
-  siblings: Delivery[] | undefined,
+  siblings: Parameters<typeof computeHourometer>[0],
 ): number | null => {
   if (!bookingId || !siblings) return null;
   return computeHourometer(siblings).hoursUsed;

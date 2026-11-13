@@ -1,5 +1,5 @@
 import { queryOptions, useQuery } from "@tanstack/react-query";
-import { useDeferredValue, useMemo } from "react";
+import { useDeferredValue, useEffect, useMemo } from "react";
 import { applyFacetFilters } from "@/hooks/filters/applyFacetFilters";
 import { useTableFilters } from "@/hooks/filters/useTableFilters";
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";
@@ -40,9 +40,16 @@ export function upcomingBookingsQuery(filters: { q: string; status: string }, to
 
 export function useBookingListView() {
   const filters = useTableFilters<Booking, typeof FACETS>({ mode: "server", facets: FACETS });
-  const { q, status, view } = filters.values;
+  const { q, status: requestedStatus, view } = filters.values;
   const deferredSearch = useDeferredValue(q);
   const upcoming = view === "upcoming";
+  const incompatibleStatus = upcoming && requestedStatus !== "all" && requestedStatus !== "confirmed";
+  const status = incompatibleStatus ? "all" : requestedStatus;
+  const { set } = filters;
+  // Also repair older bookmarks before they can request contradictory statuses.
+  useEffect(() => {
+    if (incompatibleStatus) set("status", "all");
+  }, [incompatibleStatus, set]);
   // Only one query is active; Todos retains its legacy cache and read behavior.
   const query = useQuery(upcoming ? upcomingBookingsQuery({ q, status }) : bookingQueries.list());
   const filtered = useMemo(() => {
@@ -53,11 +60,14 @@ export function useBookingListView() {
   const navigate = useNavigateTransition();
   const setView = (value: string) => {
     const next = new URLSearchParams(location.search);
-    if (value === "upcoming") next.set("view", value);
+    if (value === "upcoming") {
+      next.set("view", value);
+      if (requestedStatus !== "all" && requestedStatus !== "confirmed") next.delete("status");
+    }
     else next.delete("view");
     next.delete("tablePage");
     next.delete("tableSort");
     navigate({ pathname: location.pathname, search: next.toString() ? `?${next}` : "" }, { replace: true });
   };
-  return { ...filters, filtered, query, upcoming, setView };
+  return { ...filters, values: { ...filters.values, status }, filtered, query, upcoming, setView };
 }

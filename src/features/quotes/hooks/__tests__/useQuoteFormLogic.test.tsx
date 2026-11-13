@@ -1,5 +1,6 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { act, renderHook, waitFor } from "@testing-library/react";
+import { act, fireEvent, renderHook, screen, waitFor } from "@testing-library/react";
+import { ConfirmProvider } from "@/components/feedback/ConfirmProvider";
 import type { ReactNode } from "react";
 import { TestRouter } from "@/test/router";
 import { describe, it, expect, vi, beforeEach } from "vitest";
@@ -61,7 +62,7 @@ function wrapper({ children }: { children: ReactNode }) {
   const qc = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   return (
     <QueryClientProvider client={qc}>
-      <TestRouter initialEntries={["/quotes/nueva"]}>{children}</TestRouter>
+      <TestRouter initialEntries={["/quotes/nueva"]}><ConfirmProvider>{children}</ConfirmProvider></TestRouter>
     </QueryClientProvider>
   );
 }
@@ -186,19 +187,47 @@ describe("useQuoteFormLogic — submit + guard", () => {
     await waitFor(() => expect(result.current.form.formState.isDirty).toBe(false));
   });
 
-  it("handleTypeChange('sale') resetea dateRange, rentalLines, saleLines, logística", async () => {
+  it("cambia sin confirmar cuando sólo hay cliente y notas que se conservarán", async () => {
     const { result } = renderHook(() => useQuoteFormLogic(), { wrapper });
     await waitFor(() => expect(result.current).not.toBeNull());
     act(() => {
+      result.current.form.setValue("customerId", "cust-1", { shouldDirty: true });
+      result.current.form.setValue("notes", "Conservar esta nota", { shouldDirty: true });
+    });
+    await act(async () => { await result.current.handleTypeChange("sale"); });
+    expect(screen.queryByRole("alertdialog")).toBeNull();
+    expect(result.current.form.getValues()).toMatchObject({ quoteType: "sale", customerId: "cust-1", notes: "Conservar esta nota" });
+  });
+
+  it.each([["rental", "sale"], ["sale", "rental"]] as const)("de %s a %s: cancelar conserva la captura; confirmar limpia sólo las partidas y cargos", async (currentType, nextType) => {
+    const { result } = renderHook(() => useQuoteFormLogic(), { wrapper });
+    await waitFor(() => expect(result.current).not.toBeNull());
+    act(() => {
+      result.current.form.setValue("quoteType", currentType);
+      result.current.form.setValue("customerId", "cust-1");
+      result.current.form.setValue("notes", "Nota que permanece");
+      result.current.form.setValue("rentalLines", [{ modelId: "mod-1", quantity: 2, dailyRate: 500, weeklyRate: 0, monthlyRate: 0, discount: 10, discountType: "%" }]);
+      result.current.form.setValue("saleLines", [{ modelId: "mod-1", quantity: 3, unitPrice: 120000, discount: 500, discountType: "$" }]);
       result.current.form.setValue("dateRange", { from: new Date("2026-05-01"), to: new Date("2026-05-31") });
       result.current.form.setValue("includeLogistics", true);
       result.current.form.setValue("logisticsCost", 5000);
       result.current.form.setValue("includeInsurance", true);
       result.current.form.setValue("insuranceCost", 3200);
     });
-    act(() => result.current.handleTypeChange("sale"));
+    const original = structuredClone(result.current.form.getValues());
+    let change: Promise<void>;
+    act(() => { change = result.current.handleTypeChange(nextType); });
+    expect(await screen.findByRole("alertdialog", { name: "¿Cambiar el tipo de cotización?" })).toBeVisible();
+    expect(result.current.form.getValues()).toEqual(original);
+    fireEvent.click(screen.getByRole("button", { name: "Seguir editando" }));
+    await act(async () => { await change; });
+    expect(result.current.form.getValues()).toEqual(original);
+
+    act(() => { change = result.current.handleTypeChange(nextType); });
+    fireEvent.click(await screen.findByRole("button", { name: "Cambiar y limpiar partidas" }));
+    await act(async () => { await change; });
     const v = result.current.form.getValues();
-    expect(v.quoteType).toBe("sale");
+    expect(v.quoteType).toBe(nextType);
     expect(v.dateRange).toBeUndefined();
     expect(v.rentalLines).toHaveLength(1);
     expect(v.rentalLines[0].modelId).toBe("");
@@ -208,5 +237,24 @@ describe("useQuoteFormLogic — submit + guard", () => {
     expect(v.logisticsCost).toBe(0);
     expect(v.includeInsurance).toBe(false);
     expect(v.insuranceCost).toBe(0);
+    expect(v.customerId).toBe("cust-1");
+    expect(v.notes).toBe("Nota que permanece");
+    expect(createMutate).not.toHaveBeenCalled();
+    expect(updateMutate).not.toHaveBeenCalled();
+  });
+
+  it("protege una partida histórica sin modelo aunque el formulario no esté dirty", async () => {
+    const { result } = renderHook(() => useQuoteFormLogic(), { wrapper });
+    await waitFor(() => expect(result.current).not.toBeNull());
+    act(() => {
+      result.current.form.setValue("rentalLines.0.legacyTotal", 1500);
+      result.current.form.setValue("rentalLines.0.legacyDescription", "Renta histórica");
+    });
+    let change: Promise<void>;
+    act(() => { change = result.current.handleTypeChange("sale"); });
+    expect(await screen.findByRole("alertdialog")).toBeVisible();
+    fireEvent.click(screen.getByRole("button", { name: "Seguir editando" }));
+    await act(async () => { await change; });
+    expect(result.current.form.getValues("rentalLines.0.legacyTotal")).toBe(1500);
   });
 });

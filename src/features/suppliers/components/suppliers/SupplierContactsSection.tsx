@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { QueryErrorState } from "@/components/feedback/QueryErrorState";
 import { useConfirm } from "@/components/feedback/useConfirm";
 import { AddIcon, EditIcon, DeleteIcon, UsersIcon, StarIcon } from "@/components/icons";
 import { Badge } from "@/components/ui/badge";
@@ -12,7 +13,7 @@ import { useSupplierContacts, useDeleteSupplierContact, type SupplierContact } f
 import { SupplierContactFormDialog } from "./SupplierContactFormDialog";
 
 export function SupplierContactsSection({ supplierId }: { supplierId: string }) {
-  const { data: contacts = [], isLoading } = useSupplierContacts(supplierId);
+  const { data: contacts = [], isLoading, isError, isFetching, error, refetch } = useSupplierContacts(supplierId);
   const del = useDeleteSupplierContact();
   const confirm = useConfirm();
   const [open, setOpen] = useState(false);
@@ -35,7 +36,7 @@ export function SupplierContactsSection({ supplierId }: { supplierId: string }) 
       <CardHeader className="flex flex-row items-center justify-between space-y-0">
         <CardTitle className="text-base flex items-center gap-2">
           <UsersIcon className="h-4 w-4" />
-          Contactos <span className="text-muted-foreground font-normal">({contacts.length})</span>
+          Contactos {!isLoading && !isError && <span className="text-muted-foreground font-normal">({contacts.length})</span>}
         </CardTitle>
         <RoleGuard module="Proveedores" minAccess="full" fallback={null}>
           <Button size="sm" variant="outline" onClick={onAdd}>
@@ -45,7 +46,9 @@ export function SupplierContactsSection({ supplierId }: { supplierId: string }) 
       </CardHeader>
       <CardContent className="p-0">
         {isLoading ? (
-          <div className="p-4 text-sm text-muted-foreground">Cargando…</div>
+          <div role="status" className="p-4 text-sm text-muted-foreground">Cargando contactos…</div>
+        ) : isError ? (
+          <QueryErrorState bare entity="los contactos" error={error} onRetry={() => { void refetch(); }} isRetrying={isFetching} />
         ) : contacts.length === 0 ? (
           <div className="p-4 text-sm text-muted-foreground">Sin contactos registrados.</div>
         ) : (

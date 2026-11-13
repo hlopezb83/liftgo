@@ -1,3 +1,13 @@
+## [8.53.8] - 2026-11-12
+
+- La dispersión excluye facturas canceladas y las acciones de cancelar o eliminar comprueban que el registro haya sido afectado.
+- Cambiar una cotización entre renta y venta pide confirmación cuando se perderán datos capturados.
+- Contactos y cuentas bancarias de proveedores distinguen errores de lectura de listas vacías y permiten reintentar.
+- Próximas reservas elimina estados incompatibles y ofrece únicamente filtros válidos para esa vista.
+- El listado de entregas consulta los campos que necesita sin descargar firmas; el detalle conserva la evidencia.
+- Los CSV de ingresos, mantenimiento y utilización usan encabezados en español; la exportación se desactiva cuando no hay resultados.
+- La huella de publicación ignora cachés y bytecode de Python, conservando la verificación de los archivos fuente.
+
 ## [8.53.7] - 2026-11-12
 
 - Actualiza el registro de integridad de las migraciones revisadas para que CI reconozca el filtro de stock bajo y siga rechazando cambios inesperados en el historial.

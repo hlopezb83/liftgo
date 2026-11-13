@@ -247,7 +247,7 @@ describe("maintenance report query states", () => {
     expect(screen.getByText("QA-M")).toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "Exportar CSV" }));
     expect(state.exportCsv).toHaveBeenCalledWith("costos-mantenimiento.csv", [
-      { name: "QA-M", totalCost: 150, count: 2 },
+      { Montacargas: "QA-M", "Costo total MXN": 150, Trabajos: 2 },
     ]);
   });
 });

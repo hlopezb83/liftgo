@@ -142,7 +142,7 @@ export default function BookingsPage() {
             <FiltersToolbar.StatusTabs<BookingStatus>
               value={values.status as BookingStatus}
               onChange={(v) => set("status", v)}
-              options={STATUS_OPTIONS}
+              options={upcoming ? STATUS_OPTIONS.filter((option) => option.value === "all" || option.value === "confirmed") : STATUS_OPTIONS}
             />
             <FiltersToolbar.ClearAll visible={hasActive} onClick={reset} />
           </FiltersToolbar>

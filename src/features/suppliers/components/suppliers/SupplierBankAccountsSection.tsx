@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { QueryErrorState } from "@/components/feedback/QueryErrorState";
 import { useConfirm } from "@/components/feedback/useConfirm";
 import { AddIcon, EditIcon, DeleteIcon, BankIcon, StarIcon } from "@/components/icons";
 import { Badge } from "@/components/ui/badge";
@@ -17,7 +18,7 @@ import {
 import { SupplierBankAccountFormDialog } from "./SupplierBankAccountFormDialog";
 
 export function SupplierBankAccountsSection({ supplierId }: { supplierId: string }) {
-  const { data: accounts = [], isLoading } = useSupplierBankAccounts(supplierId);
+  const { data: accounts = [], isLoading, isError, isFetching, error, refetch } = useSupplierBankAccounts(supplierId);
   const del = useDeleteSupplierBankAccount();
   const confirm = useConfirm();
   const [open, setOpen] = useState(false);
@@ -40,7 +41,7 @@ export function SupplierBankAccountsSection({ supplierId }: { supplierId: string
       <CardHeader className="flex flex-row items-center justify-between space-y-0">
         <CardTitle className="text-base flex items-center gap-2">
           <BankIcon className="h-4 w-4" />
-          Cuentas Bancarias <span className="text-muted-foreground font-normal">({accounts.length})</span>
+          Cuentas Bancarias {!isLoading && !isError && <span className="text-muted-foreground font-normal">({accounts.length})</span>}
         </CardTitle>
         <RoleGuard module="Proveedores" minAccess="full" fallback={null}>
           <Button size="sm" variant="outline" onClick={onAdd}>
@@ -50,7 +51,9 @@ export function SupplierBankAccountsSection({ supplierId }: { supplierId: string
       </CardHeader>
       <CardContent className="p-0">
         {isLoading ? (
-          <div className="p-4 text-sm text-muted-foreground">Cargando…</div>
+          <div role="status" className="p-4 text-sm text-muted-foreground">Cargando cuentas bancarias…</div>
+        ) : isError ? (
+          <QueryErrorState bare entity="las cuentas bancarias" error={error} onRetry={() => { void refetch(); }} isRetrying={isFetching} />
         ) : accounts.length === 0 ? (
           <div className="p-4 text-sm text-muted-foreground">Sin cuentas bancarias registradas.</div>
         ) : (

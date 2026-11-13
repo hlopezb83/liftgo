@@ -9,6 +9,8 @@ import { LIST_FETCH_LIMIT } from "@/lib/supabase/constants";
 import type { ReconciledDelivery } from "../lib/historicalReconciliation";
 
 const DELIVERY_SELECT = "*, forklifts(name, model), historical_reconciliation:delivery_historical_reconciliations(*)";
+// List and booking/sibling reads keep their operational fields without downloading signatures.
+const DELIVERY_LIST_SELECT = "id, organization_id, delivery_number, type, status, forklift_id, booking_id, scheduled_date, scheduled_time, completed_at, completed_no_evidence_reason, address, driver_name, driver_phone, hours_reading, transport_cost, charged_to_customer, notes, created_at, updated_at, forklifts(name, model), historical_reconciliation:delivery_historical_reconciliations(*)";
 
 type DeliveryRow = Awaited<ReturnType<typeof fetchDeliveryDetail>>;
 type DeliveryList = Awaited<ReturnType<typeof fetchDeliveryList>>;
@@ -31,11 +33,11 @@ async function fetchDeliveryDetail(id: string) {
 }
 
 async function fetchDeliveryList(bookingId?: string) {
-  let query = supabase.from("deliveries").select(DELIVERY_SELECT).order("scheduled_date").limit(LIST_FETCH_LIMIT);
+  let query = supabase.from("deliveries").select(DELIVERY_LIST_SELECT).order("scheduled_date").limit(LIST_FETCH_LIMIT);
   if (bookingId) query = query.eq("booking_id", bookingId);
   const { data, error } = await query;
   if (error) throw error;
-  return data as unknown as ReconciledDelivery[];
+  return data as unknown as Omit<ReconciledDelivery, "signature_base64">[];
 }
 
 export const deliveryQueries = defineEntityQueries<"deliveries", DeliveryList, DeliveryRow>(

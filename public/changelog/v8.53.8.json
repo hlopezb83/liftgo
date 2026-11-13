@@ -1,0 +1,13 @@
+{
+  "description": "Ocho mejoras de mantenimiento para reducir errores y facilitar el trabajo en los flujos existentes.",
+  "changes": [
+    "La dispersión excluye facturas canceladas y actualiza sus opciones después de cancelar una factura.",
+    "Cancelar o eliminar una factura de proveedor comprueba que la operación haya afectado el registro.",
+    "Cambiar una cotización entre renta y venta pide confirmación cuando se perderán equipos, fechas o cargos capturados.",
+    "Los contactos y las cuentas bancarias del proveedor muestran errores de lectura y permiten reintentar.",
+    "Próximas reservas limpia estados incompatibles y muestra únicamente las opciones válidas para esa vista.",
+    "El listado de entregas evita descargar firmas que sólo se necesitan al abrir el detalle.",
+    "Los reportes exportan encabezados en español y desactivan la exportación cuando no hay resultados.",
+    "La verificación de la versión publicada ignora los archivos temporales de Python."
+  ]
+}

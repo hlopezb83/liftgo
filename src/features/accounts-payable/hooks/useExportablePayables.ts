@@ -49,8 +49,9 @@ export const exportablePayableQueries = defineEntityQueries<
           .select("id, bill_number, supplier_id, due_date, balance, currency, exchange_rate, description, payment_in_progress_at, suppliers(name, rfc)")
           // R-M4: incluir también facturas que no requieren aprobación explícita.
           .in("approval_status", ["approved", "not_required"])
-          // R12-FE-06 (P2 r11): nunca dispersar borradores.
+          // Borradores y canceladas no son elegibles para un lote de pago.
           .neq("status", "draft")
+          .neq("status", "cancelled")
           .gt("balance", 0)
           .order("due_date", { ascending: true, nullsFirst: false })
           .order("id", { ascending: true })
