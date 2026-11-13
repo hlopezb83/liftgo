@@ -36,11 +36,18 @@ export function useUploadDocument() {
       file,
       entityType,
       entityId,
+      shouldContinue,
     }: {
       file: File;
       entityType: string;
       entityId: string;
+      /** The owning upload batch can become stale after navigation or sign-out. */
+      shouldContinue?: () => boolean;
     }) => {
+      const assertCurrent = () => {
+        if (shouldContinue && !shouldContinue()) throw new Error("La carga pertenece a una ficha o sesión que ya no está activa.");
+      };
+      assertCurrent();
       // Supabase Storage rechaza claves fuera de [a-zA-Z0-9!\-_.*'()/]. Los XML
       // CFDI y PDFs de proveedores suelen traer espacios, acentos y ñ, lo que
       // provocaba "Invalid key". Se conserva el file.name original en la fila
@@ -53,6 +60,7 @@ export function useUploadDocument() {
         supabase,
         relativePath,
       );
+      assertCurrent();
       const { error: uploadError } = await supabase.storage
         .from("documents")
         .upload(filePath, file);
@@ -61,33 +69,40 @@ export function useUploadDocument() {
       // Store the storage path as file_url (relative). Signed URLs are generated on read.
       const storedUrl = `documents/${filePath}`;
 
-      // BL-35: registrar autor del upload (columna migrada a UUID FK a auth.users).
-      const { data: { user } } = await supabase.auth.getUser();
+      try {
+        assertCurrent();
+        // BL-35: registrar autor del upload (columna migrada a UUID FK a auth.users).
+        const { data: { user } } = await supabase.auth.getUser();
+        assertCurrent();
 
-      const { data, error } = await supabase
-        .from("documents")
-        .insert({
-          entity_type: entityType,
-          entity_id: entityId,
-          file_name: file.name,
-          file_url: storedUrl,
-          file_size: file.size,
-          mime_type: file.type,
-          uploaded_by: user?.id ?? null,
-        })
-        .select()
-        .single();
-      if (error) {
+        const { data, error } = await supabase
+          .from("documents")
+          .insert({
+            entity_type: entityType,
+            entity_id: entityId,
+            file_name: file.name,
+            file_url: storedUrl,
+            file_size: file.size,
+            mime_type: file.type,
+            uploaded_by: user?.id ?? null,
+          })
+          .select()
+          .single();
+        if (error) throw error;
+        // Once INSERT succeeds, it must not become a retryable upload failure.
+        return data;
+      } catch (error) {
         // BL-36: rollback del archivo en Storage si la fila no se pudo crear.
         // Sin esto, quedan objetos huérfanos ocupando espacio sin fila que los
         // referencie.
-        await supabase.storage.from("documents").remove([filePath]);
+        try { await supabase.storage.from("documents").remove([filePath]); }
+        catch { /* Preserve the original failure if best-effort cleanup fails. */ }
         throw error;
       }
-      return data;
     },
     invalidateKeysFn: (_document, vars) => documentInvalidationKeys(vars.entityType),
     errorTitle: "Error al subir el documento",
+    onError: (_error, vars) => vars.shouldContinue ? !vars.shouldContinue() : false,
   });
 }
 

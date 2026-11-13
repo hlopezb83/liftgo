@@ -6,8 +6,10 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { DOC_ACCEPT, DOC_MAX_BYTES, partitionFiles } from "@/features/fleet/lib/documentAttachmentRules";
 import { useHasModuleAccess } from "@/features/users";
-import { useDocuments, useUploadDocument, useDeleteDocument } from "@/hooks/useDocuments";
-import { notifyError, notifySuccess, notifyValidation } from "@/lib/ui/appFeedback";
+import { useDocuments, useDeleteDocument } from "@/hooks/useDocuments";
+import { useVerifiedIdentityScope } from "@/lib/query/useVerifiedIdentityScope";
+import { notifySuccess, notifyValidation } from "@/lib/ui/appFeedback";
+import { useDocumentUploadBatch } from "../../hooks/useDocumentUploadBatch";
 
 
 function FileIcon({ mime }: { mime?: string | null }) {
@@ -16,16 +18,24 @@ function FileIcon({ mime }: { mime?: string | null }) {
   return <File className="h-4 w-4 text-muted-foreground" />;
 }
 
-export function DocumentAttachments({ entityType, entityId, accessModule }: { entityType: string; entityId: string; accessModule: "Flota" | "Proveedores" }) {
+type Props = { entityType: string; entityId: string; accessModule: "Flota" | "Proveedores" };
+
+export function DocumentAttachments({ entityType, entityId, accessModule }: Props) {
+  const identity = useVerifiedIdentityScope();
   const canManage = useHasModuleAccess(accessModule, "full");
+  return <DocumentAttachmentsContent key={JSON.stringify([identity, entityType, entityId, canManage])}
+    entityType={entityType} entityId={entityId} canManage={Boolean(identity) && canManage} />;
+}
+
+function DocumentAttachmentsContent({ entityType, entityId, canManage }: Omit<Props, "accessModule"> & { canManage: boolean }) {
   const { data: documents, isLoading, isError, isFetching, error, refetch } = useDocuments(entityType, entityId);
-  const uploadDoc = useUploadDocument();
+  const batch = useDocumentUploadBatch(entityType, entityId, canManage);
   const deleteDoc = useDeleteDocument();
   const confirm = useConfirm();
   const fileRef = useRef<HTMLInputElement>(null);
 
   const handleUpload = async (e: ReactChangeEvent<HTMLInputElement>) => {
-    if (!canManage) return;
+    if (!canManage || batch.pending || batch.failed.length > 0) return;
     const files = e.target.files;
     if (!files || files.length === 0) return;
     const all = Array.from(files);
@@ -40,18 +50,9 @@ export function DocumentAttachments({ entityType, entityId, accessModule }: { en
       if (fileRef.current) fileRef.current.value = "";
       return;
     }
-    try {
-      await Promise.all(
-        accepted.map((file) => uploadDoc.mutateAsync({ file, entityType, entityId })),
-      );
-      notifySuccess(`${accepted.length} archivo(s) subido(s)`);
-    } catch (err) {
-      // Cada mutación ya notifica su error individual; este catch evita la
-      // unhandled rejection que rompe el ErrorBoundary si Storage devuelve 4xx.
-      notifyError({ error: err, message: "Algunos archivos no se pudieron subir" });
-    } finally {
-      if (fileRef.current) fileRef.current.value = "";
-    }
+    // Clear the picker immediately; the batch retains only failed File objects for retry.
+    e.target.value = "";
+    await batch.uploadFiles(accepted);
   };
 
   const handleDelete = async (id: string, fileName: string) => {
@@ -78,13 +79,27 @@ export function DocumentAttachments({ entityType, entityId, accessModule }: { en
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
           <CardTitle className="text-base flex items-center gap-2"><Paperclip className="h-4 w-4" /> Adjuntos</CardTitle>
-          {canManage && <Button variant="outline" size="sm" onClick={() => fileRef.current?.click()} disabled={uploadDoc.isPending}>
-            <UploadIcon className="h-3.5 w-3.5 mr-1" />{uploadDoc.isPending ? "Subiendo…" : "Subir"}
+          {canManage && <Button variant="outline" size="sm" onClick={() => fileRef.current?.click()} disabled={batch.pending || batch.failed.length > 0}>
+            <UploadIcon className="h-3.5 w-3.5 mr-1" />{batch.pending ? "Subiendo…" : "Subir"}
           </Button>}
-          {canManage && <input ref={fileRef} type="file" multiple accept={DOC_ACCEPT} className="hidden" onChange={handleUpload} />}
+          {canManage && <input ref={fileRef} type="file" multiple accept={DOC_ACCEPT} className="hidden"
+            disabled={batch.pending || batch.failed.length > 0} onChange={handleUpload} />}
         </div>
       </CardHeader>
       <CardContent>
+        {batch.pending && <p role="status" className="mb-3 text-sm text-muted-foreground">Subiendo archivos. Espera a que termine el lote.</p>}
+        {batch.failed.length > 0 && <div className="mb-4 space-y-2" role="alert">
+          <p className="text-sm font-medium">No se pudieron subir {batch.failed.length} archivo(s).</p>
+          <ul className="space-y-1 text-sm">
+            {batch.failed.map(({ file, message }, i) => <li key={i} className="break-words">{file.name}: {message}</li>)}
+          </ul>
+          <div className="flex flex-wrap gap-2">
+            <Button variant="outline" size="sm" disabled={batch.pending} onClick={() => { void batch.retryFailed(); }}>
+              Reintentar fallidos ({batch.failed.length})
+            </Button>
+            <Button variant="ghost" size="sm" disabled={batch.pending} onClick={batch.discardFailed}>Descartar fallidos</Button>
+          </div>
+        </div>}
         {isLoading ? (
           <p role="status" className="text-sm text-muted-foreground">Cargando adjuntos…</p>
         ) : isError ? (

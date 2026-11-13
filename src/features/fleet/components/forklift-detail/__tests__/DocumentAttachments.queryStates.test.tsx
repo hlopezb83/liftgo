@@ -10,6 +10,7 @@ vi.mock("@/integrations/supabase/client", () => ({ supabase: {
   storage: { from: () => ({ createSignedUrls: state.sign }) },
 } }));
 vi.mock("@/features/users", () => ({ useHasModuleAccess: () => false }));
+vi.mock("@/lib/query/useVerifiedIdentityScope", () => ({ useVerifiedIdentityScope: () => "user:org:internal" }));
 vi.mock("@/components/feedback/useConfirm", () => ({ useConfirm: () => vi.fn() }));
 
 const path = "org/supplier/s-1/document.pdf";
