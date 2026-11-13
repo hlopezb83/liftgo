@@ -18,7 +18,7 @@ vi.mock("@/lib/ui/appFeedback", () => ({ notifyError: notifyErrorMock,
 }));
 
 const inserts: unknown[] = [];
-const updates: Array<{ patch: unknown; eqArgs: unknown[] }> = [];
+const updates: Array<{ patch: unknown; eqArgs: unknown[]; selectArgs: unknown[] }> = [];
 const activationArgs: unknown[] = [];
 const metadataArgs: unknown[] = [];
 const adjustmentArgs: unknown[] = [];
@@ -47,7 +47,8 @@ vi.mock("@/integrations/supabase/client", () => ({
         const upd = calls.find((c) => c.method === "update");
         if (upd) {
           const eq = calls.find((c) => c.method === "eq");
-          updates.push({ patch: upd.args[0], eqArgs: eq?.args ?? [] });
+          const select = calls.find((c) => c.method === "select");
+          updates.push({ patch: upd.args[0], eqArgs: eq?.args ?? [], selectArgs: select?.args ?? [] });
           return updateResp;
         }
         return { data: null, error: null };
@@ -158,12 +159,35 @@ describe("useAdjustPartStock", () => {
 
 describe("useDeletePart", () => {
   it("desactiva localmente sin borrar el SKU global", async () => {
-    const { Wrapper } = createQueryWrapper();
+    updateResp = { data: [{ id: "p-1" }], error: null };
+    const { Wrapper, queryClient } = createQueryWrapper();
+    queryClient.setDefaultOptions({ queries: { retry: false, gcTime: Infinity } });
+    queryClient.setQueryData(["parts_inventory", "list"], [{ id: "p-1" }]);
     const { result } = renderHook(() => useDeletePart(), { wrapper: Wrapper });
 
     await act(async () => { await result.current.mutateAsync("p-1"); });
 
-    expect(updates[0]).toEqual({ patch: { is_active: false }, eqArgs: ["id", "p-1"] });
+    expect(updates[0]).toEqual({ patch: { is_active: false }, eqArgs: ["id", "p-1"], selectArgs: ["id"] });
+    expect(queryClient.getQueryState(["parts_inventory", "list"])?.isInvalidated).toBe(true);
+  });
+
+  it.each([{ data: [] }, { data: null }])("rechaza una respuesta sin filas afectadas ($data) y conserva la lista", async ({ data }) => {
+    updateResp = { data, error: null };
+    const { Wrapper, queryClient } = createQueryWrapper();
+    queryClient.setDefaultOptions({ queries: { retry: false, gcTime: Infinity } });
+    const rows = [{ id: "p-1", is_active: true }];
+    queryClient.setQueryData(["parts_inventory", "list"], rows);
+    const onSuccess = vi.fn();
+    const { result } = renderHook(() => useDeletePart(), { wrapper: Wrapper });
+
+    await act(async () => {
+      await expect(result.current.mutateAsync("p-1", { onSuccess })).rejects.toThrow("no se modificó ningún registro");
+    });
+
+    expect(onSuccess).not.toHaveBeenCalled();
+    expect(queryClient.getQueryState(["parts_inventory", "list"])?.isInvalidated).toBe(false);
+    expect(queryClient.getQueryData(["parts_inventory", "list"])).toEqual(rows);
+    expect(notifyErrorMock).toHaveBeenCalledWith(expect.objectContaining({ title: "Error al desactivar refacción" }));
   });
 
   it("propaga error al desactivar con título localizado", async () => {

@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { DataTableV2, useLiftgoTable } from "@/components/dataTable/v2";
+import { QueryErrorState } from "@/components/feedback/QueryErrorState";
 import { TextareaField } from "@/components/forms/fields";
 import { FormDialog, FormDialogFooter } from "@/components/forms/FormDialog";
 import { FormDialogCancelButton } from "@/components/forms/FormDialogCancelButton";
@@ -31,7 +32,7 @@ type FormValues = z.input<typeof schema>;
 
 export function PaymentIntentsSection({ invoiceId }: Props) {
   const canWrite = useHasModuleAccess("Facturas", "full");
-  const { data: intents } = useAdminPaymentIntents(invoiceId);
+  const { data: intents, isLoading, isError, isSuccess, error, refetch, isFetching } = useAdminPaymentIntents(invoiceId);
   const review = useReviewPaymentIntent();
   const [rejectId, setRejectId] = useState<string | null>(null);
   const form = useForm<FormValues>({
@@ -76,7 +77,7 @@ export function PaymentIntentsSection({ invoiceId }: Props) {
     paginated: false,
   });
 
-  if (!intents || intents.length === 0) return null;
+  if (isSuccess && intents?.length === 0) return null;
 
   return (
     <Card>
@@ -84,9 +85,14 @@ export function PaymentIntentsSection({ invoiceId }: Props) {
         <CardTitle className="text-base">Intentos de pago reportados por el cliente</CardTitle>
       </CardHeader>
       <CardContent className="p-0">
-        <div className="rounded-md border">
+        {isLoading ? (
+          <p role="status" className="p-4 text-sm text-muted-foreground">Cargando reportes de pago…</p>
+        ) : isError ? (
+          <QueryErrorState bare entity="el listado de reportes de pago" error={error}
+            onRetry={() => { void refetch(); }} isRetrying={isFetching} />
+        ) : <div className="rounded-md border">
           <DataTableV2 table={table} emptyMessage="Sin intentos de pago" />
-        </div>
+        </div>}
       </CardContent>
 
       <FormDialog

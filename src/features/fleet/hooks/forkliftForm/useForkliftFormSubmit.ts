@@ -17,9 +17,10 @@ interface Args {
   expectedUpdatedAt?: string | null;
   equipmentModels?: EquipmentModel[];
   existing?: { manufacturer: string | null; model: string; equipment_model_id: string | null } | null;
+  onSaved: (values: ForkliftFormData) => void;
 }
 
-export function useForkliftFormSubmit({ id, isEdit, expectedUpdatedAt, equipmentModels, existing }: Args) {
+export function useForkliftFormSubmit({ id, isEdit, expectedUpdatedAt, equipmentModels, existing, onSaved }: Args) {
   const navigate = useNavigateTransition();
   const create = useCreateForklift();
   const update = useUpdateForklift();
@@ -43,12 +44,12 @@ export function useForkliftFormSubmit({ id, isEdit, expectedUpdatedAt, equipment
 
     if (isEdit && id) {
       update.mutate({ id, expectedUpdatedAt, ...payload }, {
-        onSuccess: () => { notifySuccess("Montacargas actualizado"); navigate(`/fleet/${id}`); },
+        onSuccess: () => { onSaved(values); notifySuccess("Montacargas actualizado"); navigate(`/fleet/${id}`); },
         onError,
       });
     } else {
       create.mutate(payload, {
-        onSuccess: () => { notifySuccess("Montacargas agregado"); navigate("/fleet"); },
+        onSuccess: () => { onSaved(values); notifySuccess("Montacargas agregado"); navigate("/fleet"); },
         onError,
       });
     }

@@ -30,9 +30,14 @@ export function buildCustomerPayload(form: CustomerFormData) {
 
 export function getE2ECustomerMetadata() {
   if (typeof window === "undefined") return {};
-  if (window.localStorage.getItem("liftgo:e2e") !== "true") return {};
-  return {
-    is_e2e: true,
-    e2e_scope: window.localStorage.getItem("liftgo:e2e_scope") || "ui",
-  };
+  try {
+    if (window.localStorage.getItem("liftgo:e2e") !== "true") return {};
+    return {
+      is_e2e: true,
+      e2e_scope: window.localStorage.getItem("liftgo:e2e_scope") || "ui",
+    };
+  } catch {
+    // Los metadatos opcionales de pruebas no deben impedir el alta de clientes.
+    return {};
+  }
 }

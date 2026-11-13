@@ -1,5 +1,7 @@
+import { useRef } from "react";
 import { useForm } from "react-hook-form";
 import { useInitialRecordVersion } from "@/hooks/useInitialRecordVersion";
+import { useUnsavedChangesGuard } from "@/hooks/useUnsavedChangesGuard";
 import { zodResolver } from "@/lib/forms/zodResolver";
 import { useParams } from "@/lib/router-compat";
 import { forkliftFormSchema, type ForkliftFormData } from "../lib/forkliftFormSchema";
@@ -26,6 +28,14 @@ export function useForkliftFormLogic() {
     resolver: zodResolver(forkliftFormSchema),
     defaultValues: emptyForm,
   });
+  const justSavedRef = useRef(false);
+  const { isDirty } = form.formState;
+  useUnsavedChangesGuard(() => isDirty && !justSavedRef.current);
+  const onSaved = (values: ForkliftFormData) => {
+    // The navigation blocker runs before reset's next render.
+    justSavedRef.current = true;
+    form.reset(values);
+  };
 
   const { equipmentModels, hasModels, manufacturers, filteredModels } =
     useForkliftFormState(form, existing);
@@ -33,7 +43,7 @@ export function useForkliftFormLogic() {
   useForkliftPrefill(existing, form, equipmentModels !== undefined);
   // M-11b: `updated_at` del registro cargado → bloqueo optimista al guardar.
   const { onSubmit, navigate, isPending } = useForkliftFormSubmit({
-    id, isEdit, expectedUpdatedAt, equipmentModels, existing,
+    id, isEdit, expectedUpdatedAt, equipmentModels, existing, onSaved,
   });
 
   const handleManufacturerChange = (value: string) => {
