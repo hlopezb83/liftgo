@@ -1,3 +1,9 @@
+## [8.53.16] - 2026-11-13
+
+- El selector de refacciones busca por SKU o nombre y consulta el catálogo activo por páginas, sin el límite anterior de 500 registros.
+- Comprueba las refacciones ya habilitadas para los IDs de cada página y conserva selección y cantidades al buscar, cambiar de página o reintentar.
+- Los errores bloquean la habilitación hasta recuperar la consulta; las páginas totalmente habilitadas permiten seguir avanzando.
+
 ## [8.53.15] - 2026-11-13
 
 - La carga permanece bloqueada hasta que termina el lote completo, aunque un archivo falle antes que los demás.
