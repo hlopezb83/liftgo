@@ -1,0 +1,8 @@
+{
+  "description": "Reservas con búsqueda y paginación de todo el listado",
+  "changes": [
+    "Las reservas se filtran, ordenan y paginan en el servidor con conteo completo, también para registros posteriores a las primeras 500 filas.",
+    "La búsqueda conserva los caracteres de nombres y folios; la vista Próximas mantiene únicamente confirmadas desde hoy.",
+    "Página, orden y filtros siguen en la URL; una consulta fallida no restablece la página y una página eliminada se ajusta después de confirmar el conteo."
+  ]
+}

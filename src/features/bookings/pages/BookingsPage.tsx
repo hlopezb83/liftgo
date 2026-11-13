@@ -1,6 +1,5 @@
 import { parseISO } from "date-fns";
 import { useLiftgoTable, type ColumnDef } from "@/components/dataTable/v2";
-import { ListTruncationNotice } from "@/components/feedback/ListTruncationNotice";
 import { StatusBadge } from "@/components/feedback/StatusBadge";
 import { FiltersToolbar } from "@/components/filters/FiltersToolbar";
 import { AddIcon, ChevronRightIcon, CalendarDays } from "@/components/icons";
@@ -10,11 +9,9 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Untranslated } from "@/components/ui/Untranslated";
 import { usePageActions } from "@/contexts/pageActions";
 import { useUserRole } from "@/features/users";
-import { useTableViewState } from "@/hooks/filters/useTableViewState";
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import { BOOKING_STATUSES, STATUS_LABELS } from "@/lib/constants";
 import { Link } from "@/lib/router-compat-ui";
-import { hasReachedListLimit } from "@/lib/supabase/constants";
 import { formatMtyDate } from "@/lib/utils";
 import { RecurringBillingBadge } from "../components/bookings/RecurringBillingBadge";
 import { useBookingListView } from "../hooks/bookings/useBookingListView";
@@ -45,8 +42,8 @@ function activeBookingFilters(values: { q: string; status: string; view: string 
 }
 
 export default function BookingsPage() {
-  const { values, set, filtered, filterKey, hasActive, reset, query, upcoming, setView } = useBookingListView();
-  const { data: bookingsRaw, isLoading, isError, refetch } = query;
+  const { values, set, filtered, hasActive, reset, query, upcoming, setView, viewState } = useBookingListView();
+  const { data: page, isLoading, isError, refetch } = query;
   const navigate = useNavigateTransition();
   const { data: role } = useUserRole();
   const isAdmin = role === "admin";
@@ -102,13 +99,13 @@ export default function BookingsPage() {
     },
   ];
 
-  const tableViewState = useTableViewState(filtered.length, upcoming ? [{ id: "start_date", desc: false }] : []);
   const table = useLiftgoTable<Booking>({
-    ...tableViewState,
+    ...viewState,
+    pageCount: Math.ceil((page?.totalCount ?? 0) / viewState.controlledPagination.pageSize),
+    manualSorting: true,
     data: filtered,
     columns,
     getRowId: (b: Booking) => b.id,
-    resetKey: filterKey,
   });
 
   return (
@@ -116,7 +113,8 @@ export default function BookingsPage() {
       onRefresh={refetch}
       title="Reservas"
       subtitle="Administrar reservas de equipos"
-      totalCount={upcoming && hasReachedListLimit(bookingsRaw) ? undefined : filtered.length}
+      totalCount={page?.totalCount}
+      rowCount={page?.totalCount}
       actions={isAdmin ? <Button size="sm" onClick={() => navigate("/bookings/new")}><AddIcon className="h-4 w-4 mr-1" />Nueva reserva</Button> : undefined}
       notice={
         <div className="space-y-3">
@@ -125,7 +123,6 @@ export default function BookingsPage() {
             <Button variant={upcoming ? "secondary" : "outline"} size="sm" aria-pressed={upcoming} onClick={() => setView("upcoming")}>Próximas reservas</Button>
           </div>
           {upcoming && <p className="text-sm text-muted-foreground">Confirmadas con inicio desde hoy, ordenadas por fecha de inicio.</p>}
-          <ListTruncationNotice rows={bookingsRaw} />
         </div>
       }
       search={
