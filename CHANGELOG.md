@@ -1,3 +1,8 @@
+## [8.53.30] - 2026-11-13
+
+- La tabla y las tarjetas de mantenimiento muestran el estado de cada orden sin abrir el detalle.
+- Las etiquetas de estado conservan los permisos y las acciones existentes.
+
 ## [8.53.29] - 2026-11-13
 
 - Los nombres largos en el filtro de montacargas se ajustan al ancho disponible y pueden ocupar varias líneas.

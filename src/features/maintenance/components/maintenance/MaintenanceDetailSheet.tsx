@@ -1,7 +1,6 @@
 import { Activity, useState } from "react";
 import { DetailRow } from "@/components/domain/DetailRow";
 import { EditIcon, DeleteIcon, MaintenanceIcon, CalendarIcon, UserIcon, CostIcon, FleetIcon, DocumentIcon, SuccessIcon } from "@/components/icons";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { Separator } from "@/components/ui/separator";
@@ -18,17 +17,10 @@ import { maintenanceActionAccess } from "../../lib/maintenanceAccess";
 import { CloseWorkOrderDialog } from "./CloseWorkOrderDialog";
 import { MaintenanceLaborSection } from "./MaintenanceLaborSection";
 import { MaintenancePartsSection } from "./MaintenancePartsSection";
+import { MaintenanceStatusBadge } from "./MaintenanceStatusBadge";
 import { ReopenWorkOrderDialog } from "./ReopenWorkOrderDialog";
 import type { MaintenanceLog } from "../../hooks/maintenance/useMaintenanceLogs";
 
-
-const STATUS_LABELS: Record<string, { label: string; variant: "default" | "secondary" | "outline" | "destructive" }> = {
-  pending: { label: "Pendiente", variant: "secondary" },
-  in_progress: { label: "En Progreso", variant: "default" },
-  waiting_parts: { label: "Esperando Refacciones", variant: "outline" },
-  completed: { label: "Completado", variant: "secondary" },
-  cancelled: { label: "Cancelado", variant: "secondary" },
-};
 
 interface Props {
   log: MaintenanceLog | null;
@@ -52,7 +44,6 @@ export function MaintenanceDetailSheet({ log, open, onOpenChange, forkliftName, 
   if (!log) return null;
 
   const supplier = suppliers?.find((s) => s.id === log.supplier_id);
-  const status = STATUS_LABELS[log.work_status] || { label: log.work_status, variant: "secondary" as const };
   const access = maintenanceActionAccess(log, role, canWrite);
   const isArchived = log.deleted_at !== null;
 
@@ -80,7 +71,7 @@ export function MaintenanceDetailSheet({ log, open, onOpenChange, forkliftName, 
 
         <Activity mode={open ? "visible" : "hidden"}>
         <div className="mt-4 space-y-4">
-          <Badge variant={status.variant}>{status.label}</Badge>
+          <MaintenanceStatusBadge status={log.work_status} />
 
           {log.work_status === "completed" && (
             <div className="rounded-md border border-success/30 bg-success/10 px-3 py-2 flex items-center justify-between gap-2">
