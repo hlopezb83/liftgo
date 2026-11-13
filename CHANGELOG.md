@@ -1,3 +1,8 @@
+## [8.53.20] - 2026-11-13
+
+- Las órdenes archivadas conservan refacciones y mano de obra en modo consulta, incluso desde pestañas abiertas antes del archivado.
+- Las validaciones del servidor protegen existencias y costos frente a capturas simultáneas.
+
 ## [8.53.19] - 2026-11-13
 
 - Los listados de entregas aceptan los identificadores históricos válidos de la base de datos sin perder la validación de empresa y paginación.
