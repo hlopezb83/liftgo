@@ -1,0 +1,7 @@
+{
+  "description": "Selector de montacargas legible en móvil",
+  "changes": [
+    "El selector de montacargas en mantenimiento ajusta nombres y modelos largos al espacio disponible.",
+    "La selección conserva navegación por teclado y funcionamiento en escritorio."
+  ]
+}

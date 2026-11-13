@@ -58,6 +58,7 @@ export function MaintenanceFormDialog({
               label="Montacargas"
               options={forkliftOptions}
               placeholder="Seleccionar montacargas"
+              wrapOptions
               required
             />
             <SelectField
