@@ -1,6 +1,5 @@
 import { useRef } from "react";
 import { useForm } from "react-hook-form";
-import { useInitialRecordVersion } from "@/hooks/useInitialRecordVersion";
 import { useUnsavedChangesGuard } from "@/hooks/useUnsavedChangesGuard";
 import { zodResolver } from "@/lib/forms/zodResolver";
 import { useParams } from "@/lib/router-compat";
@@ -9,6 +8,7 @@ import { useForkliftFormState } from "./forkliftForm/useForkliftFormState";
 import { useForkliftFormSubmit } from "./forkliftForm/useForkliftFormSubmit";
 import { useForkliftPrefill } from "./forkliftForm/useForkliftPrefill";
 import { useForklift } from "./forklifts/useForklifts";
+import { useEquipmentModels } from "./useEquipmentModels";
 
 const emptyForm: ForkliftFormData = {
   name: "", model: "", manufacturer: "", year: "", capacity_kg: "",
@@ -20,9 +20,8 @@ const emptyForm: ForkliftFormData = {
 export function useForkliftFormLogic() {
   const { id } = useParams();
   const isEdit = !!id;
-  const { data: existing } = useForklift(id);
-
-  const expectedUpdatedAt = useInitialRecordVersion(id, existing?.id, existing?.updated_at);
+  const { data: existing, refetch } = useForklift(id);
+  const { data: equipmentModels } = useEquipmentModels();
 
   const form = useForm<ForkliftFormData>({
     resolver: zodResolver(forkliftFormSchema),
@@ -37,13 +36,11 @@ export function useForkliftFormLogic() {
     form.reset(values);
   };
 
-  const { equipmentModels, hasModels, manufacturers, filteredModels } =
-    useForkliftFormState(form, existing);
-  // R14-C: equipmentModels undefined = catálogos aún cargando; no resetear.
-  useForkliftPrefill(existing, form, equipmentModels !== undefined);
-  // M-11b: `updated_at` del registro cargado → bloqueo optimista al guardar.
+  const session = useForkliftPrefill(id, existing, form, equipmentModels !== undefined, refetch);
+  const { hasModels, manufacturers, filteredModels } = useForkliftFormState(form, session.record, equipmentModels);
+  // The editable values and concurrency version advance only together.
   const { onSubmit, navigate, isPending } = useForkliftFormSubmit({
-    id, isEdit, expectedUpdatedAt, equipmentModels, existing, onSaved,
+    id, isEdit, expectedUpdatedAt: session.record?.updated_at, equipmentModels, existing: session.record, onSaved,
   });
 
   const handleManufacturerChange = (value: string) => {
@@ -73,5 +70,7 @@ export function useForkliftFormLogic() {
     handleManufacturerChange, handleModelChange,
     onSubmit,
     isPending,
+    reload: session.reload, isReloading: session.isReloading, hasServerChanges: session.hasServerChanges,
+    awaitingRecord: isEdit && !session.record,
   };
 }
