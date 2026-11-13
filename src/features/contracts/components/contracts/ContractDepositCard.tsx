@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -9,7 +8,8 @@ import { RoleGuard } from "@/layouts/RoleGuard";
 import { formatDateMty } from "@/lib/format/dateFormats";
 import { formatCurrency } from "@/lib/format/formatCurrency";
 import { cn } from "@/lib/utils";
-import { useSetContractDepositStatus, type DepositStatus } from "../../hooks/useContracts";
+import { useContractDepositDraft } from "../../hooks/useContractDepositDraft";
+import type { ContractDepositSnapshot, DepositStatus } from "../../lib/contractDepositRpc";
 
 const DEPOSIT_STATUS_LABELS: Record<DepositStatus, string> = {
   held: "Retenido",
@@ -17,48 +17,14 @@ const DEPOSIT_STATUS_LABELS: Record<DepositStatus, string> = {
   returned: "Devuelto",
 };
 
-type Props = {
+type Props = ContractDepositSnapshot & {
   contractId: string;
-  depositAmount: number | string | null;
-  depositStatus: string | null;
-  depositSettledAt: string | null;
-  depositSettledAmount: number | string | null;
-  depositNotes: string | null;
+  onReload: () => Promise<ContractDepositSnapshot>;
 };
 
-function getDepositFormState({
-  amount, current, status, settledAmount, depositSettledAmount, notes, depositNotes,
-}: {
-  amount: number;
-  current: DepositStatus;
-  status: DepositStatus;
-  settledAmount: string;
-  depositSettledAmount: number | string | null;
-  notes: string;
-  depositNotes: string | null;
-}) {
-  const amountInput = settledAmount.trim();
-  const storedAmount = Number(depositSettledAmount ?? amount);
-  const currentAmount = current === "held" ? null : storedAmount;
-  const nextAmount = status === "held" ? null : Number(
-    amountInput === "" ? storedAmount : amountInput,
-  );
-  const amountValid = status === "held" || amountInput === "" || (
-    Number.isFinite(Number(amountInput)) && Number(amountInput) >= 0 && Number(amountInput) <= amount
-  );
-  return {
-    amountValid,
-    defaultAmount: storedAmount,
-    hasChanges: status !== current || nextAmount !== currentAmount ||
-      notes.trim() !== (depositNotes ?? "").trim(),
-    amountToSubmit: status === "held" || amountInput === "" ? null : Number(amountInput),
-    notesToSubmit: notes.trim() === "" ? null : notes.trim(),
-  };
-}
-
-function DepositAmountField({ status, amount, defaultAmount, value, valid, onChange }: {
+function DepositAmountField({ status, amount, defaultAmount, value, valid, disabled, onChange }: {
   status: DepositStatus; amount: number; defaultAmount: number; value: string;
-  valid: boolean; onChange: (value: string) => void;
+  valid: boolean; disabled: boolean; onChange: (value: string) => void;
 }) {
   const labels: Record<DepositStatus, string> = {
     held: "Importe del depósito (MXN)", applied: "Importe aplicado (MXN)", returned: "Importe devuelto (MXN)",
@@ -67,7 +33,7 @@ function DepositAmountField({ status, amount, defaultAmount, value, valid, onCha
     <Label htmlFor="deposit-amount">{labels[status]}</Label>
     <Input id="deposit-amount" type="number" inputMode="decimal" min={0} max={amount}
       value={value} placeholder={String(defaultAmount)} onChange={(e) => onChange(e.target.value)}
-      disabled={status === "held"} aria-invalid={!valid} aria-describedby={status === "held" ? undefined : "deposit-amount-help"} />
+      disabled={disabled || status === "held"} aria-invalid={!valid} aria-describedby={status === "held" ? undefined : "deposit-amount-help"} />
     {status !== "held" && <p id="deposit-amount-help" className={valid ? "text-xs text-muted-foreground" : "text-xs text-destructive"} role={valid ? undefined : "alert"}>
       {valid ? `Si lo dejas vacío, se registrarán ${formatCurrency(defaultAmount)}.` : `Ingresa un importe entre ${formatCurrency(0)} y ${formatCurrency(amount)}.`}
     </p>}
@@ -76,41 +42,18 @@ function DepositAmountField({ status, amount, defaultAmount, value, valid, onCha
 
 /**
  * A6R2-4: ciclo de vida del depósito en garantía. Sólo presenta y dispara la
- * RPC `set_contract_deposit_status`; las reglas (rol, monto máximo) viven en la
+ * RPC `set_contract_deposit_status_checked`; las reglas viven en la
  * base de datos.
  */
-export function ContractDepositCard({
-  contractId,
-  depositAmount,
-  depositStatus,
-  depositSettledAt,
-  depositSettledAmount,
-  depositNotes,
-}: Props) {
+export function ContractDepositCard(props: Props) {
+  const { depositAmount, depositStatus, depositSettledAt, depositSettledAmount, depositNotes } = props;
+  const draft = useContractDepositDraft(props);
+  const { status, settledAmount, notes, setStatus, setSettledAmount, setNotes, formState, busy,
+    reloadError, isReloading, reloadDeposit, handleSave } = draft;
   const amount = Number(depositAmount ?? 0);
   const current = (depositStatus ?? "held") as DepositStatus;
-  const [status, setStatus] = useState<DepositStatus>(current);
-  const [settledAmount, setSettledAmount] = useState<string>(
-    depositSettledAmount == null ? "" : String(depositSettledAmount),
-  );
-  const [notes, setNotes] = useState<string>(depositNotes ?? "");
-  const mutation = useSetContractDepositStatus();
   const summaryColumns = ["sm:grid-cols-2", "sm:grid-cols-3", "sm:grid-cols-4"][Number(!!depositSettledAt) + Number(depositSettledAmount != null)];
-
-  const formState = getDepositFormState({
-    amount, current, status, settledAmount, depositSettledAmount, notes, depositNotes,
-  });
-
-  if (amount <= 0) return null;
-
-  const handleSave = () => {
-    mutation.mutate({
-      contractId,
-      status,
-      amount: formState.amountToSubmit,
-      notes: formState.notesToSubmit,
-    });
-  };
+  if (!draft.visible) return null;
 
   return (
     <Card>
@@ -132,10 +75,17 @@ export function ContractDepositCard({
         {depositNotes && <p className="text-muted-foreground whitespace-pre-wrap">{depositNotes}</p>}
 
         <RoleGuard module="Contratos" minAccess="full" fallback={null}>
+          {draft.needsReload && <div className="space-y-2" role="alert">
+            <p>{reloadError ? "No se pudo recargar el depósito. Tus cambios siguen aquí." :
+              "El contrato cambió. Recarga el depósito para revisar los datos actuales; se reemplazarán tus cambios sin guardar."}</p>
+            <Button size="sm" variant="outline" disabled={busy} onClick={() => void reloadDeposit()}>
+              {isReloading ? "Recargando…" : "Recargar depósito"}
+            </Button>
+          </div>}
           <div className="grid gap-3 sm:grid-cols-3 items-end border-t pt-4">
             <div className="space-y-1">
               <Label htmlFor="deposit-status">Nuevo estado</Label>
-              <Select value={status} onValueChange={(v) => setStatus(v as DepositStatus)}>
+              <Select value={status} disabled={busy} onValueChange={(v) => setStatus(v as DepositStatus)}>
                 <SelectTrigger id="deposit-status"><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="held">Retenido</SelectItem>
@@ -144,20 +94,21 @@ export function ContractDepositCard({
                 </SelectContent>
               </Select>
             </div>
-            <DepositAmountField status={status} amount={amount} defaultAmount={formState.defaultAmount}
-              value={settledAmount} valid={formState.amountValid} onChange={setSettledAmount} />
+            <DepositAmountField status={status} amount={formState.amount} defaultAmount={formState.defaultAmount}
+              value={settledAmount} valid={formState.amountValid} disabled={busy} onChange={setSettledAmount} />
             <div className="space-y-1">
               <Label htmlFor="deposit-notes">Notas</Label>
               <Textarea
                 id="deposit-notes"
                 rows={1}
                 value={notes}
+                disabled={busy}
                 onChange={(e) => setNotes(e.target.value)}
               />
             </div>
             <div>
-              <Button size="sm" onClick={handleSave} disabled={mutation.isPending || !formState.hasChanges || !formState.amountValid}>
-                {mutation.isPending ? "Guardando…" : "Guardar estado del depósito"}
+              <Button size="sm" onClick={handleSave} disabled={draft.saveDisabled}>
+                {draft.isPending ? "Guardando…" : "Guardar estado del depósito"}
               </Button>
             </div>
           </div>

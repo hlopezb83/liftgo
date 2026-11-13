@@ -5,6 +5,7 @@ import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
 import { defineEntityQueries } from "@/lib/query/defineEntityQueries";
 import { LIST_FETCH_LIMIT, LIST_PAGE_LIMIT } from "@/lib/supabase/constants";
 import type { ContractViewModel } from "@/types/rental";
+import { setContractDeposit } from "../lib/contractDepositRpc";
 import { contractKeys } from "../lib/queryKeys";
 
 type Contract = ContractViewModel;
@@ -164,24 +165,16 @@ export function useSetSentContractSigner() {
   });
 }
 
-export type DepositStatus = "held" | "applied" | "returned";
+export type { DepositStatus } from "../lib/contractDepositRpc";
 
 /**
  * A6R2-4: registra el destino del depósito en garantía (retenido/aplicado/
  * devuelto). La validación real (rol, monto ≤ depósito) vive en la RPC
- * `set_contract_deposit_status`.
+ * `set_contract_deposit_status_checked`, con la revisión del borrador.
  */
 export function useSetContractDepositStatus() {
   return useEntityMutation({
-    mutationFn: async (input: { contractId: string; status: DepositStatus; amount?: number | null; notes?: string | null }) => {
-      const { error } = await supabase.rpc("set_contract_deposit_status", {
-        p_contract_id: input.contractId,
-        p_status: input.status,
-        p_amount: input.amount ?? undefined,
-        p_notes: input.notes ?? undefined,
-      });
-      if (error) throw error;
-    },
+    mutationFn: setContractDeposit,
     invalidateKeys: [contractKeys.all],
     successMsg: "Depósito actualizado",
     errorTitle: "Error al actualizar el depósito",

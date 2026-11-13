@@ -44,13 +44,13 @@ DECLARE
   v_id uuid := 'a7000000-0000-4000-8000-000000000002';
   v_row public.contracts%ROWTYPE;
 BEGIN
-  PERFORM public.set_contract_deposit_status(v_id, 'applied', NULL, 'Aplicado a renta');
+  PERFORM public.set_contract_deposit_status_checked(v_id, (SELECT updated_at FROM public.contracts WHERE id = v_id), 'applied', NULL, 'Aplicado a renta');
   SELECT * INTO v_row FROM public.contracts WHERE id = v_id;
   IF v_row.updated_at IS DISTINCT FROM '2026-01-03 10:00:00+00'::timestamptz THEN
     RAISE EXCEPTION 'Guardar sin cambios reescribió updated_at';
   END IF;
 
-  PERFORM public.set_contract_deposit_status(v_id, 'applied', NULL, 'Nota actualizada');
+  PERFORM public.set_contract_deposit_status_checked(v_id, (SELECT updated_at FROM public.contracts WHERE id = v_id), 'applied', NULL, 'Nota actualizada');
   SELECT * INTO v_row FROM public.contracts WHERE id = v_id;
   IF v_row.deposit_settled_amount IS DISTINCT FROM 4000
      OR v_row.deposit_settled_at IS DISTINCT FROM '2026-01-02 10:00:00+00'::timestamptz
@@ -58,14 +58,14 @@ BEGIN
     RAISE EXCEPTION 'Editar notas alteró monto o fecha del depósito parcial';
   END IF;
 
-  PERFORM public.set_contract_deposit_status(v_id, 'applied', 5000, 'Nota actualizada');
+  PERFORM public.set_contract_deposit_status_checked(v_id, (SELECT updated_at FROM public.contracts WHERE id = v_id), 'applied', 5000, 'Nota actualizada');
   SELECT * INTO v_row FROM public.contracts WHERE id = v_id;
   IF v_row.deposit_settled_amount IS DISTINCT FROM 5000
      OR v_row.deposit_settled_at IS DISTINCT FROM '2026-01-02 10:00:00+00'::timestamptz THEN
     RAISE EXCEPTION 'Ajustar el monto reescribió la fecha de aplicación';
   END IF;
 
-  PERFORM public.set_contract_deposit_status(v_id, 'returned', NULL, 'Devuelto al cliente');
+  PERFORM public.set_contract_deposit_status_checked(v_id, (SELECT updated_at FROM public.contracts WHERE id = v_id), 'returned', NULL, 'Devuelto al cliente');
   SELECT * INTO v_row FROM public.contracts WHERE id = v_id;
   IF v_row.deposit_settled_amount IS DISTINCT FROM 5000
      OR v_row.deposit_settled_at IS NULL
@@ -73,10 +73,25 @@ BEGIN
     RAISE EXCEPTION 'Cambiar estado no conservó el monto ni registró fecha nueva';
   END IF;
 
-  PERFORM public.set_contract_deposit_status(v_id, 'held', NULL, 'En garantía');
+  PERFORM public.set_contract_deposit_status_checked(v_id, (SELECT updated_at FROM public.contracts WHERE id = v_id), 'held', NULL, 'En garantía');
   SELECT * INTO v_row FROM public.contracts WHERE id = v_id;
   IF v_row.deposit_settled_amount IS NOT NULL OR v_row.deposit_settled_at IS NOT NULL THEN
     RAISE EXCEPTION 'Volver a retenido no limpió la liquidación';
+  END IF;
+
+  BEGIN
+    PERFORM public.set_contract_deposit_status_checked(v_id, '2026-01-03 10:00:00+00', 'returned', 10000, 'Obsoleto');
+    RAISE EXCEPTION 'La revisión obsoleta fue aceptada';
+  EXCEPTION WHEN serialization_failure THEN NULL;
+  END;
+  BEGIN
+    PERFORM public.set_contract_deposit_status(v_id, 'returned', 10000, 'Cliente antiguo');
+    RAISE EXCEPTION 'La RPC antigua permitió una escritura';
+  EXCEPTION WHEN raise_exception THEN
+    IF SQLERRM NOT LIKE '%Recarga la aplicación%' THEN RAISE; END IF;
+  END;
+  IF (SELECT deposit_status FROM public.contracts WHERE id = v_id) IS DISTINCT FROM 'held' THEN
+    RAISE EXCEPTION 'El rechazo de conflictos o clientes antiguos cambió el depósito';
   END IF;
 END $test$;
 
