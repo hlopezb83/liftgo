@@ -80,7 +80,12 @@ export function MaintenanceFormDialog({
 
           <FormSection title="Ejecución y costo">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <CurrencyField control={form.control} name="cost" label="Costo" />
+              <CurrencyField
+                control={form.control}
+                name="cost"
+                label="Costo manual"
+                description="Captura otros costos del servicio. Las refacciones y la mano de obra registradas se suman por separado."
+              />
               <SelectField
                 control={form.control}
                 name="performedBy"

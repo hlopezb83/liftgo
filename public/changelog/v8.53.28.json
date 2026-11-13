@@ -1,0 +1,6 @@
+{
+  "description": "Costo manual claramente identificado",
+  "changes": [
+    "El formulario de mantenimiento identifica el costo manual y explica que refacciones y mano de obra se suman por separado."
+  ]
+}
