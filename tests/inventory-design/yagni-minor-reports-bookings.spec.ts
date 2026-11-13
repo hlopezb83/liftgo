@@ -85,7 +85,8 @@ test("próximas reservas limpia estados incompatibles y muestra las confirmadas"
     const params = new URL(route.request().url()).searchParams;
     requests.push(params);
     const statuses = params.getAll("status");
-    return json(route, rows.filter(row => statuses.every(value => value === `eq.${row.status}` || value === `in.(${row.status})`)));
+    const filtered = rows.filter(row => statuses.every(value => value === `eq.${row.status}` || value === `in.(${row.status})`));
+    return route.fulfill({ json: filtered, headers: { "access-control-allow-origin": "*", "access-control-expose-headers": "content-range", "content-range": `0-${Math.max(0, filtered.length - 1)}/${filtered.length}` } });
   });
   const bookingLinkPrefix = info.project.use.isMobile ? "Reserva" : "Ver reserva";
   await page.goto("/bookings?status=cancelled");
@@ -94,7 +95,7 @@ test("próximas reservas limpia estados incompatibles y muestra las confirmadas"
   await expect(page).toHaveURL(/view=upcoming/);
   await expect(page).not.toHaveURL(/status=cancelled/);
   await expect(page.getByRole("link", { name: `${bookingLinkPrefix} QA-RES-confirmed`, exact: true })).toBeVisible();
-  expect(requests.at(-1)?.getAll("status")).toEqual(["in.(confirmed)"]);
+  expect(requests.at(-1)?.getAll("status")).toEqual(["eq.confirmed"]);
   if (info.project.use.isMobile) await page.getByRole("button", { name: "Filtros activos", exact: true }).click();
   await expect(page.getByRole("tab", { name: "Cancelado", exact: true })).toHaveCount(0);
   await expect(page.getByRole("tab", { name: "Completado", exact: true })).toHaveCount(0);
