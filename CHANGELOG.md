@@ -1,3 +1,8 @@
+## [8.53.31] - 2026-11-13
+
+- La conciliación muestra el código de moneda en cada importe para distinguir pesos, dólares y otras divisas.
+- El total convertido a MXN y la exportación conservan sus cálculos y reglas existentes.
+
 ## [8.53.30] - 2026-11-13
 
 - La tabla y las tarjetas de mantenimiento muestran el estado de cada orden sin abrir el detalle.
