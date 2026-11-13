@@ -24,6 +24,7 @@ function contractDates(contract: { start_date: string | null; end_date: string |
 function depositProps(contract: ContractData, contractId: string) {
   return {
     contractId,
+    updatedAt: contract.updated_at,
     depositAmount: contract.deposit_amount,
     depositStatus: contract.deposit_status ?? null,
     depositSettledAt: contract.deposit_settled_at ?? null,
@@ -72,7 +73,8 @@ export default function ContractDetail() {
   const navigate = useNavigateTransition();
   const { id, contract, isLoading, isError, refetch, setStatus, setSigner, signerPending } = useContractDetailLogic();
 
-  if (isLoading || isError || !contract || !id) {
+  // A failed explicit deposit refresh must not unmount an unsaved draft.
+  if (isLoading || !contract || !id) {
     return (
       <ContractDetailFallback
         isLoading={isLoading}
@@ -88,6 +90,7 @@ export default function ContractDetail() {
 
   return (
     <PageContainer maxWidth="wide">
+      {isError && <QueryErrorState entity="el contrato" onRetry={() => { void refetch(); }} />}
       <DetailPageHeader
         title={contract.contract_number}
         backTo="/contracts"
@@ -120,7 +123,11 @@ export default function ContractDetail() {
         signedBy={contract.signed_by}
       />
 
-      <ContractDepositCard key={id} {...depositProps(contract, id)} />
+      <ContractDepositCard key={id} {...depositProps(contract, id)} onReload={async () => {
+        const { data } = await refetch({ throwOnError: true });
+        if (!data) throw new Error("No se pudo recargar el depósito.");
+        return depositProps(data, id);
+      }} />
 
       <ContractConditionsCard contract={contract} />
 

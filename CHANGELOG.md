@@ -1,3 +1,9 @@
+## [8.53.12] - 2026-11-13
+
+- Guardar un depósito comprueba la versión del contrato dentro del bloqueo de la fila; una captura desactualizada conserva sus cambios y permite recargar explícitamente.
+- La recarga renueva juntos los datos y su versión; un fallo de lectura mantiene el borrador visible.
+- La llamada antigua de depósitos solicita recargar la aplicación; se conservan importes parciales, fechas y guardados sin cambios.
+
 ## [8.53.11] - 2026-11-13
 
 - La importación comprueba el total declarado contra los importes que puede representar el formulario, en la moneda original y con el mismo redondeo.

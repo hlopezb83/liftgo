@@ -24,7 +24,7 @@ class LocalCiDatabaseTests(unittest.TestCase):
         root = Path(__file__).parents[2]
         self.assertEqual(ci.SOURCE_TREES, {
             "supabase/migrations": "3e3575f5ff6d509ecdd624ae7fc1772508b5dce6",
-            "drizzle/migrations": "214482342a44fa8c79ce7092454b463035319e3b",
+            "drizzle/migrations": "b335ac252ed357de4487da78d951d36ee2503c63",
         })
         migrations = root / "drizzle/migrations"
         journal = json.loads((migrations / "meta/_journal.json").read_text())
@@ -106,6 +106,28 @@ class LocalCiDatabaseTests(unittest.TestCase):
         old_trees = [
             "040000 tree 3e3575f5ff6d509ecdd624ae7fc1772508b5dce6\tsupabase/migrations",
             "040000 tree 6408a4d74bb180047a379980ea79e0eb851db0e3\tdrizzle/migrations",
+        ]
+        with mock.patch.object(ci, "command_lines", return_value=old_trees) as commands, \
+                mock.patch.object(ci, "check_http_sources") as inspect_sql, self.assertRaises(ValueError):
+            ci.preflight_sources()
+        self.assertEqual(commands.call_count, 1)
+        inspect_sql.assert_not_called()
+
+    def test_deposit143_has_exact_source_identity_and_journal_entry(self):
+        migrations = Path(__file__).parents[2] / "drizzle/migrations"
+        sql = migrations / "0143_contract_deposit_concurrency.sql"
+        self.assertEqual(hashlib.sha256(sql.read_bytes()).hexdigest(),
+                         "25cb5062c9bbd4c1b5f49c6c1b57730c6ad396a7fc25e1573a1fbeb3373fcae1")
+        journal = json.loads((migrations / "meta/_journal.json").read_text())
+        self.assertEqual(journal["entries"][143], {
+            "idx": 143, "version": "7", "when": 1794542400000,
+            "tag": "0143_contract_deposit_concurrency", "breakpoints": True,
+        })
+
+    def test_deposit143_previous_reviewed_tree_fails_before_sql_inspection(self):
+        old_trees = [
+            "040000 tree 3e3575f5ff6d509ecdd624ae7fc1772508b5dce6\tsupabase/migrations",
+            "040000 tree 214482342a44fa8c79ce7092454b463035319e3b\tdrizzle/migrations",
         ]
         with mock.patch.object(ci, "command_lines", return_value=old_trees) as commands, \
                 mock.patch.object(ci, "check_http_sources") as inspect_sql, self.assertRaises(ValueError):
@@ -323,6 +345,7 @@ class GuardedBootstrapTests(unittest.TestCase):
             "drizzle/migrations/meta/0134_snapshot.json",
             "drizzle/migrations/0142_0142_inventory_low_stock_filter.sql",
             "drizzle/migrations/meta/0142_snapshot.json",
+            "drizzle/migrations/0143_contract_deposit_concurrency.sql",
             "drizzle/migrations/meta/_journal.json",
         ]
         for name in paths:

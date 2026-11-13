@@ -89,10 +89,15 @@ START_EXCLUDES = {
 # journal entry 142 and an empty snapshot linking to 0138. All earlier sources
 # and Supabase bytes are unchanged.
 # See docs/qa/migration-0142-ci-source-review.md for the exact reviewed identity.
+# Candidate 0143 adds a checked deposit RPC and replaces the legacy body with
+# a fail-closed reload error. Both keep INVOKER and restricted EXECUTE. Only
+# function definitions/ACL/comments and PostgREST schema notification run at
+# installation; no business DML, HTTP or cron. Earlier bytes are unchanged.
+# See docs/qa/migration-0143-ci-source-review.md for canonical SQL/journal hashes.
 # Any subsequent history change requires explicit source review.
 SOURCE_TREES = {
     "supabase/migrations": "3e3575f5ff6d509ecdd624ae7fc1772508b5dce6",
-    "drizzle/migrations": "214482342a44fa8c79ce7092454b463035319e3b",
+    "drizzle/migrations": "b335ac252ed357de4487da78d951d36ee2503c63",
 }
 HTTP_SOURCES = {
     "20260721000000_retry_queue_cron.sql": "2aecccd0758961f41769d9fed522d03df14937650b9dde80fce47646a1fa6887",
