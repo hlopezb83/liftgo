@@ -79,6 +79,7 @@ function CloseWorkOrderSession({ open, onOpenChange, log, onClosed, onCancel }: 
       open={open}
       onOpenChange={(v) => (v ? onOpenChange(true) : handleCancel())}
       isPending={close.isPending}
+      isDirty={form.formState.isDirty}
       title="Cerrar orden de trabajo"
       description={log ? `${serviceTypeLabel(log.service_type)} — ${log.forklift_name ?? "Equipo"}` : undefined}
       testId="close-work-order-dialog"

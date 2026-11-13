@@ -1,3 +1,8 @@
+## [8.53.27] - 2026-11-13
+
+- Salir de una orden con notas de cierre sin guardar solicita confirmación.
+- Seguir editando conserva las notas y descartar mantiene separadas las capturas de cada orden.
+
 ## [8.53.26] - 2026-11-13
 
 - El resumen de cierre distingue la carga y los errores del desglose de costos.

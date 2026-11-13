@@ -1,0 +1,7 @@
+{
+  "description": "Notas de cierre protegidas contra descartes",
+  "changes": [
+    "Salir de una orden con notas de cierre sin guardar solicita confirmación.",
+    "Seguir editando conserva las notas y descartar mantiene separadas las capturas de cada orden."
+  ]
+}
