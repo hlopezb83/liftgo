@@ -1,3 +1,8 @@
+## [8.53.24] - 2026-11-13
+
+- Corregir una entrega al día de hoy funciona también antes del mediodía.
+- Corregir o anular una entrega actualiza los días rentados y la utilización del equipo.
+
 ## [8.53.23] - 2026-11-13
 
 - El selector de mantenimiento busca refacciones disponibles en todo el inventario mediante páginas del servidor.

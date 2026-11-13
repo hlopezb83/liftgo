@@ -1,0 +1,7 @@
+{
+  "description": "Correcciones de entregas con fecha e indicadores actualizados",
+  "changes": [
+    "Corregir una entrega al día de hoy funciona también antes del mediodía.",
+    "Corregir o anular una entrega actualiza los días rentados y la utilización del equipo."
+  ]
+}
