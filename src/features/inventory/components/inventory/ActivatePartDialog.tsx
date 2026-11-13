@@ -6,41 +6,62 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 import { usePrefillEffect } from "@/hooks/usePrefillEffect";
 import { useUnsavedChangesGuard } from "@/hooks/useUnsavedChangesGuard";
+import { useVerifiedIdentityScope } from "@/lib/query/useVerifiedIdentityScope";
 import { notifyValidation } from "@/lib/ui/appFeedback";
+import { ACTIVATION_CATALOG_PAGE_SIZE, useActivationCatalogPage, type ActivationCatalogPart } from "../../hooks/useActivationCatalogPage";
 import { useActivateCatalogPart } from "../../hooks/usePartInventoryMutations";
-import { usePartsCatalog, usePartsInventory, type PartCatalog, type PartInventory } from "../../hooks/usePartsInventory";
 
-function unlinkedParts(catalog: PartCatalog[], inventory: PartInventory[]): PartCatalog[] {
-  const enabledIds = new Set(inventory.map((part) => part.catalog_part_id));
-  return catalog.filter((part) => !enabledIds.has(part.id));
-}
-
-export function ActivatePartDialog({
-  open,
-  onOpenChange,
-}: {
+type Props = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-}) {
-  const { data: catalog = [], isLoading, isError, isFetching, refetch } = usePartsCatalog();
-  const { data: inventory = [], isLoading: inventoryLoading, isError: inventoryError, isFetching: inventoryFetching, refetch: refetchInventory } = usePartsInventory();
-  const activate = useActivateCatalogPart();
+};
+
+export function ActivatePartDialog(props: Props) {
+  const identity = useVerifiedIdentityScope();
+  return <ActivationForm key={identity} {...props} />;
+}
+
+function useCatalogSelection(open: boolean) {
   const [catalogPartId, setCatalogPartId] = useState("");
+  const [search, setSearch] = useState("");
+  const [page, setPage] = useState(0);
+  const debouncedSearch = useDebouncedValue(search.trim());
+  const catalogQuery = useActivationCatalogPage({ open, search: debouncedSearch, page, selectedId: catalogPartId });
+  const catalogReady = catalogQuery.isReady && search.trim() === debouncedSearch;
+  const data = catalogReady ? catalogQuery.data : undefined;
+  const availableCatalog = data?.items ?? [];
+  const selected = data?.selected;
+  const options = selected && !availableCatalog.some((part) => part.id === selected.id)
+    ? [selected, ...availableCatalog] : availableCatalog;
+  const selectedActive = catalogReady && selected?.id === catalogPartId;
+  usePrefillEffect(() => {
+    if (data && data.pageIndex !== page) setPage(data.pageIndex);
+  }, [data?.pageIndex]);
+  usePrefillEffect(() => {
+    if (!open) return;
+    setCatalogPartId("");
+    setSearch("");
+    setPage(0);
+  }, [open]);
+  return { catalogPartId, setCatalogPartId, search, setSearch, page, setPage,
+    catalogQuery, catalogReady, data, availableCatalog, options, selectedActive };
+}
+
+function ActivationForm({ open, onOpenChange }: Props) {
+  const activate = useActivateCatalogPart();
+  const catalog = useCatalogSelection(open);
+  const { catalogPartId, catalogReady, selectedActive } = catalog;
   const [stock, setStock] = useState("0");
   const [minimum, setMinimum] = useState("0");
   const [cost, setCost] = useState("0");
   const [location, setLocation] = useState("");
-  const catalogId = useId();
-  const catalogReady = ![isLoading, isError, inventoryLoading, inventoryError].some(Boolean);
-  const availableCatalog = unlinkedParts(catalog, inventory);
-  const selectedActive = catalogReady && availableCatalog.some((part) => part.id === catalogPartId);
   const isDirty = !!catalogPartId || stock !== "0" || minimum !== "0" || cost !== "0" || !!location;
   useUnsavedChangesGuard(open && isDirty && !activate.isPending);
   usePrefillEffect(() => {
     if (!open) return;
-    setCatalogPartId("");
     setStock("0");
     setMinimum("0");
     setCost("0");
@@ -81,9 +102,7 @@ export function ActivatePartDialog({
       isDirty={isDirty}
     >
       <div className="grid gap-4 py-2">
-        <CatalogPicker id={catalogId} catalog={availableCatalog} value={catalogPartId} onChange={setCatalogPartId}
-          loading={isLoading || inventoryLoading} error={isError || inventoryError} retrying={isFetching || inventoryFetching} pending={activate.isPending}
-          onRetry={() => { void refetch(); void refetchInventory(); }} />
+        <CatalogSearchPicker catalog={catalog} pending={activate.isPending} />
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
           <Field label="Stock inicial" value={stock} onChange={setStock} type="number" />
           <Field label="Stock mínimo" value={minimum} onChange={setMinimum} type="number" />
@@ -99,8 +118,36 @@ export function ActivatePartDialog({
   );
 }
 
+function CatalogSearchPicker({ catalog, pending }: { catalog: ReturnType<typeof useCatalogSelection>; pending: boolean }) {
+  const { catalogPartId, setCatalogPartId, search, setSearch, page, setPage,
+    catalogQuery, catalogReady, data, availableCatalog, options } = catalog;
+  const catalogId = useId();
+  const searchId = useId();
+  const totalPages = Math.max(1, Math.ceil((data?.totalCount ?? 0) / ACTIVATION_CATALOG_PAGE_SIZE));
+  return <>
+    <div className="space-y-1.5">
+      <Label htmlFor={searchId}>Buscar SKU o nombre</Label>
+      <Input id={searchId} value={search} disabled={pending}
+        onChange={(event) => { setSearch(event.target.value); setPage(0); }} placeholder="Buscar en todo el catálogo…" />
+    </div>
+    <CatalogPicker id={catalogId} catalog={options} value={catalogPartId}
+      // Radix may emit an empty value when options unmount during verification.
+      onChange={(value) => { if (value) setCatalogPartId(value); }}
+      loading={!catalogReady} error={catalogQuery.isError} retrying={catalogQuery.isFetching} pending={pending}
+      onRetry={() => { void catalogQuery.refetch(); }} />
+    {catalogReady && availableCatalog.length === 0 && <p className="text-sm text-muted-foreground">
+      {data?.totalCount === 0 ? "No hay SKUs activos que coincidan con la búsqueda." : "Los SKUs de esta página ya están habilitados. Busca otro SKU o cambia de página."}
+    </p>}
+    <div className="flex items-center justify-between gap-2" aria-label="Paginación del catálogo">
+      <Button variant="outline" size="sm" onClick={() => setPage(page - 1)} disabled={!catalogReady || pending || page === 0}>Anterior</Button>
+      <span className="text-sm text-muted-foreground" aria-live="polite">{catalogReady ? `Página ${page + 1} de ${totalPages}` : catalogQuery.isError ? "Catálogo no disponible" : "Cargando catálogo…"}</span>
+      <Button variant="outline" size="sm" onClick={() => setPage(page + 1)} disabled={!catalogReady || pending || page + 1 >= totalPages}>Siguiente</Button>
+    </div>
+  </>;
+}
+
 function CatalogPicker({ id, catalog, value, onChange, loading, error, retrying, pending, onRetry }: {
-  id: string; catalog: PartCatalog[]; value: string; onChange: (value: string) => void;
+  id: string; catalog: ActivationCatalogPart[]; value: string; onChange: (value: string) => void;
   loading: boolean; error: boolean; retrying: boolean; pending: boolean; onRetry: () => void;
 }) {
   if (error) return <QueryErrorState entity="el catálogo LiftGo" bare isRetrying={retrying} onRetry={onRetry} />;
@@ -112,7 +159,6 @@ function CatalogPicker({ id, catalog, value, onChange, loading, error, retrying,
         {catalog.map((part) => <SelectItem key={part.id} value={part.id}>{part.sku} · {part.name}</SelectItem>)}
       </SelectContent>
     </Select>
-    {!loading && catalog.length === 0 && <p className="text-sm text-muted-foreground">El operador de plataforma debe agregar refacciones al catálogo compartido para que puedas habilitarlas.</p>}
   </div>;
 }
 
