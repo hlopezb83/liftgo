@@ -51,6 +51,11 @@ const XML_SIN_IMPUESTOS = `<?xml version="1.0" encoding="utf-8"?>
 </cfdi:Comprobante>`;
 
 describe("parseCfdiXml", () => {
+  it.each([null, "", " ", "NaN", "Infinity", "abc", "-1", "0x10", "1e2"])("rechaza Total inválido: %s", (total) => {
+    const xml = XML_SIN_IMPUESTOS.replace(' Total="500.00"', total === null ? "" : ` Total="${total}"`);
+    expect(() => parseCfdiXml(xml)).toThrow("El CFDI no indica un Total numérico válido.");
+  });
+
   it("no duplica impuestos cuando vienen a nivel concepto y a nivel comprobante", () => {
     const parsed = parseCfdiXml(XML_DOBLE_NIVEL);
     expect(parsed.subtotal).toBe(10000);

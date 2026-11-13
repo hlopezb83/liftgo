@@ -4,6 +4,7 @@ import { useSuppliers } from "@/features/suppliers";
 import { notifyError, notifyWarning } from "@/lib/ui/appFeedback";
 import { nowMty } from "@/lib/utils";
 import { parseCfdiXml, CfdiParseError, type CfdiParsed } from "../lib/parseCfdiXml";
+import { validateCfdiTotal } from "../lib/validateCfdiTotal";
 import { checkSupplierBillCfdiUuid } from "./useCheckSupplierBillCfdiUuid";
 import { useUploadSupplierBillXml, type UploadedCfdiXml } from "./useUploadSupplierBillXml";
 import type { SupplierBillFormData } from "./useSupplierBillForm";
@@ -22,6 +23,7 @@ async function parseAndValidateXml(file: File): Promise<CfdiParsed> {
   }
   const text = await file.text();
   const parsed = parseCfdiXml(text);
+  validateCfdiTotal(parsed);
   if (!parsed.uuid) {
     throw new CfdiParseError("El CFDI no tiene UUID (TimbreFiscalDigital)");
   }

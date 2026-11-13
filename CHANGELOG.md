@@ -1,3 +1,8 @@
+## [8.53.11] - 2026-11-13
+
+- La importación comprueba el total declarado contra los importes que puede representar el formulario, en la moneda original y con el mismo redondeo.
+- Los XML sin Total válido o con diferencias se rechazan antes de subir el archivo o sustituir la captura; la factura puede capturarse manualmente.
+
 ## [8.53.10] - 2026-11-12
 
 - El historial de cambios renueva los índices reciente y completo al cargar una nueva versión, aunque el navegador conserve la caché de una publicación anterior.
