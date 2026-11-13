@@ -1,33 +1,28 @@
 import { describe, expect, it } from "vitest";
-import { PAYMENT_METHODS } from "@/features/invoices/lib/paymentMethods";
+import { getPaymentMethodLabel } from "@/features/invoices/lib/paymentMethods";
 
 /**
  * R8-FE-19 (BL-R8-28): historial de pagos debe traducir payment_method
  * (transfer/cash/check/card) usando el mapa correcto del feature de
  * facturas, no PAYMENT_METHOD_LABELS de CxP (vocabulario distinto).
  */
-const PAYMENT_METHOD_LABELS: Record<string, string> = Object.fromEntries(
-  PAYMENT_METHODS.map((m) => [m.value, m.label]),
-);
-
-function displayPaymentMethod(method: string | null): string {
-  return (method && PAYMENT_METHOD_LABELS[method]) || method || "—";
-}
-
 describe("traducción de método de pago (R8-FE-19)", () => {
   it("traduce los 4 valores reales de payments.payment_method", () => {
-    expect(displayPaymentMethod("transfer")).toBe("Transferencia");
-    expect(displayPaymentMethod("cash")).toBe("Efectivo");
-    expect(displayPaymentMethod("check")).toBe("Cheque");
-    expect(displayPaymentMethod("card")).toBe("Tarjeta");
+    expect(getPaymentMethodLabel("transfer")).toBe("Transferencia");
+    expect(getPaymentMethodLabel("cash")).toBe("Efectivo");
+    expect(getPaymentMethodLabel("check")).toBe("Cheque");
+    expect(getPaymentMethodLabel("card")).toBe("Tarjeta");
   });
 
-  it("nunca muestra el valor crudo en inglés para un método conocido", () => {
-    expect(displayPaymentMethod("transfer")).not.toBe("transfer");
+  it("no interpreta códigos SAT como métodos operativos", () => {
+    expect(getPaymentMethodLabel("03")).toBe("03");
+    expect(getPaymentMethodLabel("PPD")).toBe("PPD");
   });
 
-  it("cae al valor crudo si el método es desconocido, y a '—' si es null", () => {
-    expect(displayPaymentMethod("wire")).toBe("wire");
-    expect(displayPaymentMethod(null)).toBe("—");
+  it("conserva valores desconocidos y representa los vacíos sin inventar un método", () => {
+    expect(getPaymentMethodLabel("wire")).toBe("wire");
+    expect(getPaymentMethodLabel(null)).toBe("—");
+    expect(getPaymentMethodLabel(undefined)).toBe("—");
+    expect(getPaymentMethodLabel("")).toBe("—");
   });
 });

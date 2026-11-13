@@ -1,3 +1,8 @@
+## [8.53.34] - 2026-11-13
+
+- El detalle de factura muestra código y nombre de forma de pago, método de pago y uso CFDI.
+- El portal muestra nombres de métodos de pago en español usando el catálogo existente, sin cambiar los valores guardados.
+
 ## [8.53.33] - 2026-11-13
 
 - El motivo que impide editar un pago con REP timbrado se puede consultar con teclado o toque.

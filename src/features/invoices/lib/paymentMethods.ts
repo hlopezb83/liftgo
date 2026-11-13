@@ -9,6 +9,10 @@ export const PAYMENT_METHODS = [
   { value: "card", label: "Tarjeta", sat: "04" },
 ] as const;
 
+/** Etiqueta operativa; los códigos SAT pertenecen a un catálogo distinto. */
+export function getPaymentMethodLabel(method: string | null | undefined): string {
+  return PAYMENT_METHODS.find((entry) => entry.value === method)?.label ?? (method || "—");
+}
 
 /** Devuelve el código SAT para un método interno, o "03" (transferencia) por defecto. */
 export function satCodeForMethod(method: string): string {
