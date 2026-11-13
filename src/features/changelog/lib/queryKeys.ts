@@ -1,14 +1,15 @@
 import { defineEntityQueries } from "@/lib/query/defineEntityQueries";
-import { fetchChangelogIndex, fetchChangelogDetail, fetchChangelogArchive } from "./changelog";
+import { fetchChangelogIndex, fetchChangelogDetail, fetchChangelogArchive, getChangelogRelease } from "./changelog";
 import type { ChangelogIndexEntry, ChangelogDetail } from "./changelog";
 
 type ChangelogScope = Readonly<{ scope: "archive" }>;
+type ChangelogFilter = Readonly<{ scope?: "archive"; release: string }>;
 
-export const changelogQueries = defineEntityQueries<
+const entityQueries = defineEntityQueries<
   "changelog",
   ChangelogIndexEntry[],
   ChangelogDetail,
-  ChangelogScope
+  ChangelogFilter
 >("changelog", {
   // Sin filtro → índice ligero (últimas versiones). Con `scope: "archive"` →
   // histórico completo, que solo se pide cuando el usuario lo solicita.
@@ -16,3 +17,9 @@ export const changelogQueries = defineEntityQueries<
   detail: (version: string) => () => fetchChangelogDetail(version),
   staleTime: Infinity,
 });
+
+export const changelogQueries = {
+  ...entityQueries,
+  // Una caché persistida de otra publicación no debe sustituir ninguno de los índices.
+  list: (filter?: ChangelogScope) => entityQueries.list({ ...filter, release: getChangelogRelease() }),
+};

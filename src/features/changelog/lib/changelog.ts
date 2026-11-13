@@ -94,8 +94,13 @@ function sortEntries<T extends { date: string; version: string }>(entries: T[]):
   });
 }
 
+export function getChangelogRelease(): string {
+  return import.meta.env.VITE_APP_VERSION || "development";
+}
+
 async function fetchIndexFrom(url: string): Promise<ChangelogIndexEntry[]> {
-  const res = await fetch(url, { cache: "default" });
+  // Los índices cambian en cada publicación; los detalles ya llevan versión en su ruta.
+  const res = await fetch(`${url}?release=${encodeURIComponent(getChangelogRelease())}`, { cache: "no-store" });
   if (!res.ok) throw new Error(`No se pudo cargar el changelog (HTTP ${res.status})`);
   const json: unknown = await res.json();
   if (!Array.isArray(json)) throw new Error(`${url} no es un arreglo`);
