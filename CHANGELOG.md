@@ -1,3 +1,8 @@
+## [8.53.25] - 2026-11-13
+
+- El selector de montacargas en mantenimiento ajusta nombres y modelos largos al espacio disponible.
+- La selección conserva navegación por teclado y funcionamiento en escritorio.
+
 ## [8.53.24] - 2026-11-13
 
 - Corregir una entrega al día de hoy funciona también antes del mediodía.
