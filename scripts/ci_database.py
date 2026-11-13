@@ -99,10 +99,13 @@ START_EXCLUDES = {
 # Installation defines one function/ACL and reloads PostgREST metadata only;
 # no business DML, policies, HTTP or cron. 0141 and all earlier bytes are unchanged.
 # See docs/qa/migration-0144-ci-source-review.md for canonical SQL/journal hashes.
+# Candidate 0145 extends the existing locked maintenance-child guard to archived
+# parents. Function body/ACL only: no business DML, policies, HTTP or cron.
+# All earlier sources are unchanged. See docs/qa/migration-0145-ci-source-review.md.
 # Any subsequent history change requires explicit source review.
 SOURCE_TREES = {
     "supabase/migrations": "3e3575f5ff6d509ecdd624ae7fc1772508b5dce6",
-    "drizzle/migrations": "ef9d72b05a227a0bdc50bd68632cc89f802f78e7",
+    "drizzle/migrations": "a6d4f8c07af1f2f3997a9f631eb687540d944b8b",
 }
 HTTP_SOURCES = {
     "20260721000000_retry_queue_cron.sql": "2aecccd0758961f41769d9fed522d03df14937650b9dde80fce47646a1fa6887",

@@ -1,0 +1,7 @@
+{
+  "description": "Órdenes archivadas protegidas contra nuevos consumos",
+  "changes": [
+    "Las órdenes archivadas conservan refacciones y mano de obra en modo consulta, incluso desde pestañas abiertas antes del archivado.",
+    "Las validaciones del servidor protegen existencias y costos frente a capturas simultáneas."
+  ]
+}
