@@ -1,6 +1,7 @@
 import { useRef } from "react";
 import { useFormContext, useFormState } from "react-hook-form";
 import { EmptyState } from "@/components/feedback/EmptyState";
+import { QueryErrorState } from "@/components/feedback/QueryErrorState";
 import { FormActions } from "@/components/forms/FormActions";
 import { FormErrorSummary } from "@/components/forms/FormErrorSummary";
 import { FormErrorSummaryScope } from "@/components/forms/FormErrorSummaryScope";
@@ -8,6 +9,7 @@ import { FormPageHeader } from "@/components/layout/FormPageHeader";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form, FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Textarea } from "@/components/ui/textarea";
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import { useUnsavedChangesGuard } from "@/hooks/useUnsavedChangesGuard";
@@ -58,6 +60,37 @@ function invoiceAvailability(form: ReturnType<typeof useInvoiceFormLogic>, damag
     isLoading: damage.isLoading || form.isLoadingChargeAvailability,
     onRetry: damage.block ? damage.retry : form.retryChargeAvailability,
   };
+}
+
+function invoiceLoadState(form: ReturnType<typeof useInvoiceFormLogic>, onBack: () => void) {
+  // Cached drafts stay mounted on failed refreshes, preserving edits/version.
+  if (!form.isEdit || form.existing) return null;
+  const read = form.invoiceRead;
+  if (read.isPending || form.isLoadingInvoice) {
+    return (
+      <PageContainer className="space-y-4">
+        <p role="status" className="text-sm text-muted-foreground">Cargando la factura…</p>
+        <Skeleton className="h-8 w-48" />
+        <Skeleton className="h-64" />
+      </PageContainer>
+    );
+  }
+  if (read.isError) {
+    return (
+      <PageContainer>
+        <QueryErrorState entity="la factura" error={read.error} isRetrying={read.isFetching}
+          onRetry={() => { void read.refetch(); }} />
+      </PageContainer>
+    );
+  }
+  // Only a successful empty response means missing or unavailable to this role.
+  return (
+    <PageContainer>
+      <EmptyState title="Factura no encontrada o sin permisos"
+        subtitle="La factura no existe, fue eliminada o no tienes acceso a ella."
+        actionLabel="Volver a facturas" onAction={onBack} />
+    </PageContainer>
+  );
 }
 
 function InvoiceNotesCard() {
@@ -170,21 +203,8 @@ function InvoiceFormSession({ id, sources }: { id?: string; sources: ReturnType<
     );
   }
 
-  // FIX R6-25: id inexistente o sin permisos en modo edición — mostrar estado
-  // con salida (patrón de InvoiceDetail) en vez del form vacío con
-  // "Cargando la factura…" indefinido y el botón de Guardar bloqueado.
-  if (f.isEdit && !f.isLoadingInvoice && !f.existing) {
-    return (
-      <PageContainer>
-        <EmptyState
-          title="Factura no encontrada o sin permisos"
-          subtitle="La factura no existe, fue eliminada o no tienes acceso a ella."
-          actionLabel="Volver a facturas"
-          onAction={() => navigate("/invoices")}
-        />
-      </PageContainer>
-    );
-  }
+  const loadState = invoiceLoadState(f, () => navigate("/invoices"));
+  if (loadState) return loadState;
 
   return (
     <PageContainer maxWidth="wide">
