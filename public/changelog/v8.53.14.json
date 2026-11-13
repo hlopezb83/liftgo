@@ -1,0 +1,8 @@
+{
+  "description": "Resumen de clientes con carga y recuperación claras",
+  "changes": [
+    "El resumen financiero y los historiales distinguen carga, error y datos vacíos; ya no presentan ceros cuando la consulta falla.",
+    "Reintentar recupera el resumen sin bloquear la información de contacto del cliente.",
+    "El estado de cuenta y las acciones dependientes esperan un resumen válido, incluso después de un error al actualizar datos previamente cargados."
+  ]
+}
