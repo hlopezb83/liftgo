@@ -1,3 +1,8 @@
+## [8.53.23] - 2026-11-13
+
+- El selector de mantenimiento busca refacciones disponibles en todo el inventario mediante páginas del servidor.
+- Los errores al cargar refacciones o mano de obra muestran recuperación sin confundirse con registros vacíos.
+
 ## [8.53.22] - 2026-11-13
 
 - Agregar otra cantidad de una refacción actualiza su línea sin errores de duplicado.
