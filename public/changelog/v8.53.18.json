@@ -1,0 +1,8 @@
+{
+  "description": "Entregas con filtros y paginación completos",
+  "changes": [
+    "El listado general de entregas filtra y ordena en el servidor antes de contar y paginar, incluyendo la conciliación histórica vigente.",
+    "La navegación conserva búsqueda, estado, tipo y página; los errores permiten reintentar sin presentar una lista vacía.",
+    "La consulta de transportes vencidos conserva su comportamiento y los detalles siguen disponibles mediante sus lecturas específicas."
+  ]
+}

@@ -1009,6 +1009,13 @@
       "when": 1794542400000,
       "tag": "0143_contract_deposit_concurrency",
       "breakpoints": true
+    },
+    {
+      "idx": 144,
+      "version": "7",
+      "when": 1794542400001,
+      "tag": "0144_deliveries_server_page",
+      "breakpoints": true
     }
   ]
 }
