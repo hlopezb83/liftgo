@@ -1,3 +1,7 @@
+## [8.53.28] - 2026-11-13
+
+- El formulario de mantenimiento identifica el costo manual y explica que refacciones y mano de obra se suman por separado.
+
 ## [8.53.27] - 2026-11-13
 
 - Salir de una orden con notas de cierre sin guardar solicita confirmación.
