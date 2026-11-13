@@ -58,8 +58,8 @@ test("lote espera el archivo lento y reintenta sólo el fallido sin duplicar el 
       rows.push(row);
       return json(row);
     }
-    if (url.pathname === "/rest/v1/documents" && method === "GET") {
-      assert.equal(url.searchParams.get("entity_type"), "eq.forklift");
+    if (url.pathname === "/rest/v1/documents" && method === "GET"
+      && url.searchParams.get("entity_type") === "eq.forklift") {
       assert.equal(url.searchParams.get("entity_id"), `eq.${forkliftId}`);
       return json(rows);
     }
@@ -90,6 +90,7 @@ test("lote espera el archivo lento y reintenta sólo el fallido sin duplicar el 
     expect(uploads.filter(name => name === "correcto.pdf")).toHaveLength(1);
     expect(uploads.filter(name => name === "fallido.pdf")).toHaveLength(2);
     expect(rows.map(row => row.file_name).sort()).toEqual(["correcto.pdf", "fallido.pdf"]);
+    await page.screenshot({ path: `test-results/inventory-design/${info.project.name}-yagni-d7-uploads.png`, fullPage: true });
     await info.attach("upload-batch-offline", { contentType: "application/json", body: JSON.stringify({
       ...audit, uploads, rows,
     }, null, 2) });
