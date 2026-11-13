@@ -1,7 +1,7 @@
 import { QueryObserver } from "@tanstack/react-query";
 import { act, renderHook } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { useCompleteDelivery } from "@/features/deliveries/hooks/useDeliveries";
+import { useCompleteDelivery, useCorrectDeliveryDate, useVoidDelivery } from "@/features/deliveries/hooks/useDeliveries";
 import { createQueryWrapper } from "@/test/helpers/queryClient";
 import { useCreateReturnInspection } from "../useReturnInspections";
 
@@ -16,6 +16,8 @@ beforeEach(() => {
 
 const cases = [
   { name: "entrega", useHook: useCompleteDelivery, input: { id: "delivery-1" } },
+  { name: "corrección de entrega", useHook: useCorrectDeliveryDate, input: { id: "delivery-1", date: "2026-09-27", reason: "Fecha de captura equivocada" } },
+  { name: "anulación de entrega", useHook: useVoidDelivery, input: { id: "delivery-1", reason: "Entrega capturada por error" } },
   { name: "devolución", useHook: useCreateReturnInspection, input: { booking_id: "booking-1", forklift_id: "forklift-1", fuel_level: "full" } },
 ] as const;
 
