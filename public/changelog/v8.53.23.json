@@ -1,0 +1,7 @@
+{
+  "description": "Búsqueda completa de refacciones y recuperación de lecturas",
+  "changes": [
+    "El selector de mantenimiento busca refacciones disponibles en todo el inventario mediante páginas del servidor.",
+    "Los errores al cargar refacciones o mano de obra muestran recuperación sin confundirse con registros vacíos."
+  ]
+}

@@ -12,6 +12,7 @@ const A=id(1),B=id(2),U=id(11),V=id(12),DENIED=id(13);let passed=0;
 async function session(user,run){const c=await sql.reserve();try{await c`BEGIN`;await c`SELECT set_config('request.jwt.claims',${JSON.stringify({sub:user})},true)`;await c`SET LOCAL ROLE authenticated`;assert.equal((await c`SELECT rolbypassrls FROM pg_roles WHERE rolname=current_user`)[0].rolbypassrls,false);return await run(c);}finally{await c`ROLLBACK`;c.release();}}
 async function page(c,o={}){
   const p={org:A,search:null,category:'all',page:0,size:25,sort:[],...o};
+  if (p.maintenanceStock !== undefined) return (await c`SELECT get_inventory_page(${p.maintenanceStock}::boolean,${p.lowStockOnly ?? false}::boolean,${p.org}::uuid,${p.search}::text,${p.category}::text,${p.page}::int,${p.size}::int,${c.json(p.sort)}::jsonb) v`)[0].v;
   if (p.lowStockOnly !== undefined) return (await c`SELECT get_inventory_page(${p.lowStockOnly}::boolean,${p.org}::uuid,${p.search}::text,${p.category}::text,${p.page}::int,${p.size}::int,${c.json(p.sort)}::jsonb) v`)[0].v;
   return(await c`SELECT get_inventory_page(${p.org}::uuid,${p.search}::text,${p.category}::text,${p.page}::int,${p.size}::int,${c.json(p.sort)}::jsonb) v`)[0].v;
 }
@@ -19,7 +20,8 @@ async function test(name,fn){await fn();passed++;console.log('PASS '+name);}
 try{
 assert.equal(path.resolve((await sql`SELECT current_setting('data_directory') v`)[0].v),path.resolve(directory,'data'));
 assert.equal((await sql`SELECT count(*)::int n FROM pg_tables WHERE schemaname='public'`)[0].n,0);
-await sql.unsafe(readFileSync('scripts/tests/quotes/fixture.sql','utf8'));
+await sql.unsafe(`CREATE TYPE public.app_role AS ENUM ('admin','administrativo','auditor','ventas','dispatcher','mechanic','customer');`);
+await sql.unsafe(readFileSync('scripts/tests/quotes/fixture.sql','utf8').replace('user_roles(user_id uuid NOT NULL,role text NOT NULL)', 'user_roles(user_id uuid NOT NULL,role public.app_role NOT NULL)'));
 const helper=readFileSync('drizzle/migrations/0031_multi_org_audit_hardening.sql','utf8').match(/CREATE OR REPLACE FUNCTION public\.current_internal_organization_id\(\)[\s\S]*?\$\$;/)[0];await sql.unsafe(helper);
 await sql.unsafe(readFileSync('drizzle/migrations/0129_quotes_server_page.sql','utf8'));
 await sql.unsafe(`CREATE TABLE parts_inventory(id uuid PRIMARY KEY,organization_id uuid NOT NULL,catalog_part_id uuid,name text,sku text,category text,stock_quantity integer,min_stock_level integer,unit_cost numeric,location text,is_active boolean,created_at timestamptz DEFAULT now(),updated_at timestamptz DEFAULT now()); ALTER TABLE parts_inventory ENABLE ROW LEVEL SECURITY; CREATE POLICY fixture_tenant ON parts_inventory FOR SELECT TO authenticated USING(organization_id=current_internal_organization_id() AND location IS DISTINCT FROM 'hidden'); GRANT SELECT ON parts_inventory TO authenticated;`);
@@ -62,6 +64,44 @@ await test('low stock preserves tenant, role and invoker-RLS restrictions',async
 await test('low-stock overload is invoker-only with a required boolean and no public execution',async()=>{
   const [p]=await sql`SELECT prosecdef,pronargs,pronargdefaults,has_function_privilege('anon','get_inventory_page(boolean,uuid,text,text,integer,integer,jsonb)','EXECUTE') anon,has_function_privilege('service_role','get_inventory_page(boolean,uuid,text,text,integer,integer,jsonb)','EXECUTE') service FROM pg_proc WHERE oid='get_inventory_page(boolean,uuid,text,text,integer,integer,jsonb)'::regprocedure`;
   assert.equal(p.prosecdef,false);assert.equal(p.pronargs,7);assert.equal(p.pronargdefaults,5);assert.equal(p.anon,false);assert.equal(p.service,false);
+});
+const oldDefault = await session(U, c => page(c));
+const oldLowStock = await session(U, c => page(c, { lowStockOnly: true }));
+await sql.unsafe(readFileSync('drizzle/migrations/0147_maintenance_stock_options.sql', 'utf8'));
+// Exercise the actual inventory-reader helper and SELECT policy, plus restrictive
+// tenant/hidden-row RLS. The fixture remains focused, not a full schema replay.
+const policySource = readFileSync('supabase/migrations/20260811222519_aa3663a6-aed1-406a-8179-0d21eaea6996.sql', 'utf8');
+await sql.unsafe(policySource.match(/CREATE OR REPLACE FUNCTION public\.is_inventory_reader\(\)[\s\S]*?\$\$;/)[0]);
+await sql.unsafe(`REVOKE ALL ON FUNCTION public.is_inventory_reader() FROM PUBLIC,anon; GRANT EXECUTE ON FUNCTION public.is_inventory_reader() TO authenticated; DROP POLICY fixture_tenant ON parts_inventory; CREATE POLICY fixture_tenant ON parts_inventory AS RESTRICTIVE FOR SELECT TO authenticated USING(organization_id=current_internal_organization_id() AND location IS DISTINCT FROM 'hidden');`);
+await sql.unsafe(policySource.match(/CREATE POLICY "Inventory readers read parts_inventory"[\s\S]*?;/)[0]);
+await test('existing endpoints retain inventory permission and identical results', async () => {
+  assert.deepEqual(await session(U, c => page(c)), oldDefault);
+  assert.deepEqual(await session(U, c => page(c, { lowStockOnly: true })), oldLowStock);
+});
+await sql`INSERT INTO role_permissions VALUES('admin','Mantenimiento','full'),('mechanic','Mantenimiento','full'),('auditor','Mantenimiento','read')`;
+await sql`INSERT INTO parts_inventory(id,organization_id,name,sku,category,stock_quantity,min_stock_level,unit_cost,is_active) VALUES(${id(2010)},${A},'Z siguiente','TARGET-502','Filtros',7,2,100,true),(${id(2011)},${A},'Z última','TARGET-503','Filtros',8,2,100,true)`;
+await sql`INSERT INTO parts_inventory(id,organization_id,name,sku,category,stock_quantity,min_stock_level,unit_cost,is_active) SELECT ('13200000-0000-4000-8000-'||lpad((3000+n)::text,12,'0'))::uuid,${A},'00 sin stock '||n,'EMPTY-'||n,'Filtros',0,2,100,true FROM generate_series(1,50)n`;
+await test('mechanic without Refacciones access reads positive stock through actual inventory RLS', () => session(DENIED, async c => {
+  assert.equal((await c`SELECT is_inventory_reader() allowed`)[0].allowed, true);
+  const first = await page(c, { maintenanceStock: true });
+  assert.equal(first.totalCount, 502); assert.equal(first.items.length, 25);
+  assert.ok(first.items.every(item => item.stock_quantity > 0));
+  const last = await page(c, { maintenanceStock: true, page: 100 });
+  assert.equal(last.pageIndex, 20); assert.equal(last.items.length, 2);
+  const target = await page(c, { maintenanceStock: true, search: 'TARGET-502' });
+  assert.equal(target.totalCount, 1); assert.equal(target.items[0].id, id(2010));
+  assert.equal((await page(c, { maintenanceStock: true, search: 'EMPTY-' })).totalCount, 0);
+}));
+await test('maintenance mode never opens general inventory, other tenant or read-only capture access', async () => {
+  await assert.rejects(() => session(DENIED, c => page(c)), { code: '42501' });
+  await assert.rejects(() => session(DENIED, c => page(c, { lowStockOnly: true })), { code: '42501' });
+  await assert.rejects(() => session(DENIED, c => page(c, { maintenanceStock: false })), { code: '42501' });
+  await assert.rejects(() => session(DENIED, c => page(c, { maintenanceStock: true, org: B })), { code: '42501' });
+  await assert.rejects(() => session(V, c => page(c, { maintenanceStock: true, org: B })), { code: '42501' });
+});
+await test('maintenance overload keeps all eight arguments required and invoker-only ACL', async () => {
+  const [p] = await sql`SELECT prosecdef,pronargs,pronargdefaults,has_function_privilege('anon','get_inventory_page(boolean,boolean,uuid,text,text,integer,integer,jsonb)','EXECUTE') anon,has_function_privilege('service_role','get_inventory_page(boolean,boolean,uuid,text,text,integer,integer,jsonb)','EXECUTE') service FROM pg_proc WHERE oid='get_inventory_page(boolean,boolean,uuid,text,text,integer,integer,jsonb)'::regprocedure`;
+  assert.equal(p.prosecdef, false); assert.equal(p.pronargs, 8); assert.equal(p.pronargdefaults, 0); assert.equal(p.anon, false); assert.equal(p.service, false);
 });
 console.log(`${passed}/${passed} focused inventory SQL scenarios passed; not a full schema replay.`);
 }finally{await sql.end();}

@@ -106,10 +106,15 @@ START_EXCLUDES = {
 # cost preservation, tenant/permission checks and restricted EXECUTE. Installation
 # defines function/ACL/comment and schema notification only; no business DML.
 # See docs/qa/migration-0146-ci-source-review.md. Earlier bytes remain unchanged.
+# Candidate 0147 adds the maintenance-stock overload and preserves the existing
+# seven-argument inventory RPC as an INVOKER/STABLE compatibility wrapper. It
+# retains tenant checks/RLS and filters positive stock before count/pagination.
+# Definitions/ACL/comments only; no business DML, policies, HTTP or cron.
+# See docs/qa/migration-0147-ci-source-review.md. Earlier bytes remain unchanged.
 # Any subsequent history change requires explicit source review.
 SOURCE_TREES = {
     "supabase/migrations": "3e3575f5ff6d509ecdd624ae7fc1772508b5dce6",
-    "drizzle/migrations": "e71152572b72f71a594fdff6328a2211bba5045e",
+    "drizzle/migrations": "516f3b388f1bc955828b7486c2918b51b65eab0e",
 }
 HTTP_SOURCES = {
     "20260721000000_retry_queue_cron.sql": "2aecccd0758961f41769d9fed522d03df14937650b9dde80fce47646a1fa6887",
