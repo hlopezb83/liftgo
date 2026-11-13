@@ -61,7 +61,10 @@ export function useCustomerDetailPage(id: string | undefined) {
   // E3: `isError`/`refetch` se exponen para que la página distinga "falló la
   // consulta" de "el cliente no existe" (antes ambos caían en el mismo vacío).
   const { data: customer, isLoading, isError, refetch } = useCustomer(validId);
-  const { data: summary } = useCustomerSummary(validId);
+  const summaryQuery = useCustomerSummary(validId);
+  // A failed background refresh may retain data; it is no longer a valid summary.
+  const summary = summaryQuery.isSuccess && !summaryQuery.isError ? summaryQuery.data : undefined;
+  const summaryReady = !!summary;
   const canSeeFinancials = useHasFinancialAccess();
   const { data: profitability } = useCustomerProfitability(canSeeFinancials ? validId : undefined);
   const { data: role } = useUserRole();
@@ -96,6 +99,10 @@ export function useCustomerDetailPage(id: string | undefined) {
 
   return {
     isLoading, isError, refetch, customer: customer ?? undefined, summary, profitability, role,
+    summaryReady, summaryLoading: summaryQuery.isPending,
+    summaryIsError: summaryQuery.isError || (!summaryQuery.isPending && !summaryReady),
+    summaryError: summaryQuery.error, summaryFetching: summaryQuery.isFetching,
+    summaryActionsReady: summaryReady && !summaryQuery.isFetching, refetchSummary: summaryQuery.refetch,
     bookings, invoices, activeBookingsCount,
     totalInvoiced, totalPaid, outstanding,
     hasPortalAccess, hasDependencies,

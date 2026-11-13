@@ -30,6 +30,21 @@ function customerSubtitle(customer: { name: string; company?: string | null; rfc
   return rfc === "" ? undefined : `RFC ${rfc}`;
 }
 
+type FinancialState = Pick<ReturnType<typeof useCustomerDetailPage>, "summaryReady" | "profitability" | "totalInvoiced" | "totalPaid" | "outstanding">;
+
+function CustomerFinancialCards({ s, visible }: { s: FinancialState; visible: boolean }) {
+  if (!visible) return null;
+  return <>
+    {s.summaryReady && <div className={s.profitability ? undefined : "sm:col-span-2"}>
+      <CustomerFinancialSummary totalInvoiced={s.totalInvoiced} totalPaid={s.totalPaid} outstanding={s.outstanding} />
+    </div>}
+    {s.profitability && <CustomerProfitabilityCard
+      revenue={s.profitability.revenue} maintenance_cost={s.profitability.maintenance_cost}
+      gross_margin={s.profitability.gross_margin} margin_percent={s.profitability.margin_percent}
+    />}
+  </>;
+}
+
 export default function CustomerDetailPage() {
   const { id } = useParams();
   const canSeeFinancials = useHasFinancialAccess();
@@ -39,7 +54,7 @@ export default function CustomerDetailPage() {
   const s = useCustomerDetailPage(id);
 
   const handleExportStatement = async () => {
-    if (!canSeeFinancials || !s.summary || !s.customer) return;
+    if (!canSeeFinancials || !s.summaryActionsReady || !s.summary || !s.customer) return;
     try {
       const { exportCustomerStatementPdf } = await import("@/lib/pdf/customerStatement");
       await exportCustomerStatementPdf({ customer: s.customer, summary: s.summary });
@@ -81,7 +96,7 @@ export default function CustomerDetailPage() {
         restoreListFilters={!listBackTo}
         actions={
           <>
-            {canSeeFinancials && <Button variant="outline" size="sm" disabled={!s.summary} onClick={handleExportStatement}>
+            {canSeeFinancials && <Button variant="outline" size="sm" disabled={!s.summaryActionsReady} onClick={handleExportStatement}>
               <FileDown className="h-4 w-4 mr-2" /> Estado de Cuenta
             </Button>}
             {/* R7 Bloque 8: matriz (read/full). Editar/Eliminar/Invitar exigen full. */}
@@ -91,7 +106,7 @@ export default function CustomerDetailPage() {
               </Button>
             </RoleGuard>
             <RoleGuard module="Clientes" minAccess="full" fallback={null}>
-              <Button variant="destructive" size="sm" onClick={() => s.setDeleteOpen(true)}>
+              <Button variant="destructive" size="sm" disabled={!s.summaryActionsReady} onClick={() => s.setDeleteOpen(true)}>
                 <DeleteIcon className="h-4 w-4 mr-2" /> Archivar
               </Button>
             </RoleGuard>
@@ -111,23 +126,16 @@ export default function CustomerDetailPage() {
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
         <CustomerContactCard customer={s.customer} />
-        {canSeeFinancials && <div className={s.profitability ? undefined : "sm:col-span-2"}>
-          <CustomerFinancialSummary totalInvoiced={s.totalInvoiced} totalPaid={s.totalPaid} outstanding={s.outstanding} />
-        </div>}
-        {canSeeFinancials && s.profitability && (
-          <CustomerProfitabilityCard
-            revenue={s.profitability.revenue}
-            maintenance_cost={s.profitability.maintenance_cost}
-            gross_margin={s.profitability.gross_margin}
-            margin_percent={s.profitability.margin_percent}
-          />
-        )}
+        <CustomerFinancialCards s={s} visible={canSeeFinancials} />
       </div>
 
-      <CustomerBookingsHistory bookings={s.bookings} />
+      {s.summaryIsError ? <QueryErrorState entity="el resumen del cliente" error={s.summaryError}
+        isRetrying={s.summaryFetching} onRetry={() => { void s.refetchSummary(); }} />
+        : s.summaryLoading && <div role="status" aria-label="Cargando resumen del cliente"><Skeleton className="h-48" /><span className="sr-only">Cargando resumen del cliente…</span></div>}
+      {s.summaryReady && <CustomerBookingsHistory bookings={s.bookings} />}
       {/* R6-FE-04a: la lista se auto-oculta cuando el rol tiene Facturas=none
           (ver CustomerInvoicesList). */}
-      {canSeeFinancials && <CustomerInvoicesList invoices={s.invoices} />}
+      {canSeeFinancials && s.summaryReady && <CustomerInvoicesList invoices={s.invoices} />}
 
       {s.customer.notes && <NotesCard value={s.customer.notes} readOnly />}
 
@@ -142,7 +150,7 @@ export default function CustomerDetailPage() {
       />
 
       <CustomerDeleteDialog
-        open={s.deleteOpen}
+        open={s.deleteOpen && s.summaryActionsReady}
         onOpenChange={s.setDeleteOpen}
         customerName={s.customer.name}
         bookingsCount={s.bookings.length}
@@ -151,7 +159,7 @@ export default function CustomerDetailPage() {
         activeBookingsCount={s.activeBookingsCount}
         serverBlock={s.archiveBlock}
         isPending={s.deleteCustomer.isPending}
-        onDelete={() => s.handleDelete(s.activeBookingsCount)}
+        onDelete={() => { if (s.summaryActionsReady) s.handleDelete(s.activeBookingsCount); }}
       />
 
       <CustomerInviteDialog

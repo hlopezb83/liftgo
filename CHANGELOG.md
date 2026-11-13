@@ -1,3 +1,9 @@
+## [8.53.14] - 2026-11-13
+
+- El resumen financiero y los historiales distinguen carga, error y datos vacíos; ya no presentan ceros cuando la consulta falla.
+- Reintentar recupera el resumen sin bloquear la información de contacto del cliente.
+- El estado de cuenta y las acciones dependientes esperan un resumen válido, incluso después de un error al actualizar datos previamente cargados.
+
 ## [8.53.13] - 2026-11-13
 
 - Las consultas en segundo plano conservan los campos editados y la versión con la que se abrió el equipo.
