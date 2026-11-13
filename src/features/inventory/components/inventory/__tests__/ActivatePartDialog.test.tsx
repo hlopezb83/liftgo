@@ -1,14 +1,27 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { ActivatePartDialog } from "../ActivatePartDialog";
 
 const mocks = vi.hoisted(() => ({
-  query: { data: [{ id: "filter-1", sku: "FLT-001", name: "Filtro de aceite" }], isLoading: false, isError: false, isFetching: false, refetch: vi.fn() },
-  inventory: { data: [] as Array<{ catalog_part_id: string }>, isLoading: false, isError: false, isFetching: false, refetch: vi.fn() },
+  query: { data: [{ id: "filter-1", sku: "FLT-001", name: "Filtro de aceite" }], totalCount: 1,
+    isLoading: false, isError: false, isFetching: false, refetch: vi.fn() },
+  selected: null as { id: string; sku: string; name: string } | null,
+  options: vi.fn(),
+  identity: "user:org:internal" as string | null,
   mutation: { mutate: vi.fn(), isPending: false },
   validation: vi.fn(),
 }));
-vi.mock("../../../hooks/usePartsInventory", () => ({ usePartsCatalog: () => mocks.query, usePartsInventory: () => mocks.inventory }));
+vi.mock("../../../hooks/useActivationCatalogPage", () => ({
+  ACTIVATION_CATALOG_PAGE_SIZE: 50,
+  useActivationCatalogPage: (options: { selectedId: string; page: number }) => {
+    mocks.options(options);
+    return { ...mocks.query, isReady: !mocks.query.isLoading && !mocks.query.isError && !mocks.query.isFetching,
+      data: { items: mocks.query.data, totalCount: mocks.query.totalCount, pageIndex: options.page,
+        selected: mocks.query.data.find((part) => part.id === options.selectedId) ?? mocks.selected } };
+  },
+}));
+vi.mock("@/lib/query/useVerifiedIdentityScope", () => ({ useVerifiedIdentityScope: () => mocks.identity }));
+vi.mock("@/hooks/useDebouncedValue", () => ({ useDebouncedValue: (value: string) => value }));
 vi.mock("../../../hooks/usePartInventoryMutations", () => ({ useActivateCatalogPart: () => mocks.mutation }));
 vi.mock("@/lib/ui/appFeedback", () => ({ notifyValidation: mocks.validation }));
 vi.mock("@/hooks/useUnsavedChangesGuard", () => ({ useUnsavedChangesGuard: vi.fn() }));
@@ -24,10 +37,9 @@ beforeEach(() => {
   mocks.query.isLoading = false;
   mocks.query.isError = false;
   mocks.query.isFetching = false;
-  mocks.inventory.data = [];
-  mocks.inventory.isLoading = false;
-  mocks.inventory.isError = false;
-  mocks.inventory.isFetching = false;
+  mocks.query.totalCount = 1;
+  mocks.selected = null;
+  mocks.identity = "user:org:internal";
   mocks.mutation.isPending = false;
 });
 
@@ -72,9 +84,10 @@ describe("ActivatePartDialog", () => {
 
   it("distingue un catálogo vacío de un fallo de consulta", () => {
     mocks.query.data = [];
+    mocks.query.totalCount = 0;
     render(<ActivatePartDialog open onOpenChange={vi.fn()} />);
     expect(screen.getByRole("combobox")).toBeDisabled();
-    expect(screen.getByText(/agregar refacciones al catálogo compartido/)).toBeInTheDocument();
+    expect(screen.getByText(/No hay SKUs activos que coincidan/)).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Habilitar" })).toBeDisabled();
   });
 
@@ -83,7 +96,7 @@ describe("ActivatePartDialog", () => {
     render(<ActivatePartDialog open onOpenChange={vi.fn()} />);
     expect(screen.getByText("No se pudo cargar el catálogo LiftGo")).toBeInTheDocument();
     expect(screen.queryByRole("combobox")).not.toBeInTheDocument();
-    expect(screen.queryByText(/agregar refacciones al catálogo compartido/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/No hay SKUs activos que coincidan/)).not.toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "Reintentar" }));
     expect(mocks.query.refetch).toHaveBeenCalledOnce();
     expect(screen.getByRole("button", { name: "Habilitar" })).toBeDisabled();
@@ -94,7 +107,7 @@ describe("ActivatePartDialog", () => {
     render(<ActivatePartDialog open onOpenChange={vi.fn()} />);
     expect(screen.getByRole("combobox")).toBeDisabled();
     expect(screen.getByRole("button", { name: "Habilitar" })).toBeDisabled();
-    expect(screen.queryByText(/agregar refacciones al catálogo compartido/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/No hay SKUs activos que coincidan/)).not.toBeInTheDocument();
   });
 
   it.each(["Stock inicial", "Stock mínimo"])("rechaza unidades fraccionarias en %s", (label) => {
@@ -127,9 +140,58 @@ describe("ActivatePartDialog", () => {
   });
 
   it("no ofrece un SKU ya habilitado en la empresa", () => {
-    mocks.inventory.data = [{ catalog_part_id: "filter-1" }];
+    mocks.query.data = [];
     render(<ActivatePartDialog open onOpenChange={vi.fn()} />);
     expect(screen.queryByRole("option", { name: /FLT-001/ })).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Habilitar" })).toBeDisabled();
+    expect(screen.getByText(/Los SKUs de esta página ya están habilitados/)).toBeInTheDocument();
+  });
+
+  it("permite avanzar una página ya habilitada y reinicia la página al buscar", () => {
+    mocks.query.totalCount = 600;
+    mocks.query.data = [];
+    render(<ActivatePartDialog open onOpenChange={vi.fn()} />);
+    fireEvent.click(screen.getByRole("button", { name: "Siguiente" }));
+    expect(mocks.options).toHaveBeenLastCalledWith(expect.objectContaining({ page: 1 }));
+    expect(screen.getByText("Página 2 de 12")).toBeInTheDocument();
+    fireEvent.change(screen.getByLabelText("Buscar SKU o nombre"), { target: { value: "FLT-550" } });
+    expect(mocks.options).toHaveBeenLastCalledWith(expect.objectContaining({ page: 0, search: "FLT-550" }));
+  });
+
+  it("conserva el SKU y cantidades fuera de página y tras un error/reintento", async () => {
+    mocks.query.totalCount = 600;
+    const { rerender } = render(<ActivatePartDialog open onOpenChange={vi.fn()} />);
+    choosePart();
+    fireEvent.change(screen.getByLabelText("Stock inicial"), { target: { value: "12" } });
+    mocks.selected = mocks.query.data[0];
+    mocks.query.data = [];
+    fireEvent.click(screen.getByRole("button", { name: "Siguiente" }));
+    expect(screen.getByRole("combobox")).toHaveTextContent("FLT-001 · Filtro de aceite");
+    expect(screen.getByRole("button", { name: "Habilitar" })).toBeEnabled();
+    mocks.query.isFetching = true;
+    rerender(<ActivatePartDialog open onOpenChange={vi.fn()} />);
+    expect(screen.getByRole("button", { name: "Habilitar" })).toBeDisabled();
+    mocks.query.isFetching = false;
+    mocks.query.isError = true;
+    rerender(<ActivatePartDialog open onOpenChange={vi.fn()} />);
+    expect(screen.getByRole("button", { name: "Habilitar" })).toBeDisabled();
+    expect(mocks.mutation.mutate).not.toHaveBeenCalled();
+    fireEvent.click(screen.getByRole("button", { name: "Reintentar" }));
+    mocks.query.isError = false;
+    rerender(<ActivatePartDialog open onOpenChange={vi.fn()} />);
+    await waitFor(() => expect(screen.getByRole("button", { name: "Habilitar" })).toBeEnabled());
+    expect(screen.getByRole("combobox")).toHaveTextContent("FLT-001 · Filtro de aceite");
+    expect(screen.getByLabelText("Stock inicial")).toHaveValue(12);
+  });
+
+  it("descarta valores y selección al cambiar la identidad verificada", () => {
+    const { rerender } = render(<ActivatePartDialog open onOpenChange={vi.fn()} />);
+    choosePart();
+    fireEvent.change(screen.getByLabelText("Stock inicial"), { target: { value: "12" } });
+    mocks.identity = "other-user:other-org:internal";
+    rerender(<ActivatePartDialog open onOpenChange={vi.fn()} />);
+    expect(screen.getByRole("combobox")).toHaveTextContent("Seleccionar SKU");
+    expect(screen.getByLabelText("Stock inicial")).toHaveValue(0);
     expect(screen.getByRole("button", { name: "Habilitar" })).toBeDisabled();
   });
 });
