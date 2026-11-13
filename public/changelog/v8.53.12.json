@@ -1,0 +1,8 @@
+{
+  "description": "Depósitos protegidos frente a cambios simultáneos",
+  "changes": [
+    "Guardar un depósito comprueba la versión del contrato dentro del bloqueo de la fila; una captura desactualizada conserva sus cambios y permite recargar explícitamente.",
+    "La recarga renueva juntos los datos y su versión; un fallo de lectura mantiene el borrador visible.",
+    "La llamada antigua de depósitos solicita recargar la aplicación; se conservan importes parciales, fechas y guardados sin cambios."
+  ]
+}
