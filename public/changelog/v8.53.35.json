@@ -1,0 +1,7 @@
+{
+  "description": "Etiquetas accesibles del periodo de facturación",
+  "changes": [
+    "Las etiquetas Inicio y Fin del periodo de facturación identifican y enfocan su campo de fecha.",
+    "Se conservan los valores y las validaciones del periodo vinculado a reservas."
+  ]
+}

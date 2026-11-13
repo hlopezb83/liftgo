@@ -2,7 +2,7 @@ import { useWatch } from "react-hook-form";
 import { DatePickerField } from "@/components/forms/DatePickerField";
 import { DateField } from "@/components/forms/fields/DateField";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form";
+import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { CustomerSelector } from "@/features/customers";
@@ -109,7 +109,7 @@ export function InvoiceDetailsCard({
             )}
             <FormField control={form.control} name="billingPeriodStart" render={({ field }) => (
               <FormItem>
-                <Label>Periodo · Inicio</Label>
+                <FormLabel>Periodo · Inicio</FormLabel>
                 <FormControl>
                   <Input type="date" value={field.value} onChange={(e) => field.onChange(e.target.value)} />
                 </FormControl>
@@ -118,7 +118,7 @@ export function InvoiceDetailsCard({
             )} />
             <FormField control={form.control} name="billingPeriodEnd" render={({ field }) => (
               <FormItem>
-                <Label>Periodo · Fin</Label>
+                <FormLabel>Periodo · Fin</FormLabel>
                 <FormControl>
                   <Input type="date" value={field.value} onChange={(e) => field.onChange(e.target.value)} />
                 </FormControl>
