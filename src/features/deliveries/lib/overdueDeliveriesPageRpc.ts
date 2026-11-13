@@ -21,7 +21,8 @@ export function callOverdueDeliveriesPageRpc(args: OverdueDeliveriesPageRpcArgs,
 }
 
 const itemSchema = z.object({
-  id: z.uuid(), organization_id: z.uuid(), booking_id: z.uuid().nullable(), forklift_id: z.uuid(),
+  // PostgreSQL UUIDs include historical hash-derived IDs without RFC version/variant bits.
+  id: z.guid(), organization_id: z.guid(), booking_id: z.guid().nullable(), forklift_id: z.guid(),
   delivery_number: z.string(), type: z.enum(["delivery", "pickup", "return"]),
   address: z.string().nullable(), scheduled_date: z.iso.date(), scheduled_time: z.string().nullable(),
   status: z.enum(["scheduled", "in_transit"]), driver_name: z.string().nullable(),

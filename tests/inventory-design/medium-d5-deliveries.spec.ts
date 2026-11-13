@@ -6,7 +6,8 @@ import type { DeliveriesPageRpcArgs, DeliveryPageItem } from "../../src/features
 
 const backend = "http://127.0.0.1:54321";
 const organizationId = "00000000-0000-4000-8000-000000000002";
-const id = (n: number) => `14400000-0000-4000-8000-${String(n).padStart(12, "0")}`;
+// Synthetic PostgreSQL UUIDs deliberately lack RFC version/variant bits.
+const id = (n: number) => `14400000-0000-e000-7000-${String(n).padStart(12, "0")}`;
 const rows: DeliveryPageItem[] = Array.from({ length: 1202 }, (_, index) => ({
   id: id(index + 1), organization_id: organizationId, booking_id: null, forklift_id: forkliftId,
   delivery_number: `QA-ENT-${String(index + 1).padStart(4, "0")}`,
