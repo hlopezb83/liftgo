@@ -142,4 +142,44 @@ describe("useUploadDocument · BL-35/BL-36", () => {
     expect(insertMock).not.toHaveBeenCalled();
     expect(removeMock).not.toHaveBeenCalled();
   });
+
+  it("no inicia Storage si cambia el contexto mientras resuelve la organización", async () => {
+    let current = true;
+    currentOrganizationMock.mockImplementation(async () => { current = false; return { data: ORGANIZATION_ID, error: null }; });
+    const { result } = renderHook(() => useUploadDocument(), { wrapper });
+    await expect(result.current.mutateAsync({ file: new File(["x"], "a.pdf"), entityType: "forklift",
+      entityId: "f-1", shouldContinue: () => current })).rejects.toThrow("ya no está activa");
+    expect(uploadMock).not.toHaveBeenCalled();
+    expect(insertMock).not.toHaveBeenCalled();
+  });
+
+  it("no inicia trabajo para una ficha que ya no está activa", async () => {
+    const { result } = renderHook(() => useUploadDocument(), { wrapper });
+    await expect(result.current.mutateAsync({ file: new File(["x"], "a.pdf"), entityType: "forklift",
+      entityId: "f-1", shouldContinue: () => false })).rejects.toThrow("ya no está activa");
+    expect(currentOrganizationMock).not.toHaveBeenCalled();
+    expect(uploadMock).not.toHaveBeenCalled();
+  });
+
+  it("no transforma un INSERT confirmado en fallo reintentable si cambia el contexto después", async () => {
+    let current = true;
+    uploadMock.mockResolvedValue({ error: null });
+    insertMock.mockImplementation(() => { current = false; return { data: { id: "confirmed" }, error: null }; });
+    const { result } = renderHook(() => useUploadDocument(), { wrapper });
+    await expect(result.current.mutateAsync({ file: new File(["x"], "a.pdf"), entityType: "forklift",
+      entityId: "f-1", shouldContinue: () => current })).resolves.toEqual({ id: "confirmed" });
+    expect(removeMock).not.toHaveBeenCalled();
+  });
+
+  it.each(["upload", "user"])("limpia el objeto y evita INSERT si cambia el contexto tras %s", async phase => {
+    let current = true;
+    uploadMock.mockImplementation(async () => { if (phase === "upload") current = false; return { error: null }; });
+    getUserMock.mockImplementation(async () => { current = false; return { data: { user: { id: USER_ID } } }; });
+    removeMock.mockResolvedValue({ error: null });
+    const { result } = renderHook(() => useUploadDocument(), { wrapper });
+    await expect(result.current.mutateAsync({ file: new File(["x"], "a.pdf"), entityType: "forklift",
+      entityId: "f-1", shouldContinue: () => current })).rejects.toThrow("ya no está activa");
+    expect(removeMock).toHaveBeenCalledOnce();
+    expect(insertMock).not.toHaveBeenCalled();
+  });
 });

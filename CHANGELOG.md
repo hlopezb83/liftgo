@@ -1,3 +1,9 @@
+## [8.53.15] - 2026-11-13
+
+- La carga permanece bloqueada hasta que termina el lote completo, aunque un archivo falle antes que los demás.
+- Los archivos fallidos muestran su error y se reintentan por separado, sin volver a subir los que ya terminaron.
+- Cambiar de ficha o sesión descarta el lote pendiente de la pantalla y evita continuar etapas de escritura aún no iniciadas.
+
 ## [8.53.14] - 2026-11-13
 
 - El resumen financiero y los historiales distinguen carga, error y datos vacíos; ya no presentan ceros cuando la consulta falla.
