@@ -85,5 +85,8 @@ describe("sesión de edición de flota", () => {
     expect(result.current.form.getValues("notes")).toBe("Otro equipo");
     expect(result.current.record?.id).toBe(other.id);
     expect(result.current.isReloading).toBe(false);
+    rerender({ record: original, id: original.id, ready: true });
+    await waitFor(() => expect(result.current.record?.id).toBe(original.id));
+    expect(result.current.isReloading).toBe(false);
   });
 });

@@ -86,8 +86,10 @@ export function useForkliftPrefill(
     } catch (error) {
       if (activeId.current === id) notifyError({ error, title: "No se pudo recargar el equipo" });
     } finally {
-      if (busy.current === request) busy.current = null;
-      if (activeId.current === id) setReloadingId(null);
+      if (busy.current === request) {
+        busy.current = null;
+        setReloadingId(null);
+      }
     }
   };
   const record = snapshot?.id === id ? snapshot : null;
