@@ -5,6 +5,8 @@ import { callRpc } from "@/lib/rpc";
 import { assertRowsAffected } from "@/lib/supabase/assertRowsAffected";
 import { partInventoryKeys } from "../lib/queryKeys";
 import type { PartInventory } from "./usePartsInventory";
+import { addMaintenancePartQuantity, MaintenancePartUnconfirmedError } from "../lib/maintenancePartRpc";
+import { notifyError } from "@/lib/ui/appFeedback";
 
 export type ActivateCatalogPartInput = {
   catalogPartId: string;
@@ -89,22 +91,21 @@ export function useDeletePart() {
 
 export function useAddMaintenancePart() {
   return useEntityMutation({
-    mutationFn: async (row: TablesInsert<"maintenance_parts"> & { currentLogCost?: number }) => {
-      // BL-28/29 (v7.93.0): el stock de parts_inventory y el `cost` de
-      // maintenance_logs los recalculan triggers en el servidor
-      // (`trg_maintenance_parts_adjust_stock` y `trg_maintenance_parts_recalc_cost`).
-      // Aquí sólo insertamos la fila.
-      const { currentLogCost: _ignored, ...insertRow } = row;
-      const { data, error } = await supabase
-        .from("maintenance_parts").insert(insertRow).select().single();
-      if (error) throw error;
-      return data;
-    },
+    mutationFn: addMaintenancePartQuantity,
+    retry: false,
     invalidateKeys: [
       ["maintenance_parts"] as const,
       partInventoryKeys.all,
       ["maintenance_logs"] as const,
     ],
     errorTitle: "Error al agregar refacción",
+    errorMessage: "Si no recibiste confirmación, recarga las refacciones utilizadas antes de volver a agregar unidades.",
+    onError: (error) => {
+      const code = (error as Error & { code?: string }).code;
+      if (error instanceof MaintenancePartUnconfirmedError || code === "23514" || code === "42501") {
+        notifyError({ title: "Error al agregar refacción", error, description: error.message, severity: "warning" });
+        return true;
+      }
+    },
   });
 }
