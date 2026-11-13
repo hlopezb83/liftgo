@@ -1,8 +1,8 @@
 
 import { useWatch } from "react-hook-form";
 import type { Tables } from "@/integrations/supabase/types";
-import { useEquipmentModels } from "../useEquipmentModels";
 import type { ForkliftFormData } from "../../lib/forkliftFormSchema";
+import type { EquipmentModel } from "../useEquipmentModels";
 import type { UseFormReturn } from "react-hook-form";
 
 type ExistingForklift = Tables<"forklifts"> | null | undefined;
@@ -14,8 +14,8 @@ type ExistingForklift = Tables<"forklifts"> | null | undefined;
 export function useForkliftFormState(
   form: UseFormReturn<ForkliftFormData>,
   existing: ExistingForklift,
+  equipmentModels: EquipmentModel[] | undefined,
 ) {
-  const { data: equipmentModels } = useEquipmentModels();
   const manufacturer = useWatch({ control: form.control, name: "manufacturer" });
 
   const hasModels = !!(equipmentModels && equipmentModels.length > 0);

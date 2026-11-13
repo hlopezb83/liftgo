@@ -17,6 +17,7 @@ export default function ForkliftForm() {
     isEdit, navigate, form,
     hasModels, manufacturers, filteredModels,
     handleManufacturerChange, handleModelChange, onSubmit, isPending,
+    reload, isReloading, hasServerChanges, awaitingRecord,
   } = useForkliftFormLogic();
 
   if (!isEdit && !hasModels) {
@@ -41,6 +42,12 @@ export default function ForkliftForm() {
   return (
     <PageContainer maxWidth="form">
       <FormPageHeader title={isEdit ? "Editar montacargas" : "Agregar montacargas"} />
+      {isEdit && <div className="space-y-2">
+        <Button variant="outline" disabled={isPending || isReloading} onClick={() => { void reload(); }}>
+          {isReloading ? "Recargando…" : "Recargar datos"}
+        </Button>
+        {hasServerChanges && <p role="status" className="text-sm text-muted-foreground">El equipo cambió en el servidor. Tu captura se conserva; recarga para revisar la versión actual.</p>}
+      </div>}
 
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 [&_input]:scroll-mt-20 [&_textarea]:scroll-mt-20 [&_input]:scroll-mb-28 [&_textarea]:scroll-mb-28" onFocusCapture={(event) => {
@@ -50,6 +57,7 @@ export default function ForkliftForm() {
             if (document.activeElement === field) field.scrollIntoView?.({ block: "nearest", inline: "nearest" });
           });
         }}>
+          <fieldset disabled={isReloading || awaitingRecord} className="min-w-0 space-y-6">
           <EquipmentDetailsSection
             isEdit={isEdit}
             manufacturers={manufacturers}
@@ -80,10 +88,12 @@ export default function ForkliftForm() {
           <div className="sticky bottom-0 z-10 border-t bg-background py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]" role="region" aria-label="Acciones del equipo">
             <FormActions
               submitLabel={isEdit ? "Guardar cambios" : "Agregar montacargas"}
-              isPending={isPending}
+              isPending={isPending || isReloading}
+              submitDisabled={awaitingRecord}
               onCancel={() => navigate(-1)}
             />
           </div>
+          </fieldset>
         </form>
       </Form>
     </PageContainer>

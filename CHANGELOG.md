@@ -1,3 +1,9 @@
+## [8.53.13] - 2026-11-13
+
+- Las consultas en segundo plano conservan los campos editados y la versión con la que se abrió el equipo.
+- Recargar datos avisa antes de descartar cambios y renueva juntos el formulario y su versión; los errores conservan la captura.
+- Se mantiene la confirmación al salir con cambios y la salida normal después de guardar.
+
 ## [8.53.12] - 2026-11-13
 
 - Guardar un depósito comprueba la versión del contrato dentro del bloqueo de la fila; una captura desactualizada conserva sus cambios y permite recargar explícitamente.

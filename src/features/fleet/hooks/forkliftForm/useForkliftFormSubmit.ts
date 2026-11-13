@@ -27,6 +27,10 @@ export function useForkliftFormSubmit({ id, isEdit, expectedUpdatedAt, equipment
   const { data: allForklifts } = useForklifts();
 
   const onSubmit = (values: ForkliftFormData) => {
+    if (isEdit && !expectedUpdatedAt) {
+      notifyError({ error: new Error("Espera a que cargue el equipo antes de guardar.") });
+      return;
+    }
     const others = allForklifts?.filter((f) => f.id !== id) ?? [];
     const uniquenessError = validateForkliftUniqueness({ form: values, others });
     if (uniquenessError) {
