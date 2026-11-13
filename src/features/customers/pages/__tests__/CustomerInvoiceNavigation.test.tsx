@@ -49,7 +49,7 @@ vi.mock("@/layouts/RoleGuard", () => ({ RoleGuard: () => null }));
 vi.mock("../../hooks/customers/useCustomerDetailPage", () => ({
   useCustomerDetailPage: () => ({
     customer: { id: customerId, name: "Cliente de prueba" },
-    summary: {}, bookings: [],
+    summary: {}, summaryReady: true, summaryActionsReady: true, bookings: [],
     invoices: [
       { id: invoiceId, invoice_number: "FAC-USD", total: 100, currency: "USD", tipo_cambio: 17.5, status: "sent", issued_at: "2026-10-19" },
       { id: "33333333-3333-4333-8333-333333333333", invoice_number: "FAC-MXN", total: 100, currency: "MXN", status: "sent", issued_at: "2026-10-19" },
