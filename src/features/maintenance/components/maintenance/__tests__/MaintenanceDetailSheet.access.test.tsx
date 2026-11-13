@@ -30,9 +30,10 @@ const makeLog = (status: string) => ({
 } as MaintenanceLog);
 
 describe("cabecera de OT cerrada", () => {
-  it.each(["completed", "cancelled"])("admin consulta %s y debe reabrir antes de editar", (status) => {
+  it.each([["completed", "Completado"], ["cancelled", "Cancelado"]])("admin consulta %s y debe reabrir antes de editar", (status, label) => {
     role.value = "admin";
     render(<MaintenanceDetailSheet log={makeLog(status)} open onOpenChange={vi.fn()} forkliftName="MTY-LG-2606" onEdit={edit} />);
+    expect(screen.getByText(label)).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: /^editar$/i })).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: /^cerrar ot$/i })).not.toBeInTheDocument();
     expect(screen.getByRole("button", { name: /^reabrir ot$/i })).toBeEnabled();

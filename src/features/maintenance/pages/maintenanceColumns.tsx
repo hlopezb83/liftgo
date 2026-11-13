@@ -2,6 +2,7 @@ import type { ColumnDef } from "@/components/dataTable/v2";
 import { serviceTypeLabel } from "@/lib/constants";
 import { formatDateMty } from "@/lib/format/dateFormats";
 import { formatCurrency } from "@/lib/format/formatCurrency";
+import { MaintenanceStatusBadge } from "../components/maintenance/MaintenanceStatusBadge";
 import type { EnrichedMaintenanceLog } from "../lib/maintenancePageHelpers";
 
 export const maintenanceColumns: ColumnDef<EnrichedMaintenanceLog>[] = [
@@ -22,6 +23,13 @@ export const maintenanceColumns: ColumnDef<EnrichedMaintenanceLog>[] = [
     header: "Tipo de Servicio",
     accessorKey: "service_type",
     cell: ({ row }) => serviceTypeLabel(row.original.service_type),
+  },
+  {
+    id: "work_status",
+    header: "Estado",
+    accessorKey: "work_status",
+    meta: { kind: "badge" },
+    cell: ({ row }) => <MaintenanceStatusBadge status={row.original.work_status} />,
   },
   {
     id: "performed_by",

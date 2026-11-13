@@ -3,6 +3,7 @@ import type { Tables } from "@/integrations/supabase/types";
 import { serviceTypeLabel } from "@/lib/constants";
 import { formatDateMty } from "@/lib/format/dateFormats";
 import { formatCurrency } from "@/lib/format/formatCurrency";
+import { MaintenanceStatusBadge } from "./MaintenanceStatusBadge";
 import type { MaintenanceLog } from "../../hooks/maintenance/useMaintenanceLogs";
 
 type ForkliftMap = Map<string, Tables<"forklifts">>;
@@ -31,6 +32,7 @@ export function MaintenanceMobileCard({
           <span className="text-sm font-mono font-medium">{formatCurrency(log.cost || 0)}</span>
         </div>
         <p className="text-sm font-medium">{forkliftMap.get(log.forklift_id)?.name || "—"}</p>
+        <MaintenanceStatusBadge status={log.work_status} className="mt-2" />
         <div className="flex items-center gap-3 mt-2 text-xs text-muted-foreground">
           <span className="font-mono">{formatDateMty(log.performed_at)}</span>
           {log.performed_by && <span>por {log.performed_by}</span>}
