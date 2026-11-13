@@ -119,14 +119,16 @@ const correctionKeys = [
   deliveryKeys.all, ["bookings"] as const, ["forklifts"] as const, ["status_logs"] as const,
   ["return_inspections"] as const, operationSummaryKeys.dashboardStats.all,
   operationSummaryKeys.fleetLocations.all, operationSummaryKeys.forkliftLocation.all,
+  operationSummaryKeys.forkliftFinancials.all,
 ];
 
 /** Solo admin: corrige la fecha real de una entrega completada (auditado). */
 export function useCorrectDeliveryDate() {
   return useEntityMutation({
     mutationFn: async ({ id, date, reason }: { id: string; date: string; reason: string }) => {
-      // Mediodía de Monterrey para que el día no se recorra por zona horaria.
-      const completedAt = new Date(`${date}T12:00:00-06:00`).toISOString();
+      // La captura corrige un día, no una hora. Su inicio en Monterrey conserva
+      // ese día sin enviar una hora futura cuando se corrige hoy por la mañana.
+      const completedAt = new Date(`${date}T00:00:00-06:00`).toISOString();
       return callRpc<string>("correct_delivery_completed_at", {
         p_delivery_id: id, p_completed_at: completedAt, p_reason: reason,
       });
