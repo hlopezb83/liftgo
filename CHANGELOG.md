@@ -1,3 +1,8 @@
+## [8.53.10] - 2026-11-12
+
+- El historial de cambios renueva los índices reciente y completo al cargar una nueva versión, aunque el navegador conserve la caché de una publicación anterior.
+- Los índices evitan respuestas HTTP antiguas y el historial completo sigue cargándose sólo bajo demanda.
+
 ## [8.53.9] - 2026-11-12
 
 - La importación de CFDI rechaza monedas no soportadas en vez de interpretarlas como pesos.

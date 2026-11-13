@@ -1,0 +1,8 @@
+{
+  "description": "El historial de cambios muestra la versión publicada sin necesitar abrir el historial completo ni borrar la caché del navegador.",
+  "changes": [
+    "Los índices reciente y completo usan una caché distinta para cada versión publicada.",
+    "Las consultas de los índices evitan respuestas HTTP antiguas, incluido el archivo de respaldo.",
+    "El historial completo se mantiene bajo demanda y los detalles de versiones anteriores conservan su caché."
+  ]
+}
