@@ -81,8 +81,8 @@ test("entregas: total mayor de 1001, página, búsqueda, historial y regreso al 
     await expect(page.getByText("1201–1201 de 1201", { exact: true })).toBeVisible();
     await page.getByText("QA-ENT-1202", { exact: true }).click();
     await expect(page.getByRole("heading", { name: "QA-ENT-1202", exact: true })).toBeVisible();
-    expect(details).not.toHaveLength(0);
-    expect(details[0]).toContain("*");
+    // Breadcrumbs may request only the folio before the full detail read.
+    await expect.poll(() => details).toContain("*,forklifts(name,model),historical_reconciliation:delivery_historical_reconciliations(*)");
     await page.getByRole("button", { name: "Volver", exact: true }).click();
     await expect(page.getByText("1201–1201 de 1201", { exact: true })).toBeVisible();
     const search = page.getByRole("searchbox", { name: "Buscar entregas…" });
