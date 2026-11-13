@@ -1,13 +1,14 @@
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
-import { describe, expect, it, vi } from "vitest";
+import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { useForm, useWatch } from "react-hook-form";
 import type { SupplierBillFormData } from "../../hooks/useSupplierBillForm";
-const mocks = vi.hoisted(() => ({ importXml: vi.fn(), reset: vi.fn() }));
+const mocks = vi.hoisted(() => ({ importXml: vi.fn(), reset: vi.fn(), submit: vi.fn(), busy: false, identity: "user:org-a" }));
+vi.mock("@/lib/query/useVerifiedIdentityScope", () => ({ useVerifiedIdentityScope: () => mocks.identity }));
 vi.mock("../../hooks/useImportSupplierBillCfdi", () => ({
   useImportSupplierBillCfdi: () => ({
     importXml: mocks.importXml,
     reset: mocks.reset,
-    busy: false,
+    busy: mocks.busy,
     error: null,
     result: null,
   }),
@@ -68,7 +69,7 @@ vi.mock("../../hooks/useSupplierBillForm", () => ({
       suggestedDueDate: null,
       total: 0,
       isPending: false,
-      onSubmit: vi.fn(),
+      onSubmit: mocks.submit,
       values,
     };
   },
@@ -106,6 +107,7 @@ import { SupplierBillFormDialog } from "../SupplierBillFormDialog";
 function values() {
   return JSON.parse(screen.getByTestId("values").textContent!);
 }
+beforeEach(() => { mocks.busy = false; mocks.identity = "user:org-a"; mocks.submit.mockClear(); });
 describe("Supplier XML removal preserves manual context", () => {
   it("restores pre-import values and keeps fields edited after import", async () => {
     mocks.importXml.mockResolvedValue({
@@ -200,4 +202,37 @@ it("starts a fresh manual baseline after removing one XML and importing another"
     subtotal: 40,
     cfdi_uuid: "",
   });
+});
+
+it.each(["reopen", "identity", "bill"])("ignores an old XML response after changing %s", async (change) => {
+  let finish!: (value: unknown) => void;
+  mocks.importXml.mockImplementationOnce(() => new Promise(resolve => { finish = resolve; }));
+  const close = vi.fn();
+  const view = render(<SupplierBillFormDialog open onOpenChange={close} />);
+  fireEvent.click(screen.getByRole("button", { name: "Importar QA" }));
+  if (change === "reopen") {
+    view.rerender(<SupplierBillFormDialog open={false} onOpenChange={close} />);
+    view.rerender(<SupplierBillFormDialog open onOpenChange={close} />);
+  } else if (change === "identity") {
+    mocks.identity = "user:org-b";
+    view.rerender(<SupplierBillFormDialog open onOpenChange={close} />);
+  } else {
+    view.rerender(<SupplierBillFormDialog open onOpenChange={close} bill={{ id: "other-bill", bill_number: "OTRA" } as import("../../hooks/useSupplierBill").SupplierBillDetail} />);
+  }
+  fireEvent.change(screen.getByLabelText("Manual description"), { target: { value: "Nueva captura" } });
+  await act(async () => finish({ initialValues: { description: "XML anterior", subtotal: 999, cfdi_uuid: "old-uuid" }, uploaded: { path: "old.xml" } }));
+  expect(values()).toMatchObject({ description: "Nueva captura", subtotal: 40, cfdi_uuid: "" });
+});
+
+it("blocks submission and dismissal while the XML import is pending", () => {
+  mocks.busy = true;
+  const close = vi.fn();
+  render(<SupplierBillFormDialog open onOpenChange={close} />);
+  const submit = screen.getByRole("button", { name: "Guardando…" });
+  expect(submit).toBeDisabled();
+  expect(screen.getByRole("button", { name: "Cancelar" })).toBeDisabled();
+  fireEvent.submit(submit.closest("form")!);
+  fireEvent.keyDown(screen.getByRole("dialog"), { key: "Escape" });
+  expect(mocks.submit).not.toHaveBeenCalled();
+  expect(close).not.toHaveBeenCalled();
 });

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { useWatch } from "react-hook-form";
 import { TextareaField, type SelectOption } from "@/components/forms/fields";
 import { FormActions } from "@/components/forms/FormActions";
@@ -7,6 +7,7 @@ import { FormSection } from "@/components/forms/FormSection";
 import { Form } from "@/components/ui/form";
 import { useCxpApprovalThreshold } from "@/features/company-settings";
 import { SupplierField } from "@/features/suppliers";
+import { useVerifiedIdentityScope } from "@/lib/query/useVerifiedIdentityScope";
 import { useImportSupplierBillCfdi } from "../hooks/useImportSupplierBillCfdi";
 import { useSupplierBillForm, type SupplierBillFormOverrides, type SupplierBillFormData } from "../hooks/useSupplierBillForm";
 import { CURRENCIES } from "../lib/supplierBillConstants";
@@ -40,27 +41,20 @@ function revealSupplierBillControl(field: HTMLElement) {
 }
 
 
-export function SupplierBillFormDialog({ open, onOpenChange, bill, overrides, titleOverride }: Props) {
+export function SupplierBillFormDialog(props: Props) {
+  const identity = useVerifiedIdentityScope();
+  // Each opening owns its draft and pending import, including identity changes.
+  const sessionKey = JSON.stringify([identity, props.open, props.bill?.id, !!props.overrides]);
+  return <SupplierBillFormSession key={sessionKey} {...props} canImport={identity !== null} />;
+}
+
+function SupplierBillFormSession({ open, onOpenChange, bill, overrides, titleOverride, canImport }: Props & { canImport: boolean }) {
   const isEdit = !!bill;
-  const allowImport = !isEdit && !overrides;
+  const allowImport = canImport && open && !isEdit && !overrides;
 
   const cfdi = useImportSupplierBillCfdi();
   const importSnapshot = useRef<{ before: SupplierBillFormData; imported: Partial<SupplierBillFormData> } | null>(null);
   const [importedValues, setImportedValues] = useState<SupplierBillFormOverrides | undefined>(undefined);
-
-  useEffect(() => {
-    if (!open) importSnapshot.current = null;
-  }, [open]);
-
-  const [prevOpen, setPrevOpen] = useState(open);
-  if (open !== prevOpen) {
-    setPrevOpen(open);
-    if (!open) {
-      cfdi.reset();
-      setImportedValues(undefined);
-    }
-  }
-
 
   const activeOverrides = overrides ?? importedValues;
   const { form, selectedSupplier, suggestedDueDate, total, isPending, onSubmit } =
@@ -72,8 +66,10 @@ export function SupplierBillFormDialog({ open, onOpenChange, bill, overrides, ti
   const threshold = cxpThreshold?.threshold ?? 0;
   const exchangeRate = useWatch({ control: form.control, name: "exchange_rate" });
   const totalMxn = currency === "MXN" ? total : total * Number(exchangeRate || 1);
+  const busy = isPending || cfdi.busy;
 
   const handleFile = async (file: File) => {
+    if (!allowImport || busy) return;
     const r = await cfdi.importXml(file);
     if (r) {
       const before = form.getValues();
@@ -105,7 +101,7 @@ export function SupplierBillFormDialog({ open, onOpenChange, bill, overrides, ti
 
   return (
     <FormDialog
-      isPending={isPending}
+      isPending={busy}
       isDirty={form.formState.isDirty}
       open={open}
       onOpenChange={onOpenChange}
@@ -113,7 +109,7 @@ export function SupplierBillFormDialog({ open, onOpenChange, bill, overrides, ti
       title={titleOverride ?? (isEdit && bill ? `Editar factura ${bill.bill_number}` : "Nueva factura de proveedor")}
     >
       <Form {...form}>
-        <form onSubmit={onSubmit} className="space-y-4" onFocusCapture={(event) => {
+        <form onSubmit={(event) => { if (busy) event.preventDefault(); else void onSubmit(event); }} className="space-y-4" onFocusCapture={(event) => {
           const field = event.target;
           if (!field.matches('input, textarea, [role="combobox"]')) return;
           requestAnimationFrame(() => revealSupplierBillControl(field));
@@ -121,7 +117,7 @@ export function SupplierBillFormDialog({ open, onOpenChange, bill, overrides, ti
           {allowImport && (
             <FormSection title="Comprobante fiscal (XML)" first>
               <SupplierBillCfdiDropzone
-                busy={cfdi.busy}
+                busy={busy}
                 error={cfdi.error}
                 result={cfdi.result}
                 onFile={handleFile}
@@ -154,7 +150,7 @@ export function SupplierBillFormDialog({ open, onOpenChange, bill, overrides, ti
             />
             <FormActions
               submitLabel={isEdit ? "Guardar cambios" : "Registrar"}
-              isPending={isPending}
+              isPending={busy}
               onCancel={() => onOpenChange(false)}
             />
             </div>
