@@ -1,0 +1,7 @@
+{
+  "description": "Más unidades de una refacción en la misma orden",
+  "changes": [
+    "Agregar otra cantidad de una refacción actualiza su línea sin errores de duplicado.",
+    "El servidor valida existencias, permisos y estado de la orden; las líneas existentes conservan su costo registrado."
+  ]
+}

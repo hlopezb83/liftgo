@@ -1,3 +1,8 @@
+## [8.53.22] - 2026-11-13
+
+- Agregar otra cantidad de una refacción actualiza su línea sin errores de duplicado.
+- El servidor valida existencias, permisos y estado de la orden; las líneas existentes conservan su costo registrado.
+
 ## [8.53.21] - 2026-11-13
 
 - Los resultados de una importación anterior no modifican una factura nueva al cerrar, reabrir o cambiar de contexto.
