@@ -129,7 +129,7 @@ export function AgingReport({ startDate: _startDate, endDate: _endDate }: AgingR
             <CardTitle className="text-base">
               Detalle de cartera vencida{selectedBucket ? ` (${selectedBucket} días)` : ""} — Total: {formatCurrency(selectedBucket ? visibleTotal : grandTotal)}
             </CardTitle>
-            <Button variant="outline" size="sm" onClick={handleExport} className="self-start shrink-0 sm:self-auto">
+            <Button variant="outline" size="sm" onClick={handleExport} disabled={visibleInvoices.length === 0} className="self-start shrink-0 sm:self-auto">
               <DownloadIcon className="h-4 w-4 mr-1" /> Exportar CSV
             </Button>
           </div>

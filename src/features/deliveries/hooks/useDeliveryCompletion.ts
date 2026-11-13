@@ -29,7 +29,7 @@ export type PickupPrompt = {
  */
 export function useDeliveryCompletion(
   delivery: Delivery | undefined,
-  siblingDeliveries: Delivery[] | undefined,
+  siblingDeliveries: Pick<Delivery, "type" | "hours_reading">[] | undefined,
   linkedBooking: Booking | null | undefined,
   forklift: Forklift | undefined,
 ) {

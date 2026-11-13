@@ -55,7 +55,7 @@ export function MaintenanceCostReport({ startDate, endDate }: Props) {
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle className="text-base">Costos de Mantenimiento por Unidad</CardTitle>
-          <Button variant="outline" size="sm" disabled={isPending || chartData.length === 0} onClick={() => exportToCsv("costos-mantenimiento.csv", chartData.map((r) => ({ name: r.name, totalCost: r.totalCost, count: r.count })))}>
+          <Button variant="outline" size="sm" disabled={isPending || chartData.length === 0} onClick={() => exportToCsv("costos-mantenimiento.csv", chartData.map((r) => ({ Montacargas: r.name, "Costo total MXN": r.totalCost, Trabajos: r.count })))}>
             <DownloadIcon className="h-4 w-4 mr-1" />Exportar CSV
           </Button>
         </CardHeader>

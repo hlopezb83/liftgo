@@ -46,6 +46,19 @@ test("deterministic without .git; ignores timestamps, secrets and caches", async
   assert.equal(await sourceIdentity(root), before);
 });
 
+test("Python bytecode does not change identity but Python source still does", async (t) => {
+  const root = await fixture(t);
+  await writeFile(path.join(root, "scripts/check.py"), "print('source')\n");
+  const before = await sourceIdentity(root);
+  await mkdir(path.join(root, "scripts/tests/__pycache__"), { recursive: true });
+  await writeFile(path.join(root, "scripts/tests/__pycache__/check.cpython-313.pyc"), "local cache");
+  await writeFile(path.join(root, "scripts/check.pyc"), "legacy cache");
+  await writeFile(path.join(root, "scripts/check.pyo"), "optimized cache");
+  assert.equal(await sourceIdentity(root), before);
+  await writeFile(path.join(root, "scripts/check.py"), "print('changed source')\n");
+  assert.notEqual(await sourceIdentity(root), before);
+});
+
 for (const file of [
   "src/money.ts",
   "supabase/functions/handler.ts",

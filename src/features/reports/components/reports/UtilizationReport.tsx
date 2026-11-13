@@ -54,7 +54,13 @@ function UtilizationChartCard({ data }: { data: Row[] }) {
           <CardTitle className="text-base">Ocupación reservada por unidad</CardTitle>
           <p className="mt-1 text-xs text-muted-foreground">Porcentaje de días del rango con reserva, aunque el equipo aún no haya sido entregado.</p>
         </div>
-        <Button variant="outline" size="sm" className="shrink-0" onClick={() => exportToCsv("reporte-utilizacion.csv", data.map((r) => ({ id: r.id, name: r.name, bookedDays: r.bookedDays, totalDays: r.totalDays, utilization: r.utilization })))}>
+        <Button variant="outline" size="sm" className="shrink-0" disabled={data.length === 0} onClick={() => exportToCsv("reporte-utilizacion.csv", data.map((r) => ({
+          ID: r.id,
+          Montacargas: r.name,
+          "Días reservados": r.bookedDays,
+          "Días totales": r.totalDays,
+          "Ocupación reservada %": r.utilization,
+        })))}>
           <DownloadIcon className="h-4 w-4 mr-1" />Exportar CSV
         </Button>
       </CardHeader>

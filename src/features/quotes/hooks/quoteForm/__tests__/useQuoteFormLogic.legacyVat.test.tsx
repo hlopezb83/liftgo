@@ -6,6 +6,7 @@ vi.mock("@/features/fleet", () => ({ useEquipmentModels: () => ({ data: [], isSu
 vi.mock("@/hooks/useInitialRecordVersion", () => ({ useInitialRecordVersion: () => 1 }));
 vi.mock("@/hooks/useNavigateTransition", () => ({ useNavigateTransition: () => vi.fn() }));
 vi.mock("@/hooks/useUnsavedChangesGuard", () => ({ useUnsavedChangesGuard: vi.fn() }));
+vi.mock("@/components/feedback/useConfirm", () => ({ useConfirm: () => vi.fn() }));
 vi.mock("@/lib/router-compat", () => ({ useParams: () => ({ id: "historical" }) }));
 vi.mock("@/lib/ui/appFeedback", () => ({ notifyValidation: state.notify, notifyError: state.notify, notifySuccess: vi.fn() }));
 const values = {

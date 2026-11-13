@@ -2,7 +2,9 @@ import { supabase } from "@/integrations/supabase/client";
 import type { Database } from "@/integrations/supabase/types";
 import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
 import { callRpc } from "@/lib/rpc";
+import { assertRowsAffected } from "@/lib/supabase/assertRowsAffected";
 import { notifySuccess } from "@/lib/ui/appFeedback";
+import { exportablePayableQueries } from "./useExportablePayables";
 import { supplierBillKeys } from "./useSupplierBills";
 
 type Insert = Database["public"]["Tables"]["supplier_bills"]["Insert"];
@@ -74,8 +76,9 @@ export function useDeleteSupplierBill() {
   return useEntityMutation<string, string>({
     mutationFn: async (id) => {
       await assertNoCompletedPayments(id);
-      const { error } = await supabase.from("supplier_bills").delete().eq("id", id);
+      const { data, error } = await supabase.from("supplier_bills").delete().eq("id", id).select("id");
       if (error) throw error;
+      assertRowsAffected(data, "Eliminar factura de proveedor");
       return id;
     },
     invalidateKeys: [supplierBillKeys.all],
@@ -88,14 +91,16 @@ export function useCancelSupplierBill() {
   return useEntityMutation<{ id: string; reason?: string }, string>({
     mutationFn: async ({ id, reason }) => {
       await assertNoCompletedPayments(id);
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from("supplier_bills")
         .update({ status: "cancelled", notes: reason ?? null })
-        .eq("id", id);
+        .eq("id", id)
+        .select("id");
       if (error) throw error;
+      assertRowsAffected(data, "Cancelar factura de proveedor");
       return id;
     },
-    invalidateKeys: [supplierBillKeys.all],
+    invalidateKeys: [supplierBillKeys.all, exportablePayableQueries.keys.all],
     successMsg: "Registro de factura de proveedor cancelado",
     errorTitle: "No se pudo cancelar el registro de factura",
   });

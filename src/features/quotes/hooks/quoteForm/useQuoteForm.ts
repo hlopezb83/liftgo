@@ -12,6 +12,18 @@ export const EMPTY_RENTAL_LINE: RentalLineValues = {
   modelId: "", quantity: 1, dailyRate: 0, weeklyRate: 0, monthlyRate: 0, discount: 0, discountType: "%",
 };
 
+/** Only fields reset by a type change require confirmation; customer/notes stay. */
+export function hasQuoteTypeData(values: QuoteFormValues): boolean {
+  return values.rentalLines.some((line) =>
+    Object.entries(EMPTY_RENTAL_LINE).some(([key, initial]) => line[key as keyof RentalLineValues] !== initial)
+    || line.legacyTotal !== undefined || !!line.legacyDescription)
+    || values.saleLines.some((line) =>
+      Object.entries(EMPTY_SALE_LINE).some(([key, initial]) => line[key as keyof SaleLineValues] !== initial))
+    || !!(values.dateRange?.from || values.dateRange?.to)
+    || values.includeLogistics || values.logisticsCost !== 0
+    || values.includeInsurance || values.insuranceCost !== 0;
+}
+
 function defaultQuoteFormValues(): QuoteFormValues {
   return {
     quoteType: "rental",

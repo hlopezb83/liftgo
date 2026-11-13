@@ -38,7 +38,7 @@ export default function QuoteForm() {
           <FormErrorSummary labelFor={quoteFormErrorLabel} targetFor={quoteFormErrorTarget} />
           <div className="grid items-start gap-6 xl:grid-cols-[minmax(0,1fr)_20rem]">
             <div className="min-w-0 space-y-4">
-              <QuoteTypeCard value={f.quoteType} onChange={f.handleTypeChange} />
+              <QuoteTypeCard value={f.quoteType} onChange={(type) => { void f.handleTypeChange(type); }} />
 
               <CustomerField form={form} customers={f.customers ?? []} />
 

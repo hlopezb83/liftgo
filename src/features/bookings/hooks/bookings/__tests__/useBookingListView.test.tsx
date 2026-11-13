@@ -9,18 +9,22 @@ import { createQueryWrapper } from "@/test/helpers/queryClient";
 import { createSupabaseChainMock, type ChainCall } from "@/test/helpers/supabaseChain";
 import { TestRouter } from "@/test/router";
 import { upcomingBookingsQuery, useBookingListView } from "../useBookingListView";
+import BookingsPage from "../../../pages/BookingsPage";
 
 let requests: ChainCall[][] = [];
-let rows: { id: string; customer_name: string; booking_number: string; status: string }[] = [];
+let rows: { id: string; customer_name: string; booking_number: string; status: string; start_date?: string; end_date?: string }[] = [];
 vi.mock("@/integrations/supabase/client", () => ({
   supabase: createSupabaseChainMock({ tableResolvers: {
     bookings: (calls) => { requests.push(calls); return { data: rows, error: null }; },
   } }),
 }));
+vi.mock("@/hooks/use-mobile", () => ({ useIsMobile: () => false, useIsTabletOrBelow: () => false }));
+vi.mock("@/contexts/pageActions", () => ({ usePageActions: () => undefined }));
+vi.mock("@/features/users", () => ({ useUserRole: () => ({ data: "admin" }) }));
 
 beforeEach(() => {
   requests = [];
-  rows = [{ id: "qa-1", customer_name: "Acme", booking_number: "RES-1", status: "confirmed" }];
+  rows = [{ id: "qa-1", customer_name: "Acme", booking_number: "RES-1", status: "confirmed", start_date: "2026-11-12", end_date: "2026-11-15" }];
   window.sessionStorage.clear();
   vi.useFakeTimers({ toFake: ["Date"] });
   // The UTC day has advanced, but Monterrey is still November 11.
@@ -39,11 +43,11 @@ function Probe() {
   </>;
 }
 
-function setup(origin: string) {
+function setup(origin: string, showPage = false) {
   function Screen() {
     const location = useLocation();
     return <><output data-testid="url">{location.pathname + location.search}</output>
-      {location.pathname === "/bookings" ? <Probe /> : <DetailPageHeader title="Reserva QA" backTo="/bookings" />}
+      {location.pathname === "/bookings" ? showPage ? <BookingsPage /> : <Probe /> : <DetailPageHeader title="Reserva QA" backTo="/bookings" />}
     </>;
   }
   const { Wrapper } = createQueryWrapper();
@@ -99,6 +103,32 @@ describe("Próximas reservas", () => {
     fireEvent.click(await screen.findByRole("button", { name: "Volver" }));
     await waitFor(() => expect(screen.getByTestId("url").textContent).toBe(origin));
     expect(screen.getByTestId("list")).toHaveTextContent('"view":"upcoming"');
+  });
+
+  it("clears an incompatible status on transition and only offers valid upcoming states", async () => {
+    setup("/bookings?status=cancelled&q=Acme", true);
+    expect(await screen.findByTestId("status-tab-cancelled")).toBeInTheDocument();
+    expect(screen.getByTestId("status-tab-completed")).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Próximas reservas" }));
+    await waitFor(() => expect(screen.getByTestId("url").textContent).toBe("/bookings?q=Acme&view=upcoming"));
+    expect(screen.queryByTestId("status-tab-cancelled")).toBeNull();
+    expect(screen.queryByTestId("status-tab-completed")).toBeNull();
+    expect(screen.getByTestId("status-tab-confirmed")).toBeInTheDocument();
+    expect(screen.getByTestId("status-tab-all")).toBeInTheDocument();
+    const upcomingRead = requests.find((calls) => calls.some((call) => call.method === "gte"));
+    expect(upcomingRead).toBeDefined();
+    expect(upcomingRead!.some((call) => call.method === "eq" && call.args[0] === "status" && call.args[1] === "cancelled")).toBe(false);
+    fireEvent.click(screen.getByRole("button", { name: "Todas las reservas" }));
+    expect(await screen.findByTestId("status-tab-cancelled")).toBeInTheDocument();
+    expect(screen.getByTestId("status-tab-completed")).toBeInTheDocument();
+  });
+
+  it.each(["cancelled", "completed"])("repairs an older upcoming bookmark with status=%s without sending a contradictory query", async (status) => {
+    setup(`/bookings?view=upcoming&status=${status}&q=Acme&tablePage=3`);
+    await waitFor(() => expect(screen.getByTestId("url").textContent).toBe("/bookings?view=upcoming&q=Acme"));
+    expect(screen.getByTestId("list")).toHaveTextContent('"status":"all"');
+    expect(requests.length).toBeGreaterThan(0);
+    expect(requests.flat().some((call) => call.method === "eq" && call.args[0] === "status" && call.args[1] === status)).toBe(false);
   });
 
   it("keeps the sentinel row for the truncation notice while rendering at most 500", async () => {

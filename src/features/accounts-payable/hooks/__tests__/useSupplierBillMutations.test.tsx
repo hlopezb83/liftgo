@@ -2,6 +2,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { renderHook, waitFor } from "@testing-library/react";
 import { ReactNode } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { notifySuccess } from "@/lib/ui/appFeedback";
 
 // Mock supabase antes del import de las mutations.
 const mockQueue: Array<Record<string, unknown>> = [];
@@ -41,7 +42,7 @@ function wrapper({ children }: { children: ReactNode }) {
 }
 
 describe("useDeleteSupplierBill / useCancelSupplierBill (BL-22)", () => {
-  beforeEach(() => { mockQueue.length = 0; });
+  beforeEach(() => { mockQueue.length = 0; vi.clearAllMocks(); });
 
   it("rechaza eliminar cuando hay pagos registrados", async () => {
     enqueue({ data: null, error: null, count: 3 }); // conteo de pagos
@@ -61,9 +62,33 @@ describe("useDeleteSupplierBill / useCancelSupplierBill (BL-22)", () => {
 
   it("permite eliminar cuando no hay pagos", async () => {
     enqueue({ data: null, error: null, count: 0 }); // conteo
-    enqueue({ data: null, error: null });          // delete
+    enqueue({ data: [{ id: "bill-1" }], error: null }); // delete returning
     const { result } = renderHook(() => useDeleteSupplierBill(), { wrapper });
     result.current.mutate("bill-1");
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
+  });
+
+  it("rechaza eliminar si no se afectó ninguna factura y no informa éxito", async () => {
+    enqueue({ data: null, error: null, count: 0 });
+    enqueue({ data: [], error: null });
+    const onSuccess = vi.fn();
+    const { result } = renderHook(() => useDeleteSupplierBill(), { wrapper });
+    result.current.mutate("bill-inaccesible", { onSuccess });
+    await waitFor(() => expect(result.current.isError).toBe(true));
+    expect(String(result.current.error)).toMatch(/no se modificó ningún registro/i);
+    expect(onSuccess).not.toHaveBeenCalled();
+    expect(notifySuccess).not.toHaveBeenCalled();
+  });
+
+  it("rechaza cancelar si no se afectó ninguna factura y no informa éxito", async () => {
+    enqueue({ data: null, error: null, count: 0 });
+    enqueue({ data: [], error: null });
+    const onSuccess = vi.fn();
+    const { result } = renderHook(() => useCancelSupplierBill(), { wrapper });
+    result.current.mutate({ id: "bill-inaccesible" }, { onSuccess });
+    await waitFor(() => expect(result.current.isError).toBe(true));
+    expect(String(result.current.error)).toMatch(/no se modificó ningún registro/i);
+    expect(onSuccess).not.toHaveBeenCalled();
+    expect(notifySuccess).not.toHaveBeenCalled();
   });
 });

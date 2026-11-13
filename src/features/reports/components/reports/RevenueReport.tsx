@@ -101,7 +101,13 @@ export function RevenueReport({ startDate, endDate }: Props) {
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle className="text-base">Ingresos</CardTitle>
-          <Button variant="outline" size="sm" onClick={() => exportToCsv("reporte-ingresos.csv", data)}>
+          <Button variant="outline" size="sm" disabled={data.length === 0} onClick={() => exportToCsv("reporte-ingresos.csv", data.map((row) => ({
+            Periodo: row.key,
+            Mes: row.month,
+            "Facturado MXN": row.invoiced,
+            "Pagado MXN": row.paid,
+            Facturas: row.count,
+          })))}>
             <DownloadIcon className="h-4 w-4 mr-1" />Exportar CSV
           </Button>
         </CardHeader>
