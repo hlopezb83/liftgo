@@ -40,6 +40,13 @@ function num(value: string | null | undefined): number {
   return Number.isFinite(n) ? n : 0;
 }
 
+function parseTotal(value: string | null): number {
+  if (!value || !/^\d+(?:\.\d+)?$/.test(value.trim()) || !Number.isFinite(Number(value))) {
+    throw new CfdiParseError("El CFDI no indica un Total numérico válido.");
+  }
+  return Number(value);
+}
+
 function parseIsoDate(value: string | null): Date | null {
   if (!value) return null;
   // R10 Bloque 12.10: el CFDI trae Fecha en formato local sin zona
@@ -189,7 +196,7 @@ export function parseCfdiXml(xml: string): CfdiParsed {
     taxAmount,
     retentionIva,
     retentionIsr,
-    total: num(comprobante.getAttribute("Total")),
+    total: parseTotal(comprobante.getAttribute("Total")),
     paymentMethodSat: extractPaymentMethod(comprobante),
     formaPago: comprobante.getAttribute("FormaPago"),
     emitterRfc: emisor?.getAttribute("Rfc")?.toUpperCase() ?? null,
