@@ -2,7 +2,7 @@ import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
 import type { PartInventory } from "../hooks/usePartsInventory";
 
-/** Local contracts for migrations 0132/0142; generated DB types stay untouched. */
+/** Local contracts for migrations 0132/0142/0147; generated DB types stay untouched. */
 export interface InventoryPageRpcArgs {
   p_expected_organization_id: string;
   p_search: string | null;
@@ -11,7 +11,9 @@ export interface InventoryPageRpcArgs {
   p_page_size: number;
   p_sort: { id: string; desc: boolean }[];
   /** Omitted for the original endpoint; the required-boolean overload enables low stock. */
-  p_low_stock?: true;
+  p_low_stock?: boolean;
+  /** Required-mode overload: maintenance/full, positive stock before count and range. */
+  p_maintenance_stock?: true;
 }
 type RpcResult = { data: unknown; error: { message: string; code?: string } | null };
 type RpcQuery = PromiseLike<RpcResult> & { abortSignal(signal: AbortSignal): PromiseLike<RpcResult> };
@@ -36,12 +38,15 @@ const pageSchema = z.object({
 });
 
 /** Reject malformed/inconsistent payloads instead of displaying an invented empty result. */
-export function parseInventoryPage(value: unknown, requestedPage: number, pageSize: number, organizationId: string, lowStockOnly = false) {
+export function parseInventoryPage(value: unknown, requestedPage: number, pageSize: number, organizationId: string, lowStockOnly = false, maintenanceStockOnly = false) {
   const parsed = pageSchema.safeParse(value);
   if (!parsed.success) throw new Error("La respuesta de refacciones no es válida. Reintenta la consulta.");
   const page = parsed.data;
   const expectedPage = Math.min(requestedPage, Math.max(0, Math.ceil(page.totalCount / pageSize) - 1));
   const expectedLength = Math.min(pageSize, page.totalCount - expectedPage * pageSize);
+  if (maintenanceStockOnly && page.items.some((item) => item.stock_quantity <= 0)) {
+    throw new Error("No se pudo verificar la disponibilidad de refacciones. Reintenta la consulta.");
+  }
   if (lowStockOnly && (page.totalCount > page.lowStockCount || page.items.some((item) => item.stock_quantity > item.min_stock_level))) {
     throw new Error("No se pudo verificar el filtro de stock bajo. Reintenta la consulta.");
   }

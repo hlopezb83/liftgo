@@ -1030,6 +1030,13 @@
       "when": 1794542400003,
       "tag": "0146_maintenance_part_quantity",
       "breakpoints": true
+    },
+    {
+      "idx": 147,
+      "version": "7",
+      "when": 1794542400004,
+      "tag": "0147_maintenance_stock_options",
+      "breakpoints": true
     }
   ]
 }

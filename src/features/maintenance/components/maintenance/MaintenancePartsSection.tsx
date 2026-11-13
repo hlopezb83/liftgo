@@ -1,15 +1,18 @@
 import { useState } from "react";
+import { QueryErrorState } from "@/components/feedback/QueryErrorState";
 import { InventoryIcon } from "@/components/icons";
 import { Badge } from "@/components/ui/badge";
 import {
-  usePartsInventory,
   useMaintenanceParts,
   useAddMaintenancePart,
   type PartInventory,
 } from "@/features/inventory";
+import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 import { formatCurrency } from "@/lib/format/formatCurrency";
 import { roundMoney, sumMoney } from "@/lib/money";
+import { useVerifiedIdentityScope } from "@/lib/query/useVerifiedIdentityScope";
 import { notifySuccess, notifyValidation } from "@/lib/ui/appFeedback";
+import { MAINTENANCE_PART_PAGE_SIZE, useMaintenancePartOptions } from "../../hooks/maintenance/useMaintenancePartOptions";
 import { AddMaintenancePartForm } from "./AddMaintenancePartForm";
 
 interface Props {
@@ -21,25 +24,33 @@ interface Props {
 }
 
 export function MaintenancePartsSection(props: Props) {
-  return <MaintenancePartsSession key={props.maintenanceLogId} {...props} />;
+  const identity = useVerifiedIdentityScope();
+  return <MaintenancePartsSession key={JSON.stringify([identity, props.maintenanceLogId])} {...props} />;
 }
 
 function MaintenancePartsSession({ maintenanceLogId, currentCost, readOnly = false }: Props) {
   const [open, setOpen] = useState(false);
   const [selectedPartId, setSelectedPartId] = useState<string | null>(null);
   const [quantity, setQuantity] = useState(1);
+  const [search, setSearch] = useState("");
+  const [page, setPage] = useState(0);
+  const debouncedSearch = useDebouncedValue(search.trim());
 
-  const { data: parts = [], isLoading: loadingParts } = usePartsInventory();
-  const { data: usedParts = [], isLoading: loadingUsed } = useMaintenanceParts(maintenanceLogId);
+  const usedQuery = useMaintenanceParts(maintenanceLogId);
+  const { data: usedParts = [], isLoading: loadingUsed } = usedQuery;
+  const { pageQuery, selectedQuery, contextError } = useMaintenancePartOptions({
+    open: open && !readOnly, search: debouncedSearch, page, selectedId: selectedPartId,
+  });
   const addPart = useAddMaintenancePart();
 
-  const selectedPart = parts.find((part) => part.id === selectedPartId) ?? null;
+  const pickerPage = pickerPageState(pageQuery, contextError, search.trim() === debouncedSearch, page);
+  const { selectedPart, selectedReady } = selectionState(selectedQuery, pageQuery, selectedPartId, contextError);
   const setSelectedPart = (part: PartInventory | null) => setSelectedPartId(part?.id ?? null);
-
-  const availableParts = parts.filter((p) => p.stock_quantity > 0);
+  const usedUnavailable = loadingUsed || usedQuery.isError;
+  const previousConsumption = usedParts.find(part => part.part_id === selectedPartId);
 
   const handleAddPart = () => {
-    if (readOnly || addPart.isPending) return;
+    if (readOnly || addPart.isPending || usedUnavailable || !selectedReady) return;
     if (!selectedPart) { notifyValidation({ message: "Selecciona una refacción" }); return; }
     if (quantity < 1) { notifyValidation({ message: "La cantidad debe ser al menos 1" }); return; }
     if (quantity > selectedPart.stock_quantity) {
@@ -52,6 +63,7 @@ function MaintenancePartsSession({ maintenanceLogId, currentCost, readOnly = fal
         maintenance_log_id: maintenanceLogId,
         part_id: selectedPart.id,
         quantity_used: quantity,
+        // Kept for the existing hook signature; the consumption RPC owns valuation.
         cost_at_time: selectedPart.unit_cost,
         currentLogCost: currentCost,
       },
@@ -74,7 +86,7 @@ function MaintenancePartsSession({ maintenanceLogId, currentCost, readOnly = fal
       <div className="flex items-center gap-2">
         <InventoryIcon className="h-4 w-4 text-muted-foreground" />
         <h4 className="font-semibold text-sm">Refacciones Utilizadas</h4>
-        {partsCost > 0 && (
+        {!usedQuery.isError && partsCost > 0 && (
           <Badge variant="secondary" className="ml-auto">{formatCurrency(partsCost)}</Badge>
         )}
       </div>
@@ -82,16 +94,53 @@ function MaintenancePartsSession({ maintenanceLogId, currentCost, readOnly = fal
       {!readOnly && (
         <AddMaintenancePartForm
           open={open} setOpen={setOpen}
-          availableParts={availableParts}
+          availableParts={pickerPage.items}
           selectedPart={selectedPart} setSelectedPart={setSelectedPart}
           quantity={quantity} setQuantity={setQuantity}
-          loadingParts={loadingParts}
+          loadingParts={!pickerPage.ready}
+          search={search} onSearchChange={(value) => { setSearch(value); setPage(0); }}
+          page={pickerPage.page}
+          pageSize={MAINTENANCE_PART_PAGE_SIZE} totalCount={pickerPage.totalCount}
+          onPageChange={setPage}
+          error={pickerPage.error} retrying={pageQuery.isFetching}
+          onRetry={() => { void pageQuery.refetch(); }}
+          canAdd={selectedReady && !usedUnavailable}
+          historicalUnitCost={previousConsumption?.cost_at_time}
           onAdd={handleAddPart}
           isAdding={addPart.isPending}
         />
       )}
 
-      {loadingUsed ? (
+      {!readOnly && <SelectedPartStatus selectedId={selectedPartId} query={selectedQuery} ready={selectedReady} />}
+      <UsedPartsHistory query={usedQuery} />
+    </div>
+  );
+}
+
+type PickerQueries = ReturnType<typeof useMaintenancePartOptions>;
+function pickerPageState(query: PickerQueries["pageQuery"], contextError: boolean, searchMatches: boolean, requestedPage: number) {
+  const error = contextError || query.isError;
+  if (error || !query.isSuccess || query.isFetching || !searchMatches) {
+    return { ready: false, items: [], page: requestedPage, totalCount: 0, error };
+  }
+  return { ready: true, items: query.data.items, page: query.data.pageIndex, totalCount: query.data.totalCount, error: false };
+}
+function selectionState(query: PickerQueries["selectedQuery"], pageQuery: PickerQueries["pageQuery"], id: string | null, contextError: boolean) {
+  const selectedPart = query.data ?? pageQuery.data?.items.find(part => part.id === id) ?? null;
+  const selectedReady = !contextError && query.isSuccess && !query.isError && !query.isFetching && !!query.data && query.data.stock_quantity > 0;
+  return { selectedPart, selectedReady };
+}
+function SelectedPartStatus({ selectedId, query, ready }: { selectedId: string | null; query: PickerQueries["selectedQuery"]; ready: boolean }) {
+  if (!selectedId) return null;
+  if (query.isError) return <QueryErrorState bare entity="la refacción seleccionada" error={query.error}
+    isRetrying={query.isFetching} onRetry={() => { void query.refetch(); }} />;
+  if (query.isSuccess && !query.isFetching && !ready) return <p className="text-sm text-destructive">La refacción ya no tiene existencias o no está disponible. Selecciona otra.</p>;
+  return null;
+}
+function UsedPartsHistory({ query: usedQuery }: { query: ReturnType<typeof useMaintenanceParts> }) {
+  const usedParts = usedQuery.data ?? [];
+  return usedQuery.isError ? <QueryErrorState bare entity="las refacciones utilizadas" error={usedQuery.error}
+        isRetrying={usedQuery.isFetching} onRetry={() => { void usedQuery.refetch(); }} /> : usedQuery.isLoading ? (
         <p className="text-sm text-muted-foreground">Cargando…</p>
       ) : usedParts.length === 0 ? (
         <p className="text-sm text-muted-foreground italic">No se han agregado refacciones.</p>
@@ -113,7 +162,5 @@ function MaintenancePartsSession({ maintenanceLogId, currentCost, readOnly = fal
             );
           })}
         </div>
-      )}
-    </div>
-  );
+      );
 }

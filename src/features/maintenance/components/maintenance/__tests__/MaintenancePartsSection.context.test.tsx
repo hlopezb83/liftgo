@@ -1,6 +1,6 @@
 import type { ComponentProps } from "react";
 import type { AddMaintenancePartForm } from "../AddMaintenancePartForm";
-import { it, expect, vi } from "vitest";
+import { beforeEach, it, expect, vi } from "vitest";
 import { fireEvent, render, screen } from "@testing-library/react";
 import { MaintenancePartsSection } from "@/features/maintenance/components/maintenance/MaintenancePartsSection";
 const m = vi.hoisted(() => ({
@@ -14,10 +14,20 @@ const m = vi.hoisted(() => ({
     },
   ],
   mutate: vi.fn(),
+  error: false,
+  refetch: vi.fn(),
+}));
+vi.mock("@/lib/query/useVerifiedIdentityScope", () => ({ useVerifiedIdentityScope: () => "org-a:user" }));
+vi.mock("../../../hooks/maintenance/useMaintenancePartOptions", () => ({
+  MAINTENANCE_PART_PAGE_SIZE: 25,
+  useMaintenancePartOptions: ({ selectedId }: { selectedId: string | null }) => ({
+    pageQuery: { data: { items: m.parts, totalCount: m.parts.length, pageIndex: 0 }, isSuccess: true, isFetching: false, isError: false },
+    selectedQuery: { data: m.parts.find(part => part.id === selectedId) ?? null, isSuccess: true, isFetching: false, isError: false },
+    contextError: false,
+  }),
 }));
 vi.mock("@/features/inventory", () => ({
-  usePartsInventory: () => ({ data: m.parts, isLoading: false }),
-  useMaintenanceParts: () => ({ data: [], isLoading: false }),
+  useMaintenanceParts: () => ({ data: [], isLoading: false, isError: m.error, refetch: m.refetch }),
   useAddMaintenancePart: () => ({ mutate: m.mutate, isPending: false }),
 }));
 // Replace picker presentation only; parent state and add handler are production code.
@@ -42,6 +52,7 @@ vi.mock(
     ),
   }),
 );
+beforeEach(() => { m.error = false; m.mutate.mockClear(); m.refetch.mockClear(); });
 it("uses current inventory to validate stock and price after refresh", () => {
   const r = render(
     <MaintenancePartsSection maintenanceLogId="ot-a" currentCost={0} />,
@@ -98,4 +109,24 @@ it("uses current inventory to validate stock and price after refresh", () => {
   expect(screen.getByText("Cantidad seleccionada: 1")).toBeInTheDocument();
   fireEvent.click(screen.getByText("Agregar"));
   expect(m.mutate).toHaveBeenCalledTimes(1);
+});
+
+it("retries failed consumption reads without declaring empty or discarding the capture", () => {
+  m.parts = [{ ...m.parts[0], stock_quantity: 8 }];
+  const view = render(<MaintenancePartsSection maintenanceLogId="ot-a" currentCost={0} />);
+  fireEvent.click(screen.getByText("Elegir refacción"));
+  fireEvent.click(screen.getByText("Cantidad 5"));
+  m.error = true;
+  view.rerender(<MaintenancePartsSection maintenanceLogId="ot-a" currentCost={0} />);
+  expect(screen.getByText("No se pudo cargar las refacciones utilizadas")).toBeInTheDocument();
+  expect(screen.queryByText("No se han agregado refacciones.")).not.toBeInTheDocument();
+  fireEvent.click(screen.getByRole("button", { name: "Agregar" }));
+  expect(m.mutate).not.toHaveBeenCalled();
+  fireEvent.click(screen.getByRole("button", { name: "Reintentar" }));
+  expect(m.refetch).toHaveBeenCalledOnce();
+  m.error = false;
+  view.rerender(<MaintenancePartsSection maintenanceLogId="ot-a" currentCost={0} />);
+  expect(screen.getByText("Cantidad seleccionada: 5")).toBeInTheDocument();
+  fireEvent.click(screen.getByRole("button", { name: "Agregar" }));
+  expect(m.mutate.mock.calls[0][0]).toMatchObject({ part_id: "part-a", quantity_used: 5 });
 });

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { QueryErrorState } from "@/components/feedback/QueryErrorState";
 import { useConfirm } from "@/components/feedback/useConfirm";
 import { MaintenanceIcon, DeleteIcon } from "@/components/icons";
 import { Badge } from "@/components/ui/badge";
@@ -22,8 +23,10 @@ interface Props {
 }
 
 export function MaintenanceLaborSection({ maintenanceLogId, readOnly = false }: Props) {
-  const { data: mechanics = [] } = useActiveMechanics();
-  const { data: labor = [], isLoading } = useMaintenanceLabor(maintenanceLogId);
+  const mechanicsQuery = useActiveMechanics();
+  const { data: mechanics = [] } = mechanicsQuery;
+  const laborQuery = useMaintenanceLabor(maintenanceLogId);
+  const { data: labor = [], isLoading } = laborQuery;
   const addLabor = useAddMaintenanceLabor();
   const deleteLabor = useDeleteMaintenanceLabor();
   const confirm = useConfirm();
@@ -34,9 +37,10 @@ export function MaintenanceLaborSection({ maintenanceLogId, readOnly = false }: 
   const [notes, setNotes] = useState<string>("");
 
   const laborTotal = labor.reduce((sum, l) => sum + Number(l.total_cost ?? 0), 0);
+  const captureBlocked = captureQueriesUnavailable(laborQuery, mechanicsQuery);
 
   const handleAdd = () => {
-    if (readOnly || addLabor.isPending) return;
+    if (readOnly || addLabor.isPending || captureBlocked) return;
     const h = Number(hours);
     const r = Number(hourlyRate);
     if (!mechanicId) return notifyValidation({ message: "Selecciona un mecánico" });
@@ -63,7 +67,7 @@ export function MaintenanceLaborSection({ maintenanceLogId, readOnly = false }: 
   };
 
   const handleDelete = async (id: string) => {
-    if (readOnly || deleteLabor.isPending) return;
+    if (readOnly || deleteLabor.isPending || laborQuery.isError || isLoading) return;
     const ok = await confirm({
       title: "¿Eliminar mano de obra?",
       description: "El costo asociado se retirará del total del servicio. Esta acción no se puede deshacer.",
@@ -79,15 +83,17 @@ export function MaintenanceLaborSection({ maintenanceLogId, readOnly = false }: 
       <div className="flex items-center gap-2">
         <MaintenanceIcon className="h-4 w-4 text-muted-foreground" />
         <h4 className="font-semibold text-sm">Mano de Obra</h4>
-        {laborTotal > 0 && (
+        {!laborQuery.isError && laborTotal > 0 && (
           <Badge variant="secondary" className="ml-auto">{formatCurrency(laborTotal)}</Badge>
         )}
       </div>
 
       {!readOnly && (
-        <>
+        <fieldset disabled={addLabor.isPending} className="space-y-2">
+          {mechanicsQuery.isError && <QueryErrorState bare entity="los mecánicos" error={mechanicsQuery.error}
+            isRetrying={mechanicsQuery.isFetching} onRetry={() => { void mechanicsQuery.refetch(); }} />}
           <div className="grid grid-cols-1 sm:grid-cols-4 gap-2">
-            <Select value={mechanicId} onValueChange={setMechanicId}>
+            <Select value={mechanicId} onValueChange={setMechanicId} disabled={mechanicsQuery.isError || mechanicsQuery.isLoading || addLabor.isPending}>
               <SelectTrigger className="sm:col-span-2">
                 <SelectValue placeholder="Mecánico" />
               </SelectTrigger>
@@ -111,12 +117,13 @@ export function MaintenanceLaborSection({ maintenanceLogId, readOnly = false }: 
               placeholder="Notas (opcional)"
               value={notes} onChange={(e) => setNotes(e.target.value)}
             />
-            <Button onClick={handleAdd} disabled={addLabor.isPending} size="sm">Agregar</Button>
+            <Button onClick={handleAdd} disabled={addLabor.isPending || captureBlocked} size="sm">Agregar</Button>
           </div>
-        </>
+        </fieldset>
       )}
 
-      {isLoading ? (
+      {laborQuery.isError ? <QueryErrorState bare entity="la mano de obra" error={laborQuery.error}
+        isRetrying={laborQuery.isFetching} onRetry={() => { void laborQuery.refetch(); }} /> : isLoading ? (
         <p className="text-sm text-muted-foreground">Cargando…</p>
       ) : labor.length === 0 ? (
         <p className="text-sm text-muted-foreground italic">Sin mano de obra registrada.</p>
@@ -148,4 +155,8 @@ export function MaintenanceLaborSection({ maintenanceLogId, readOnly = false }: 
       )}
     </div>
   );
+}
+
+function captureQueriesUnavailable(labor: ReturnType<typeof useMaintenanceLabor>, mechanics: ReturnType<typeof useActiveMechanics>) {
+  return labor.isLoading || labor.isError || mechanics.isLoading || mechanics.isError;
 }
