@@ -3,10 +3,10 @@ import type { TablesInsert } from "@/integrations/supabase/types";
 import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
 import { callRpc } from "@/lib/rpc";
 import { assertRowsAffected } from "@/lib/supabase/assertRowsAffected";
+import { notifyError } from "@/lib/ui/appFeedback";
+import { addMaintenancePartQuantity, MaintenancePartUnconfirmedError } from "../lib/maintenancePartRpc";
 import { partInventoryKeys } from "../lib/queryKeys";
 import type { PartInventory } from "./usePartsInventory";
-import { addMaintenancePartQuantity, MaintenancePartUnconfirmedError } from "../lib/maintenancePartRpc";
-import { notifyError } from "@/lib/ui/appFeedback";
 
 export type ActivateCatalogPartInput = {
   catalogPartId: string;
