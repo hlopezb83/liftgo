@@ -1,3 +1,4 @@
+import { QueryErrorState } from "@/components/feedback/QueryErrorState";
 import { StatusBadge } from "@/components/feedback/StatusBadge";
 import { HistoryIcon } from "@/components/icons";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -174,7 +175,8 @@ function HistoryEntry({ log }: { log: BookingHistoryLog }) {
 }
 
 export function BookingStatusHistory({ bookingId }: BookingStatusHistoryProps) {
-  const { data: logs = [], isLoading } = useBookingStatusHistory(bookingId);
+  const query = useBookingStatusHistory(bookingId);
+  const { data: logs = [], isLoading } = query;
 
   return (
     <Card>
@@ -185,17 +187,19 @@ export function BookingStatusHistory({ bookingId }: BookingStatusHistoryProps) {
         </CardTitle>
       </CardHeader>
       <CardContent>
+        {query.isError && <QueryErrorState bare entity="el historial de la reserva" error={query.error}
+          isRetrying={query.isFetching} onRetry={() => { void query.refetch(); }} />}
         {isLoading ? (
           <p className="text-sm text-muted-foreground">Cargando…</p>
         ) : logs.length > 0 ? (
           <div className="space-y-0">
             {logs.map((log) => <HistoryEntry key={log.id} log={log} />)}
           </div>
-        ) : (
+        ) : query.isSuccess ? (
           <p className="text-sm text-muted-foreground">
             Sin actividad registrada
           </p>
-        )}
+        ) : null}
       </CardContent>
     </Card>
   );

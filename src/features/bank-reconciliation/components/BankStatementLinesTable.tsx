@@ -13,6 +13,7 @@ import type { BankStatementLine } from "../hooks/useBankStatementLines";
 import type { SortingState, Updater } from "@tanstack/react-table";
 
 interface Props {
+  canWrite: boolean;
   lines: BankStatementLine[];
   bankAccountId: string;
   currency: string;
@@ -88,6 +89,7 @@ const createColumns = (currency: string): ColumnDef<BankStatementLine>[] => [
 ];
 
 export function BankStatementLinesTable({
+  canWrite,
   lines,
   bankAccountId,
   currency,
@@ -111,7 +113,7 @@ export function BankStatementLinesTable({
     controlledSorting: sorting,
     onControlledSortingChange: onSortingChange,
     paginated: false,
-    enableRowSelection: (l) => l.status === "unmatched" || l.status === "suggested",
+    enableRowSelection: canWrite ? (l) => l.status === "unmatched" || l.status === "suggested" : false,
   });
 
   return (
@@ -130,9 +132,10 @@ export function BankStatementLinesTable({
           rowAction={{ columnId: "posted_date", label: (l) => `Ver movimiento ${l.reference || l.description || formatDateMty(l.posted_date)}` }}
           onRowClick={onSelect}
           virtualized={virtualized}
-          enableRowSelection
+          enableRowSelection={canWrite}
           rowClassName={(l) => (l.id === activeId ? "bg-accent/60" : undefined)}
           selectionToolbar={({ selectedRows, clearSelection }) => {
+            if (!canWrite) return null;
             // Never apply a bulk action to stale, hidden, or no-longer-actionable rows.
             const actionable = selectedRows.filter((line) => line.bank_account_id === bankAccountId &&
               (line.status === "unmatched" || line.status === "suggested"));
@@ -194,7 +197,7 @@ export function BankStatementLinesTable({
               </div>
             );
           }}
-          emptyMessage="Sin movimientos con estos filtros. Sube un estado de cuenta para comenzar."
+          emptyMessage={canWrite ? "Sin movimientos con estos filtros. Sube un estado de cuenta para comenzar." : "Sin movimientos con estos filtros."}
         />
       </CardContent>
     </Card>

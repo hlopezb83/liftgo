@@ -8,6 +8,7 @@ import type { BankStatementLine } from "../hooks/useBankStatementLines";
 import type { SortingState } from "@tanstack/react-table";
 
 interface Props {
+  canWrite: boolean;
   lines: BankStatementLine[];
   bankAccountId: string;
   /** Moneda de la cuenta bancaria: los movimientos se expresan en ella. */
@@ -29,7 +30,7 @@ const STATUS_OPTIONS = [
 ];
 
 export function BankReconciliationWorkspace({
-  lines, bankAccountId, currency, isLoading, virtualized,
+  lines, bankAccountId, currency, isLoading, virtualized, canWrite,
   status, search, onStatusChange, onSearchChange,
 }: Props) {
   const [sorting, setSorting] = useState<SortingState>([{ id: "posted_date", desc: true }]);
@@ -103,6 +104,7 @@ export function BankReconciliationWorkspace({
 
   const table = (
     <BankStatementLinesTable
+      canWrite={canWrite}
       key={JSON.stringify([bankAccountId, status, search])}
       sorting={sorting}
       onSortingChange={setSorting}
@@ -135,11 +137,11 @@ export function BankReconciliationWorkspace({
       <Sheet open={!!activeLine} onOpenChange={(open) => { if (!open) setActiveId(null); }}>
         <SheetContent className="overflow-y-auto sm:max-w-xl" onCloseAutoFocus={restoreRowFocus} aria-describedby={undefined}>
           <SheetHeader>
-            <SheetTitle>Conciliar movimiento</SheetTitle>
+            <SheetTitle>{canWrite ? "Conciliar movimiento" : "Detalle del movimiento"}</SheetTitle>
           </SheetHeader>
           {activeLine && (
             <div className="mt-4">
-              <BankLineMatchPanel line={activeLine} currency={currency} onDone={handleDone} />
+              <BankLineMatchPanel line={activeLine} currency={currency} onDone={handleDone} canWrite={canWrite} />
             </div>
           )}
         </SheetContent>

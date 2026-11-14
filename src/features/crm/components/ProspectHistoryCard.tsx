@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { QueryErrorState } from "@/components/feedback/QueryErrorState";
 import { HistoryIcon, ViewIcon } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -20,7 +21,8 @@ function summarizeChanges(log: AuditLog): string[] {
 }
 
 export function ProspectHistoryCard({ prospectId }: Props) {
-  const { data: logs = [], isLoading } = useAuditLogs({ table_name: "prospects", record_id: prospectId });
+  const query = useAuditLogs({ table_name: "prospects", record_id: prospectId });
+  const { data: logs = [], isLoading } = query;
   const [expanded, setExpanded] = useState(false);
   const [selected, setSelected] = useState<AuditLog | null>(null);
   // BL-R8-09 (R8-FE-06): RLS devuelve [] (no error) cuando el rol no tiene
@@ -46,15 +48,17 @@ export function ProspectHistoryCard({ prospectId }: Props) {
           </CardTitle>
         </CardHeader>
         <CardContent>
+          {canSeeAudit && query.isError && <QueryErrorState bare entity="el historial de cambios" error={query.error}
+            isRetrying={query.isFetching} onRetry={() => { void query.refetch(); }} />}
           {isLoading ? (
             <Skeleton className="h-24" />
           ) : !canSeeAudit ? (
             <p className="text-sm text-muted-foreground">
               No tienes permiso para ver el historial de cambios.
             </p>
-          ) : logs.length === 0 ? (
+          ) : logs.length === 0 && query.isSuccess ? (
             <p className="text-sm text-muted-foreground">Sin cambios registrados</p>
-          ) : (
+          ) : logs.length > 0 ? (
             <>
               <div className="space-y-3">
                 {visible.map((log) => {
@@ -105,7 +109,7 @@ export function ProspectHistoryCard({ prospectId }: Props) {
                 </Button>
               )}
             </>
-          )}
+          ) : null}
         </CardContent>
       </Card>
 

@@ -120,6 +120,7 @@ export default function UserManagementPage() {
         skeletonColumns={6}
         mobileCardRender={(u) => (
           <UserMobileCard
+            canManage={canManage}
             u={u}
             actions={{
               currentUserId: currentUser?.id,
