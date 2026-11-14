@@ -1,0 +1,8 @@
+{
+  "description": "Protección de capturas y borradores",
+  "changes": [
+    "Mantenimiento y catálogos de personal confirman antes de descartar una captura sin guardar.",
+    "La edición de cotizaciones y contratos distingue carga, error y documentos no encontrados, con recuperación sin perder el borrador.",
+    "Flujo de caja y reportes de transferencia conservan los datos capturados cuando se actualizan los saldos."
+  ]
+}

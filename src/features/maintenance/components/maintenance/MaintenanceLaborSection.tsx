@@ -1,4 +1,4 @@
-import { useId, useState } from "react";
+import { useEffect, useId, useState } from "react";
 import { QueryErrorState } from "@/components/feedback/QueryErrorState";
 import { useConfirm } from "@/components/feedback/useConfirm";
 import { MaintenanceIcon, DeleteIcon } from "@/components/icons";
@@ -17,12 +17,14 @@ import {
   useDeleteMaintenanceLabor,
 } from "../../hooks/maintenance/useMaintenanceLabor";
 import { useActiveMechanics } from "../../hooks/maintenance/useMechanics";
+import type { LaborDraftState } from "../../hooks/maintenance/useLaborDraftGuard";
 
 interface Props {
   maintenanceLogId: string;
   /** R12-M10: cuando el OT está `completed`, esconder el formulario de captura
    *  y deshabilitar borrado. La defensa dura sigue viva en los triggers. */
   readOnly?: boolean;
+  onDraftChange?: (state: LaborDraftState) => void;
 }
 
 function MechanicsEmptyState() {
@@ -37,7 +39,7 @@ function MechanicsEmptyState() {
   );
 }
 
-export function MaintenanceLaborSection({ maintenanceLogId, readOnly = false }: Props) {
+export function MaintenanceLaborSection({ maintenanceLogId, readOnly = false, onDraftChange }: Props) {
   const fieldId = useId();
   const mechanicsQuery = useActiveMechanics();
   const { data: mechanics = [] } = mechanicsQuery;
@@ -51,6 +53,11 @@ export function MaintenanceLaborSection({ maintenanceLogId, readOnly = false }: 
   const [hours, setHours] = useState<string>("");
   const [hourlyRate, setHourlyRate] = useState<string>("");
   const [notes, setNotes] = useState<string>("");
+
+  const dirty = !readOnly && [mechanicId, hours, hourlyRate, notes].some(Boolean);
+  useEffect(() => {
+    onDraftChange?.({ dirty, pending: addLabor.isPending });
+  }, [dirty, addLabor.isPending, onDraftChange]);
 
   const laborTotal = labor.reduce((sum, l) => sum + Number(l.total_cost ?? 0), 0);
   const { empty: mechanicsEmpty, unavailable: mechanicsUnavailable } = mechanicsAvailability(mechanicsQuery);

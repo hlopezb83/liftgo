@@ -10,6 +10,7 @@ function focusedQuoteField(form: HTMLFormElement, footer: HTMLDivElement) {
 export function useQuoteFormVisibility(
   formRef: RefObject<HTMLFormElement | null>,
   footerRef: RefObject<HTMLDivElement | null>,
+  ready = true,
 ) {
   useEffect(() => {
     const form = formRef.current;
@@ -44,5 +45,5 @@ export function useQuoteFormVisibility(
       window.removeEventListener("resize", revealFocusedField);
       window.visualViewport?.removeEventListener("resize", revealFocusedField);
     };
-  }, [formRef, footerRef]);
+  }, [formRef, footerRef, ready]);
 }

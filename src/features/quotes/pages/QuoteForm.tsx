@@ -1,11 +1,14 @@
 import { useRef } from "react";
 import { NotesCard } from "@/components/domain/NotesCard";
+import { EmptyState } from "@/components/feedback/EmptyState";
+import { QueryErrorState } from "@/components/feedback/QueryErrorState";
 import { FormErrorSummary } from "@/components/forms/FormErrorSummary";
 import { FormErrorSummaryScope } from "@/components/forms/FormErrorSummaryScope";
 import { FormPageHeader } from "@/components/layout/FormPageHeader";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Form, FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form";
+import { Skeleton } from "@/components/ui/skeleton";
 import { CustomerField } from "../components/quote-form/CustomerField";
 import { LogisticsCard } from "../components/quote-form/LogisticsCard";
 import { QuoteDetailsCard } from "../components/quote-form/QuoteDetailsCard";
@@ -18,13 +21,26 @@ import { useQuoteFormLogic } from "../hooks/quoteForm/useQuoteFormLogic";
 import { useQuoteFormVisibility } from "../hooks/quoteForm/useQuoteFormVisibility";
 import { quoteFormErrorLabel, quoteFormErrorTarget } from "../lib/quoteFormErrorSummary";
 
+function QuoteInitialState({ f }: { f: ReturnType<typeof useQuoteFormLogic> }) {
+  if (f.readQuery.isError) return <QueryErrorState entity={f.readEntity} error={f.readQuery.error}
+    isRetrying={f.readQuery.isFetching} onRetry={() => { void f.readQuery.refetch(); }} />;
+  if (f.recordNotFound) return <EmptyState title="Cotización no encontrada" subtitle="El registro ya no está disponible."
+    actionLabel="Volver a cotizaciones" onAction={() => f.navigate("/quotes")} />;
+  return <div role="status" aria-label="Cargando cotización" className="space-y-4"><Skeleton className="h-12" /><Skeleton className="h-64" /></div>;
+}
+
 export default function QuoteForm() {
   const f = useQuoteFormLogic();
   const { form } = f;
   const isRental = f.quoteType === "rental";
   const formRef = useRef<HTMLFormElement>(null);
   const footerRef = useRef<HTMLDivElement>(null);
-  useQuoteFormVisibility(formRef, footerRef);
+  useQuoteFormVisibility(formRef, footerRef, f.initialRecordReady);
+
+  if (f.id && !f.initialRecordReady) return <PageContainer className="mx-auto max-w-7xl">
+    <FormPageHeader title="Editar cotización" />
+    <QuoteInitialState f={f} />
+  </PageContainer>;
 
   return (
     <PageContainer className="mx-auto max-w-7xl">
@@ -32,6 +48,8 @@ export default function QuoteForm() {
         title={f.id ? "Editar cotización" : "Nueva cotización"}
         subtitle={f.id ? f.quoteNumber ?? undefined : undefined}
       />
+      {f.id && f.readQuery.isError && <QueryErrorState entity={f.readEntity} error={f.readQuery.error}
+        isRetrying={f.readQuery.isFetching} onRetry={() => { void f.readQuery.refetch(); }} />}
       <Form {...form}>
         <FormErrorSummaryScope>
         <form ref={formRef} onSubmit={f.handleSubmit} className="space-y-4">

@@ -1,3 +1,9 @@
+## [8.53.39] - 2026-11-14
+
+- Mantenimiento y catálogos de personal confirman antes de descartar una captura sin guardar.
+- La edición de cotizaciones y contratos distingue carga, error y documentos no encontrados, con recuperación sin perder el borrador.
+- Flujo de caja y reportes de transferencia conservan los datos capturados cuando se actualizan los saldos.
+
 ## [8.53.38] - 2026-11-14
 
 - La captura de mano de obra explica qué hacer cuando no hay mecánicos activos, respetando los permisos de configuración.

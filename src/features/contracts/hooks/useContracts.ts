@@ -35,9 +35,9 @@ async function fetchDetail(id: string) {
     .from("contracts")
     .select("*, customers(name), forklifts(name)")
     .eq("id", id)
-    .single();
+    .maybeSingle();
   if (error) throw error;
-  return mapRow(data);
+  return data ? mapRow(data) : null;
 }
 
 export const contractQueries = defineEntityQueries(

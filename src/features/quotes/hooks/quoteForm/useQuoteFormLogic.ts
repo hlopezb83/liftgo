@@ -41,12 +41,25 @@ function useQuoteTypeChange(form: UseFormReturn<QuoteFormValues>) {
   };
 }
 
+function quoteInitialState(id: string | undefined, quote: ReturnType<typeof useQuote>, models: ReturnType<typeof useEquipmentModels>, prefill: QuoteFormValues | undefined) {
+  const useQuoteQuery = quote.isError || !quote.data;
+  return {
+    initialRecordReady: !id || Boolean(prefill),
+    recordNotFound: quote.isSuccess && !quote.data,
+    readQuery: useQuoteQuery ? quote : models,
+    readEntity: useQuoteQuery ? "la cotización" : "los modelos de equipo",
+    submitBlocked: Boolean(id) && (!quote.data || !prefill),
+  };
+}
+
 export function useQuoteFormLogic() {
   const { id } = useParams();
   const navigate = useNavigateTransition();
   const { data: customers } = useCustomers();
-  const { data: existingQuote, isSuccess: quoteSuccess } = useQuote(id);
-  const { data: equipmentModels, isLoading: equipmentModelsLoading, isSuccess: modelsSuccess } = useEquipmentModels();
+  const quoteQuery = useQuote(id);
+  const { data: existingQuote, isSuccess: quoteSuccess } = quoteQuery;
+  const modelsQuery = useEquipmentModels();
+  const { data: equipmentModels, isLoading: equipmentModelsLoading, isSuccess: modelsSuccess } = modelsQuery;
   const createQuote = useCreateQuote();
   const updateQuote = useUpdateQuote();
 
@@ -58,9 +71,10 @@ export function useQuoteFormLogic() {
   // pasarlos como opción `values` de RHF (reemplaza el `form.reset()`
   // one-shot del useEffect anterior, no determinista en navegación SPA).
   const prefillValues = useQuotePrefillValues({
-    existingQuote, equipmentModels, quoteReady: quoteSuccess, modelsReady: modelsSuccess,
+    recordId: id, existingQuote, equipmentModels, quoteReady: quoteSuccess, modelsReady: modelsSuccess,
   });
   const form = useQuoteForm(prefillValues, !!id);
+  const initialState = quoteInitialState(id, quoteQuery, modelsQuery, prefillValues);
   const handleTypeChange = useQuoteTypeChange(form);
 
   // P1-3: una cotización aceptada (o ya convertida a booking) no puede cambiar
@@ -113,6 +127,7 @@ export function useQuoteFormLogic() {
   useUnsavedChangesGuard(form.formState.isDirty && !isPending);
 
   const onValid = (values: QuoteFormValues) => {
+    if (initialState.submitBlocked) return;
     if (isAmountLocked) {
       notifyError({
         title: "Cotización aceptada",
@@ -185,6 +200,7 @@ export function useQuoteFormLogic() {
 
   return {
     id,
+    ...initialState,
     quoteNumber: existingQuote?.quote_number ?? null,
     form,
     quoteType,

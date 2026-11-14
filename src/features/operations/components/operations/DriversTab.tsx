@@ -29,13 +29,16 @@ export function DriversTab() {
   const [editId, setEditId] = useState<string | null>(null);
   const emptyForm = { name: "", phone: "", email: "", license_number: "", is_active: true, notes: "" };
   const [form, setForm] = useState(emptyForm);
+  const [initialForm, setInitialForm] = useState(emptyForm);
+  const isDirty = JSON.stringify(form) !== JSON.stringify(initialForm);
   const set = (key: string, value: string | boolean) => setForm((p) => ({ ...p, [key]: value }));
 
-  const openNew = () => { if (!canWrite) return; setEditId(null); setForm(emptyForm); setOpen(true); };
+  const openNew = () => { if (!canWrite) return; setEditId(null); setForm(emptyForm); setInitialForm(emptyForm); setOpen(true); };
   const openEdit = (d: Driver) => {
     if (!canWrite) return;
     setEditId(d.id);
     setForm({ name: d.name, phone: d.phone ?? "", email: d.email ?? "", license_number: d.license_number ?? "", is_active: d.is_active, notes: d.notes ?? "" });
+    setInitialForm({ name: d.name, phone: d.phone ?? "", email: d.email ?? "", license_number: d.license_number ?? "", is_active: d.is_active, notes: d.notes ?? "" });
     setOpen(true);
   };
 
@@ -132,7 +135,7 @@ export function DriversTab() {
         <DataTableV2 table={table} isLoading={isLoading} emptyMessage="No hay conductores registrados" />
       )}
       <FormDialog
-      isPending={create.isPending || update.isPending} open={open && canWrite} onOpenChange={setOpen} title={`${editId ? "Editar" : "Nuevo"} conductor`} description="Administrar datos del conductor para programación de entregas.">
+      isDirty={isDirty} isPending={create.isPending || update.isPending} open={open && canWrite} onOpenChange={setOpen} title={`${editId ? "Editar" : "Nuevo"} conductor`} description="Administrar datos del conductor para programación de entregas.">
           <form onSubmit={handleSubmit}>
             <div className="grid gap-4 py-2">
               <div className="space-y-1.5"><Label>Nombre *</Label><Input placeholder="Nombre completo" value={form.name} onChange={(e) => set("name", e.target.value)} required /></div>

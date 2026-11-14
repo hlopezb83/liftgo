@@ -1,5 +1,5 @@
 import { isAfter, startOfDay } from "date-fns";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { useForm } from "react-hook-form";
 import { TextField, CurrencyField, DateField } from "@/components/forms/fields";
 import { FormDialog, FormDialogFooter } from "@/components/forms/FormDialog";
@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { toYMD } from "@/lib/date/toYMD";
+import { formatCurrency } from "@/lib/format/formatCurrency";
 import { zodResolver } from "@/lib/forms/zodResolver";
 import { nowMty } from "@/lib/utils";
 import { useCreatePaymentIntent } from "../hooks/usePortalExtras";
@@ -26,33 +27,47 @@ interface Props {
 
 type FormValues = ReportTransferFormValues;
 
+function transferDefaults(balance: number): FormValues {
+  return { transferDate: nowMty(), amount: Number(balance.toFixed(2)), senderBank: "", senderLast4: "", trackingKey: "", proofFile: null };
+}
+
+function transferDraftKey(values: FormValues) {
+  return JSON.stringify([values.transferDate?.getTime(), Number(values.amount), values.senderBank ?? "", values.senderLast4 ?? "", values.trackingKey ?? ""]);
+}
+
+function useTransferDraftSession(form: ReturnType<typeof useForm<FormValues>>, open: boolean, invoiceId: string, customerId: string, balance: number) {
+  const previous = useRef({ open: false, invoiceId, customerId, balance, defaults: transferDefaults(balance) });
+  const dirty = form.formState.isDirty;
+  const baseAmount = Number(form.formState.defaultValues?.amount);
+  useEffect(() => {
+    const before = previous.current;
+    previous.current = { ...before, open, invoiceId, customerId, balance };
+    if (!open) return;
+    const newSession = !before.open || before.invoiceId !== invoiceId || before.customerId !== customerId;
+    // Read the current values at the refresh boundary: RHF's async resolver
+    // can update isDirty after the remote response has already rendered.
+    const current = form.getValues();
+    const hasDraft = Boolean(current.proofFile) || transferDraftKey(current) !== transferDraftKey(before.defaults);
+    if (newSession || (!hasDraft && baseAmount !== Number(balance.toFixed(2)))) {
+      const defaults = transferDefaults(balance);
+      previous.current.defaults = defaults;
+      form.reset(defaults);
+    }
+    else if (before.balance !== balance) void form.trigger("amount");
+  }, [form, open, invoiceId, customerId, balance, dirty, baseAmount]);
+}
+
 export function ReportTransferDialog({ open, onOpenChange, invoiceId, customerId, balance, pendingInReview = 0 }: Props) {
   const { mutate, isPending } = useCreatePaymentIntent();
 
   const form = useForm<FormValues>({
     resolver: zodResolver(makeSchema(balance, pendingInReview)),
-    defaultValues: {
-      transferDate: nowMty(),
-      amount: Number(balance.toFixed(2)),
-      senderBank: "",
-      senderLast4: "",
-      trackingKey: "",
-      proofFile: null,
-    },
+    defaultValues: transferDefaults(balance),
     mode: "onChange",
   });
 
-  useEffect(() => {
-    if (!open) return;
-    form.reset({
-      transferDate: nowMty(),
-      amount: Number(balance.toFixed(2)),
-      senderBank: "",
-      senderLast4: "",
-      trackingKey: "",
-      proofFile: null,
-    });
-  }, [open, balance, form]);
+  useTransferDraftSession(form, open, invoiceId, customerId, balance);
+  const balanceChanged = form.formState.isDirty && Number(form.formState.defaultValues?.amount) !== Number(balance.toFixed(2));
 
   const onSubmit = form.handleSubmit((values) => {
     const ymd = toYMD(values.transferDate);
@@ -79,6 +94,9 @@ export function ReportTransferDialog({ open, onOpenChange, invoiceId, customerId
       open={open} onOpenChange={onOpenChange} title="Reportar transferencia" width="md">
       <Form {...form}>
         <form onSubmit={onSubmit} className="space-y-3">
+          {balanceChanged && <p role="status" className="text-sm text-muted-foreground">
+            El saldo reportable cambió a {formatCurrency(balance)}. Conservamos tu captura; revisa el monto antes de enviar.
+          </p>}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <DateField
               control={form.control}
@@ -113,6 +131,7 @@ export function ReportTransferDialog({ open, onOpenChange, invoiceId, customerId
                 <FormLabel>Comprobante (PDF o imagen, opcional)</FormLabel>
                 <FormControl>
                   <Input
+                    key={`${invoiceId}:${customerId}`}
                     type="file"
                     accept="application/pdf,image/*"
                     onChange={(e) => field.onChange(e.target.files?.[0] ?? null)}

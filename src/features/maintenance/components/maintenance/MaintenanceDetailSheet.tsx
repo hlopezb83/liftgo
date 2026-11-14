@@ -12,6 +12,7 @@ import { serviceTypeLabel } from "@/lib/constants";
 import { formatDateMty } from "@/lib/format/dateFormats";
 import { formatCurrency } from "@/lib/format/formatCurrency";
 import { notifySuccess } from "@/lib/ui/appFeedback";
+import { useLaborDraftGuard } from "../../hooks/maintenance/useLaborDraftGuard";
 import { useDeleteMaintenanceLog, useRestoreMaintenanceLog } from "../../hooks/maintenance/useMaintenanceLogs";
 import { maintenanceActionAccess } from "../../lib/maintenanceAccess";
 import { CloseWorkOrderDialog } from "./CloseWorkOrderDialog";
@@ -40,6 +41,7 @@ export function MaintenanceDetailSheet({ log, open, onOpenChange, forkliftName, 
   const { data: suppliers } = useSuppliers();
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [closeOpen, setCloseOpen] = useState(false);
+  const laborDraft = useLaborDraftGuard(log?.id, open);
 
   if (!log) return null;
 
@@ -60,7 +62,8 @@ export function MaintenanceDetailSheet({ log, open, onOpenChange, forkliftName, 
 
 
   return (
-    <Sheet open={open} onOpenChange={onOpenChange}>
+    <>
+    <Sheet open={open} onOpenChange={(next) => next ? onOpenChange(true) : laborDraft.requestLeave(() => onOpenChange(false))}>
       <SheetContent className="sm:max-w-md overflow-y-auto">
         <SheetHeader>
           <SheetTitle className="flex items-center gap-2">
@@ -112,8 +115,10 @@ export function MaintenanceDetailSheet({ log, open, onOpenChange, forkliftName, 
 
           <Separator />
           <MaintenanceLaborSection
+            key={`${log.id}:${laborDraft.resetKey}`}
             maintenanceLogId={log.id}
             readOnly={access.readOnly}
+            onDraftChange={laborDraft.onDraftChange}
           />
 
           <Separator />
@@ -145,10 +150,10 @@ export function MaintenanceDetailSheet({ log, open, onOpenChange, forkliftName, 
                 canReopen={access.canReopen}
                 deletePending={deleteLog.isPending}
                 closeOpen={closeOpen}
-                onCloseOpenChange={setCloseOpen}
+                onCloseOpenChange={(next) => next ? laborDraft.requestLeave(() => setCloseOpen(true)) : setCloseOpen(false)}
                 confirmOpen={confirmOpen}
-                onConfirmOpenChange={setConfirmOpen}
-                onEdit={() => { onEdit(log); onOpenChange(false); }}
+                onConfirmOpenChange={(next) => next ? laborDraft.requestLeave(() => setConfirmOpen(true)) : setConfirmOpen(false)}
+                onEdit={() => laborDraft.requestLeave(() => { onEdit(log); onOpenChange(false); })}
                 onDelete={handleDelete}
                 onSheetClose={() => onOpenChange(false)}
               />
@@ -158,6 +163,8 @@ export function MaintenanceDetailSheet({ log, open, onOpenChange, forkliftName, 
         </Activity>
       </SheetContent>
     </Sheet>
+    <ConfirmDialog {...laborDraft.discardDialog} />
+    </>
   );
 }
 
