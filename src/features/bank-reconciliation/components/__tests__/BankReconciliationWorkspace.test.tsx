@@ -33,7 +33,7 @@ function row(id: string) {
 }
 function mount(extra: Partial<React.ComponentProps<typeof BankReconciliationWorkspace>> = {}) {
   const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
-  const props = { lines, bankAccountId: 'fixture', currency: 'MXN', isLoading: false,
+  const props = { lines, bankAccountId: 'fixture', currency: 'MXN', isLoading: false, canWrite: true,
     status: 'all' as const, search: '', onStatusChange: vi.fn(), onSearchChange: vi.fn(), ...extra };
   const view = render(<QueryClientProvider client={client}><BankReconciliationWorkspace {...props} /></QueryClientProvider>);
   return { ...view, props, rerenderWorkspace: (next: Partial<typeof props>) => view.rerender(
@@ -67,6 +67,17 @@ beforeEach(() => {
 });
 afterEach(() => { cleanup(); vi.restoreAllMocks(); expect(mocks.mutate).not.toHaveBeenCalled(); });
 describe('V06 inspector con tabla real y Radix, datos aislados', () => {
+  it('read access retains the table, inspector and candidates without any mutation controls', () => {
+    mount({ canWrite: false });
+    expect(screen.queryByRole('checkbox')).not.toBeInTheDocument();
+    fireEvent.click(rowAction('uno'));
+    expect(screen.getByRole('dialog', { name: 'Detalle del movimiento' })).toBeInTheDocument();
+    expect(screen.getByText('Pago aislado')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /^Conciliar$|Confirmar conciliación|Ignorar movimiento|Deshacer/ })).not.toBeInTheDocument();
+    expect(screen.queryByTestId('bank-panel-ignore-reason')).not.toBeInTheDocument();
+    expect(screen.getByRole('textbox', { name: /Buscar candidatos/ })).toBeEnabled();
+  });
+
   it('no reserva panel vacío ni consulta candidatos sin selección', () => {
     mount(); expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
     expect(screen.queryByTestId('bank-match-panel-slot')).not.toBeInTheDocument();

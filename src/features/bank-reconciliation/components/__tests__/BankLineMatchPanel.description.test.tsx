@@ -30,7 +30,7 @@ describe('V06-D01 descripción completa del inspector (DOM, no geometría)', () 
     ['descripción larga con saltos', 'Transferencia bancaria por servicio de logística y renta mensual. '.repeat(12) + '\nSegunda línea\nTercera línea'],
     ['cadena sin espacios', 'REFERENCIABANCARIA'.repeat(50)],
   ])('conserva %s íntegra y permite envolverla sin recorte', (_name, description) => {
-    render(<BankLineMatchPanel line={{ ...line, description }} currency="MXN" onDone={vi.fn()} />);
+    render(<BankLineMatchPanel canWrite line={{ ...line, description }} currency="MXN" onDone={vi.fn()} />);
     const text = screen.getByText((_content, element) => element?.tagName === 'P' && element.textContent === description);
     expect(text.textContent).toBe(description);
     expect(text).toHaveClass('whitespace-pre-wrap', '[overflow-wrap:anywhere]', 'text-sm', 'font-medium');
@@ -39,7 +39,7 @@ describe('V06-D01 descripción completa del inspector (DOM, no geometría)', () 
   });
 
   it('conserva el marcador cuando no hay descripción', () => {
-    render(<BankLineMatchPanel line={line} currency="MXN" onDone={vi.fn()} />);
+    render(<BankLineMatchPanel canWrite line={line} currency="MXN" onDone={vi.fn()} />);
     expect(screen.getByText('—')).toBeInTheDocument();
   });
 });

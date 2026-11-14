@@ -22,6 +22,7 @@ import {
 } from "../hooks/useBankMatchCandidates";
 
 interface Props {
+  canWrite: boolean;
   lineId: string;
   /** Moneda de la cuenta bancaria. */
   currency: string;
@@ -41,6 +42,7 @@ function scoreTone(score: number): string {
 }
 
 export function BankMatchCandidateList({
+  canWrite,
   lineId,
   currency,
   search,
@@ -94,8 +96,7 @@ export function BankMatchCandidateList({
         </div>
       ) : candidates.length === 0 ? (
         <p className="rounded-md border border-dashed p-4 text-center text-xs text-muted-foreground">
-          Sin candidatos con este monto en ± {dateWindow} días. Amplía la ventana de fechas o marca
-          el movimiento como ignorado.
+          Sin candidatos con este monto en ± {dateWindow} días. Amplía la ventana de fechas{canWrite ? " o marca el movimiento como ignorado." : "."}
         </p>
       ) : (
         <ul className="max-h-[46vh] space-y-1.5 overflow-y-auto pr-1">
@@ -134,7 +135,7 @@ export function BankMatchCandidateList({
                   )}
                 </div>
               </div>
-              <Button
+              {canWrite && <Button
                 size="sm"
                 variant="outline"
                 className="h-7 shrink-0 text-xs"
@@ -148,7 +149,7 @@ export function BankMatchCandidateList({
                 onClick={() => onSelect(c.id, c.kind)}
               >
                 Conciliar
-              </Button>
+              </Button>}
             </li>
           ))}
         </ul>

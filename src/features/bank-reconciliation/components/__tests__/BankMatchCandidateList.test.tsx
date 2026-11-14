@@ -39,7 +39,7 @@ describe("BankMatchCandidateList", () => {
   it("shows an inline retry on failure and hides stale candidates and ignore advice", () => {
     state.isError = true;
     const { Wrapper } = createQueryWrapper();
-    render(<Wrapper><BankMatchCandidateList lineId="line-1" currency="MXN" search="" onSearchChange={vi.fn()}
+    render(<Wrapper><BankMatchCandidateList canWrite lineId="line-1" currency="MXN" search="" onSearchChange={vi.fn()}
       dateWindow={15} onDateWindowChange={vi.fn()} onSelect={vi.fn()} /></Wrapper>);
     expect(screen.getByRole("alert")).toHaveTextContent("No se pudo cargar");
     expect(screen.queryByText(/marca.*ignorado/)).not.toBeInTheDocument();
@@ -54,7 +54,7 @@ describe("BankMatchCandidateList", () => {
     const { Wrapper } = createQueryWrapper();
     render(
       <Wrapper>
-        <BankMatchCandidateList
+        <BankMatchCandidateList canWrite
           lineId="line-1"
           currency="MXN"
           search=""
@@ -75,7 +75,7 @@ describe("BankMatchCandidateList", () => {
     const { Wrapper } = createQueryWrapper();
     render(
       <Wrapper>
-        <BankMatchCandidateList
+        <BankMatchCandidateList canWrite
           lineId="line-1"
           currency="USD"
           search=""

@@ -1,0 +1,8 @@
+{
+  "description": "Permisos y recuperación de consultas",
+  "changes": [
+    "Conciliación bancaria y usuarios móviles respetan los permisos de sólo lectura.",
+    "Eliminar un prospecto desde edición requiere confirmación y conserva el contexto si falla.",
+    "Los historiales y resúmenes de Flota, CRM, Reservas y Cobranza explican los errores de lectura y permiten reintentar."
+  ]
+}

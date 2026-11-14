@@ -21,8 +21,18 @@ export interface UserRowActions {
   onDelete: (u: UserRow) => void;
 }
 
+function UserMobileRole({ u, actions, isLastAdmin, canManage }: { u: UserRow; actions: UserRowActions; isLastAdmin: boolean; canManage: boolean }) {
+  if (!canManage) return <RoleBadge role={u.role} />;
+  return <Select value={u.role ?? ""} onValueChange={(val) => actions.onRoleChange(u, val as AppRole)}>
+    <SelectTrigger className="w-full" disabled={isLastAdmin} title={isLastAdmin ? "Único admin activo: no se puede cambiar su rol" : undefined}><SelectValue /></SelectTrigger>
+    <SelectContent>
+      {STAFF_ROLES.map((r) => <SelectItem key={r} value={r}><RoleBadge role={r} /></SelectItem>)}
+    </SelectContent>
+  </Select>;
+}
 
-export function UserMobileCard({ u, actions }: { u: UserRow; actions: UserRowActions }) {
+
+export function UserMobileCard({ u, actions, canManage }: { u: UserRow; actions: UserRowActions; canManage: boolean }) {
   const isSelf = u.user_id === actions.currentUserId;
   const isLastAdmin = u.user_id === actions.lastAdminId;
   return (
@@ -34,7 +44,7 @@ export function UserMobileCard({ u, actions }: { u: UserRow; actions: UserRowAct
             {isSelf && <Badge variant="outline" className="text-3xs px-1.5">Tú</Badge>}
             {!u.is_active && <Badge variant="destructive" className="text-3xs px-1.5">Inactivo</Badge>}
           </div>
-          <div className="flex gap-1">
+          {canManage && <div className="flex gap-1">
             <Button variant="ghost" size="icon" onClick={() => actions.onEdit(u)} aria-label="Editar usuario">
               <EditIcon className="h-4 w-4" />
             </Button>
@@ -46,24 +56,18 @@ export function UserMobileCard({ u, actions }: { u: UserRow; actions: UserRowAct
                 <DeleteIcon className="h-4 w-4" />
               </Button>
             )}
-          </div>
+          </div>}
         </div>
         <p className="text-xs text-muted-foreground mb-1">{u.email ?? "—"}</p>
         <p className="text-xs text-muted-foreground mb-2">{formatDateMty(u.created_at)}</p>
-        <Select value={u.role ?? ""} onValueChange={(val) => actions.onRoleChange(u, val as AppRole)}>
-          <SelectTrigger className="w-full" disabled={isLastAdmin} title={isLastAdmin ? "Único admin activo: no se puede cambiar su rol" : undefined}><SelectValue /></SelectTrigger>
-          <SelectContent>
-            {STAFF_ROLES.map((r) => (
-              <SelectItem key={r} value={r}><RoleBadge role={r} /></SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-        {!isSelf && (
+        <UserMobileRole u={u} actions={actions} canManage={canManage} isLastAdmin={isLastAdmin} />
+        {canManage && !isSelf && (
           <div className="flex items-center gap-2 mt-3">
             <Switch checked={u.is_active} onCheckedChange={() => actions.onToggleStatus(u.user_id, u.is_active)} disabled={actions.isToggling || isLastAdmin} />
             <span className="text-xs text-muted-foreground">{u.is_active ? "Activo" : "Inactivo"}</span>
           </div>
         )}
+        {!canManage && u.is_active && <p className="mt-3 text-xs text-muted-foreground">Activo</p>}
       </CardContent>
     </Card>
   );

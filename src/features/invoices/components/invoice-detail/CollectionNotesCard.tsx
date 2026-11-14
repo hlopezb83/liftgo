@@ -1,4 +1,5 @@
 import { useId, useState } from "react";
+import { QueryErrorState } from "@/components/feedback/QueryErrorState";
 import { DatePickerField } from "@/components/forms/DatePickerField";
 import { PhoneCall, AddIcon, CalendarIcon } from "@/components/icons";
 import { Button } from "@/components/ui/button";
@@ -17,7 +18,8 @@ interface CollectionNotesCardProps {
 export function CollectionNotesCard({ invoiceId }: CollectionNotesCardProps) {
   const noteInputId = useId();
   const canWrite = useHasModuleAccess("Facturas", "full");
-  const { data: notes, isLoading } = useCollectionNotes(invoiceId);
+  const query = useCollectionNotes(invoiceId);
+  const { data: notes, isLoading } = query;
   const createNote = useCreateCollectionNote();
   const [showForm, setShowForm] = useState(false);
   const [noteText, setNoteText] = useState("");
@@ -70,8 +72,10 @@ export function CollectionNotesCard({ invoiceId }: CollectionNotesCardProps) {
           </div>
         )}
 
+        {query.isError && <QueryErrorState bare entity="las gestiones de cobranza" error={query.error}
+          isRetrying={query.isFetching} onRetry={() => { void query.refetch(); }} />}
         {isLoading && <p className="text-sm text-muted-foreground">Cargando…</p>}
-        {notes && notes.length === 0 && !showForm && (
+        {query.isSuccess && notes?.length === 0 && !showForm && (
           <p className="text-sm text-muted-foreground text-center py-4">Sin gestiones registradas</p>
         )}
         {notes && notes.map((n) => (

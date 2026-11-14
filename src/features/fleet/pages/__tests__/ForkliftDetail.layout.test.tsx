@@ -26,7 +26,7 @@ vi.mock("../../hooks/forklifts/useForkliftLocation", () => ({ useForkliftLocatio
 vi.mock("../../hooks/forklifts/useForkliftFinancials", () => ({ useForkliftFinancials: () => ({ data: state.financials ? {
   revenue: 55000, maintenance_cost: 1000, gross_margin: 54000, roi_percent: 21.6,
   days_rented: 105, utilization_percent: 50, hourometer_history: [],
-} : undefined, isLoading: false, canViewFinancials: state.financialAccess }) }));
+} : undefined, isLoading: false, isSuccess: true, isError: false, isFetching: false, canViewFinancials: state.financialAccess }) }));
 vi.mock("../../components/forklift-detail/DocumentAttachments", () => ({ DocumentAttachments: () => null }));
 vi.mock("../../components/forklift-detail/ForkliftBookingsList", () => ({ ForkliftBookingsList: () => null }));
 vi.mock("../../components/forklift-detail/ForkliftMaintenanceList", () => ({ ForkliftMaintenanceList: () => null }));
@@ -77,10 +77,10 @@ describe("ubicación del resumen financiero (componentes de tarjetas reales)", (
     expect(screen.getByLabelText("Notas")).toHaveTextContent("Notas del equipo");
   });
 
-  it("sin resultados financieros no añade resumen ni modifica notas", () => {
+  it("sin resultados financieros explica la ausencia sin modificar notas", () => {
     state.financials = false;
     render(<ForkliftDetail />);
-    expect(screen.queryByText("Resumen Financiero")).not.toBeInTheDocument();
+    expect(screen.getByText("Sin información financiera disponible.")).toBeInTheDocument();
     expect(screen.getByLabelText("Notas")).toHaveTextContent("Notas del equipo");
   });
 

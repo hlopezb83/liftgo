@@ -59,14 +59,15 @@ export default function ForkliftDetail() {
   const bookingsQuery = useBookings(id);
   const { data: bookings, isPending: bookingsPending, isError: bookingsError, isFetching: bookingsFetching, refetch: refetchBookings } = bookingsQuery;
   const bookingsUnverified = hasUnverifiedBookings(bookingsQuery);
-  const { data: maintenanceLogs } = useMaintenanceLogs(id);
+  const maintenanceQuery = useMaintenanceLogs(id);
   // R9-FE: mismo criterio operativo que FleetPage — el `status` crudo se
   // desincroniza (available con reserva vigente, o rented sin ella). El badge
   // del detalle debe reflejar la disponibilidad derivada, no el status crudo.
   const todayYmd = useServerTodayMty();
   const availability = forklift && bookings && !bookingsUnverified ? computeFleetAvailability([forklift], bookings, todayYmd) : null;
   const displayStatus = deriveForkliftDisplayStatus(forklift, availability);
-  const { data: financials, isLoading: loadingFinancials, canViewFinancials } = useForkliftFinancials(id);
+  const financialQuery = useForkliftFinancials(id);
+  const { data: financials, canViewFinancials } = financialQuery;
   const { data: locationData, isError: locationError } = useForkliftLocation(id);
   const deleteForklift = useDeleteForklift();
   const [deleteOpen, setDeleteOpen] = useState(false);
@@ -134,7 +135,9 @@ export default function ForkliftDetail() {
       </div>
 
       <FinancialAccessGuard canViewFinancials={canViewFinancials}>
-        <ForkliftFinancialCard financials={financials} isLoading={loadingFinancials} />
+        <ForkliftFinancialCard financials={financials} isLoading={financialQuery.isLoading}
+          isError={financialQuery.isError} isSuccess={financialQuery.isSuccess} isFetching={financialQuery.isFetching}
+          error={financialQuery.error} onRetry={() => { void financialQuery.refetch(); }} />
       </FinancialAccessGuard>
 
       {forklift.notes && (
@@ -145,7 +148,9 @@ export default function ForkliftDetail() {
         <StatusChangeCard forkliftId={forklift.id} currentStatus={forklift.status} />
       </RoleGuard>
       <ForkliftBookingsList bookings={bookings} isPending={bookingsPending} isError={bookingsError} isFetching={bookingsFetching} onRetry={() => { void refetchBookings(); }} />
-      <ForkliftMaintenanceList logs={maintenanceLogs || []} />
+      <ForkliftMaintenanceList logs={maintenanceQuery.data} isLoading={maintenanceQuery.isLoading}
+        isError={maintenanceQuery.isError} isSuccess={maintenanceQuery.isSuccess} isFetching={maintenanceQuery.isFetching}
+        error={maintenanceQuery.error} onRetry={() => { void maintenanceQuery.refetch(); }} />
       <FinancialAccessGuard canViewFinancials={canViewFinancials}>
         {financials && <ForkliftHourometerHistory history={financials.hourometer_history} />}
       </FinancialAccessGuard>

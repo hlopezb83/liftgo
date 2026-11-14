@@ -18,6 +18,7 @@ import type { BankMatchCandidate, DateWindow } from "../hooks/useBankMatchCandid
 import type { BankStatementLine } from "../hooks/useBankStatementLines";
 
 interface Props {
+  canWrite: boolean;
   line: BankStatementLine;
   /** Moneda de la cuenta bancaria (los importes se expresan en ella). */
   currency: string;
@@ -79,7 +80,7 @@ function BankLineSummary({ line, isCharge, currency }: { line: BankStatementLine
 }
 
 
-export function BankLineMatchPanel({ line, currency, onDone }: Props) {
+export function BankLineMatchPanel({ line, currency, onDone, canWrite }: Props) {
   const [search, setSearch] = useState("");
   const [dateWindow, setDateWindow] = useState<DateWindow>(15);
   const [ignoreDraft, setIgnoreDraft] = useState({ lineId: line.id, reason: "" });
@@ -96,6 +97,7 @@ export function BankLineMatchPanel({ line, currency, onDone }: Props) {
   const canUndo = line.status === "matched" || line.status === "ignored";
 
   const doMatch = (candidateId: string, kind: BankMatchCandidate["kind"]) => {
+    if (!canWrite || confirmMut.isPending) return;
     confirmMut.mutate(
       {
         lineId: line.id,
@@ -107,6 +109,7 @@ export function BankLineMatchPanel({ line, currency, onDone }: Props) {
   };
 
   const handleIgnore = () => {
+    if (!canWrite || ignoreMut.isPending) return;
     const reason = ignoreReason.trim();
     if (!reason) return;
     ignoreMut.mutate(
@@ -131,7 +134,7 @@ export function BankLineMatchPanel({ line, currency, onDone }: Props) {
           <p className="mb-2 text-xs text-muted-foreground">
             Puntaje de coincidencia: {line.match_score ?? "—"}
           </p>
-          <Button
+          {canWrite && <Button
             size="sm"
             disabled={confirmMut.isPending}
             // El id sugerido ya viene por columna: suggested_supplier_payment_id
@@ -144,11 +147,11 @@ export function BankLineMatchPanel({ line, currency, onDone }: Props) {
             }
           >
             Confirmar conciliación
-          </Button>
+          </Button>}
         </div>
       )}
 
-      {canUndo && (
+      {canWrite && canUndo && (
         <Button
           variant="outline"
           size="sm"
@@ -172,6 +175,7 @@ export function BankLineMatchPanel({ line, currency, onDone }: Props) {
               Candidatos
             </p>
             <BankMatchCandidateList
+              canWrite={canWrite}
               lineId={line.id}
               currency={currency}
               search={search}
@@ -183,6 +187,7 @@ export function BankLineMatchPanel({ line, currency, onDone }: Props) {
             />
           </div>
 
+          {canWrite && <>
           <Separator />
           <div className="space-y-2">
             <Label className="text-xs">
@@ -205,6 +210,7 @@ export function BankLineMatchPanel({ line, currency, onDone }: Props) {
               Ignorar movimiento
             </Button>
           </div>
+          </>}
         </>
       )}
     </div>

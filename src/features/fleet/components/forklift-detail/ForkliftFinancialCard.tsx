@@ -1,3 +1,4 @@
+import { QueryErrorState } from "@/components/feedback/QueryErrorState";
 import { ChartIcon } from "@/components/icons";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -7,12 +8,14 @@ import type { ForkliftFinancials } from "../../hooks/forklifts/useForkliftFinanc
 interface ForkliftFinancialCardProps {
   financials: ForkliftFinancials | undefined;
   isLoading: boolean;
+  isError: boolean;
+  isSuccess: boolean;
+  isFetching: boolean;
+  error?: unknown;
+  onRetry: () => void;
 }
 
-export function ForkliftFinancialCard({ financials, isLoading }: ForkliftFinancialCardProps) {
-  if (isLoading) return <Skeleton className="h-48" />;
-  if (!financials) return null;
-
+function FinancialMetrics({ financials }: { financials: ForkliftFinancials }) {
   const metrics = [
     { label: "Ingresos Totales", value: formatCurrency(financials.revenue), color: "text-success" },
     { label: "Costos de Mantenimiento", value: formatCurrency(financials.maintenance_cost), color: "text-warning" },
@@ -21,6 +24,16 @@ export function ForkliftFinancialCard({ financials, isLoading }: ForkliftFinanci
     { label: "Días fuera", value: `${financials.days_rented}`, color: "text-foreground" },
     { label: "Ocupación física", value: `${financials.utilization_percent}%`, color: "text-info" },
   ];
+
+  return <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+    {metrics.map((m) => <div key={m.label}>
+      <p className="text-xs text-muted-foreground">{m.label}</p>
+      <p className={`text-sm font-bold ${m.color}`}>{m.value}</p>
+    </div>)}
+  </div>;
+}
+
+export function ForkliftFinancialCard({ financials, isLoading, isError, isSuccess, isFetching, error, onRetry }: ForkliftFinancialCardProps) {
 
   return (
     <Card>
@@ -33,14 +46,10 @@ export function ForkliftFinancialCard({ financials, isLoading }: ForkliftFinanci
         </p>
       </CardHeader>
       <CardContent>
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-          {metrics.map((m) => (
-            <div key={m.label}>
-              <p className="text-xs text-muted-foreground">{m.label}</p>
-              <p className={`text-sm font-bold ${m.color}`}>{m.value}</p>
-            </div>
-          ))}
-        </div>
+        {isError && <QueryErrorState bare entity="el resumen financiero" error={error} isRetrying={isFetching} onRetry={onRetry} />}
+        {isLoading && <div role="status" aria-label="Cargando resumen financiero"><Skeleton className="h-48" /></div>}
+        {financials ? <FinancialMetrics financials={financials} />
+          : isSuccess && <p className="text-sm text-muted-foreground">Sin información financiera disponible.</p>}
       </CardContent>
     </Card>
   );

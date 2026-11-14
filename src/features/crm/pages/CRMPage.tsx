@@ -173,7 +173,7 @@ export default function CRMPage() {
           onCreate={async (data) => { await createProspect.mutateAsync(data); }}
           onUpdate={async (id, data) => { await updateProspect.mutateAsync({ id, ...data }); }}
           onDelete={async (id) => { await deleteProspect.mutateAsync(id); }}
-          isPending={createProspect.isPending || updateProspect.isPending}
+          isPending={createProspect.isPending || updateProspect.isPending || deleteProspect.isPending}
         />
       </PageTransition>
   );

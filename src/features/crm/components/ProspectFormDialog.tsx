@@ -1,5 +1,7 @@
 import { FormDialog } from "@/components/forms/FormDialog";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { useProspectForm, type ProspectFormPayload } from "../hooks/useProspectForm";
+import { useProspectFormDelete } from "../hooks/useProspectFormDelete";
 import { ProspectCloseDealActions } from "./prospect-form/ProspectCloseDealActions";
 import {
   prospectDialogDescription,
@@ -22,7 +24,7 @@ interface Props {
   overrideStage?: string;
   canCloseDeal?: boolean;
   onSave: (data: ProspectFormPayload) => void | Promise<unknown>;
-  onDelete?: () => void;
+  onDelete?: () => void | Promise<unknown>;
   /** R12-M8: reenviado a FormDialog para bloquear Esc/click-outside y deshabilitar submit. */
   isPending?: boolean;
 }
@@ -34,12 +36,14 @@ export function ProspectFormDialog({
 }: Props) {
   const { fields, setters, matchingQuotes, selectedQuote, quoteSelection, effectiveStage, requiresDealValue, buildPayload, isDirty } =
     useProspectForm({ prospect, open, defaultStage, overrideStage });
+  const deletion = useProspectFormDelete({ open, prospectId: prospect?.id, companyName: prospect?.companyName,
+    isPending, onDelete, onClose: () => onOpenChange(false) });
 
   // R23-B: antes se cerraba el modal sin esperar el INSERT; con latencia o
   // error de red el usuario perdía lo capturado. Ahora sólo cerramos en éxito.
   const handleSubmit = async (e: ReactFormEvent) => {
     e.preventDefault();
-    if (isPending) return;
+    if (deletion.pending) return;
     const payload = buildPayload();
     if (!payload) return;
     try {
@@ -53,20 +57,22 @@ export function ProspectFormDialog({
 
   const isClosingWonBlocked = effectiveStage === "cerrado_ganado" && !canCloseDeal;
   const showCloseDeal = Boolean(prospect) && effectiveStage === "cerrado_ganado";
-  const handleCancel = () => onOpenChange(false);
+  const handleCancel = () => { if (!deletion.pending) onOpenChange(false); };
 
   return (
+    <>
     <FormDialog
       open={open}
       onOpenChange={onOpenChange}
       width="md"
       title={prospectDialogTitle(prospect)}
       description={prospectDialogDescription(prospect, overrideStage)}
-      isPending={isPending}
+      isPending={deletion.pending || deletion.confirmation.open}
       isDirty={isDirty}
     >
       <ProspectStageBadgeBlock prospect={prospect} overrideStage={overrideStage} />
       <form onSubmit={handleSubmit} noValidate className="space-y-4">
+        <fieldset disabled={deletion.pending} className="space-y-4">
         <ProspectCreatorBlock createdByName={prospect?.createdByName} />
         <ProspectFormFields
           fields={fields}
@@ -87,10 +93,13 @@ export function ProspectFormDialog({
         <ProspectDialogFooter
           isClosingWonBlocked={isClosingWonBlocked}
           onCancel={handleCancel}
-          onDelete={prospect && onDelete ? onDelete : undefined}
-          isPending={isPending}
+          onDelete={prospect && onDelete ? deletion.requestDelete : undefined}
+          isPending={deletion.pending}
         />
+        </fieldset>
       </form>
     </FormDialog>
+    <ConfirmDialog {...deletion.confirmation} />
+    </>
   );
 }

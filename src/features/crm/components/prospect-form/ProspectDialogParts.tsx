@@ -33,7 +33,7 @@ export function ProspectDialogFooter({ isClosingWonBlocked, onCancel, onDelete, 
   return (
     <FormDialogFooter className="flex justify-between sm:justify-between">
       {onDelete && (
-        <Button type="button" variant="destructive" size="sm" disabled={isPending} onClick={() => { onDelete(); onCancel(); }}>
+        <Button type="button" variant="destructive" size="sm" disabled={isPending} onClick={onDelete}>
           Eliminar
         </Button>
       )}

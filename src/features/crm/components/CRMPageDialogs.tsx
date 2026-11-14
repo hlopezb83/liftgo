@@ -51,7 +51,7 @@ export function CRMPageDialogs({
             await onCreate(data);
           }
         }}
-        onDelete={dialogs.editingProspect ? (() => { const target = dialogs.editingProspect; if (target) onDelete(target.id); }) : undefined}
+        onDelete={dialogs.editingProspect ? (() => { const target = dialogs.editingProspect; if (target) return onDelete(target.id); }) : undefined}
       />
     </>
   );

@@ -17,7 +17,7 @@ const user: UserRow = {
 function Harness({ u = user }: { u?: UserRow }) {
   const [target, setTarget] = useState<{ user: UserRow; newRole: AppRole } | null>(null);
   return <>
-    <UserMobileCard u={u} actions={{
+    <UserMobileCard canManage u={u} actions={{
       isToggling: false,
       onRoleChange: (selected, newRole) => setTarget({ user: selected, newRole }),
       onToggleStatus: vi.fn(), onEdit: vi.fn(), onSetPassword: vi.fn(), onDelete: vi.fn(),
@@ -36,6 +36,26 @@ beforeEach(() => updateRole.mutateAsync.mockReset());
 afterEach(cleanup);
 
 describe("UserMobileCard: rol confirmado", () => {
+  it("read access shows static user data without edit, role, password, delete or activation controls", () => {
+    render(<UserMobileCard canManage={false} u={user} actions={{ isToggling: false,
+      onRoleChange: vi.fn(), onToggleStatus: vi.fn(), onEdit: vi.fn(), onSetPassword: vi.fn(), onDelete: vi.fn(),
+    }} />);
+    expect(screen.getByText("Ventas")).toBeInTheDocument();
+    expect(screen.getByText("Activo")).toBeInTheDocument();
+    expect(screen.queryByRole("button")).not.toBeInTheDocument();
+    expect(screen.queryByRole("combobox")).not.toBeInTheDocument();
+    expect(screen.queryByRole("switch")).not.toBeInTheDocument();
+  });
+
+  it("full access still protects the last active administrator", () => {
+    render(<UserMobileCard canManage u={{ ...user, role: "admin" }} actions={{ isToggling: false, lastAdminId: user.user_id,
+      onRoleChange: vi.fn(), onToggleStatus: vi.fn(), onEdit: vi.fn(), onSetPassword: vi.fn(), onDelete: vi.fn(),
+    }} />);
+    expect(screen.getByRole("combobox")).toBeDisabled();
+    expect(screen.getByRole("switch")).toBeDisabled();
+    expect(screen.queryByRole("button", { name: "Eliminar usuario" })).not.toBeInTheDocument();
+  });
+
   it.each(["ventas", null] as const)("cancelar conserva el rol vigente %s sin enviar cambios", async (role) => {
     render(<Harness u={{ ...user, role }} />);
     const original = screen.getByRole("combobox").textContent;

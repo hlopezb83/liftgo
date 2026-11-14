@@ -71,7 +71,7 @@ function mount() {
   };
   const content = (over = {}) => (
     <QueryClientProvider client={q}>
-      <BankReconciliationWorkspace {...props} {...over} />
+      <BankReconciliationWorkspace canWrite {...props} {...over} />
     </QueryClientProvider>
   );
   const v = render(content());

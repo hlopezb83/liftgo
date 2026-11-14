@@ -17,6 +17,7 @@ import { BankStatementUploader } from "../components/BankStatementUploader";
 import { ReconciliationKpiCards } from "../components/ReconciliationKpiCards";
 import { useBankAccounts } from "../hooks/useBankAccounts";
 import { useBankReconciliationKpis, useBankStatementLines } from "../hooks/useBankStatementLines";
+import { useBankWriteAccess } from "../hooks/useBankWriteAccess";
 import type { BankLineStatus } from "../lib/bankReconciliationConstants";
 
 const PAGE_SIZE = 50;
@@ -25,6 +26,7 @@ const PAGE_SIZE = 50;
 // (cuentas, líneas y KPI); cada rama conserva su propio error/reintento.
 // eslint-disable-next-line complexity
 export default function BankReconciliationPage() {
+  const canWrite = useBankWriteAccess();
   const { data: accounts, isLoading: isLoadingAccounts, isError: isErrorAccounts, refetch: refetchAccounts } = useBankAccounts();
   const [manualAccountId, setManualAccountId] = useState<string | null>(null);
   const [status, setStatus] = useState<BankLineStatus | "all">("unmatched");
@@ -62,13 +64,16 @@ export default function BankReconciliationPage() {
         <PageContainer>
           <PageHeader
             title="Conciliación bancaria"
-            subtitle="Sube tu estado de cuenta y concilia los movimientos con los pagos del ERP"
+            subtitle={canWrite ? "Sube tu estado de cuenta y concilia los movimientos con los pagos del ERP" : "Consulta movimientos bancarios y sus candidatos de conciliación"}
             action={
               <Button asChild variant="outline" size="sm">
                 <Link to="/cuentas-bancarias"><SettingsIcon className="h-4 w-4 mr-2" /> Cuentas bancarias</Link>
               </Button>
             }
           />
+          {!canWrite && <p role="status" className="rounded-md border bg-muted/30 p-3 text-sm">
+            Solo lectura. Puedes consultar movimientos y candidatos. Para importar o conciliar, solicita apoyo a un administrador o administrativo con acceso de edición.
+          </p>}
 
           {/* A4-03: control bancario — nunca KPIs en 0 ante error de red. */}
           {isErrorAccounts ? (
@@ -83,7 +88,7 @@ export default function BankReconciliationPage() {
           ) : (accounts ?? []).length === 0 ? (
             <Card><CardContent className="py-12 text-center text-sm text-muted-foreground space-y-3">
               <p>Aún no tienes cuentas bancarias registradas.</p>
-              <Button asChild><Link to="/cuentas-bancarias">Crear primera cuenta</Link></Button>
+              {canWrite && <Button asChild><Link to="/cuentas-bancarias">Crear primera cuenta</Link></Button>}
             </CardContent></Card>
           ) : (
             <>
@@ -110,11 +115,12 @@ export default function BankReconciliationPage() {
                     }} />
                   ) : (
                   <>
-                  <BankStatementUploader bankAccountId={accountId} currency={account.currency} />
+                  {canWrite && <BankStatementUploader bankAccountId={accountId} currency={account.currency} />}
                   {isLoadingKpis || !kpis
                     ? <Skeleton className="h-24 w-full" />
                     : <ReconciliationKpiCards kpis={kpis} currency={account.currency} />}
                   <BankReconciliationWorkspace
+                    canWrite={canWrite}
                     lines={lines ?? []}
                     bankAccountId={accountId}
                     currency={account.currency}

@@ -1,7 +1,7 @@
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi, beforeEach } from "vitest";
 
-const state = { role: "ventas", access: "none" };
+const state = { role: "ventas", access: "none", error: false, loading: false, fetching: false, empty: false, noData: false, retry: vi.fn() };
 const logs = [
   {
     id: "log-1",
@@ -23,7 +23,8 @@ vi.mock("@/features/users", () => ({
 }));
 
 vi.mock("@/features/audit", () => ({
-  useAuditLogs: () => ({ data: logs, isLoading: false }),
+  useAuditLogs: () => ({ data: state.noData ? undefined : state.empty ? [] : logs, isLoading: state.loading,
+    isError: state.error, isSuccess: !state.error && !state.loading, isFetching: state.fetching, refetch: state.retry }),
   AuditLogDetailDialog: () => null,
   HIDDEN_DIFF_FIELDS: new Set<string>(),
   formatAuditValue: (_f: string, v: unknown) => String(v),
@@ -38,6 +39,7 @@ describe("ProspectHistoryCard — gate de historial (R9-03)", () => {
   beforeEach(() => {
     state.role = "ventas";
     state.access = "none";
+    state.error = false; state.loading = false; state.fetching = false; state.empty = false; state.noData = false; state.retry.mockClear();
   });
 
   it("Ventas ve el historial aunque no tenga el módulo Auditoría", () => {
@@ -59,5 +61,20 @@ describe("ProspectHistoryCard — gate de historial (R9-03)", () => {
     render(<ProspectHistoryCard prospectId="p-1" />);
     expect(screen.getByText(/No tienes permiso/i)).toBeInTheDocument();
     expect(screen.queryByText(/Sin cambios registrados/i)).toBeNull();
+  });
+
+  it("shows a local retry for errors, retains cached history and announces empty only after success", () => {
+    state.error = true; state.noData = true;
+    const view = render(<ProspectHistoryCard prospectId="p-1" />);
+    expect(screen.queryByText("Sin cambios registrados")).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Reintentar" }));
+    expect(state.retry).toHaveBeenCalledOnce();
+    state.noData = false; state.fetching = true;
+    view.rerender(<ProspectHistoryCard prospectId="p-1" />);
+    expect(screen.getByText(/stage:/)).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Reintentar" })).toBeDisabled();
+    state.error = false; state.fetching = false; state.empty = true;
+    view.rerender(<ProspectHistoryCard prospectId="p-1" />);
+    expect(screen.getByText("Sin cambios registrados")).toBeInTheDocument();
   });
 });

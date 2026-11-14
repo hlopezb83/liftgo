@@ -1,3 +1,4 @@
+import { QueryErrorState } from "@/components/feedback/QueryErrorState";
 import { MaintenanceIcon } from "@/components/icons";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import type { Tables } from "@/integrations/supabase/types";
@@ -6,15 +7,23 @@ import { formatCurrency } from "@/lib/format/formatCurrency";
 
 
 interface ForkliftMaintenanceListProps {
-  logs: Tables<"maintenance_logs">[];
+  logs: Tables<"maintenance_logs">[] | undefined;
+  isLoading: boolean;
+  isError: boolean;
+  isSuccess: boolean;
+  isFetching: boolean;
+  error?: unknown;
+  onRetry: () => void;
 }
 
-export function ForkliftMaintenanceList({ logs }: ForkliftMaintenanceListProps) {
+export function ForkliftMaintenanceList({ logs, isLoading, isError, isSuccess, isFetching, error, onRetry }: ForkliftMaintenanceListProps) {
   return (
     <Card>
       <CardHeader className="pb-3"><CardTitle className="text-base flex items-center gap-2"><MaintenanceIcon className="h-4 w-4" /> Historial de Mantenimiento</CardTitle></CardHeader>
       <CardContent>
-        {logs.length > 0 ? (
+        {isError && <QueryErrorState bare entity="el historial de mantenimiento" error={error} isRetrying={isFetching} onRetry={onRetry} />}
+        {isLoading && <p role="status" className="text-sm text-muted-foreground">Cargando historial de mantenimiento…</p>}
+        {logs && logs.length > 0 ? (
           <div className="space-y-2">
             {logs.map((m) => (
               <div key={m.id} className="flex items-center justify-between text-sm border-b border-border pb-2 last:border-0 last:pb-0">
@@ -30,9 +39,9 @@ export function ForkliftMaintenanceList({ logs }: ForkliftMaintenanceListProps) 
               </div>
             ))}
           </div>
-        ) : (
+        ) : isSuccess ? (
           <p className="text-sm text-muted-foreground">Sin registros de mantenimiento</p>
-        )}
+        ) : null}
       </CardContent>
     </Card>
   );

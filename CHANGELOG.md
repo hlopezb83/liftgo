@@ -1,3 +1,9 @@
+## [8.53.40] - 2026-11-14
+
+- Conciliación bancaria y usuarios móviles respetan los permisos de sólo lectura.
+- Eliminar un prospecto desde edición requiere confirmación y conserva el contexto si falla.
+- Los historiales y resúmenes de Flota, CRM, Reservas y Cobranza explican los errores de lectura y permiten reintentar.
+
 ## [8.53.39] - 2026-11-14
 
 - Mantenimiento y catálogos de personal confirman antes de descartar una captura sin guardar.
