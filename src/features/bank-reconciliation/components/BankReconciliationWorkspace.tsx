@@ -108,6 +108,7 @@ export function BankReconciliationWorkspace({
       onSortingChange={setSorting}
       lines={visible}
       bankAccountId={bankAccountId}
+      currency={currency}
       isLoading={isLoading}
       activeId={activeId}
       onSelect={(l) => setActiveId(l.id)}

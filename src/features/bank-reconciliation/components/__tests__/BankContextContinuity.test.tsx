@@ -81,6 +81,21 @@ afterEach(() => {
   cleanup();
   vi.clearAllMocks();
 });
+it("shows the account currency without remounting the table or changing selection", () => {
+  const rerender = mount();
+  const table = screen.getByTestId("bank-lines-table");
+  expect(within(row("A")).getByText((text) => text.includes("100.00") && text.includes("MXN"))).toBeInTheDocument();
+  fireEvent.click(within(row("A")).getByRole("checkbox"));
+
+  rerender({ currency: "USD" });
+
+  expect(screen.getByTestId("bank-lines-table")).toBe(table);
+  const amount = within(row("A")).getByText((text) => text.includes("100.00") && text.includes("USD"));
+  expect(amount.textContent?.match(/USD/g)).toHaveLength(1);
+  expect(within(row("A")).getByRole("checkbox")).toHaveAttribute("data-state", "checked");
+  expect(m.ignore).not.toHaveBeenCalled();
+  expect(m.confirm).not.toHaveBeenCalled();
+});
 it("clears selection and reason when filters change", () => {
   const rerender = mount();
   fireEvent.click(within(row("A")).getByRole("checkbox"));

@@ -2,17 +2,19 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { formatDateMty } from "@/lib/format/dateFormats";
-import { formatCurrency } from "@/lib/format/formatCurrency";
+import { formatBankAmount } from "../lib/formatBankAmount";
+import { BankStatementErrors } from "./BankStatementErrors";
 import type { ParseResult } from "../lib/bankParseUtils";
 
 interface Props {
   result: ParseResult;
+  currency: string;
   isPending: boolean;
   onConfirm: () => void;
   onCancel: () => void;
 }
 
-export function BankStatementPreview({ result, isPending, onConfirm, onCancel }: Props) {
+export function BankStatementPreview({ result, currency, isPending, onConfirm, onCancel }: Props) {
   const credits = result.lines.filter((l) => l.signed_amount > 0);
   const charges = result.lines.filter((l) => l.signed_amount < 0);
   const sum = (n: number, v: number) => n + v;
@@ -32,11 +34,11 @@ export function BankStatementPreview({ result, isPending, onConfirm, onCancel }:
           </div>
           <div>
             <p className="text-xs uppercase tracking-wide text-muted-foreground">Abonos</p>
-            <p className="font-medium tabular-nums text-success">{formatCurrency(totalCredits)}</p>
+            <p className="font-medium tabular-nums text-success">{formatBankAmount(totalCredits, currency)}</p>
           </div>
           <div>
             <p className="text-xs uppercase tracking-wide text-muted-foreground">Cargos</p>
-            <p className="font-medium tabular-nums text-destructive">{formatCurrency(totalCharges)}</p>
+            <p className="font-medium tabular-nums text-destructive">{formatBankAmount(totalCharges, currency)}</p>
           </div>
           <div>
             <p className="text-xs uppercase tracking-wide text-muted-foreground">Periodo</p>
@@ -46,11 +48,7 @@ export function BankStatementPreview({ result, isPending, onConfirm, onCancel }:
           </div>
         </div>
 
-        {result.errors.length > 0 && (
-          <p className="text-xs text-warning">
-            {result.errors.length} {result.errors.length === 1 ? "movimiento se ignorará" : "movimientos se ignorarán"} por datos inválidos. Primero: {result.errors[0]}
-          </p>
-        )}
+        <BankStatementErrors errors={result.errors} />
 
         <div className="border rounded-md overflow-hidden">
           <Table>
@@ -69,7 +67,7 @@ export function BankStatementPreview({ result, isPending, onConfirm, onCancel }:
                   <TableCell className="max-w-[280px] truncate">{l.description}</TableCell>
                   <TableCell className="text-muted-foreground">{l.reference ?? "—"}</TableCell>
                   <TableCell className={`text-right tabular-nums ${l.signed_amount < 0 ? "text-destructive" : "text-success"}`}>
-                    {formatCurrency(l.signed_amount)}
+                    {formatBankAmount(l.signed_amount, currency)}
                   </TableCell>
                 </TableRow>
               ))}

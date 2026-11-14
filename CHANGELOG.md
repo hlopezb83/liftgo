@@ -1,3 +1,10 @@
+## [8.53.37] - 2026-11-14
+
+- Al cancelar un cambio de rol desde el celular se conserva el rol vigente en pantalla.
+- Entregas y recolecciones explican si continuar sin firma completará el transporte.
+- Las filas y la vista previa de movimientos bancarios identifican su moneda.
+- La importación bancaria permite consultar todos los errores antes de confirmar.
+
 ## [8.53.36] - 2026-11-14
 
 - La confirmación para eliminar cuentas de proveedores distingue banco, moneda y terminación enmascarada de CLABE o cuenta.

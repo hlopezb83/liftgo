@@ -1,20 +1,21 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { DataTableV2, useLiftgoTable, type ColumnDef } from "@/components/dataTable/v2";
 import { StatusBadge } from "@/components/feedback/StatusBadge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { formatDateMty } from "@/lib/format/dateFormats";
-import { formatCurrency } from "@/lib/format/formatCurrency";
 import { cn } from "@/lib/utils";
 import { useConfirmBankMatches, useIgnoreBankLines } from "../hooks/mutations/useBankBulkActions";
 import { BANK_LINE_STATUS_LABELS } from "../lib/bankReconciliationConstants";
+import { formatBankAmount } from "../lib/formatBankAmount";
 import type { BankStatementLine } from "../hooks/useBankStatementLines";
 import type { SortingState, Updater } from "@tanstack/react-table";
 
 interface Props {
   lines: BankStatementLine[];
   bankAccountId: string;
+  currency: string;
   isLoading?: boolean;
   activeId?: string | null;
   onSelect: (line: BankStatementLine) => void;
@@ -31,7 +32,7 @@ const LINE_STATUS_MAP: Record<string, string> = {
   ignored: "inactive",
 };
 
-const columns: ColumnDef<BankStatementLine>[] = [
+const createColumns = (currency: string): ColumnDef<BankStatementLine>[] => [
   {
     id: "posted_date",
     header: "Fecha",
@@ -69,7 +70,7 @@ const columns: ColumnDef<BankStatementLine>[] = [
           row.original.signed_amount < 0 ? "text-destructive" : "text-success",
         )}
       >
-        {formatCurrency(row.original.signed_amount)}
+        {formatBankAmount(row.original.signed_amount, currency)}
       </span>
     ),
   },
@@ -89,6 +90,7 @@ const columns: ColumnDef<BankStatementLine>[] = [
 export function BankStatementLinesTable({
   lines,
   bankAccountId,
+  currency,
   isLoading,
   activeId,
   onSelect,
@@ -99,6 +101,7 @@ export function BankStatementLinesTable({
   const [bulkReason, setBulkReason] = useState("");
   const confirmManyMut = useConfirmBankMatches();
   const ignoreManyMut = useIgnoreBankLines();
+  const columns = useMemo(() => createColumns(currency), [currency]);
 
   const table = useLiftgoTable<BankStatementLine>({
     data: lines,
