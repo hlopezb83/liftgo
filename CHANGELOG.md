@@ -1,3 +1,9 @@
+## [8.53.36] - 2026-11-14
+
+- La confirmación para eliminar cuentas de proveedores distingue banco, moneda y terminación enmascarada de CLABE o cuenta.
+- Los indicadores de antigüedad de saldos muestran la carga antes de presentar importes.
+- Flujo de caja distingue un importe vacío de cero explícito y explica cómo corregirlo.
+
 ## [8.53.35] - 2026-11-13
 
 - Las etiquetas Inicio y Fin del periodo de facturación identifican y enfocan su campo de fecha.

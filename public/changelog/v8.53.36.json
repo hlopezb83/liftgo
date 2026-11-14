@@ -1,0 +1,8 @@
+{
+  "description": "Cuentas e importes más claros",
+  "changes": [
+    "La confirmación para eliminar cuentas de proveedores distingue banco, moneda y terminación enmascarada de CLABE o cuenta.",
+    "Los indicadores de antigüedad de saldos muestran la carga antes de presentar importes.",
+    "Flujo de caja distingue un importe vacío de cero explícito y explica cómo corregirlo."
+  ]
+}

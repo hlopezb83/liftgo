@@ -27,9 +27,16 @@ export function SupplierBankAccountsSection({ supplierId }: { supplierId: string
   const onAdd = () => { setEditing(null); setOpen(true); };
   const onEdit = (a: SupplierBankAccount) => { setEditing(a); setOpen(true); };
   const onDelete = async (a: SupplierBankAccount) => {
+    const clabe = a.clabe?.trim() ?? "";
+    const accountNumber = a.account_number?.trim() ?? "";
+    const accountReference = clabe.length > 4
+      ? `CLABE ${maskClabe(clabe)}`
+      : accountNumber.length > 4
+        ? `cuenta ${maskClabe(accountNumber)}`
+        : `titular: ${a.account_holder}`;
     const ok = await confirm({
       title: "Eliminar cuenta bancaria",
-      description: `¿Eliminar la cuenta de "${a.bank_name}"? Esta acción no se puede deshacer.`,
+      description: `¿Eliminar la cuenta de "${a.bank_name}" (${a.currency}, ${accountReference})? Esta acción no se puede deshacer.`,
       confirmLabel: "Eliminar",
       destructive: true,
     });
