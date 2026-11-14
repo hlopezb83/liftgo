@@ -6,6 +6,7 @@ import { PageContainer } from "@/components/layout/PageContainer";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { exportToCsv } from "@/lib/exportCsv";
 import { formatCurrency } from "@/lib/format/formatCurrency";
@@ -21,12 +22,38 @@ const COLS: { key: keyof import("../hooks/useAgingReport").AgingRow; label: stri
   { key: "no_due", label: "Sin vencimiento" },
 ];
 
-export default function AgingReportPage() {
-  const { rows, totals, fxMissingCount, noDueDateCount, isLoading, isError, refetch } = useAgingReport();
-
+function AgingReportKpis({ totals, isLoading }: Pick<ReturnType<typeof useAgingReport>, "totals" | "isLoading">) {
   const overduePct = totals.total > 0
     ? ((totals.d1_30 + totals.d31_60 + totals.d61_90 + totals.d90_plus) / totals.total) * 100
     : 0;
+
+  return (
+    <div className="grid grid-cols-2 md:grid-cols-4 gap-3" aria-busy={isLoading} role={isLoading ? "status" : undefined}>
+      {isLoading && <span className="sr-only">Cargando indicadores de antigüedad de saldos…</span>}
+      <Card><CardContent className="p-4">
+        <p className="text-xs text-muted-foreground">Cartera total</p>
+        {isLoading ? <Skeleton className="h-7 w-24" /> : <p className="text-xl font-bold tabular-nums">{formatCurrency(totals.total)}</p>}
+      </CardContent></Card>
+      <Card><CardContent className="p-4">
+        <p className="text-xs text-muted-foreground">Corriente</p>
+        {isLoading ? <Skeleton className="h-7 w-24" /> : <p className="text-xl font-bold tabular-nums text-success">{formatCurrency(totals.current)}</p>}
+      </CardContent></Card>
+      <Card><CardContent className="p-4">
+        <p className="text-xs text-muted-foreground">Vencido</p>
+        {isLoading ? <Skeleton className="h-7 w-24" /> : <p className="text-xl font-bold tabular-nums text-destructive">
+          {formatCurrency(totals.d1_30 + totals.d31_60 + totals.d61_90 + totals.d90_plus)}
+        </p>}
+      </CardContent></Card>
+      <Card><CardContent className="p-4">
+        <p className="text-xs text-muted-foreground">% vencido</p>
+        {isLoading ? <Skeleton className="h-7 w-24" /> : <p className="text-xl font-bold tabular-nums">{overduePct.toFixed(1)}%</p>}
+      </CardContent></Card>
+    </div>
+  );
+}
+
+export default function AgingReportPage() {
+  const { rows, totals, fxMissingCount, noDueDateCount, isLoading, isError, refetch } = useAgingReport();
 
   const handleExport = () => {
     exportToCsv(
@@ -85,26 +112,7 @@ export default function AgingReportPage() {
         <QueryErrorState entity="el reporte de antigüedad de saldos" onRetry={() => { void refetch(); }} />
       ) : (
       <>
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-        <Card><CardContent className="p-4">
-          <p className="text-xs text-muted-foreground">Cartera total</p>
-          <p className="text-xl font-bold tabular-nums">{formatCurrency(totals.total)}</p>
-        </CardContent></Card>
-        <Card><CardContent className="p-4">
-          <p className="text-xs text-muted-foreground">Corriente</p>
-          <p className="text-xl font-bold tabular-nums text-success">{formatCurrency(totals.current)}</p>
-        </CardContent></Card>
-        <Card><CardContent className="p-4">
-          <p className="text-xs text-muted-foreground">Vencido</p>
-          <p className="text-xl font-bold tabular-nums text-destructive">
-            {formatCurrency(totals.d1_30 + totals.d31_60 + totals.d61_90 + totals.d90_plus)}
-          </p>
-        </CardContent></Card>
-        <Card><CardContent className="p-4">
-          <p className="text-xs text-muted-foreground">% vencido</p>
-          <p className="text-xl font-bold tabular-nums">{overduePct.toFixed(1)}%</p>
-        </CardContent></Card>
-      </div>
+      <AgingReportKpis totals={totals} isLoading={isLoading} />
 
       <Card>
         <CardContent className="p-0">
