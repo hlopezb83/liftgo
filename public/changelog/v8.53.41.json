@@ -1,0 +1,7 @@
+{
+  "description": "Recuperación de catálogos e inventario",
+  "changes": [
+    "El reporte de daños permite recuperar los catálogos fallidos sin perder descripción, fotos ni selección.",
+    "El detalle de una refacción explica la carga, los errores y la ausencia del registro, con acciones para recuperar el listado."
+  ]
+}

@@ -1,7 +1,6 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useLiftgoTable } from "@/components/dataTable/v2";
 import { KpiTile } from "@/components/domain/KpiTile";
-import { QueryErrorState } from "@/components/feedback/QueryErrorState";
 import { SearchBar } from "@/components/forms/SearchBar";
 import { AddIcon, InventoryIcon } from "@/components/icons";
 import { ListPageLayout } from "@/components/layout/ListPageLayout";
@@ -20,6 +19,33 @@ import { useInventoryPage } from "../hooks/useInventoryPage";
 import { useInventoryPart } from "../hooks/useInventoryPart";
 import { type PartInventory } from "../hooks/usePartsInventory";
 import { PART_CATEGORIES } from "../lib/partConstants";
+
+function useInventoryDetailFocus() {
+  const listRef = useRef<HTMLDivElement>(null);
+  const selectedId = useRef<string | null>(null);
+  const skipRestore = useRef(false);
+  const restoreFocus = useCallback((event: Event) => {
+    if (skipRestore.current) {
+      skipRestore.current = false;
+      event.preventDefault();
+      return;
+    }
+    const marker = Array.from(listRef.current?.querySelectorAll<HTMLElement>("[data-inventory-part-id]") ?? [])
+      .find((node) => node.dataset.inventoryPartId === selectedId.current);
+    const action = marker?.closest("tr")?.querySelector<HTMLElement>("[data-table-row-action]")
+      ?? marker?.closest<HTMLElement>('[role="button"]');
+    const target = action?.isConnected && action.getClientRects().length > 0 ? action : listRef.current;
+    if (!target?.isConnected || target.getClientRects().length === 0) return;
+    event.preventDefault();
+    target.focus({ preventScroll: true });
+  }, []);
+  return {
+    listRef,
+    rememberSelection: (id: string) => { selectedId.current = id; },
+    handoffFocus: () => { skipRestore.current = true; },
+    restoreFocus,
+  };
+}
 
 function useInventoryListState() {
   const { values, set, reset, hasActive } = useTableFilters<PartInventory, {
@@ -57,8 +83,10 @@ export default function InventoryPage() {
   const activateDialog = useToggleDialog();
   const [editing, setEditing] = useState<PartInventory | null>(null);
   const detail = useDialogState<PartInventory["id"]>();
+  const { listRef, rememberSelection, handoffFocus, restoreFocus } = useInventoryDetailFocus();
   const selected = useInventoryPart(detail.isOpen ? detail.selected : null);
-  const selectedPart = selected.isError ? null : selected.data;
+  const selectedPart = selected.isError ? null : selected.data ?? null;
+  const openDetail = (id: string) => { rememberSelection(id); detail.open(id); };
 
   const openCreate = () => { if (!canWrite) return; setEditing(null); activateDialog.openDialog(); };
   const openEdit = (p: PartInventory) => { if (!canWrite) return; setEditing(p); formDialog.openDialog(); };
@@ -75,6 +103,7 @@ export default function InventoryPage() {
 
   return (
     <>
+      <div ref={listRef} role="region" aria-label="Inventario de refacciones" tabIndex={-1}>
       <ListPageLayout<PartInventory>
         title="Control de Refacciones"
         subtitle="Gestiona existencias y costos locales sobre el catálogo LiftGo"
@@ -122,23 +151,32 @@ export default function InventoryPage() {
         onClearFilters={reset}
         table={table}
         rowAction={{ columnId: "name", label: (p) => `Ver refacción ${p.name}` }}
-        onRowClick={(p) => detail.open(p.id)}
+        onRowClick={(p) => openDetail(p.id)}
         emptyMessage="Sin refacciones registradas"
         emptyIcon={InventoryIcon}
         emptyActionLabel={canWrite ? "Habilitar refacción" : undefined}
         onEmptyAction={canWrite ? openCreate : undefined}
         skeletonColumns={5}
-        mobileCardRender={(part) => <InventoryMobileCard part={part} onOpen={detail.open} />}
+        mobileCardRender={(part) => <InventoryMobileCard part={part} onOpen={openDetail} />}
       />
+      </div>
 
-      {detail.isOpen && selected.isError && <QueryErrorState entity="refacción" onRetry={() => { void selected.refetch(); }} />}
-      {selectedPart && <PartDetailSheet
-        key={selectedPart.id}
+      <PartDetailSheet
         part={selectedPart}
         open={detail.isOpen}
         onOpenChange={detail.onOpenChange}
-        onEdit={(p) => openEdit(p)}
-      />}
+        onEdit={(p) => { handoffFocus(); openEdit(p); }}
+        onCloseAutoFocus={restoreFocus}
+        readState={{
+          isLoading: selected.isPending,
+          isError: selected.isError,
+          isSuccess: selected.isSuccess,
+          isFetching: selected.isFetching,
+          error: selected.error,
+          onRetry: () => { void selected.refetch(); },
+          onRefreshList: () => { void refetch(); },
+        }}
+      />
 
       {canWrite && <PartFormDialog open={formDialog.open} onOpenChange={formDialog.setOpen} part={editing} />}
       {canWrite && <ActivatePartDialog open={activateDialog.open} onOpenChange={activateDialog.setOpen} />}

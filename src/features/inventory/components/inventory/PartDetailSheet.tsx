@@ -1,5 +1,6 @@
 import { Activity, useState } from "react";
 import { DetailRow } from "@/components/domain/DetailRow";
+import { QueryErrorState } from "@/components/feedback/QueryErrorState";
 import { EditIcon, DeleteIcon, InventoryIcon, Hash, Tag, Layers, WarnIcon, CostIcon, LocationIcon } from "@/components/icons";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -18,14 +19,49 @@ interface Props {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onEdit: (part: PartInventory) => void;
+  onCloseAutoFocus?: (event: Event) => void;
+  readState?: {
+    isLoading: boolean;
+    isError: boolean;
+    isSuccess: boolean;
+    isFetching: boolean;
+    error: unknown;
+    onRetry: () => void;
+    onRefreshList: () => void;
+  };
 }
 
-export function PartDetailSheet({ part, open, onOpenChange, onEdit }: Props) {
+export function PartDetailSheet({ part, open, onOpenChange, onEdit, onCloseAutoFocus, readState }: Props) {
+  return (
+    <Sheet open={open} onOpenChange={onOpenChange}>
+      <SheetContent className="sm:max-w-md overflow-y-auto" onCloseAutoFocus={onCloseAutoFocus} aria-describedby={undefined}>
+        <SheetHeader>
+          <SheetTitle className="flex items-center gap-2">
+            <InventoryIcon className="h-5 w-5" />
+            {part?.name ?? "Detalle de refacción"}
+          </SheetTitle>
+        </SheetHeader>
+        {readState?.isError ? (
+          <QueryErrorState bare entity="la refacción" error={readState.error} isRetrying={readState.isFetching} onRetry={readState.onRetry} />
+        ) : readState?.isLoading ? (
+          <p role="status" className="mt-4 text-sm text-muted-foreground">Cargando refacción…</p>
+        ) : part ? (
+          <PartDetailContent key={part.id} part={part} open={open} onOpenChange={onOpenChange} onEdit={onEdit} />
+        ) : readState?.isSuccess ? (
+          <div className="mt-4 space-y-4">
+            <p role="status" className="text-sm text-muted-foreground">Esta refacción ya no está disponible en el inventario activo</p>
+            <Button variant="outline" onClick={readState.onRefreshList}>Actualizar listado</Button>
+          </div>
+        ) : null}
+      </SheetContent>
+    </Sheet>
+  );
+}
+
+function PartDetailContent({ part, open, onOpenChange, onEdit }: Omit<Props, "part"> & { part: PartInventory }) {
   const deletePart = useDeletePart();
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [adjustOpen, setAdjustOpen] = useState(false);
-
-  if (!part) return null;
 
   const isLow = part.stock_quantity <= part.min_stock_level;
 
@@ -40,15 +76,6 @@ export function PartDetailSheet({ part, open, onOpenChange, onEdit }: Props) {
 
   return (
     <>
-    <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent className="sm:max-w-md overflow-y-auto">
-        <SheetHeader>
-          <SheetTitle className="flex items-center gap-2">
-            <InventoryIcon className="h-5 w-5" />
-            {part.name}
-          </SheetTitle>
-        </SheetHeader>
-
         <Activity mode={open ? "visible" : "hidden"}>
         <div className="mt-4 space-y-4">
           <div className="flex items-center gap-2 flex-wrap">
@@ -120,8 +147,6 @@ export function PartDetailSheet({ part, open, onOpenChange, onEdit }: Props) {
           </RoleGuard>
         </div>
         </Activity>
-      </SheetContent>
-    </Sheet>
     <AdjustPartStockDialog part={part} open={adjustOpen} onOpenChange={setAdjustOpen} />
     </>
   );

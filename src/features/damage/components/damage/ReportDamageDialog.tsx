@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { QueryErrorState } from "@/components/feedback/QueryErrorState";
 import { CurrencyField, SelectField, TextareaField } from "@/components/forms/fields";
 import { FormDialog, FormDialogFooter } from "@/components/forms/FormDialog";
 import { FormDialogCancelButton } from "@/components/forms/FormDialogCancelButton";
@@ -25,6 +26,17 @@ interface ReportDamageDialogProps {
   onOpenChange?: (open: boolean) => void;
 }
 
+function CatalogReadState({ query, entity, emptyMessage }: {
+  query: { isLoading: boolean; isError: boolean; isSuccess: boolean; isFetching: boolean; error: unknown; data: unknown[] | undefined; refetch: () => unknown };
+  entity: string;
+  emptyMessage: string;
+}) {
+  if (query.isError) return <QueryErrorState bare entity={entity} error={query.error} isRetrying={query.isFetching} onRetry={() => { void query.refetch(); }} />;
+  if (query.isLoading) return <p role="status" className="text-sm text-muted-foreground">Cargando {entity}…</p>;
+  if (query.isSuccess && query.data?.length === 0) return <p className="text-sm text-muted-foreground">{emptyMessage}</p>;
+  return null;
+}
+
 export function ReportDamageDialog({ open: openProp, onOpenChange }: ReportDamageDialogProps = {}) {
   const [internalOpen, setInternalOpen] = useState(false);
   const open = openProp ?? internalOpen;
@@ -32,18 +44,18 @@ export function ReportDamageDialog({ open: openProp, onOpenChange }: ReportDamag
     setInternalOpen(v);
     onOpenChange?.(v);
   };
-  const { data: forklifts } = useForklifts();
-  const { data: customers } = useCustomers();
+  const forklifts = useForklifts();
+  const customers = useCustomers();
   const { form, previews, onDrop, removePreview, reset, handleSubmit, isProcessing } =
     useReportDamageForm(() => setOpen(false));
 
-  const forkliftOptions = (forklifts ?? []).map((f) => ({
+  const forkliftOptions = (forklifts.data ?? []).map((f) => ({
     value: f.id,
     label: `${f.manufacturer} ${f.model} — ${f.name}`,
   }));
   const customerOptions = [
-    { value: "", label: "Sin cliente" },
-    ...(customers ?? []).map((c) => ({
+    { value: "__none__", label: "Sin cliente" },
+    ...(customers.data ?? []).map((c) => ({
       value: c.id,
       label: c.company && c.company !== c.name ? `${c.name} — ${c.company}` : c.name,
     })),
@@ -67,15 +79,20 @@ export function ReportDamageDialog({ open: openProp, onOpenChange }: ReportDamag
               label="Montacargas"
               options={forkliftOptions}
               placeholder="Seleccionar montacargas"
+              disabled={forklifts.isLoading || forklifts.isError}
               required
             />
+            <CatalogReadState query={forklifts} entity="los montacargas" emptyMessage="No hay montacargas disponibles para reportar un daño." />
             <SelectField
               control={form.control}
               name="customerId"
               label="Cliente (opcional)"
               options={customerOptions}
               placeholder="Sin cliente asociado"
+              disabled={customers.isLoading || customers.isError}
+              onValueChange={(value) => { if (value === "__none__") form.setValue("customerId", "", { shouldDirty: true }); }}
             />
+            <CatalogReadState query={customers} entity="los clientes" emptyMessage="No hay clientes disponibles. Puedes reportar el daño sin cliente asociado." />
             <TextareaField
               control={form.control}
               name="description"

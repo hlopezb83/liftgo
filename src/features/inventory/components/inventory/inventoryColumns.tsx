@@ -15,7 +15,7 @@ export const inventoryColumns: ColumnDef<PartInventory>[] = [
       id: "name",
       header: "Nombre",
       accessorKey: "name",
-      cell: ({ row }) => <span className="font-medium">{row.original.name}</span>,
+      cell: ({ row }) => <span data-inventory-part-id={row.original.id} className="font-medium">{row.original.name}</span>,
     },
     {
       id: "category",

@@ -15,7 +15,7 @@ vi.mock("@/layouts/RoleGuard", () => ({ RoleGuard: ({ children }: { children: Re
 vi.mock("../../hooks/usePartsInventory", () => ({
   usePartsInventory: () => ({
     data: mocks.present ? [{ id: "p-1", name: "Filtro QA", sku: "QA-1", category: "Filtros", stock_quantity: mocks.stock, min_stock_level: 3, unit_cost: 480, created_at: "2026-10-22T00:00:00Z", updated_at: "2026-10-22T00:00:00Z" }] : [],
-    isLoading: false, isError: false, refetch: vi.fn(),
+    isLoading: false, isError: false, isSuccess: true, refetch: vi.fn(),
   }),
   useDeletePart: () => ({ mutate: vi.fn(), isPending: false }),
   useAdjustPartStock: () => ({ mutate: mocks.mutate, isPending: false }),
@@ -114,7 +114,7 @@ describe("InventoryPage stock refresh", () => {
     openDetail();
     mocks.present = false;
     view.rerender(<InventoryPage />);
-    expect(screen.queryByRole("dialog", { name: "Detalle" })).not.toBeInTheDocument();
+    expect(screen.getByRole("dialog", { name: "Detalle" })).toHaveTextContent("Esta refacción ya no está disponible en el inventario activo");
     expect(screen.queryByRole("button", { name: "Ajustar existencias" })).not.toBeInTheDocument();
   });
 });
