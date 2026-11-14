@@ -1,3 +1,9 @@
+## [8.53.38] - 2026-11-14
+
+- La captura de mano de obra explica qué hacer cuando no hay mecánicos activos, respetando los permisos de configuración.
+- Los campos de mano de obra conservan sus etiquetas al capturar valores.
+- Las búsquedas de usuarios y prospectos cerrados distinguen cero coincidencias de una lista vacía y permiten limpiar la búsqueda.
+
 ## [8.53.37] - 2026-11-14
 
 - Al cancelar un cambio de rol desde el celular se conserva el rol vigente en pantalla.
