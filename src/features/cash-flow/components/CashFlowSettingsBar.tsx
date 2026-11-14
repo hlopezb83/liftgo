@@ -1,10 +1,10 @@
-import { useEffect, useState } from "react";
 import { SaveIcon } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useUserRole } from "@/features/users";
+import { useCashFlowDraft } from "../hooks/useCashFlowDraft";
 import { useCashFlowSettings, useUpdateCashFlowSettings } from "../hooks/useCashFlowSettings";
 
 interface Props {
@@ -52,30 +52,16 @@ export function CashFlowSettingsBar({ weeks, onChangeWeeks }: Props) {
   const canEdit = role === "admin" || role === "administrativo";
   const update = useUpdateCashFlowSettings();
 
-  const [initial, setInitial] = useState("");
-  const [buffer, setBuffer] = useState("");
-
-  useEffect(() => {
-    if (!settings) return;
-    // Sincronización de campos controlados con datos remotos (react-query).
-    // El prev-prop guard equivalente supera el umbral de complejidad del proyecto.
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setInitial(String(settings.initialBalance));
-    setBuffer(String(settings.safetyBuffer));
-  }, [settings]);
+  const { initial, buffer, setInitial, setBuffer, dirty, remoteChanged, markSaved } = useCashFlowDraft(settings);
 
   const initialNum = Number(initial);
   const bufferNum = Number(buffer);
   const validAmounts = !amountError(initial) && !amountError(buffer);
-  const dirty =
-    settings != null &&
-    (Number.isFinite(initialNum) && initialNum !== settings.initialBalance ||
-      Number.isFinite(bufferNum) && bufferNum !== settings.safetyBuffer);
 
   return (
     <div className="flex flex-wrap items-end gap-3 p-3 border rounded-md bg-muted/30">
-      <CashFlowAmountInput id="cf-initial" label="Saldo inicial (MXN)" value={initial} disabled={isLoading || !canEdit} onChange={setInitial} />
-      <CashFlowAmountInput id="cf-buffer" label="Colchón mínimo (MXN)" value={buffer} disabled={isLoading || !canEdit} onChange={setBuffer} />
+      <CashFlowAmountInput id="cf-initial" label="Saldo inicial (MXN)" value={initial} disabled={isLoading || !canEdit || update.isPending} onChange={setInitial} />
+      <CashFlowAmountInput id="cf-buffer" label="Colchón mínimo (MXN)" value={buffer} disabled={isLoading || !canEdit || update.isPending} onChange={setBuffer} />
       <div className="space-y-1">
         <Label className="text-xs">Horizonte</Label>
         <Select value={String(weeks)} onValueChange={(v) => onChangeWeeks(Number(v))}>
@@ -93,16 +79,20 @@ export function CashFlowSettingsBar({ weeks, onChangeWeeks }: Props) {
           disabled={!dirty || !validAmounts || update.isPending || !settings?.id}
           onClick={() => {
             if (!settings?.id || !validAmounts) return;
-            update.mutate({
+            const saved = {
               id: settings.id,
               initialBalance: initialNum,
               safetyBuffer: bufferNum,
-            });
+            };
+            update.mutate(saved, { onSuccess: () => markSaved(saved) });
           }}
         >
           <SaveIcon className="h-4 w-4 mr-1" /> Guardar
         </Button>
       )}
+      {remoteChanged && <p role="status" className="w-full text-sm text-muted-foreground">
+        Los saldos se actualizaron mientras capturabas. Conservamos tus cambios; al guardar se aplicarán los importes que ves aquí.
+      </p>}
     </div>
   );
 }

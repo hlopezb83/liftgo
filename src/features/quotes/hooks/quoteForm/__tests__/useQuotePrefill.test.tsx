@@ -68,6 +68,18 @@ describe("buildPrefillValues", () => {
 });
 
 describe("useQuotePrefillValues", () => {
+  it("retains initialized values through failed refreshes but waits again on another route", () => {
+    const { result, rerender } = renderHook(({ id, ready }) => useQuotePrefillValues({
+      recordId: id, existingQuote: existingRental, equipmentModels: models, quoteReady: ready, modelsReady: ready,
+    }), { initialProps: { id: existingRental.id, ready: true } });
+    const initial = result.current;
+    expect(initial).toBeDefined();
+    rerender({ id: existingRental.id, ready: false });
+    expect(result.current).toBe(initial);
+    rerender({ id: "another-quote", ready: false });
+    expect(result.current).toBeUndefined();
+  });
+
   it("devuelve undefined mientras las queries no resuelven (isSuccess=false) — no pisa defaults", () => {
     const { result } = renderHook(() =>
       useQuotePrefillValues({ existingQuote: existingRental, equipmentModels: models, quoteReady: false, modelsReady: true }),

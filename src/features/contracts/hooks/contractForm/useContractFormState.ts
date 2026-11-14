@@ -36,7 +36,7 @@ function mapContractToForm(c: ContractRow): ContractFormValues {
  * UX-M1: RHF + Zod. Retorna la instancia `form` para wiring con `<FormField>` y
  * `useUnsavedChangesGuard(formState.isDirty)`.
  */
-export function useContractFormState(existing: ContractRow | null | undefined, isEdit: boolean) {
+export function useContractFormState(existing: ContractRow | null | undefined, isEdit: boolean, recordId = existing?.id) {
   const form = useForm<ContractFormValues>({
     resolver: zodResolver(contractFormSchema),
     defaultValues: defaultContractForm,
@@ -46,19 +46,24 @@ export function useContractFormState(existing: ContractRow | null | undefined, i
 
   // Hidrata el form cuando llega el contrato existente (edición).
   const [prevExistingId, setPrevExistingId] = useState<string | null>(null);
+  const [sessionId, setSessionId] = useState(recordId);
+  if (sessionId !== recordId) {
+    setSessionId(recordId);
+    setPrevExistingId(null);
+  }
   const nextExistingId = existing?.id ?? null;
   useEffect(() => {
-    if (existing && isEdit && prevExistingId !== nextExistingId) {
+    if (existing && existing.id === recordId && isEdit && prevExistingId !== nextExistingId) {
       // eslint-disable-next-line react-hooks/set-state-in-effect -- hidratación one-shot RHF cuando llega el contrato async
       setPrevExistingId(nextExistingId);
-      // R-M9: `keepDirtyValues` evita que un `reset` posterior a que el
-      // usuario ya empezó a teclear le clobbere sus cambios (el fetch del
-      // contrato puede resolver después del primer render).
-      form.reset(mapContractToForm(existing), { keepDirtyValues: true });
+      // The editable form mounts only after this record is hydrated. A new
+      // ID must not inherit another contract's dirty values; same-ID refreshes
+      // never enter this branch.
+      form.reset(mapContractToForm(existing));
       setTemplateApplied(true);
     }
-  }, [existing, isEdit, prevExistingId, nextExistingId, form]);
+  }, [existing, recordId, isEdit, prevExistingId, nextExistingId, form]);
 
-  return { form, templateApplied, setTemplateApplied };
+  return { form, templateApplied, setTemplateApplied, hydratedId: prevExistingId };
 }
 

@@ -1,4 +1,4 @@
-import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { CashFlowSettingsBar } from "../CashFlowSettingsBar";
 
@@ -50,7 +50,7 @@ describe("CashFlowSettingsBar: importes explícitos", () => {
     const save = screen.getByRole("button", { name: "Guardar" });
     expect(save).toBeEnabled();
     fireEvent.click(save);
-    expect(state.mutate).toHaveBeenCalledExactlyOnceWith({ ...state.settings, [key]: 0 });
+    expect(state.mutate).toHaveBeenCalledExactlyOnceWith({ ...state.settings, [key]: 0 }, expect.any(Object));
   });
 
   it.each(fields)("conserva la restricción de importes no negativos en $name", ({ name }) => {
@@ -68,6 +68,47 @@ describe("CashFlowSettingsBar: importes explícitos", () => {
     fireEvent.change(screen.getByRole("spinbutton", { name: "Saldo inicial (MXN)" }), { target: { value: "123.45" } });
     fireEvent.click(screen.getByRole("button", { name: "Guardar" }));
 
-    expect(state.mutate).toHaveBeenCalledExactlyOnceWith({ id: "company-1", initialBalance: 123.45, safetyBuffer: 0 });
+    expect(state.mutate).toHaveBeenCalledExactlyOnceWith({ id: "company-1", initialBalance: 123.45, safetyBuffer: 0 }, expect.any(Object));
+  });
+
+  it("retains dirty amounts through remote updates and marks only a successful submission as the new baseline", () => {
+    const view = render(<CashFlowSettingsBar weeks={4} onChangeWeeks={vi.fn()} />);
+    fireEvent.change(screen.getByLabelText("Saldo inicial (MXN)"), { target: { value: "2500" } });
+    state.settings = { ...state.settings, initialBalance: 1100 };
+    view.rerender(<CashFlowSettingsBar weeks={4} onChangeWeeks={vi.fn()} />);
+    expect(screen.getByLabelText("Saldo inicial (MXN)")).toHaveValue(2500);
+    expect(screen.getByRole("status")).toHaveTextContent("Conservamos tus cambios");
+    fireEvent.click(screen.getByRole("button", { name: "Guardar" }));
+    act(() => state.mutate.mock.calls[0][1].onSuccess());
+    expect(screen.getByRole("button", { name: "Guardar" })).toBeDisabled();
+    expect(screen.getByLabelText("Saldo inicial (MXN)")).toHaveValue(2500);
+    fireEvent.change(screen.getByLabelText("Saldo inicial (MXN)"), { target: { value: "2600" } });
+    state.settings = { ...state.settings, initialBalance: 2500 };
+    view.rerender(<CashFlowSettingsBar weeks={4} onChangeWeeks={vi.fn()} />);
+    expect(screen.getByLabelText("Saldo inicial (MXN)")).toHaveValue(2600);
+    expect(screen.getByRole("button", { name: "Guardar" })).toBeEnabled();
+  });
+
+  it("synchronizes pristine fields and treats clearing an existing zero as dirty", () => {
+    const view = render(<CashFlowSettingsBar weeks={4} onChangeWeeks={vi.fn()} />);
+    state.settings = { ...state.settings, initialBalance: 1100, safetyBuffer: 0 };
+    view.rerender(<CashFlowSettingsBar weeks={4} onChangeWeeks={vi.fn()} />);
+    expect(screen.getByLabelText("Saldo inicial (MXN)")).toHaveValue(1100);
+    fireEvent.change(screen.getByLabelText("Colchón mínimo (MXN)"), { target: { value: "" } });
+    state.settings = { ...state.settings, initialBalance: 1200 };
+    view.rerender(<CashFlowSettingsBar weeks={4} onChangeWeeks={vi.fn()} />);
+    expect(screen.getByLabelText("Colchón mínimo (MXN)")).toHaveValue(null);
+    expect(screen.getByLabelText("Saldo inicial (MXN)")).toHaveValue(1100);
+    expect(screen.getByRole("button", { name: "Guardar" })).toBeDisabled();
+  });
+
+  it("adopts the latest remote values when the user undoes all local changes", () => {
+    const view = render(<CashFlowSettingsBar weeks={4} onChangeWeeks={vi.fn()} />);
+    fireEvent.change(screen.getByLabelText("Saldo inicial (MXN)"), { target: { value: "2500" } });
+    state.settings = { ...state.settings, initialBalance: 1100 };
+    view.rerender(<CashFlowSettingsBar weeks={4} onChangeWeeks={vi.fn()} />);
+    fireEvent.change(screen.getByLabelText("Saldo inicial (MXN)"), { target: { value: "1000" } });
+    expect(screen.getByLabelText("Saldo inicial (MXN)")).toHaveValue(1100);
+    expect(screen.getByRole("button", { name: "Guardar" })).toBeDisabled();
   });
 });

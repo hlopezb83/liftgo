@@ -12,6 +12,10 @@ const fixture = vi.hoisted(() => ({
   customerId: "customer-fixture",
   isPending: false,
   isAmountLocked: false,
+  initialRecordReady: true,
+  recordNotFound: false,
+  readQuery: { isError: false, isFetching: false, error: null, refetch: vi.fn() },
+  readEntity: "la cotización",
   chargeIdentityError: null as string | null,
   navigate: vi.fn(),
   submit: vi.fn(),
@@ -92,6 +96,10 @@ beforeEach(() => {
   fixture.customerId = "customer-fixture";
   fixture.isPending = false;
   fixture.isAmountLocked = false;
+  fixture.initialRecordReady = true;
+  fixture.recordNotFound = false;
+  fixture.readQuery.isError = false;
+  fixture.readQuery.refetch.mockReset();
   fixture.chargeIdentityError = null;
   fixture.navigate.mockReset();
   fixture.submit.mockReset();
@@ -109,6 +117,21 @@ async function advance(ms: number) {
 }
 
 describe("QuoteForm actions remain wired through the persistent footer", () => {
+  it.each(["loading", "error", "missing"])("does not offer editing during initial %s", (state) => {
+    fixture.id = "quote-fixture";
+    fixture.initialRecordReady = false;
+    fixture.readQuery.isError = state === "error";
+    fixture.recordNotFound = state === "missing";
+    render(<QuoteForm />);
+    expect(screen.queryByRole("button", { name: "Actualizar cotización" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("textbox", { name: "Cliente ficticio" })).not.toBeInTheDocument();
+    if (state === "error") {
+      fireEvent.click(screen.getByRole("button", { name: "Reintentar" }));
+      expect(fixture.readQuery.refetch).toHaveBeenCalledOnce();
+    } else if (state === "missing") expect(screen.getByText("Cotización no encontrada")).toBeVisible();
+    else expect(screen.getByRole("status", { name: "Cargando cotización" })).toBeVisible();
+  });
+
   it.each(["sale", "rental"] as const)("mounts one submit inside the %s form", (quoteType) => {
     fixture.quoteType = quoteType;
     render(<QuoteForm />);

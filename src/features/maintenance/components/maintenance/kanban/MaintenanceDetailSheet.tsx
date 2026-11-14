@@ -1,10 +1,12 @@
 import { Activity } from "react";
 import { Badge } from "@/components/ui/badge";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { Separator } from "@/components/ui/separator";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import { MAINTENANCE_WORK_STATUS_LABELS, serviceTypeLabel } from "@/lib/constants";
 import { formatDateMty } from "@/lib/format/dateFormats";
 import { formatCurrency } from "@/lib/format/formatCurrency";
+import { useLaborDraftGuard } from "../../../hooks/maintenance/useLaborDraftGuard";
 import { canModifyMaintenance } from "../../../lib/maintenanceAccess";
 import { MaintenanceLaborSection } from "../MaintenanceLaborSection";
 import { MaintenancePartsSection } from "../MaintenancePartsSection";
@@ -18,8 +20,10 @@ interface Props {
 
 export function MaintenanceDetailSheet({ log, onClose, canWrite }: Props) {
   const readOnly = !canModifyMaintenance(log, canWrite);
+  const laborDraft = useLaborDraftGuard(log?.id, !!log);
   return (
-    <Sheet open={!!log} onOpenChange={(open) => !open && onClose()}>
+    <>
+    <Sheet open={!!log} onOpenChange={(open) => !open && laborDraft.requestLeave(onClose)}>
       <SheetContent className="sm:max-w-md overflow-y-auto">
         {log && (
           <>
@@ -68,12 +72,14 @@ export function MaintenanceDetailSheet({ log, onClose, canWrite }: Props) {
 
               <Separator />
 
-              <MaintenanceLaborSection maintenanceLogId={log.id} readOnly={readOnly} />
+              <MaintenanceLaborSection key={`${log.id}:${laborDraft.resetKey}`} maintenanceLogId={log.id} readOnly={readOnly} onDraftChange={laborDraft.onDraftChange} />
             </div>
             </Activity>
           </>
         )}
       </SheetContent>
     </Sheet>
+    <ConfirmDialog {...laborDraft.discardDialog} />
+    </>
   );
 }

@@ -2,6 +2,7 @@ import { useMemo } from "react";
 import { useBooking } from "@/features/bookings";
 import { useCustomer, useCustomers } from "@/features/customers";
 import { useForklift, useForklifts } from "@/features/fleet";
+import { useInitialRecordVersion } from "@/hooks/useInitialRecordVersion";
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import { useUnsavedChangesGuard } from "@/hooks/useUnsavedChangesGuard";
 import { useParams, useSearchParams } from "@/lib/router-compat";
@@ -18,6 +19,7 @@ type ContractSubmitContext = {
   isEdit: boolean;
   bookingId: string | null;
   existing: ReturnType<typeof useContract>["data"];
+  expectedUpdatedAt: string | null;
   customers: ReturnType<typeof useCustomers>["data"];
   form: ReturnType<typeof useContractFormState>["form"];
   createContract: ReturnType<typeof useCreateContract>;
@@ -57,7 +59,7 @@ function useContractSelections(bookingId: string | null, existing: ReturnType<ty
 }
 
 function submitContract(values: ContractFormValues, context: ContractSubmitContext) {
-  const { id, isEdit, bookingId, existing, customers, form, createContract, updateContract, navigate } = context;
+  const { id, isEdit, bookingId, existing, expectedUpdatedAt, customers, form, createContract, updateContract, navigate } = context;
   const customer = customers?.find((row) => row.id === values.customer_id);
   if (customer?.rfc?.trim().length === 12 && !customer.representante_legal?.trim()) {
     notifyWarning("Falta el representante legal", {
@@ -68,7 +70,7 @@ function submitContract(values: ContractFormValues, context: ContractSubmitConte
 
   const payload = buildContractPayload(values, bookingId, existing);
   if (isEdit && id) {
-    updateContract.mutate({ id, expectedUpdatedAt: existing?.updated_at, ...payload }, {
+    updateContract.mutate({ id, expectedUpdatedAt: expectedUpdatedAt ?? undefined, ...payload }, {
       onSuccess: () => {
         notifySuccess("Contrato actualizado");
         form.reset(values); // clears isDirty for the guard
@@ -113,12 +115,15 @@ export function useContractFormLogic() {
   const navigate = useNavigateTransition();
   const [searchParams] = useSearchParams();
   const bookingId = searchParams.get("booking_id");
-  const { data: existing } = useContract(isEdit ? id : undefined);
+  const readQuery = useContract(isEdit ? id : undefined);
+  const { data: existing } = readQuery;
+  const expectedUpdatedAt = useInitialRecordVersion(id, existing?.id, existing?.updated_at);
   const { customers, forklifts } = useContractSelections(bookingId, existing);
   const createContract = useCreateContract();
   const updateContract = useUpdateContract();
 
-  const { form, templateApplied, setTemplateApplied } = useContractFormState(existing, isEdit);
+  const { form, templateApplied, setTemplateApplied, hydratedId } = useContractFormState(existing, isEdit, id);
+  const initialRecordReady = !isEdit || hydratedId === id;
 
   useContractFormPrefill({
     isEdit, bookingId, form, customers, forklifts,
@@ -129,15 +134,19 @@ export function useContractFormLogic() {
 
   useUnsavedChangesGuard(form.formState.isDirty && !isPending);
 
-  const onSubmit = (values: ContractFormValues) => submitContract(values, {
-    id, isEdit, bookingId, existing, customers, form,
+  const onSubmit = (values: ContractFormValues) => {
+    if (isEdit && (!existing || !initialRecordReady)) return;
+    submitContract(values, {
+    id, isEdit, bookingId, existing, expectedUpdatedAt, customers, form,
     createContract, updateContract, navigate,
-  });
+    });
+  };
 
   const handleSubmit = form.handleSubmit(onSubmit);
 
   return {
     id, isEdit, contractNumber: existing?.contract_number ?? null,
+    readQuery, initialRecordReady,
     linkedBookingId: bookingId ?? existing?.booking_id ?? null,
     returnTo: contractFormReturnTo(id, bookingId),
     form, customers, forklifts, isPending, handleSubmit, navigate,

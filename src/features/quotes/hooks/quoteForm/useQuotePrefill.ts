@@ -15,6 +15,7 @@ export {
 } from "./quotePrefill.logic";
 
 interface Props {
+  recordId?: string;
   existingQuote: ExistingQuote | null | undefined;
   equipmentModels: EquipmentModel[] | undefined;
   /** BL-R8-08 (R8-FE-04): flags isSuccess de las queries origen. La data por
@@ -43,7 +44,7 @@ interface Props {
  *  - Si cambia el `quoteId` (otra cotización), se recalcula y cachea de
  *    nuevo — determinista, sin efectos ni timers.
  */
-export function useQuotePrefillValues({ existingQuote, equipmentModels, quoteReady, modelsReady }: Props): QuoteFormValues | undefined {
+export function useQuotePrefillValues({ recordId, existingQuote, equipmentModels, quoteReady, modelsReady }: Props): QuoteFormValues | undefined {
   // Caché derivada en estado (no en ref): calcularla durante el render con
   // `useState` es el patrón soportado por React para memoizar por clave sin
   // efectos ni timers, y no rompe la regla `react-hooks/refs`.
@@ -51,11 +52,19 @@ export function useQuotePrefillValues({ existingQuote, equipmentModels, quoteRea
     ? { quote: existingQuote, models: equipmentModels, id: existingQuote.id ?? "existing" }
     : null;
   const [cache, setCache] = useState<{ id: string; values: QuoteFormValues } | null>(null);
+  const [sessionId, setSessionId] = useState(recordId);
+  if (sessionId !== recordId) {
+    setSessionId(recordId);
+    setCache(null);
+    return undefined;
+  }
 
   if (source && cache?.id !== source.id) {
     setCache({ id: source.id, values: buildPrefillValues(source.quote, source.models) });
   }
 
-  if (!source) return undefined;
-  return cache?.id === source.id ? cache.values : undefined;
+  // A failed background refresh must not remove the values that initialized
+  // this edit session. A different route still waits for its own record.
+  const expectedId = recordId ?? existingQuote?.id ?? "existing";
+  return cache?.id === expectedId ? cache.values : undefined;
 }
