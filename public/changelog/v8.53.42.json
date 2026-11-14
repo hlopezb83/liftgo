@@ -1,0 +1,7 @@
+{
+  "description": "Navegación contextual y teclado en CRM",
+  "changes": [
+    "El historial del proveedor permite abrir la factura vinculada y regresar al mismo contexto, según los permisos del usuario.",
+    "Las tarjetas de prospectos separan la apertura con teclado del control de arrastre."
+  ]
+}

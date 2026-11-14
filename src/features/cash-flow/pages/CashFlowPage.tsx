@@ -99,7 +99,7 @@ export default function CashFlowPage() {
             title="Flujo de caja proyectado"
             subtitle="Entradas esperadas vs salidas por semana, con semáforo de liquidez"
           />
-          {!settingsError && <CashFlowSettingsBar weeks={weeks} onChangeWeeks={setWeeks} />}
+          {(!settingsError || Boolean(settings)) && <CashFlowSettingsBar weeks={weeks} onChangeWeeks={setWeeks} />}
 
           {settingsError ? (
             <QueryErrorState entity="la configuración de flujo de caja" onRetry={() => { void refetchSettings(); }} isRetrying={settingsFetching} />

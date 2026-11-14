@@ -1,6 +1,6 @@
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { InfoAlertIcon } from "@/components/icons";
+import { GripVertical, InfoAlertIcon } from "@/components/icons";
 import { Card } from "@/components/ui/card";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { ProspectCardCompact, ProspectCardExpanded } from "./ProspectCardParts";
@@ -11,14 +11,16 @@ interface ProspectCardProps {
   quoteNumber?: string;
   density: "comfortable" | "compact";
   onClick: () => void;
+  canWrite: boolean;
 }
 
-export function ProspectCard({ prospect, quoteNumber, density, onClick }: ProspectCardProps) {
+export function ProspectCard({ prospect, quoteNumber, density, onClick, canWrite }: ProspectCardProps) {
   const isCompact = density === "compact";
 
-  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
+  const { attributes, listeners, setNodeRef, setActivatorNodeRef, transform, transition, isDragging } = useSortable({
     id: prospect.id,
     data: { type: "card", stage: prospect.stage },
+    disabled: !canWrite,
   });
 
   const style = {
@@ -30,19 +32,27 @@ export function ProspectCard({ prospect, quoteNumber, density, onClick }: Prospe
     transition,
     opacity: isDragging ? 0.4 : 1,
   };
+  const openProspect = () => { if (!isDragging) onClick(); };
+  const dragHandle = canWrite ? (
+    <button type="button" ref={setActivatorNodeRef} {...attributes} {...listeners}
+      aria-label={`Mover prospecto ${prospect.companyName}`}
+      title="Mover prospecto: espacio para tomar, flechas para mover y espacio para soltar"
+      className="ml-auto inline-flex h-8 w-8 shrink-0 touch-none items-center justify-center rounded-sm text-muted-foreground cursor-grab active:cursor-grabbing hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+      onClick={(event) => event.stopPropagation()}>
+      <GripVertical className="h-4 w-4" />
+    </button>
+  ) : null;
 
   return (
     <div
       ref={setNodeRef}
       style={style}
       data-testid={`crm-kanban-card-${prospect.id}`}
-      {...attributes}
-      {...listeners}
     >
 
       <Card
-        className={`relative mb-2 ${isCompact ? "p-2" : "p-3"} cursor-grab active:cursor-grabbing border hover:shadow-md transition-shadow`}
-        onClick={onClick}
+        className={`relative mb-2 ${isCompact ? "p-2" : "p-3"} cursor-pointer border hover:shadow-md transition-shadow`}
+        onClick={openProspect}
       >
         {prospect.isStale && (
           <Tooltip>
@@ -59,8 +69,8 @@ export function ProspectCard({ prospect, quoteNumber, density, onClick }: Prospe
         )}
 
         {isCompact
-          ? <ProspectCardCompact prospect={prospect} />
-          : <ProspectCardExpanded prospect={prospect} quoteNumber={quoteNumber} />}
+          ? <ProspectCardCompact prospect={prospect} onOpen={openProspect} action={dragHandle} />
+          : <ProspectCardExpanded prospect={prospect} quoteNumber={quoteNumber} onOpen={openProspect} action={dragHandle} />}
       </Card>
     </div>
   );

@@ -89,7 +89,7 @@ export function CRMKanbanGrid({
 
   const handleDragEnd = (event: DragEndEvent) => {
     setActiveId(null);
-    onDragEnd(event);
+    if (canWrite) onDragEnd(event);
   };
 
   return (
@@ -118,6 +118,7 @@ export function CRMKanbanGrid({
             quoteMap={quoteMap}
             onAdd={canWrite && stage.key === "nuevo_prospecto" ? () => onAdd(stage.key) : undefined}
             onCardClick={onCardClick}
+            canWrite={canWrite}
           />
         ))}
       </div>

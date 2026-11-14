@@ -1,3 +1,8 @@
+## [8.53.42] - 2026-11-14
+
+- El historial del proveedor permite abrir la factura vinculada y regresar al mismo contexto, según los permisos del usuario.
+- Las tarjetas de prospectos separan la apertura con teclado del control de arrastre.
+
 ## [8.53.41] - 2026-11-14
 
 - El reporte de daños permite recuperar los catálogos fallidos sin perder descripción, fotos ni selección.

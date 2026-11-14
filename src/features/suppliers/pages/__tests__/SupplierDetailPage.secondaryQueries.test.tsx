@@ -19,6 +19,7 @@ vi.mock("../../hooks/useSupplierLinkedActivity", () => ({
   useSupplierLinkedMaintenance: () => queries.maintenance,
 }));
 vi.mock("@/features/fleet", () => ({ DocumentAttachments: () => null }));
+vi.mock("@/features/users", () => ({ useHasModuleAccess: () => false }));
 vi.mock("@/layouts/RoleGuard", () => ({ RoleGuard: () => null }));
 vi.mock("../../components/suppliers/SupplierContactsSection", () => ({ SupplierContactsSection: () => null }));
 vi.mock("../../components/suppliers/SupplierBankAccountsSection", () => ({ SupplierBankAccountsSection: () => null }));

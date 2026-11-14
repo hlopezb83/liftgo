@@ -2,7 +2,7 @@ import { useState } from "react";
 import { DataTableV2, useLiftgoTable, type ColumnDef } from "@/components/dataTable/v2";
 import { NotesCard } from "@/components/domain/NotesCard";
 import { QueryErrorState } from "@/components/feedback/QueryErrorState";
-import { DocumentIcon, MaintenanceIcon, ExpenseIcon, EditIcon } from "@/components/icons";
+import { MaintenanceIcon, ExpenseIcon, EditIcon } from "@/components/icons";
 import { DetailPageHeader } from "@/components/layout/DetailPageHeader";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { Badge } from "@/components/ui/badge";
@@ -12,7 +12,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { DocumentAttachments } from "@/features/fleet";
 import { RoleGuard } from "@/layouts/RoleGuard";
 import { formatDateMty } from "@/lib/format/dateFormats";
-import { formatCurrency, formatCurrencyWithCode } from "@/lib/format/formatCurrency";
+import { formatCurrency } from "@/lib/format/formatCurrency";
 import { isFxMissing, sumMoney, toMxn } from "@/lib/money";
 import { getSupplierListBackTo } from "@/lib/navigation/customerInvoiceOrigins";
 import { useLocation, useParams } from "@/lib/router-compat";
@@ -20,10 +20,9 @@ import { SupplierBankAccountsSection } from "../components/suppliers/SupplierBan
 import { SupplierContactCard } from "../components/suppliers/SupplierContactCard";
 import { SupplierContactsSection } from "../components/suppliers/SupplierContactsSection";
 import { SupplierFormDialog } from "../components/suppliers/SupplierFormDialog";
+import { SupplierLinkedExpenses, type LinkedExpense } from "../components/suppliers/SupplierLinkedExpenses";
 import { useSupplierLinkedBills, useSupplierLinkedMaintenance, type SupplierLinkedMaintenance } from "../hooks/useSupplierLinkedActivity";
 import { useSupplier, SUPPLIER_CATEGORIES } from "../hooks/useSuppliers";
-
-type LinkedExpense = { id: string; expense_date: string; category: string; description: string | null; amount: number | null; originalAmount: number; currency: string };
 
 type LinkedMaintenance = SupplierLinkedMaintenance;
 
@@ -81,29 +80,12 @@ export default function SupplierDetailPage() {
   const missingFxCount = linkedExpenses.filter(e => e.amount === null).length;
   const totalMaintenance = linkedMaintenance.reduce((sum, m) => sum + (m.cost || 0), 0);
 
-  const expenseColumns: ColumnDef<LinkedExpense>[] = [
-    { id: "expense_date", header: "Fecha", accessorKey: "expense_date", cell: ({ row }) => <span className="font-mono text-sm">{formatDateMty(row.original.expense_date)}</span> },
-    { id: "category", header: "Categoría", accessorKey: "category", cell: ({ row }) => <Badge variant="outline">{row.original.category}</Badge> },
-    { id: "description", header: "Descripción", accessorKey: "description", cell: ({ row }) => <span className="text-muted-foreground">{row.original.description || "—"}</span> },
-    { id: "amount", header: "Monto MXN", accessorKey: "amount", meta: { kind: "money" }, cell: ({ row }) => row.original.amount === null
-      ? <span>{formatCurrencyWithCode(row.original.originalAmount, row.original.currency)} {row.original.currency} · Sin TC válido</span>
-      : formatCurrency(row.original.amount) },
-  ];
-
   const maintenanceColumns: ColumnDef<LinkedMaintenance>[] = [
     { id: "performed_at", header: "Fecha", accessorKey: "performed_at", cell: ({ row }) => <span className="font-mono text-sm">{formatDateMty(row.original.performed_at)}</span> },
     { id: "forklift", header: "Montacargas", accessorFn: (m) => m.forklifts?.name ?? "", cell: ({ row }) => row.original.forklifts?.name || "—" },
     { id: "service_type", header: "Tipo de Servicio", accessorKey: "service_type", cell: ({ row }) => row.original.service_type },
     { id: "cost", header: "Costo", accessorFn: (m) => m.cost ?? 0, meta: { kind: "money" }, cell: ({ row }) => formatCurrency(row.original.cost || 0) },
   ];
-
-  const expensesTable = useLiftgoTable<LinkedExpense>({
-    data: linkedExpenses,
-    columns: expenseColumns,
-    getRowId: (e) => e.id,
-    initialSorting: [{ id: "expense_date", desc: true }],
-    paginated: false,
-  });
 
   const maintenanceTable = useLiftgoTable<LinkedMaintenance>({
     data: linkedMaintenance,
@@ -182,17 +164,9 @@ export default function SupplierDetailPage() {
         </Card>
       </div>
 
-      <Card>
-        <CardHeader><CardTitle className="text-base flex items-center gap-2"><DocumentIcon className="h-4 w-4" />Gastos Operativos Vinculados</CardTitle></CardHeader>
-        <CardContent className="p-0">
-          {billsQuery.isError ? (
-            <QueryErrorState bare entity="los gastos vinculados" error={billsQuery.error}
-              isRetrying={billsQuery.isFetching} onRetry={() => { void billsQuery.refetch(); }} />
-          ) : expensesLoading ? <Skeleton className="h-24 w-full" /> : (
-            <DataTableV2 table={expensesTable} emptyMessage="Sin gastos vinculados" />
-          )}
-        </CardContent>
-      </Card>
+      <SupplierLinkedExpenses key={supplier.id} expenses={linkedExpenses} isLoading={expensesLoading}
+        isError={billsQuery.isError} error={billsQuery.error} isFetching={billsQuery.isFetching}
+        onRetry={() => { void billsQuery.refetch(); }} />
 
       <Card>
         <CardHeader><CardTitle className="text-base flex items-center gap-2"><MaintenanceIcon className="h-4 w-4" />Mantenimiento Vinculado</CardTitle></CardHeader>
