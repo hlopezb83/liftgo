@@ -23,7 +23,7 @@ describe("DeliverySignatureDialog durante el guardado", () => {
     rerender(<DeliverySignatureDialog {...props} isPending />);
     fireEvent.click(screen.getByRole("button", { name: "Cerrar" }));
     fireEvent.keyDown(document.activeElement ?? document.body, { key: "Escape" });
-    fireEvent.click(screen.getByRole("button", { name: "Omitir Firma" }));
+    fireEvent.click(screen.getByRole("button", { name: "Completar entrega sin firma" }));
     expect(props.onOpenChange).not.toHaveBeenCalled();
     expect(props.onComplete).not.toHaveBeenCalled();
     expect(screen.getByRole("spinbutton", { name: "Lectura de Horómetro (horas)" })).toBeDisabled();
@@ -50,7 +50,7 @@ describe("DeliverySignatureDialog durante el guardado", () => {
   it("protege también la justificación al completar sin evidencia", () => {
     const { props, rerender } = setup();
     rerender(<DeliverySignatureDialog {...props} operatorName={null} />);
-    fireEvent.click(screen.getByRole("button", { name: "Omitir Firma" }));
+    fireEvent.click(screen.getByRole("button", { name: "Continuar sin firma" }));
     fireEvent.change(screen.getByRole("textbox", { name: "Justificación" }), { target: { value: "Autorización registrada" } });
     rerender(<DeliverySignatureDialog {...props} operatorName={null} isPending />);
     expect(screen.getByRole("textbox", { name: "Justificación" })).toBeDisabled();

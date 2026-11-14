@@ -101,7 +101,7 @@ export default function BankReconciliationPage() {
                 </Select>
               </CardContent></Card>
 
-              {accountId && (
+              {accountId && account && (
                 <>
                   {isErrorLines || isErrorKpis ? (
                     <QueryErrorState entity="la conciliación bancaria" onRetry={() => {
@@ -110,14 +110,14 @@ export default function BankReconciliationPage() {
                     }} />
                   ) : (
                   <>
-                  <BankStatementUploader bankAccountId={accountId} />
+                  <BankStatementUploader bankAccountId={accountId} currency={account.currency} />
                   {isLoadingKpis || !kpis
                     ? <Skeleton className="h-24 w-full" />
-                    : <ReconciliationKpiCards kpis={kpis} currency={account?.currency ?? "MXN"} />}
+                    : <ReconciliationKpiCards kpis={kpis} currency={account.currency} />}
                   <BankReconciliationWorkspace
                     lines={lines ?? []}
                     bankAccountId={accountId}
-                    currency={account?.currency ?? "MXN"}
+                    currency={account.currency}
                     isLoading={isLoading}
                     virtualized
                     status={status}

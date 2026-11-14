@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { notifyError } from "@/lib/ui/appFeedback";
 import { MAX_FILE_SIZE_BYTES, useStatementUpload } from "../hooks/useStatementUpload";
 import { CSV_PROFILES, CSV_PROFILE_LABELS, type StatementProfile } from "../lib/bankReconciliationConstants";
+import { BankStatementErrors } from "./BankStatementErrors";
 import { BankStatementPreview } from "./BankStatementPreview";
 import { BankXmlFieldMapper } from "./BankXmlFieldMapper";
 
@@ -63,9 +64,10 @@ function BankFilePicker({
 
 interface Props {
   bankAccountId: string;
+  currency: string;
 }
 
-export function BankStatementUploader({ bankAccountId }: Props) {
+export function BankStatementUploader({ bankAccountId, currency }: Props) {
   const up = useStatementUpload(bankAccountId);
   const showMapper = up.xmlFields.length > 0;
   const busy = up.isAnalyzing || up.isPending;
@@ -118,12 +120,13 @@ export function BankStatementUploader({ bankAccountId }: Props) {
       )}
 
       {up.preview && up.preview.lines.length === 0 && up.preview.errors.length > 0 && (
-        <p className="text-sm text-destructive">{up.preview.errors[0]}</p>
+        <BankStatementErrors errors={up.preview.errors} />
       )}
 
       {up.preview && up.preview.lines.length > 0 && (
         <BankStatementPreview
           result={up.preview}
+          currency={currency}
           isPending={up.isPending}
           onConfirm={up.confirm}
           onCancel={up.reset}

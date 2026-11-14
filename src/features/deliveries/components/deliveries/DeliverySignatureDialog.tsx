@@ -50,6 +50,7 @@ export function DeliverySignatureDialog({
 }: Props) {
   const operationLabel = transportLabel(transportType);
   const belowMin = isBelowMinimum(hoursReading, minHours);
+  const hasOperator = !isMissingOperationalEvidence(operatorName);
 
   // Bug 3: completar sin firma NI operador exige una justificación breve.
   const [omitting, setOmitting] = useState(false);
@@ -61,7 +62,7 @@ export function DeliverySignatureDialog({
 
   const handleSkipSignature = () => {
     if (isPending || belowMin) return;
-    if (!isMissingOperationalEvidence(operatorName)) {
+    if (hasOperator) {
       // Hay operador asignado: el registro conserva evidencia operativa.
       onComplete();
       return;
@@ -98,15 +99,18 @@ export function DeliverySignatureDialog({
       </div>
       {isPending && <p role="status" className="text-sm text-muted-foreground">Guardando transporte…</p>}
       {!omitting ? (
+        <div className="mt-2">
         <Button
           variant="link"
           size="sm"
-          className="text-muted-foreground mt-2"
+          className="h-auto whitespace-normal text-left text-muted-foreground"
           onClick={handleSkipSignature}
           disabled={isPending || belowMin}
         >
-          Omitir Firma
+          {hasOperator ? `Completar ${operationLabel} sin firma` : "Continuar sin firma"}
         </Button>
+        {hasOperator && <p className="text-xs text-muted-foreground">Se registrará como completada con el operador asignado.</p>}
+        </div>
       ) : (
         <div className="mt-3 space-y-2 rounded-md border border-warning/40 bg-warning/10 p-3">
           <p className="text-sm font-medium">Se completará sin firma ni operador</p>
