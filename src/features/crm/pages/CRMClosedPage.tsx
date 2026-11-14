@@ -49,10 +49,10 @@ export default function CRMClosedPage() {
               <TabsTrigger value="lost">Perdidos ({s.metrics.lost.length})</TabsTrigger>
             </TabsList>
             <TabsContent value="won" className="mt-4">
-              <ClosedTable rows={s.wonRows} kind="won" isLoading={s.isLoading} onConvert={canConvert ? s.handleConvert : undefined} onViewCustomer={handleViewCustomer} />
+              <ClosedTable rows={s.wonRows} kind="won" isLoading={s.isLoading} hasActiveSearch={Boolean(s.search.trim())} onClearSearch={() => s.setSearch("")} onConvert={canConvert ? s.handleConvert : undefined} onViewCustomer={handleViewCustomer} />
             </TabsContent>
             <TabsContent value="lost" className="mt-4">
-              <ClosedTable rows={s.lostRows} kind="lost" isLoading={s.isLoading} />
+              <ClosedTable rows={s.lostRows} kind="lost" isLoading={s.isLoading} hasActiveSearch={Boolean(s.search.trim())} onClearSearch={() => s.setSearch("")} />
             </TabsContent>
           </Tabs>
         )}

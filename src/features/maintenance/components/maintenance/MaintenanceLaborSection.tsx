@@ -1,12 +1,15 @@
-import { useState } from "react";
+import { useId, useState } from "react";
 import { QueryErrorState } from "@/components/feedback/QueryErrorState";
 import { useConfirm } from "@/components/feedback/useConfirm";
 import { MaintenanceIcon, DeleteIcon } from "@/components/icons";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useHasModuleAccess } from "@/features/users";
 import { formatCurrency } from "@/lib/format/formatCurrency";
+import { Link } from "@/lib/router-compat-ui";
 import { notifySuccess, notifyValidation } from "@/lib/ui/appFeedback";
 import {
   useMaintenanceLabor,
@@ -22,7 +25,20 @@ interface Props {
   readOnly?: boolean;
 }
 
+function MechanicsEmptyState() {
+  const canManageMechanics = useHasModuleAccess("Configuración", "full");
+  return (
+    <div className="space-y-2 rounded-md border bg-muted/30 p-3 text-sm">
+      <p>No hay mecánicos activos. {canManageMechanics
+        ? "Da de alta o activa uno en la pestaña Mecánicos de Configuración."
+        : "Solicita a un administrador que dé de alta o active uno."}</p>
+      {canManageMechanics && <Button asChild variant="outline" size="sm"><Link to="/settings/operations">Ir a Configuración</Link></Button>}
+    </div>
+  );
+}
+
 export function MaintenanceLaborSection({ maintenanceLogId, readOnly = false }: Props) {
+  const fieldId = useId();
   const mechanicsQuery = useActiveMechanics();
   const { data: mechanics = [] } = mechanicsQuery;
   const laborQuery = useMaintenanceLabor(maintenanceLogId);
@@ -37,7 +53,8 @@ export function MaintenanceLaborSection({ maintenanceLogId, readOnly = false }: 
   const [notes, setNotes] = useState<string>("");
 
   const laborTotal = labor.reduce((sum, l) => sum + Number(l.total_cost ?? 0), 0);
-  const captureBlocked = captureQueriesUnavailable(laborQuery, mechanicsQuery);
+  const { empty: mechanicsEmpty, unavailable: mechanicsUnavailable } = mechanicsAvailability(mechanicsQuery);
+  const captureBlocked = captureQueriesUnavailable(laborQuery, mechanicsUnavailable);
 
   const handleAdd = () => {
     if (readOnly || addLabor.isPending || captureBlocked) return;
@@ -92,9 +109,12 @@ export function MaintenanceLaborSection({ maintenanceLogId, readOnly = false }: 
         <fieldset disabled={addLabor.isPending} className="space-y-2">
           {mechanicsQuery.isError && <QueryErrorState bare entity="los mecánicos" error={mechanicsQuery.error}
             isRetrying={mechanicsQuery.isFetching} onRetry={() => { void mechanicsQuery.refetch(); }} />}
-          <div className="grid grid-cols-1 sm:grid-cols-4 gap-2">
-            <Select value={mechanicId} onValueChange={setMechanicId} disabled={mechanicsQuery.isError || mechanicsQuery.isLoading || addLabor.isPending}>
-              <SelectTrigger className="sm:col-span-2">
+          {mechanicsEmpty && <MechanicsEmptyState />}
+          <div className="grid grid-cols-1 sm:grid-cols-4 items-end gap-2">
+            <div className="space-y-1 sm:col-span-2">
+            <Label htmlFor={`${fieldId}-mechanic`} className="text-xs">Mecánico</Label>
+            <Select value={mechanicId} onValueChange={setMechanicId} disabled={mechanicsUnavailable || addLabor.isPending}>
+              <SelectTrigger id={`${fieldId}-mechanic`}>
                 <SelectValue placeholder="Mecánico" />
               </SelectTrigger>
               <SelectContent>
@@ -103,20 +123,33 @@ export function MaintenanceLaborSection({ maintenanceLogId, readOnly = false }: 
                 ))}
               </SelectContent>
             </Select>
+            </div>
+            <div className="space-y-1">
+            <Label htmlFor={`${fieldId}-hours`} className="text-xs">Horas</Label>
             <Input
+              id={`${fieldId}-hours`}
               type="number" min="0" step="0.25" placeholder="Horas"
               value={hours} onChange={(e) => setHours(e.target.value)}
             />
+            </div>
+            <div className="space-y-1">
+            <Label htmlFor={`${fieldId}-rate`} className="text-xs">Tarifa por hora (MXN)</Label>
             <Input
+              id={`${fieldId}-rate`}
               type="number" min="0" step="0.01" placeholder="Tarifa/hr"
               value={hourlyRate} onChange={(e) => setHourlyRate(e.target.value)}
             />
+            </div>
           </div>
-          <div className="flex gap-2">
+          <div className="flex items-end gap-2">
+            <div className="min-w-0 flex-1 space-y-1">
+            <Label htmlFor={`${fieldId}-notes`} className="text-xs">Notas (opcional)</Label>
             <Input
+              id={`${fieldId}-notes`}
               placeholder="Notas (opcional)"
               value={notes} onChange={(e) => setNotes(e.target.value)}
             />
+            </div>
             <Button onClick={handleAdd} disabled={addLabor.isPending || captureBlocked} size="sm">Agregar</Button>
           </div>
         </fieldset>
@@ -157,6 +190,11 @@ export function MaintenanceLaborSection({ maintenanceLogId, readOnly = false }: 
   );
 }
 
-function captureQueriesUnavailable(labor: ReturnType<typeof useMaintenanceLabor>, mechanics: ReturnType<typeof useActiveMechanics>) {
-  return labor.isLoading || labor.isError || mechanics.isLoading || mechanics.isError;
+function mechanicsAvailability(mechanics: ReturnType<typeof useActiveMechanics>) {
+  const empty = mechanics.isSuccess && mechanics.data.length === 0;
+  return { empty, unavailable: mechanics.isLoading || mechanics.isError || empty };
+}
+
+function captureQueriesUnavailable(labor: ReturnType<typeof useMaintenanceLabor>, mechanicsUnavailable: boolean) {
+  return labor.isLoading || labor.isError || mechanicsUnavailable;
 }

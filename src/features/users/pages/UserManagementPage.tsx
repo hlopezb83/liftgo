@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useLiftgoTable } from "@/components/dataTable/v2";
 import { SearchBar } from "@/components/forms/SearchBar";
 import { SecurityIcon, UsersIcon } from "@/components/icons";
@@ -41,6 +42,8 @@ export default function UserManagementPage() {
 
   const dialogs = useUserManagementDialogs();
   const { search, setSearch, filterRole, setFilterRole, filtered } = useUserManagementFilters(users);
+  // Al limpiar, desmontar la búsqueda cancela también su debounce pendiente.
+  const [searchReset, setSearchReset] = useState(0);
   const { setEditTarget, setPasswordTarget, setDeleteTarget, setRoleChangeTarget } = dialogs;
 
   // Último admin activo: la DB rechaza demotar/desactivar/borrar al único
@@ -92,7 +95,7 @@ export default function UserManagementPage() {
         }
         filters={
           <div className="flex flex-col sm:flex-row gap-3">
-            <SearchBar value={search} onChange={setSearch} placeholder="Buscar por nombre o correo…" className="flex-1 max-w-md" />
+            <SearchBar key={searchReset} value={search} onChange={setSearch} placeholder="Buscar por nombre o correo…" className="flex-1 max-w-md" />
             <Select value={filterRole} onValueChange={setFilterRole}>
               <SelectTrigger className="w-[180px]"><SelectValue placeholder="Filtrar por rol" /></SelectTrigger>
               <SelectContent>
@@ -108,6 +111,8 @@ export default function UserManagementPage() {
         isError={isError}
         onRetry={() => { void refetch(); }}
         table={table}
+        hasActiveFilters={Boolean(search) || filterRole !== "all"}
+        onClearFilters={() => { setSearch(""); setFilterRole("all"); setSearchReset((value) => value + 1); }}
         emptyMessage="No hay usuarios"
         emptyIcon={UsersIcon}
         emptyActionLabel={canManage ? "Crear usuario" : undefined}

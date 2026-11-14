@@ -1,0 +1,8 @@
+{
+  "description": "Captura de mano de obra y búsquedas claras",
+  "changes": [
+    "La captura de mano de obra explica qué hacer cuando no hay mecánicos activos, respetando los permisos de configuración.",
+    "Los campos de mano de obra conservan sus etiquetas al capturar valores.",
+    "Las búsquedas de usuarios y prospectos cerrados distinguen cero coincidencias de una lista vacía y permiten limpiar la búsqueda."
+  ]
+}
