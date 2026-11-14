@@ -18,6 +18,7 @@ interface KanbanColumnProps {
   quoteMap: Map<string, string>;
   onAdd?: () => void;
   onCardClick: (p: Prospect) => void;
+  canWrite: boolean;
 }
 
 export function KanbanColumn({
@@ -31,12 +32,14 @@ export function KanbanColumn({
   quoteMap,
   onAdd,
   onCardClick,
+  canWrite,
 }: KanbanColumnProps) {
   const pct = pipelineTotal > 0 ? Math.min(100, (total / pipelineTotal) * 100) : 0;
 
   const { setNodeRef, isOver } = useDroppable({
     id: stageKey,
     data: { type: "column", stage: stageKey },
+    disabled: !canWrite,
   });
 
   const itemIds = items.map((p) => p.id);
@@ -93,6 +96,7 @@ export function KanbanColumn({
                   density={density}
                   quoteNumber={prospect.quoteId ? quoteMap.get(prospect.quoteId) : undefined}
                   onClick={() => onCardClick(prospect)}
+                  canWrite={canWrite}
                 />
               ))
             )}

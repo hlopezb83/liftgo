@@ -46,7 +46,7 @@ test("mover una tarjeta de CRM entre columnas es optimista y persiste", async ({
 
   // Drag con teclado: foco -> tomar -> mover a la derecha -> soltar.
   // Damos un frame entre teclas para que dnd-kit recalcule colisiones.
-  await card.focus();
+  await card.getByRole("button", { name: `Mover prospecto ${crm.companyName}` }).focus();
   await page.keyboard.press("Space");
   await nextFrame(page);
   await page.keyboard.press("ArrowRight");
@@ -85,7 +85,7 @@ test("abrir la tarjeta muestra el panel de detalle del prospecto", async ({ page
 
   const card = page.getByTestId(`crm-kanban-card-${crm.prospectId}`);
   await expect(card).toBeVisible({ timeout: TIMEOUTS.xl });
-  await card.click();
+  await card.getByRole("button", { name: `Ver prospecto ${crm.companyName}` }).press("Enter");
 
   const sheet = page.getByRole("dialog");
   await expect(sheet).toBeVisible({ timeout: TIMEOUTS.medium });
