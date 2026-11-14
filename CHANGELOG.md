@@ -1,3 +1,8 @@
+## [8.53.41] - 2026-11-14
+
+- El reporte de daños permite recuperar los catálogos fallidos sin perder descripción, fotos ni selección.
+- El detalle de una refacción explica la carga, los errores y la ausencia del registro, con acciones para recuperar el listado.
+
 ## [8.53.40] - 2026-11-14
 
 - Conciliación bancaria y usuarios móviles respetan los permisos de sólo lectura.

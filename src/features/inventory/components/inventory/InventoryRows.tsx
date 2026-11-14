@@ -7,7 +7,7 @@ import type { PartInventory } from "../../hooks/usePartsInventory";
 export function InventoryMobileCard({ part: p, onOpen }: { part: PartInventory; onOpen: (id: string) => void }) {
     const isLow = p.stock_quantity <= p.min_stock_level;
     return (
-      <Card onClick={() => onOpen(p.id)} role="button" tabIndex={0}
+      <Card data-inventory-part-id={p.id} onClick={() => onOpen(p.id)} role="button" tabIndex={0}
         onKeyDown={(event) => {
           if (event.key !== "Enter" && event.key !== " ") return;
           event.preventDefault();
