@@ -1,0 +1,7 @@
+{
+  "description": "Refacciones utilizadas con identificación completa",
+  "changes": [
+    "El detalle de mantenimiento muestra el nombre y SKU de cada refacción sin recortarlos.",
+    "Cantidad e importe permanecen visibles y conservan sus valores."
+  ]
+}

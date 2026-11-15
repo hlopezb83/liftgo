@@ -149,12 +149,12 @@ function UsedPartsHistory({ query: usedQuery }: { query: ReturnType<typeof useMa
           {usedParts.map((mp) => {
             const partInfo = mp.parts_inventory as { name: string; sku: string | null; category: string } | null;
             return (
-              <div key={mp.id} className="flex items-center justify-between px-3 py-2 text-sm">
-                <div className="flex items-center gap-2 min-w-0">
-                  <span className="font-medium truncate">{partInfo?.name || "Refacción"}</span>
-                  {partInfo?.sku && <span className="text-xs text-muted-foreground">({partInfo.sku})</span>}
+              <div key={mp.id} className="flex flex-col gap-2 px-3 py-2 text-sm">
+                <div className="min-w-0 space-y-1 [overflow-wrap:anywhere]">
+                  <p className="font-medium">{partInfo?.name || "Refacción"}</p>
+                  {partInfo?.sku && <p className="text-xs text-muted-foreground">{partInfo.sku}</p>}
                 </div>
-                <div className="flex items-center gap-3 text-muted-foreground shrink-0">
+                <div className="flex flex-wrap items-center justify-end gap-x-3 gap-y-1 text-muted-foreground">
                   <span>×{mp.quantity_used}</span>
                   <span className="font-mono">{formatCurrency(mp.quantity_used * mp.cost_at_time)}</span>
                 </div>
