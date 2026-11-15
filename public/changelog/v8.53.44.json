@@ -1,0 +1,7 @@
+{
+  "description": "Generación mensual identificada en móvil",
+  "changes": [
+    "El botón Generar mensual mantiene su texto visible en pantallas estrechas.",
+    "La generación conserva permisos y bloqueo mientras se procesa."
+  ]
+}

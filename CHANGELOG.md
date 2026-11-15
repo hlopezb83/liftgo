@@ -1,3 +1,8 @@
+## [8.53.44] - 2026-11-15
+
+- El botón Generar mensual mantiene su texto visible en pantallas estrechas.
+- La generación conserva permisos y bloqueo mientras se procesa.
+
 ## [8.53.43] - 2026-11-15
 
 - La edición muestra el tipo de servicio histórico con una etiqueta legible y conserva su valor al modificar otros datos.
