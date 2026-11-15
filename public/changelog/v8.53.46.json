@@ -1,0 +1,7 @@
+{
+  "description": "Archivo de órdenes cerradas con motivo visible",
+  "changes": [
+    "El administrativo ve por qué no puede archivar una orden cerrada y a quién solicitar la acción.",
+    "El permiso para archivar y el bloqueo existente se conservan."
+  ]
+}
