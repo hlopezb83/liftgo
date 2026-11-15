@@ -1,3 +1,8 @@
+## [8.53.45] - 2026-11-15
+
+- El detalle de mantenimiento muestra el nombre y SKU de cada refacción sin recortarlos.
+- Cantidad e importe permanecen visibles y conservan sus valores.
+
 ## [8.53.44] - 2026-11-15
 
 - El botón Generar mensual mantiene su texto visible en pantallas estrechas.
