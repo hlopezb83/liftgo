@@ -50,8 +50,8 @@ export function MaintenancePageActions({
           aria-label="Generar mantenimiento mensual"
           className="touch:min-w-11"
         >
-          <RefreshIcon className={`h-4 w-4 sm:mr-1 ${isGenerating ? "animate-spin" : ""}`} />
-          <span className="hidden sm:inline">Generar mensual</span>
+          <RefreshIcon className={`h-4 w-4 mr-1 ${isGenerating ? "animate-spin" : ""}`} />
+          <span>Generar mensual</span>
         </Button>
       </RoleGuard>
       {canCreate && (
