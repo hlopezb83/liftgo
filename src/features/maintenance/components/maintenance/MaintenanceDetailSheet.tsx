@@ -1,4 +1,4 @@
-import { Activity, useState } from "react";
+import { Activity, useId, useState } from "react";
 import { DetailRow } from "@/components/domain/DetailRow";
 import { EditIcon, DeleteIcon, MaintenanceIcon, CalendarIcon, UserIcon, CostIcon, FleetIcon, DocumentIcon, SuccessIcon } from "@/components/icons";
 import { Button } from "@/components/ui/button";
@@ -192,6 +192,7 @@ function MaintenanceDetailActions({
   closeOpen, onCloseOpenChange, confirmOpen, onConfirmOpenChange,
   onEdit, onDelete, onSheetClose,
 }: ActionsProps) {
+  const archiveBlockedId = useId();
   const archiveBlocked = isClosed && !canArchiveClosed;
   // A1 (R5): la RPC `reopen_work_order` existía sin ningún llamador en la app.
   // Solo admin y solo sobre una OT cerrada; el servidor revalida ambas cosas.
@@ -228,6 +229,7 @@ function MaintenanceDetailActions({
           variant="destructive"
           className="flex-1"
           disabled={archiveBlocked}
+          aria-describedby={archiveBlocked ? archiveBlockedId : undefined}
           title={archiveBlocked ? "La orden esta cerrada: solo un administrador puede archivarla" : undefined}
           onClick={() => onConfirmOpenChange(true)}
         >
@@ -244,6 +246,11 @@ function MaintenanceDetailActions({
           onConfirm={onDelete}
         />
       </div>
+      {canArchive && archiveBlocked && (
+        <p id={archiveBlockedId} className="mt-2 text-sm text-muted-foreground">
+          Esta orden está cerrada. Solicita a un administrador que la archive.
+        </p>
+      )}
     </>
   );
 }

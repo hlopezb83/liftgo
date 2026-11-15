@@ -1,3 +1,8 @@
+## [8.53.46] - 2026-11-15
+
+- El administrativo ve por qué no puede archivar una orden cerrada y a quién solicitar la acción.
+- El permiso para archivar y el bloqueo existente se conservan.
+
 ## [8.53.45] - 2026-11-15
 
 - El detalle de mantenimiento muestra el nombre y SKU de cada refacción sin recortarlos.
