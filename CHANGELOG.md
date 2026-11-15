@@ -1,3 +1,8 @@
+## [8.53.43] - 2026-11-15
+
+- La edición muestra el tipo de servicio histórico con una etiqueta legible y conserva su valor al modificar otros datos.
+- La creación de servicios mantiene el catálogo de tipos actual.
+
 ## [8.53.42] - 2026-11-14
 
 - El historial del proveedor permite abrir la factura vinculada y regresar al mismo contexto, según los permisos del usuario.

@@ -3,13 +3,14 @@ import {
   SelectField,
   DateField,
   CurrencyField,
+  type SelectOption,
 } from "@/components/forms/fields";
 import { FormActions } from "@/components/forms/FormActions";
 import { FormDialog, FormDialogFooter } from "@/components/forms/FormDialog";
 import { FormSection } from "@/components/forms/FormSection";
 import { Form } from "@/components/ui/form";
 import { SupplierField } from "@/features/suppliers";
-import { SERVICE_TYPES } from "@/lib/constants";
+import { SERVICE_TYPES, serviceTypeLabel } from "@/lib/constants";
 import type { MaintenanceFormValues } from "../../hooks/maintenance/useMaintenanceForm";
 import type { FormEvent as ReactFormEvent } from "react";
 import type { UseFormReturn } from "react-hook-form";
@@ -35,7 +36,11 @@ export function MaintenanceFormDialog({
     value: f.id,
     label: `${f.name} — ${f.model}`,
   }));
-  const serviceTypeOptions = SERVICE_TYPES.map((s) => ({ value: s, label: s }));
+  const serviceTypeOptions: SelectOption[] = SERVICE_TYPES.map((s) => ({ value: s, label: s }));
+  const originalServiceType = form.formState.defaultValues?.serviceType;
+  if (isEdit && originalServiceType && !serviceTypeOptions.some((option) => option.value === originalServiceType)) {
+    serviceTypeOptions.unshift({ value: originalServiceType, label: serviceTypeLabel(originalServiceType) });
+  }
   const mechanicOptions = (mechanics ?? []).map((m) => ({
     value: m.name,
     label: m.specialization ? `${m.name} (${m.specialization})` : m.name,
