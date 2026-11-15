@@ -1,3 +1,8 @@
+## [8.53.47] - 2026-11-15
+
+- La captura de mano de obra señala las horas inválidas junto al campo y dirige ahí el foco.
+- Corregir las horas limpia el aviso sin perder mecánico, tarifa ni notas.
+
 ## [8.53.46] - 2026-11-15
 
 - El administrativo ve por qué no puede archivar una orden cerrada y a quién solicitar la acción.

@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { act, fireEvent, render, screen } from "@testing-library/react";
 import { beforeEach, expect, it, vi } from "vitest";
 import type { ReactNode } from "react";
 const state = vi.hoisted(() => ({
@@ -99,4 +99,66 @@ it("restores capture with an active mechanic and preserves numeric values and op
   expect(state.mutate).toHaveBeenCalledWith({
     maintenance_log_id: "ot-a", mechanic_id: "mechanic-a", hours: 1.25, hourly_rate: 120.5, notes: "Revisión",
   }, expect.any(Object));
+});
+
+it.each(["", "0", "-1"])("focuses invalid hours %j and preserves the rest of the draft without saving", async (hours) => {
+  state.error = false;
+  state.mechanics = [{ id: "mechanic-a", name: "Mecánico de prueba" }];
+  const onDraftChange = vi.fn();
+  render(<MaintenanceLaborSection maintenanceLogId="ot-a" onDraftChange={onDraftChange} />);
+  fireEvent.keyDown(screen.getByRole("combobox", { name: "Mecánico" }), { key: "ArrowDown" });
+  fireEvent.click(await screen.findByRole("option", { name: "Mecánico de prueba" }));
+  const hoursInput = screen.getByRole("spinbutton", { name: "Horas" });
+  fireEvent.change(hoursInput, { target: { value: hours } });
+  fireEvent.change(screen.getByRole("spinbutton", { name: "Tarifa por hora (MXN)" }), { target: { value: "0" } });
+  fireEvent.change(screen.getByRole("textbox", { name: "Notas (opcional)" }), { target: { value: "Revisión pendiente" } });
+
+  fireEvent.click(screen.getByRole("button", { name: "Agregar" }));
+
+  expect(state.mutate).not.toHaveBeenCalled();
+  expect(hoursInput).toHaveFocus();
+  expect(hoursInput).toHaveAttribute("aria-invalid", "true");
+  expect(hoursInput).toHaveAccessibleDescription("Ingresa más de 0 horas");
+  expect(screen.getByRole("combobox", { name: "Mecánico" })).toHaveTextContent("Mecánico de prueba");
+  expect(screen.getByRole("spinbutton", { name: "Tarifa por hora (MXN)" })).toHaveValue(0);
+  expect(screen.getByRole("textbox", { name: "Notas (opcional)" })).toHaveValue("Revisión pendiente");
+  expect(onDraftChange).toHaveBeenLastCalledWith({ dirty: true, pending: false });
+});
+
+it("clears the hours error after correction, accepts a zero rate and resets only after saving succeeds", async () => {
+  state.error = false;
+  state.mechanics = [{ id: "mechanic-a", name: "Mecánico de prueba" }];
+  const onDraftChange = vi.fn();
+  render(<MaintenanceLaborSection maintenanceLogId="ot-a" onDraftChange={onDraftChange} />);
+  fireEvent.keyDown(screen.getByRole("combobox", { name: "Mecánico" }), { key: "ArrowDown" });
+  fireEvent.click(await screen.findByRole("option", { name: "Mecánico de prueba" }));
+  const hoursInput = screen.getByRole("spinbutton", { name: "Horas" });
+  fireEvent.change(hoursInput, { target: { value: "0" } });
+  fireEvent.change(screen.getByRole("spinbutton", { name: "Tarifa por hora (MXN)" }), { target: { value: "0" } });
+  fireEvent.change(screen.getByRole("textbox", { name: "Notas (opcional)" }), { target: { value: "  Revisión  " } });
+  fireEvent.click(screen.getByRole("button", { name: "Agregar" }));
+
+  fireEvent.change(hoursInput, { target: { value: "-1" } });
+  expect(hoursInput).toHaveAttribute("aria-invalid", "true");
+  fireEvent.change(hoursInput, { target: { value: "2" } });
+  expect(hoursInput).not.toHaveAttribute("aria-invalid");
+  expect(hoursInput).not.toHaveAttribute("aria-describedby");
+  expect(screen.queryByText("Ingresa más de 0 horas")).not.toBeInTheDocument();
+  fireEvent.click(screen.getByRole("button", { name: "Agregar" }));
+  expect(state.mutate).toHaveBeenCalledExactlyOnceWith({
+    maintenance_log_id: "ot-a", mechanic_id: "mechanic-a", hours: 2, hourly_rate: 0, notes: "Revisión",
+  }, expect.any(Object));
+  expect(hoursInput).toHaveValue(2);
+  expect(screen.getByRole("textbox", { name: "Notas (opcional)" })).toHaveValue("  Revisión  ");
+  expect(onDraftChange).toHaveBeenLastCalledWith({ dirty: true, pending: false });
+
+  const callbacks = state.mutate.mock.calls[0][1] as { onSuccess: () => void };
+  act(() => callbacks.onSuccess());
+  expect(hoursInput).toHaveValue(null);
+  expect(hoursInput).not.toHaveAttribute("aria-invalid");
+  expect(hoursInput).not.toHaveAttribute("aria-describedby");
+  expect(screen.getByRole("combobox", { name: "Mecánico" })).toHaveTextContent("Mecánico");
+  expect(screen.getByRole("spinbutton", { name: "Tarifa por hora (MXN)" })).toHaveValue(null);
+  expect(screen.getByRole("textbox", { name: "Notas (opcional)" })).toHaveValue("");
+  expect(onDraftChange).toHaveBeenLastCalledWith({ dirty: false, pending: false });
 });
