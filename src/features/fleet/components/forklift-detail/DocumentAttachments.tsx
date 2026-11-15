@@ -13,9 +13,9 @@ import { useDocumentUploadBatch } from "../../hooks/useDocumentUploadBatch";
 
 
 function FileIcon({ mime }: { mime?: string | null }) {
-  if (mime?.startsWith("image/")) return <Image className="h-4 w-4 text-status-rented" />;
-  if (mime?.includes("pdf")) return <DocumentIcon className="h-4 w-4 text-destructive" />;
-  return <File className="h-4 w-4 text-muted-foreground" />;
+  if (mime?.startsWith("image/")) return <Image className="h-4 w-4 shrink-0 text-status-rented" />;
+  if (mime?.includes("pdf")) return <DocumentIcon className="h-4 w-4 shrink-0 text-destructive" />;
+  return <File className="h-4 w-4 shrink-0 text-muted-foreground" />;
 }
 
 type Props = { entityType: string; entityId: string; accessModule: "Flota" | "Proveedores" };
@@ -110,7 +110,7 @@ function DocumentAttachmentsContent({ entityType, entityId, canManage }: Omit<Pr
               <div key={doc.id} className="flex items-center justify-between p-2 rounded-lg bg-muted/40 text-sm">
                 <a href={doc.file_url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 hover:underline flex-1 min-w-0">
                   <FileIcon mime={doc.mime_type} />
-                  <span className="truncate">{doc.file_name}</span>
+                  <span className="min-w-0 wrap-anywhere sm:truncate">{doc.file_name}</span>
                   <span className="text-xs text-muted-foreground shrink-0">{formatSize(doc.file_size)}</span>
                 </a>
                 {canManage && <Button variant="ghost" size="icon" className="h-7 w-7 shrink-0" aria-label="Eliminar documento" title="Eliminar documento" onClick={() => handleDelete(doc.id, doc.file_name)}>

@@ -1,8 +1,10 @@
+import { useId } from "react";
 import { SearchIcon, X, LayoutGrid, Rows3, AddIcon, FilterIcon } from "@/components/icons";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
@@ -34,6 +36,7 @@ export function CRMToolbar({
   filteredCount, pipelineTotalLabel,
 }: CRMToolbarProps) {
   const isMobile = useIsMobile();
+  const filterId = useId();
 
   const activeCount =
     (filters.creator !== "all" ? 1 : 0) +
@@ -43,36 +46,45 @@ export function CRMToolbar({
   const secondaryFilters = (
     <>
       {creators.length > 0 && (
-        <Select value={filters.creator} onValueChange={(v) => update("creator", v)}>
-          <SelectTrigger className="w-full sm:w-[170px] h-8 text-sm">
-            <SelectValue placeholder="Creador" />
-          </SelectTrigger>
+        <div className="space-y-1">
+          <Label htmlFor={`${filterId}-creator`} className="block text-xs">Creado por</Label>
+          <Select value={filters.creator} onValueChange={(v) => update("creator", v)}>
+            <SelectTrigger id={`${filterId}-creator`} className="w-full sm:w-[170px] h-8 text-sm">
+              <SelectValue placeholder="Creador" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todos los usuarios</SelectItem>
+              {creators.map(([id, name]) => (
+                <SelectItem key={id} value={id}>{name}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      )}
+
+      <div className="space-y-1">
+        <Label htmlFor={`${filterId}-value`} className="block text-xs">Valor estimado</Label>
+        <Select value={filters.valueRange} onValueChange={(v) => update("valueRange", v as ValueRange)}>
+          <SelectTrigger id={`${filterId}-value`} className="w-full sm:w-[160px] h-8 text-sm"><SelectValue /></SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">Todos los usuarios</SelectItem>
-            {creators.map(([id, name]) => (
-              <SelectItem key={id} value={id}>{name}</SelectItem>
+            {VALUE_RANGE_OPTIONS.map((o) => (
+              <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
             ))}
           </SelectContent>
         </Select>
-      )}
+      </div>
 
-      <Select value={filters.valueRange} onValueChange={(v) => update("valueRange", v as ValueRange)}>
-        <SelectTrigger className="w-full sm:w-[160px] h-8 text-sm"><SelectValue /></SelectTrigger>
-        <SelectContent>
-          {VALUE_RANGE_OPTIONS.map((o) => (
-            <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
-
-      <Select value={filters.ageRange} onValueChange={(v) => update("ageRange", v as AgeRange)}>
-        <SelectTrigger className="w-full sm:w-[170px] h-8 text-sm"><SelectValue /></SelectTrigger>
-        <SelectContent>
-          {AGE_RANGE_OPTIONS.map((o) => (
-            <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
+      <div className="space-y-1">
+        <Label htmlFor={`${filterId}-age`} className="block text-xs">Antigüedad</Label>
+        <Select value={filters.ageRange} onValueChange={(v) => update("ageRange", v as AgeRange)}>
+          <SelectTrigger id={`${filterId}-age`} className="w-full sm:w-[170px] h-8 text-sm"><SelectValue /></SelectTrigger>
+          <SelectContent>
+            {AGE_RANGE_OPTIONS.map((o) => (
+              <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
     </>
   );
 
@@ -112,7 +124,7 @@ export function CRMToolbar({
       />
 
 
-      <div className="flex items-center gap-2 flex-wrap">
+      <div className="flex items-end gap-2 flex-wrap">
         <div className="relative flex-1 sm:flex-none sm:w-64 min-w-[180px]">
           <SearchIcon className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
           <Input

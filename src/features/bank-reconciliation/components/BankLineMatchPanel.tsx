@@ -69,7 +69,7 @@ function BankLineSummary({ line, isCharge, currency }: { line: BankStatementLine
       </p>
       {line.reference && (
         <p className="text-xs text-muted-foreground">
-          Ref: <span className="font-mono">{line.reference}</span>
+          Ref: <span className="font-mono [overflow-wrap:anywhere]">{line.reference}</span>
         </p>
       )}
       {line.ignored_reason && (

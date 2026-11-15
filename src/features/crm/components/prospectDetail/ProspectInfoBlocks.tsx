@@ -1,8 +1,9 @@
 import { DocumentIcon, StickyNote } from "@/components/icons";
-import { Badge } from "@/components/ui/badge";
+import { badgeVariants } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import { formatCurrency } from "@/lib/format/formatCurrency";
+import { Link } from "@/lib/router-compat-ui";
+import { cn } from "@/lib/utils";
 import { LOST_REASON_LABELS } from "../../lib/constants";
 import type { Prospect } from "../../hooks/useProspects";
 
@@ -13,7 +14,6 @@ interface Props {
 }
 
 export function ProspectQuoteLink({ prospect, quoteNumber, onNavigate }: Props) {
-  const navigate = useNavigateTransition();
   if (!prospect.quoteId) return null;
   return (
     <>
@@ -22,14 +22,16 @@ export function ProspectQuoteLink({ prospect, quoteNumber, onNavigate }: Props) 
         <DocumentIcon className="h-4 w-4 mt-0.5 text-muted-foreground shrink-0" />
         <div>
           <p className="text-xs text-muted-foreground">Cotización Vinculada</p>
-          <Badge
-            variant="secondary"
-            className="cursor-pointer hover:bg-accent gap-1 mt-1"
-            onClick={() => { onNavigate(); navigate(`/quotes/${prospect.quoteId}`); }}
+          <Link
+            to={`/quotes/${prospect.quoteId}`}
+            className={cn(badgeVariants({ variant: "secondary" }), "gap-1 mt-1 hover:bg-accent")}
+            onClick={(event) => {
+              if (event.button === 0 && !event.defaultPrevented && !event.metaKey && !event.altKey && !event.ctrlKey && !event.shiftKey) onNavigate();
+            }}
           >
             <DocumentIcon className="h-3 w-3" />
             {quoteNumber ?? "Ver cotización vinculada"}
-          </Badge>
+          </Link>
         </div>
       </div>
     </>

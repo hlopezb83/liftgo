@@ -1,3 +1,4 @@
+import { useId } from "react";
 import { QueryErrorState } from "@/components/feedback/QueryErrorState";
 import { SpinnerIcon } from "@/components/icons";
 import { Badge } from "@/components/ui/badge";
@@ -52,6 +53,7 @@ export function BankMatchCandidateList({
   onSelect,
   disabled,
 }: Props) {
+  const amountHelpId = useId();
   const debouncedSearch = useDebouncedValue(search, 250);
   const { data: candidates = [], isFetching, isError, isPending, refetch } = useBankMatchCandidates({
     lineId,
@@ -134,17 +136,18 @@ export function BankMatchCandidateList({
                     </Badge>
                   )}
                 </div>
+                {canWrite && !c.exact_amount && (
+                  <p id={`${amountHelpId}-${c.id}`} className="text-muted-foreground">
+                    El importe no coincide. Selecciona un pago con el mismo importe.
+                  </p>
+                )}
               </div>
               {canWrite && <Button
                 size="sm"
                 variant="outline"
                 className="h-7 shrink-0 text-xs"
                 disabled={disabled || !c.exact_amount}
-                title={
-                  c.exact_amount
-                    ? undefined
-                    : "El importe debe coincidir exactamente con el movimiento"
-                }
+                aria-describedby={c.exact_amount ? undefined : `${amountHelpId}-${c.id}`}
                 data-testid="bank-candidate-match"
                 onClick={() => onSelect(c.id, c.kind)}
               >

@@ -1,6 +1,6 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
-import { FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form";
+import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import type { QuoteFormValues } from "../../lib/quoteFormSchema";
@@ -48,7 +48,7 @@ export function LogisticsCard({ form, includeLogistics, includeInsurance }: Prop
             name="logisticsCost"
             render={({ field }) => (
               <FormItem className="space-y-1.5 max-w-xs">
-                <Label>Monto del Servicio</Label>
+                <FormLabel>Monto del Servicio</FormLabel>
                 <FormControl>
                   <Input
                     type="number"
@@ -91,7 +91,7 @@ export function LogisticsCard({ form, includeLogistics, includeInsurance }: Prop
             name="insuranceCost"
             render={({ field }) => (
               <FormItem className="space-y-1.5 max-w-xs">
-                <Label>Monto del Seguro</Label>
+                <FormLabel>Monto del Seguro</FormLabel>
                 <FormControl>
                   <Input
                     type="number"
