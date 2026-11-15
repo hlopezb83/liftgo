@@ -3,6 +3,9 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useHasModuleAccess } from "@/features/users";
+import { useLocation } from "@/lib/router-compat";
+import { Link } from "@/lib/router-compat-ui";
 import { formatMtyDate } from "@/lib/utils";
 
 /**
@@ -15,6 +18,8 @@ export type ForkliftLike = { id: string; name: string };
 export type BookingLike = { id: string; forklift_id: string; customer_name: string | null; end_date: string };
 
 export function EndingSoonAlert({ items, forkliftMap }: { items: BookingLike[]; forkliftMap: Map<string, ForkliftLike> }) {
+  const canOpenBookings = useHasModuleAccess("Reservas", "read");
+  const { pathname, search } = useLocation();
   if (items.length === 0) return null;
   return (
     <Card className="border-status-maintenance/30 bg-status-maintenance/5">
@@ -26,7 +31,17 @@ export function EndingSoonAlert({ items, forkliftMap }: { items: BookingLike[]; 
         <div className="space-y-1">
           {items.map((b) => (
             <div key={b.id} className="flex items-center justify-between text-sm p-2 rounded bg-background/80">
-              <span>{forkliftMap.get(b.forklift_id)?.name} — {b.customer_name ?? "Sin cliente"}</span>
+              {canOpenBookings ? (
+                <Link
+                  to={`/bookings/${b.id}`}
+                  state={{ calendarReturnTo: `${pathname}${search}` }}
+                  className="rounded-sm text-primary underline underline-offset-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                >
+                  {forkliftMap.get(b.forklift_id)?.name} — {b.customer_name ?? "Sin cliente"}
+                </Link>
+              ) : (
+                <span>{forkliftMap.get(b.forklift_id)?.name} — {b.customer_name ?? "Sin cliente"}</span>
+              )}
               <span className="text-xs text-muted-foreground">Termina: {formatMtyDate(b.end_date)}</span>
             </div>
           ))}

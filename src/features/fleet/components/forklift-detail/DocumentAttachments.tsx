@@ -1,4 +1,4 @@
-import { useRef, type ChangeEvent as ReactChangeEvent } from "react";
+import { useId, useRef, type ChangeEvent as ReactChangeEvent } from "react";
 import { QueryErrorState } from "@/components/feedback/QueryErrorState";
 import { useConfirm } from "@/components/feedback/useConfirm";
 import { Paperclip, DeleteIcon, UploadIcon, DocumentIcon, Image, File } from "@/components/icons";
@@ -33,6 +33,7 @@ function DocumentAttachmentsContent({ entityType, entityId, canManage }: Omit<Pr
   const deleteDoc = useDeleteDocument();
   const confirm = useConfirm();
   const fileRef = useRef<HTMLInputElement>(null);
+  const uploadHintId = useId();
 
   const handleUpload = async (e: ReactChangeEvent<HTMLInputElement>) => {
     if (!canManage || batch.pending || batch.failed.length > 0) return;
@@ -79,12 +80,15 @@ function DocumentAttachmentsContent({ entityType, entityId, canManage }: Omit<Pr
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
           <CardTitle className="text-base flex items-center gap-2"><Paperclip className="h-4 w-4" /> Adjuntos</CardTitle>
-          {canManage && <Button variant="outline" size="sm" onClick={() => fileRef.current?.click()} disabled={batch.pending || batch.failed.length > 0}>
+          {canManage && <Button variant="outline" size="sm" aria-describedby={uploadHintId} onClick={() => fileRef.current?.click()} disabled={batch.pending || batch.failed.length > 0}>
             <UploadIcon className="h-3.5 w-3.5 mr-1" />{batch.pending ? "Subiendo…" : "Subir"}
           </Button>}
           {canManage && <input ref={fileRef} type="file" multiple accept={DOC_ACCEPT} className="hidden"
             disabled={batch.pending || batch.failed.length > 0} onChange={handleUpload} />}
         </div>
+        {canManage && <p id={uploadHintId} className="text-xs text-muted-foreground">
+          PDF o imágenes, máximo {DOC_MAX_BYTES / 1024 / 1024} MB por archivo.
+        </p>}
       </CardHeader>
       <CardContent>
         {batch.pending && <p role="status" className="mb-3 text-sm text-muted-foreground">Subiendo archivos. Espera a que termine el lote.</p>}

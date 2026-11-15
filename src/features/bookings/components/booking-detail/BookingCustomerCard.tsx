@@ -24,7 +24,14 @@ export function BookingCustomerCard({ customerName, customerContact, siteContact
         {siteContactPhone && (
           <InfoRow
             label={<span className="flex items-center gap-1"><PhoneIcon className="h-3 w-3" /> Tel. sitio</span>}
-            value={siteContactPhone}
+            value={/\d/.test(siteContactPhone) ? (
+              <a
+                className="text-primary hover:underline focus-visible:underline"
+                href={`tel:${siteContactPhone.replace(/[^\d+]/g, "")}`}
+              >
+                {siteContactPhone}
+              </a>
+            ) : siteContactPhone}
           />
         )}
       </CardContent>

@@ -76,8 +76,26 @@ export function SupplierContactsSection({ supplierId }: { supplierId: string }) 
                     </div>
                   </TableCell>
                   <TableCell className="text-sm">{c.role || "—"}</TableCell>
-                  <TableCell className="text-sm text-muted-foreground">{c.email || "—"}</TableCell>
-                  <TableCell className="text-sm text-muted-foreground">{c.phone || "—"}</TableCell>
+                  <TableCell className="text-sm text-muted-foreground">
+                    {c.email?.trim() ? (
+                      <a
+                        className="text-primary hover:underline focus-visible:underline"
+                        href={`mailto:${c.email.trim().replace(/[%?#]/g, encodeURIComponent)}`}
+                      >
+                        {c.email}
+                      </a>
+                    ) : "—"}
+                  </TableCell>
+                  <TableCell className="text-sm text-muted-foreground">
+                    {c.phone && /\d/.test(c.phone) ? (
+                      <a
+                        className="text-primary hover:underline focus-visible:underline"
+                        href={`tel:${c.phone.replace(/[^\d+]/g, "")}`}
+                      >
+                        {c.phone}
+                      </a>
+                    ) : c.phone || "—"}
+                  </TableCell>
                   <TableCell className="text-right">
                     <RoleGuard module="Proveedores" minAccess="full" fallback={null}>
                       <Button
