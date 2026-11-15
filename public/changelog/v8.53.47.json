@@ -1,0 +1,7 @@
+{
+  "description": "Horas de mantenimiento con validación junto al campo",
+  "changes": [
+    "La captura de mano de obra señala las horas inválidas junto al campo y dirige ahí el foco.",
+    "Corregir las horas limpia el aviso sin perder mecánico, tarifa ni notas."
+  ]
+}

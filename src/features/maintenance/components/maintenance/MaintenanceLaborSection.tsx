@@ -1,4 +1,4 @@
-import { useEffect, useId, useState } from "react";
+import { useEffect, useId, useRef, useState, type Ref } from "react";
 import { QueryErrorState } from "@/components/feedback/QueryErrorState";
 import { useConfirm } from "@/components/feedback/useConfirm";
 import { MaintenanceIcon, DeleteIcon } from "@/components/icons";
@@ -39,6 +39,46 @@ function MechanicsEmptyState() {
   );
 }
 
+function LaborHoursAndRateFields({ fieldId, inputRef, value, invalid, onChange, hourlyRate, onRateChange }: {
+  fieldId: string;
+  inputRef: Ref<HTMLInputElement>;
+  value: string;
+  invalid: boolean;
+  onChange: (value: string) => void;
+  hourlyRate: string;
+  onRateChange: (value: string) => void;
+}) {
+  return (
+    <>
+      <div className="space-y-1">
+        <Label htmlFor={`${fieldId}-hours`} className="text-xs">Horas</Label>
+        <Input
+          ref={inputRef}
+          id={`${fieldId}-hours`}
+          type="number" min="0" step="0.25" placeholder="Horas"
+          aria-invalid={invalid || undefined}
+          aria-describedby={invalid ? `${fieldId}-hours-error` : undefined}
+          className={invalid ? "border-destructive focus-visible:ring-destructive" : undefined}
+          value={value} onChange={(e) => onChange(e.target.value)}
+        />
+      </div>
+      {invalid && (
+        <p id={`${fieldId}-hours-error`} role="alert" className="text-xs text-destructive sm:col-start-3 sm:col-span-2 sm:row-start-2">
+          Ingresa más de 0 horas
+        </p>
+      )}
+      <div className="space-y-1 sm:col-start-4 sm:row-start-1">
+        <Label htmlFor={`${fieldId}-rate`} className="text-xs">Tarifa por hora (MXN)</Label>
+        <Input
+          id={`${fieldId}-rate`}
+          type="number" min="0" step="0.01" placeholder="Tarifa/hr"
+          value={hourlyRate} onChange={(e) => onRateChange(e.target.value)}
+        />
+      </div>
+    </>
+  );
+}
+
 export function MaintenanceLaborSection({ maintenanceLogId, readOnly = false, onDraftChange }: Props) {
   const fieldId = useId();
   const mechanicsQuery = useActiveMechanics();
@@ -51,6 +91,8 @@ export function MaintenanceLaborSection({ maintenanceLogId, readOnly = false, on
 
   const [mechanicId, setMechanicId] = useState<string>("");
   const [hours, setHours] = useState<string>("");
+  const [hoursInvalid, setHoursInvalid] = useState(false);
+  const hoursRef = useRef<HTMLInputElement>(null);
   const [hourlyRate, setHourlyRate] = useState<string>("");
   const [notes, setNotes] = useState<string>("");
 
@@ -68,7 +110,11 @@ export function MaintenanceLaborSection({ maintenanceLogId, readOnly = false, on
     const h = Number(hours);
     const r = Number(hourlyRate);
     if (!mechanicId) return notifyValidation({ message: "Selecciona un mecánico" });
-    if (!Number.isFinite(h) || h <= 0) return notifyValidation({ message: "Horas debe ser mayor a 0" });
+    if (!Number.isFinite(h) || h <= 0) {
+      setHoursInvalid(true);
+      hoursRef.current?.focus();
+      return notifyValidation({ message: "Horas debe ser mayor a 0" });
+    }
     if (!Number.isFinite(r) || r < 0) return notifyValidation({ message: "Tarifa inválida" });
     addLabor.mutate(
       {
@@ -83,6 +129,7 @@ export function MaintenanceLaborSection({ maintenanceLogId, readOnly = false, on
           notifySuccess("Mano de obra registrada");
           setMechanicId("");
           setHours("");
+          setHoursInvalid(false);
           setHourlyRate("");
           setNotes("");
         },
@@ -131,22 +178,15 @@ export function MaintenanceLaborSection({ maintenanceLogId, readOnly = false, on
               </SelectContent>
             </Select>
             </div>
-            <div className="space-y-1">
-            <Label htmlFor={`${fieldId}-hours`} className="text-xs">Horas</Label>
-            <Input
-              id={`${fieldId}-hours`}
-              type="number" min="0" step="0.25" placeholder="Horas"
-              value={hours} onChange={(e) => setHours(e.target.value)}
+            <LaborHoursAndRateFields
+              fieldId={fieldId} inputRef={hoursRef}
+              value={hours} invalid={hoursInvalid}
+              hourlyRate={hourlyRate} onRateChange={setHourlyRate}
+              onChange={(value) => {
+                setHours(value);
+                if (Number.isFinite(Number(value)) && Number(value) > 0) setHoursInvalid(false);
+              }}
             />
-            </div>
-            <div className="space-y-1">
-            <Label htmlFor={`${fieldId}-rate`} className="text-xs">Tarifa por hora (MXN)</Label>
-            <Input
-              id={`${fieldId}-rate`}
-              type="number" min="0" step="0.01" placeholder="Tarifa/hr"
-              value={hourlyRate} onChange={(e) => setHourlyRate(e.target.value)}
-            />
-            </div>
           </div>
           <div className="flex items-end gap-2">
             <div className="min-w-0 flex-1 space-y-1">
