@@ -15,6 +15,8 @@ import {
 } from "../lib/supplierBillConstants";
 import type { UseFormReturn } from "react-hook-form";
 
+const UNSPECIFIED_PAYMENT_METHOD = "none";
+
 interface Props {
   form: UseFormReturn<Record<string, unknown>>;
   currency: string;
@@ -58,9 +60,13 @@ export function SupplierBillFormFields({ form, currency, currencyOptions, select
           render={({ field }) => (
             <FormItem>
               <FormLabel>Método SAT</FormLabel>
-              <Select value={(field.value as string) ?? ""} onValueChange={field.onChange}>
-                <FormControl><SelectTrigger><SelectValue placeholder="Opcional" /></SelectTrigger></FormControl>
+              <Select
+                value={(field.value as string | undefined) ?? UNSPECIFIED_PAYMENT_METHOD}
+                onValueChange={(value) => field.onChange(value === UNSPECIFIED_PAYMENT_METHOD ? undefined : value)}
+              >
+                <FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl>
                 <SelectContent>
+                  <SelectItem value={UNSPECIFIED_PAYMENT_METHOD}>Sin especificar</SelectItem>
                   {PAYMENT_METHOD_SAT_OPTIONS.map((o) => (
                     <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
                   ))}

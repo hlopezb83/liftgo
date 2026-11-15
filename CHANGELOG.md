@@ -1,3 +1,13 @@
+## [8.53.48] - 2026-11-15
+
+- Cancelar un contrato pide confirmación y muestra su folio.
+- El ajuste de existencias señala el primer campo por corregir.
+- Proveedores distingue cuentas sin CLABE con sus últimos cuatro dígitos.
+- Conciliación muestra completos los nombres de los candidatos.
+- El método SAT opcional de una factura de proveedor puede volver a quedar sin especificar.
+- El vencimiento se muestra por separado en el detalle semanal de flujo de caja.
+- La tabla de contactos de proveedores tiene más espacio para sus acciones.
+
 ## [8.53.47] - 2026-11-15
 
 - La captura de mano de obra señala las horas inválidas junto al campo y dirige ahí el foco.

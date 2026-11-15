@@ -17,6 +17,14 @@ import {
 } from "../../hooks/useSupplierBankAccounts";
 import { SupplierBankAccountFormDialog } from "./SupplierBankAccountFormDialog";
 
+function accountIdentifier({ clabe, account_number }: SupplierBankAccount) {
+  const trimmedClabe = clabe?.trim() ?? "";
+  if (trimmedClabe.length > 4) return maskClabe(trimmedClabe);
+
+  const accountNumber = account_number?.trim() ?? "";
+  return accountNumber.length > 4 ? `Cuenta ${maskClabe(accountNumber)}` : "—";
+}
+
 export function SupplierBankAccountsSection({ supplierId }: { supplierId: string }) {
   const { data: accounts = [], isLoading, isError, isFetching, error, refetch } = useSupplierBankAccounts(supplierId);
   const del = useDeleteSupplierBankAccount();
@@ -69,7 +77,7 @@ export function SupplierBankAccountsSection({ supplierId }: { supplierId: string
               <TableRow>
                 <TableHead>Banco</TableHead>
                 <TableHead>Titular</TableHead>
-                <TableHead className="font-mono">CLABE</TableHead>
+                <TableHead className="font-mono">CLABE / cuenta</TableHead>
                 <TableHead>Moneda</TableHead>
                 <TableHead className="w-24 text-right">Acciones</TableHead>
               </TableRow>
@@ -88,7 +96,7 @@ export function SupplierBankAccountsSection({ supplierId }: { supplierId: string
                     </div>
                   </TableCell>
                   <TableCell className="text-sm">{a.account_holder}</TableCell>
-                  <TableCell className="font-mono text-sm">{maskClabe(a.clabe)}</TableCell>
+                  <TableCell className="font-mono text-sm whitespace-nowrap">{accountIdentifier(a)}</TableCell>
                   <TableCell className="text-sm">{a.currency}</TableCell>
                   <TableCell className="text-right">
                     <RoleGuard module="Proveedores" minAccess="full" fallback={null}>

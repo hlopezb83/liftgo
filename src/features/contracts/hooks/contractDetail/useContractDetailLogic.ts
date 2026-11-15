@@ -27,5 +27,5 @@ export function useContractDetailLogic() {
     notifySuccess("Firmante registrado");
   };
 
-  return { id, contract, isLoading, isError, refetch, setStatus, setSigner, signerPending: setSentSigner.isPending };
+  return { id, contract, isLoading, isError, refetch, setStatus, setSigner, signerPending: setSentSigner.isPending, statusPending: updateContract.isPending };
 }
