@@ -1,0 +1,7 @@
+{
+  "description": "Tipos históricos visibles al editar mantenimiento",
+  "changes": [
+    "La edición muestra el tipo de servicio histórico con una etiqueta legible y conserva su valor al modificar otros datos.",
+    "La creación de servicios mantiene el catálogo de tipos actual."
+  ]
+}
