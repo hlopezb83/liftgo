@@ -63,6 +63,32 @@ function enterCount(quantity: number, reason: string) {
 }
 
 describe("InventoryPage stock refresh", () => {
+  it("guides the first invalid field and retains the count of zero while correcting the reason", async () => {
+    await render(<InventoryPage />);
+    openDetail();
+    openAdjustment();
+    enterCount(-1, " ");
+    const quantity = screen.getByLabelText("Conteo físico *");
+    const reason = screen.getByLabelText("Motivo del ajuste *");
+    const save = screen.getByRole("button", { name: "Guardar ajuste" });
+    fireEvent.click(save);
+    expect(quantity).toHaveFocus();
+    expect(quantity).toHaveAccessibleDescription("Ingresa una cantidad entera de 0 o más.");
+    expect(reason).toHaveAccessibleDescription("Escribe el motivo del ajuste.");
+    expect(mocks.mutate).not.toHaveBeenCalled();
+
+    fireEvent.change(quantity, { target: { value: "0" } });
+    fireEvent.click(save);
+    expect(reason).toHaveFocus();
+    expect(quantity).not.toHaveAttribute("aria-invalid");
+    expect(mocks.mutate).not.toHaveBeenCalled();
+
+    fireEvent.change(reason, { target: { value: " Conteo QA " } });
+    fireEvent.click(save);
+    expect(mocks.mutate).toHaveBeenCalledTimes(1);
+    expect(mocks.mutate.mock.calls[0][0]).toEqual({ id: "p-1", expectedQuantity: 12, newQuantity: 0, reason: "Conteo QA" });
+  });
+
   it("updates the detail and uses current stock for two consecutive adjustments without closing the detail", async () => {
     const view = await render(<InventoryPage />);
     openDetail();

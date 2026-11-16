@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, type Ref } from "react";
 import { FileDown, ChevronDownIcon } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
@@ -8,7 +8,7 @@ import { notifyError } from "@/lib/ui/appFeedback";
 
 export type { ContractData } from "@/lib/pdf/contract/data";
 
-export function ContractPDFButton({ contract }: { contract: ContractData }) {
+export function ContractPDFButton({ contract, triggerRef }: { contract: ContractData; triggerRef?: Ref<HTMLButtonElement> }) {
   const [loading, setLoading] = useState(false);
 
   const handleDownload = async (mode: PDFMode) => {
@@ -27,7 +27,7 @@ export function ContractPDFButton({ contract }: { contract: ContractData }) {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="outline" size="sm" disabled={loading}>
+        <Button ref={triggerRef} variant="outline" size="sm" disabled={loading}>
           <FileDown className="h-4 w-4 mr-1" />
           {loading ? "Generando…" : "Descargar PDF"}
           <ChevronDownIcon className="h-3 w-3 ml-1" />

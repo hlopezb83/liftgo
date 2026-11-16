@@ -71,7 +71,7 @@ function ContractDetailFallback({
 
 export default function ContractDetail() {
   const navigate = useNavigateTransition();
-  const { id, contract, isLoading, isError, refetch, setStatus, setSigner, signerPending } = useContractDetailLogic();
+  const { id, contract, isLoading, isError, refetch, setStatus, setSigner, signerPending, statusPending } = useContractDetailLogic();
 
   // A failed explicit deposit refresh must not unmount an unsaved draft.
   if (isLoading || !contract || !id) {
@@ -103,6 +103,7 @@ export default function ContractDetail() {
             onSetStatus={setStatus}
             onSetSigner={setSigner}
             signerPending={signerPending}
+            statusPending={statusPending}
           />
         }
       />

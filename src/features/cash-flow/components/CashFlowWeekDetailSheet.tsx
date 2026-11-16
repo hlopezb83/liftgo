@@ -39,7 +39,8 @@ function Section({ title, items, kind, onClick }: { title: string; items: CashFl
               >
                 <div className="min-w-0">
                   <p className="font-medium truncate">{it.isProjected ? "Proyectado (renta recurrente)" : it.number}</p>
-                  <p className="text-muted-foreground truncate">{it.partyName} · vence {formatDateMty(it.dueDate)}</p>
+                  <p className="whitespace-normal text-muted-foreground [overflow-wrap:anywhere]">{it.partyName}</p>
+                  <p className="whitespace-normal text-muted-foreground">Vence {formatDateMty(it.dueDate)}</p>
                 </div>
                 <span className="font-mono font-bold shrink-0">{formatCurrency(it.amountMxn)}</span>
               </Button>

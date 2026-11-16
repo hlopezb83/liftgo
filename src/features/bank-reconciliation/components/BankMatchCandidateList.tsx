@@ -107,7 +107,7 @@ export function BankMatchCandidateList({
               data-testid="bank-candidate"
             >
               <div className="min-w-0 space-y-1">
-                <p className="truncate font-medium">{c.label}</p>
+                <p className="font-medium [overflow-wrap:anywhere]">{c.label}</p>
                 <p className="text-muted-foreground">
                   {formatDateMty(c.candidate_date)} ·{" "}
                   <span className="font-mono tabular-nums">{formatCurrencyWithCode(c.amount, currency)}</span>
