@@ -11,6 +11,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { DocumentAttachments } from "@/features/fleet";
 import { RoleGuard } from "@/layouts/RoleGuard";
+import { serviceTypeLabel } from "@/lib/constants";
 import { formatDateMty } from "@/lib/format/dateFormats";
 import { formatCurrency } from "@/lib/format/formatCurrency";
 import { isFxMissing, sumMoney, toMxn } from "@/lib/money";
@@ -83,7 +84,7 @@ export default function SupplierDetailPage() {
   const maintenanceColumns: ColumnDef<LinkedMaintenance>[] = [
     { id: "performed_at", header: "Fecha", accessorKey: "performed_at", cell: ({ row }) => <span className="font-mono text-sm">{formatDateMty(row.original.performed_at)}</span> },
     { id: "forklift", header: "Montacargas", accessorFn: (m) => m.forklifts?.name ?? "", cell: ({ row }) => row.original.forklifts?.name || "—" },
-    { id: "service_type", header: "Tipo de Servicio", accessorKey: "service_type", cell: ({ row }) => row.original.service_type },
+    { id: "service_type", header: "Tipo de Servicio", accessorKey: "service_type", cell: ({ row }) => serviceTypeLabel(row.original.service_type) },
     { id: "cost", header: "Costo", accessorFn: (m) => m.cost ?? 0, meta: { kind: "money" }, cell: ({ row }) => formatCurrency(row.original.cost || 0) },
   ];
 

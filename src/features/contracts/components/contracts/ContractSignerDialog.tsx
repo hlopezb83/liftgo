@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState, type FormEvent } from "react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -11,14 +11,20 @@ export function ContractSignerDialog({ open, onOpenChange, onSave, pending }: {
   pending: boolean;
 }) {
   const [name, setName] = useState("");
-  const save = async () => {
-    if (!name.trim()) return;
+  const saving = useRef(false);
+  const save = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const signer = name.trim();
+    if (pending || saving.current || !signer) return;
+    saving.current = true;
     try {
-      await onSave(name.trim());
+      await onSave(signer);
       setName("");
       onOpenChange(false);
     } catch {
       // La mutación muestra el error; conservar la captura para reintentar.
+    } finally {
+      saving.current = false;
     }
   };
   return (
@@ -28,14 +34,16 @@ export function ContractSignerDialog({ open, onOpenChange, onSave, pending }: {
           <DialogTitle>Registrar firmante</DialogTitle>
           <DialogDescription>El contrato enviado conservará sus condiciones. Captura sólo el nombre de quien firmará.</DialogDescription>
         </DialogHeader>
-        <div className="space-y-2">
-          <Label htmlFor="contract-signer">Firmado por</Label>
-          <Input id="contract-signer" value={name} onChange={(event) => setName(event.target.value)} maxLength={150} />
-        </div>
-        <DialogFooter>
-          <Button type="button" variant="outline" disabled={pending} onClick={() => onOpenChange(false)}>Cancelar</Button>
-          <Button type="button" disabled={pending || !name.trim()} onClick={() => { void save(); }}>Guardar firmante</Button>
-        </DialogFooter>
+        <form className="space-y-4" onSubmit={(event) => { void save(event); }}>
+          <div className="space-y-2">
+            <Label htmlFor="contract-signer">Firmado por</Label>
+            <Input id="contract-signer" value={name} onChange={(event) => setName(event.target.value)} maxLength={150} />
+          </div>
+          <DialogFooter>
+            <Button type="button" variant="outline" disabled={pending} onClick={() => onOpenChange(false)}>Cancelar</Button>
+            <Button type="submit" disabled={pending || !name.trim()}>Guardar firmante</Button>
+          </DialogFooter>
+        </form>
       </DialogContent>
     </Dialog>
   );

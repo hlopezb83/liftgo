@@ -1,3 +1,11 @@
+## [8.53.50] - 2026-11-15
+
+- Adjuntos muestra formatos y tamaño máximo antes de abrir el selector.
+- Los avisos de reservas por vencer abren el registro y conservan el regreso al calendario.
+- Los teléfonos y correos existentes ofrecen enlaces en Proveedores y Reservas.
+- El firmante del contrato se puede guardar con Enter.
+- El historial de mantenimiento del proveedor muestra nombres de servicio legibles.
+
 ## [8.53.49] - 2026-11-15
 
 - Conciliación explica por qué un importe aproximado no se puede conciliar.

@@ -1,0 +1,10 @@
+{
+  "description": "Ayuda y acceso directo en adjuntos, reservas y contratos",
+  "changes": [
+    "Adjuntos muestra formatos y tamaño máximo antes de abrir el selector.",
+    "Los avisos de reservas por vencer abren el registro y conservan el regreso al calendario.",
+    "Los teléfonos y correos existentes ofrecen enlaces en Proveedores y Reservas.",
+    "El firmante del contrato se puede guardar con Enter.",
+    "El historial de mantenimiento del proveedor muestra nombres de servicio legibles."
+  ]
+}

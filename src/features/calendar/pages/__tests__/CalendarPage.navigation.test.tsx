@@ -9,12 +9,18 @@ import CalendarPage from "../CalendarPage";
 const fixture = vi.hoisted(() => ({
   loading: false,
   mobile: false,
+  canReadBookings: false,
+  showEndingSoon: false,
   listeners: new Set<() => void>(),
   forklift: { id: "fl-1", name: "FL-01", model: "Demo", status: "available" },
   booking: { id: "bk-1", forklift_id: "fl-1", customer_name: "Cliente noviembre", status: "confirmed", start_date: "2026-11-01", end_date: "2026-11-30" },
 }));
 
 vi.mock("@/features/availability", () => ({ useServerTodayMty: () => "2026-10-18" }));
+vi.mock("@/features/users", () => ({
+  useHasModuleAccess: (module: string, minAccess: string) =>
+    module === "Reservas" && minAccess === "read" && fixture.canReadBookings,
+}));
 vi.mock("@/hooks/use-mobile", () => ({ useIsMobile: () => fixture.mobile }));
 vi.mock("@/lib/utils", async (original) => ({
   ...await original<typeof import("@/lib/utils")>(),
@@ -29,7 +35,10 @@ vi.mock("@/features/bookings", async () => {
         (listener) => { fixture.listeners.add(listener); return () => { fixture.listeners.delete(listener); }; },
         () => fixture.loading,
       );
-      return { data: [fixture.booking], isLoading: typeof from !== "string" && pending, isError: false, isFetching: pending, refetch: vi.fn() };
+      const data = typeof from === "string" && fixture.showEndingSoon
+        ? [{ ...fixture.booking, id: "bk-soon", customer_name: "Cliente próximo", end_date: "2026-10-20" }]
+        : [fixture.booking];
+      return { data, isLoading: typeof from !== "string" && pending, isError: false, isFetching: pending, refetch: vi.fn() };
     },
   };
 });
@@ -69,6 +78,8 @@ function renderCalendar(url = "/calendar") {
 beforeEach(() => {
   fixture.loading = false;
   fixture.mobile = false;
+  fixture.canReadBookings = false;
+  fixture.showEndingSoon = false;
   fixture.listeners.clear();
   window.sessionStorage.clear();
 });
@@ -92,6 +103,31 @@ describe("Calendar navigation audit N5/N6", () => {
     fireEvent.click(screen.getByRole("button", { name: "Regresar al calendario" }));
     expect(await screen.findByRole("tab", { name: "Gantt" })).toHaveAttribute("data-state", "active");
     expect(screen.getByTestId("url")).toHaveTextContent("date=2026-11-18&view=gantt&range=month");
+  });
+
+  it("opens an ending soon booking and keeps the current calendar date, view and range on return", async () => {
+    fixture.canReadBookings = true;
+    fixture.showEndingSoon = true;
+    const origin = "/calendar?date=2026-11-12&view=gantt&range=week";
+    renderCalendar(origin);
+
+    const notice = await screen.findByRole("link", { name: /Cliente próximo/ });
+    expect(notice).toHaveAttribute("href", "/bookings/bk-soon");
+    fireEvent.click(notice);
+
+    expect(await screen.findByTestId("origin")).toHaveTextContent(origin);
+    expect(screen.getByTestId("url")).toHaveTextContent("/bookings/bk-soon");
+    fireEvent.click(screen.getByRole("button", { name: "Regresar al calendario" }));
+    expect(await screen.findByRole("tab", { name: "Gantt" })).toHaveAttribute("data-state", "active");
+    expect(screen.getByTestId("url")).toHaveTextContent(origin);
+  });
+
+  it("keeps the ending soon notice as text without booking read access", async () => {
+    fixture.showEndingSoon = true;
+    renderCalendar();
+
+    expect(await screen.findByText(/Cliente próximo/)).toBeVisible();
+    expect(screen.queryByRole("link", { name: /Cliente próximo/ })).not.toBeInTheDocument();
   });
 
   it("restores the last calendar date, view and range when reentering without a query", async () => {
