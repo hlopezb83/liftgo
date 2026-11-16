@@ -1,12 +1,14 @@
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import type { ComponentProps } from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import type { Prospect } from "../../lib/prospectTypes";
 import { ProspectCardExpanded } from "../ProspectCardParts";
 import { ProspectQuoteLink } from "../prospectDetail/ProspectInfoBlocks";
 
-const navigate = vi.hoisted(() => vi.fn());
-vi.mock("@/hooks/useNavigateTransition", () => ({ useNavigateTransition: () => navigate }));
-afterEach(() => { cleanup(); navigate.mockReset(); });
+vi.mock("@/lib/router-compat-ui", () => ({
+  Link: ({ to, children, ...props }: ComponentProps<"a"> & { to: string }) => <a href={to} {...props}>{children}</a>,
+}));
+afterEach(cleanup);
 const prospect = { quoteId: "old-quote-id", companyName: "CRM company", dealValueLabel: "$100" } as Prospect;
 
 describe("CRM relation labels independent of a retrieved quote number", () => {
@@ -21,8 +23,9 @@ describe("CRM relation labels independent of a retrieved quote number", () => {
   it("keeps the detail reference navigable through the ordinary authorized detail route", () => {
     const onNavigate = vi.fn();
     render(<ProspectQuoteLink prospect={prospect} onNavigate={onNavigate} />);
-    fireEvent.click(screen.getByText("Ver cotización vinculada"));
+    const link = screen.getByRole("link", { name: "Ver cotización vinculada" });
+    expect(link).toHaveAttribute("href", "/quotes/old-quote-id");
+    fireEvent.click(link);
     expect(onNavigate).toHaveBeenCalledOnce();
-    expect(navigate).toHaveBeenCalledWith("/quotes/old-quote-id");
   });
 });

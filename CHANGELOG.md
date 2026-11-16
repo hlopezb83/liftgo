@@ -1,3 +1,14 @@
+## [8.53.49] - 2026-11-15
+
+- Conciliación explica por qué un importe aproximado no se puede conciliar.
+- Los nombres de adjuntos se leen completos en móvil.
+- La cotización vinculada en CRM se abre con un enlace accesible por teclado.
+- Las etiquetas de los importes de logística y seguro enfocan su campo.
+- Los filtros de CRM conservan sus etiquetas al seleccionar un valor.
+- Cada acción de contacto identifica a la persona correspondiente.
+- La ayuda del horómetro queda asociada a su campo.
+- Las referencias bancarias largas caben en el panel móvil.
+
 ## [8.53.48] - 2026-11-15
 
 - Cancelar un contrato pide confirmación y muestra su folio.

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useId, useState } from "react";
 import { FormDialog } from "@/components/forms/FormDialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -49,6 +49,7 @@ export function DeliverySignatureDialog({
   transportType = "delivery",
 }: Props) {
   const operationLabel = transportLabel(transportType);
+  const hoursHintId = useId();
   const belowMin = isBelowMinimum(hoursReading, minHours);
   const hasOperator = !isMissingOperationalEvidence(operatorName);
 
@@ -86,10 +87,11 @@ export function DeliverySignatureDialog({
           placeholder={minHours != null ? `Mínimo: ${minHours}` : "Ej: 1250.5"}
           value={hoursReading}
           onChange={(e) => onHoursReadingChange(e.target.value)}
-          aria-invalid={belowMin || undefined}
+          aria-invalid={belowMin}
+          aria-describedby={minHours != null ? hoursHintId : undefined}
         />
         {minHours != null && (
-          <p className={`text-xs ${belowMin ? "text-destructive" : "text-muted-foreground"}`}>
+          <p id={hoursHintId} className={`text-xs ${belowMin ? "text-destructive" : "text-muted-foreground"}`}>
             {horometerHint(transportType, minHours)}
           </p>
         )}
