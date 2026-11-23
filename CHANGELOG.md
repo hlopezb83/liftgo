@@ -1,3 +1,11 @@
+## [8.53.51] - 2026-11-23
+
+- Conciliación descarta la vista previa al elegir un estado de cuenta de más de 10 MB.
+- Mantenimiento señala cantidades de refacciones inválidas y muestra el stock disponible.
+- La validación fiscal muestra cuántos clientes incluye el lote y el límite de 40 por ejecución.
+- Cuentas por pagar indica por qué se rechazó un archivo CFDI y permite volver a intentarlo.
+- El tablero de mantenimiento permite abrir el detalle de una orden y moverla con controles de teclado independientes.
+
 ## [8.53.50] - 2026-11-15
 
 - Adjuntos muestra formatos y tamaño máximo antes de abrir el selector.
