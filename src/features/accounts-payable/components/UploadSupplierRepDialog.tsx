@@ -12,10 +12,12 @@ import {
   FormItem,
   FormLabel,
   FormControl,
+  FormDescription,
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { zodResolver } from "@/lib/forms/zodResolver";
+import { REP_MAX_FILE_BYTES } from "@/lib/supplierRepXml";
 import { useUploadSupplierRep } from "../hooks/useSupplierRepMutations";
 
 interface Props {
@@ -26,12 +28,17 @@ interface Props {
   paymentAmountLabel: string;
 }
 
+const fileLimit = `${REP_MAX_FILE_BYTES / 1024 ** 2} MB`;
+const fileSizeError = `El archivo supera el límite de ${fileLimit}.`;
+const withinFileLimit = (file: File | null) => file === null || file.size <= REP_MAX_FILE_BYTES;
+
 const schema = z.object({
   xml: z
-    .custom<File | null>((v) => v instanceof File, { message: "El XML del REP es obligatorio" }),
+    .custom<File | null>((v) => v instanceof File, { message: "El XML del REP es obligatorio" })
+    .refine(withinFileLimit, fileSizeError),
   pdf: z
     .custom<File | null>((v) => v === null || v instanceof File, { message: "Archivo inválido" })
-    .nullable()
+    .refine(withinFileLimit, fileSizeError)
     .default(null),
 });
 type FormValues = z.input<typeof schema>;
@@ -85,9 +92,11 @@ export function UploadSupplierRepDialog({
                     type="file"
                     accept=".xml,application/xml,text/xml"
                     disabled={upload.isPending}
+                    ref={field.ref}
                     onChange={(e) => field.onChange(e.target.files?.[0] ?? null)}
                   />
                 </FormControl>
+                <FormDescription>Máximo {fileLimit}.</FormDescription>
                 <FormMessage />
               </FormItem>
             )}
@@ -103,9 +112,11 @@ export function UploadSupplierRepDialog({
                     type="file"
                     accept="application/pdf"
                     disabled={upload.isPending}
+                    ref={field.ref}
                     onChange={(e) => field.onChange(e.target.files?.[0] ?? null)}
                   />
                 </FormControl>
+                <FormDescription>Máximo {fileLimit}.</FormDescription>
                 <FormMessage />
               </FormItem>
             )}

@@ -76,6 +76,19 @@ describe("validateRepInput", () => {
     );
   });
 
+  it("acepta el tamaño exacto con padding y rechaza un byte adicional", () => {
+    const atLimit = "A".repeat(MAX_BASE64_CHARS - 1) + "=";
+    const aboveLimit = "A".repeat(MAX_BASE64_CHARS);
+    expect(() => validateRepInput(g, {
+      payment_id: PAYMENT_ID, xml_base64: atLimit, pdf_base64: atLimit,
+    })).not.toThrow();
+    expectStatus(
+      () => validateRepInput(g, { payment_id: PAYMENT_ID, xml_base64: atLimit, pdf_base64: aboveLimit }),
+      413,
+      /PDF excede/,
+    );
+  });
+
   it("rechaza XML y PDF que exceden 5MB (413)", () => {
     const big = "a".repeat(MAX_BASE64_CHARS + 1);
     expectStatus(

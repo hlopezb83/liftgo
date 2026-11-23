@@ -3,10 +3,10 @@ import { useState } from "react";
 import { describe, expect, it, vi } from "vitest";
 import { CustomerSelector } from "../CustomerSelector";
 
-const mocks = vi.hoisted(() => ({ search: vi.fn() }));
+const mocks = vi.hoisted(() => ({ search: vi.fn(), detail: vi.fn<(id: string | undefined) => { data: { id: string; name: string } | null }>(() => ({ data: null })) }));
 
 vi.mock("../../../hooks/customers/customerQueries", () => ({
-  useCustomer: () => ({ data: null }),
+  useCustomer: (id: string | undefined) => mocks.detail(id),
   useCustomerSelectorSearch: (search: string, enabled: boolean) => mocks.search(search, enabled),
 }));
 
@@ -41,6 +41,31 @@ describe("CustomerSelector remote search", () => {
     fireEvent.click(screen.getByRole("button", { name: "Limpiar cliente" }));
     expect(screen.getByLabelText("Contacto")).toHaveValue("");
     expect(screen.getByLabelText("Nombre del Cliente")).toHaveValue("");
+  });
+
+  it("mantiene el nombre elegido mientras llega la ficha correcta y al cambiar de cliente", () => {
+    const remote = { id: "remote", name: "Cliente Remoto" };
+    mocks.search.mockImplementation((term: string, enabled: boolean) => ({
+      data: enabled && term === "remoto" ? { customers: [remote], isTruncated: false } : undefined,
+      isSearchPending: false, isFetching: false, isError: false,
+    }));
+    const props = { customers: [{ id: "initial", name: "Cliente Inicial" }], hideManualName: true,
+      customerName: "", onCustomerIdChange: vi.fn(), onCustomerNameChange: vi.fn() };
+    const view = render(<CustomerSelector {...props} customerId="" />);
+    fireEvent.click(screen.getByRole("combobox", { name: /Seleccionar cliente/ }));
+    fireEvent.change(screen.getByPlaceholderText("Buscar por nombre, razón social o RFC…"), { target: { value: "remoto" } });
+    fireEvent.click(screen.getByRole("option", { name: "Cliente Remoto" }));
+    mocks.detail.mockReturnValueOnce({ data: { id: "anterior", name: "Cliente Anterior" } });
+    view.rerender(<CustomerSelector {...props} customerId="remote" />);
+    const trigger = screen.getByRole("combobox", { name: /Cliente Remoto/ });
+    expect(trigger).toBeVisible();
+    expect(mocks.detail).toHaveBeenLastCalledWith("remote");
+    mocks.detail.mockReturnValueOnce({ data: { id: "remote", name: "Cliente Registrado" } });
+    view.rerender(<CustomerSelector {...props} customerId="remote" />);
+    expect(screen.getByRole("combobox", { name: /Cliente Registrado/ })).toBeVisible();
+    view.rerender(<CustomerSelector {...props} customerId="otro" />);
+    expect(screen.getByRole("combobox", { name: /Seleccionar cliente/ })).toBeVisible();
+
   });
 
   it("finds a customer outside the capped list by RFC and selects it", async () => {
