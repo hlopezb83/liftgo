@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { CustomerSelector } from "@/features/customers";
+import { CustomerSelector, type CustomerListQuery } from "@/features/customers";
 import { useFormErrorTarget } from "@/lib/forms/formErrorTargets";
 import { useNextInvoiceNumber } from "../../hooks/invoices/useNextInvoiceNumber";
 import { formatYmdMx } from "../../lib/formatYmdMx";
@@ -20,6 +20,7 @@ interface Props {
   isEdit: boolean;
   form: UseFormReturn<InvoiceFormValues>;
   customers: Customer[] | undefined;
+  customerListQuery?: CustomerListQuery;
   availableBookings: Booking[] | undefined;
   bookingPicker?: BookingPickerControls;
   handleCustomerSelect: (id: string, customer?: Customer) => void;
@@ -27,7 +28,7 @@ interface Props {
 }
 
 export function InvoiceDetailsCard({
-  isEdit, form, customers, availableBookings, bookingPicker, handleCustomerSelect, handleBookingsChange,
+  isEdit, form, customers, customerListQuery, availableBookings, bookingPicker, handleCustomerSelect, handleBookingsChange,
 }: Props) {
   const detailsId = useFormErrorTarget("invoice-details");
   const { data: nextNumber, isLoading: loadingNext } = useNextInvoiceNumber(!isEdit);
@@ -75,7 +76,8 @@ export function InvoiceDetailsCard({
               <FormControl>
                 <CustomerSelector
                   bare
-                  customers={customers ?? []}
+                  customers={customers}
+                  customerListQuery={customerListQuery}
                   customerId={field.value}
                   customerName={form.getValues("customerName")}
                   onCustomerIdChange={handleCustomerSelect}

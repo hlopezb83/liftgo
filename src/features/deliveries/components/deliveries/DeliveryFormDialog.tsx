@@ -35,15 +35,23 @@ function getInitialForm(context?: DeliveryBookingContext): DeliveryFormValues {
   };
 }
 
+function isTemporaryDriverListFailure(error: unknown) {
+  if (!error || typeof error !== "object" || !("status" in error)) return false;
+  const { status } = error;
+  return status === 0 || status === 429 || (typeof status === "number" && status >= 500);
+}
+
 function useDeliveryFieldOptions(open: boolean, bookingId: string, context?: DeliveryBookingContext) {
   const { bookingQuery, bookings, forkliftOptions } = useDeliveryFormOptions(open, bookingId, context);
   const driversQuery = useActiveDrivers();
+  const driversCached = driversQuery.isRefetchError && !driversQuery.isPlaceholderData && isTemporaryDriverListFailure(driversQuery.error);
   return {
     forklifts: forkliftOptions,
     bookings,
     activeDrivers: driversQuery.data,
     driversLoading: driversQuery.isLoading || (driversQuery.isError && driversQuery.isFetching),
     driversError: driversQuery.isError,
+    driversCached,
     onRetryDrivers: () => { void driversQuery.refetch(); },
     bookingsLoading: !context && (bookingQuery.isLoading || (bookingQuery.isError && bookingQuery.isFetching) || bookingQuery.isFetchingNextPage),
     bookingsError: !context && bookingQuery.isError,

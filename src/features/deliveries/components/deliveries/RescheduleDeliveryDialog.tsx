@@ -54,6 +54,7 @@ export function RescheduleDeliveryDialog({ delivery, linkedBooking, open, onOpen
     if (date < toYMD(nowMty())) return "Elige hoy o una fecha futura";
     return linkedBooking ? deliveryBookingDateError(delivery.type, date, linkedBooking) : null;
   };
+  const dateRestriction = (date: Date) => getDateError(toYMD(date));
   const onSubmit = (values: FormValues) => {
     const date = toYMD(values.scheduledDate);
     const dateError = getDateError(date);
@@ -103,7 +104,8 @@ export function RescheduleDeliveryDialog({ delivery, linkedBooking, open, onOpen
               name="scheduledDate"
               label={`Fecha de ${operationLabel}`}
               required
-              disabledMatcher={(date) => !!getDateError(toYMD(date))}
+              disabledMatcher={(date) => !!dateRestriction(date)}
+              disabledDateMessage={dateRestriction}
             />
             <TextField control={form.control} name="scheduledTime" label="Hora programada" type="time" />
           </div>

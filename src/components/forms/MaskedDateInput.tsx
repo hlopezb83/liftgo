@@ -28,6 +28,7 @@ export interface MaskedDateInputProps {
    * fecha de un pago con REP timbrado).
    */
   isDateDisabled?: (date: Date) => boolean;
+  disabledDateMessage?: (date: Date) => string | null;
   /** Reject non-empty invalid or incomplete input, separately from an intentional clear. */
   onInvalidInput?: () => void;
   /** Invalidate a required form value during typing, before blur or Enter. */
@@ -56,6 +57,7 @@ export function MaskedDateInput({
   placeholder = MASK_PLACEHOLDER,
   disabled,
   isDateDisabled,
+  disabledDateMessage,
   invalidateOnPartial = false,
   onInvalidInput,
   className,
@@ -90,6 +92,8 @@ export function MaskedDateInput({
     if (onInvalidInput) onInvalidInput();
     else onChange(undefined);
   };
+  const getBlockedDateMessage = (date: Date) =>
+    disabledDateMessage?.(date) ?? "Esta fecha no está permitida";
 
   /**
    * @param final `true` en blur: además avisa de capturas parciales.
@@ -100,7 +104,7 @@ export function MaskedDateInput({
 
     // §3.3: fecha completa pero bloqueada por el matcher del calendario.
     if (parsed.date && isDateDisabled?.(parsed.date)) {
-      setError("Esta fecha no está permitida");
+      setError(getBlockedDateMessage(parsed.date));
       rejectInput();
       return;
     }

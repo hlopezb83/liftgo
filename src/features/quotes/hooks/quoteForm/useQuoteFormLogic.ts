@@ -55,7 +55,8 @@ function quoteInitialState(id: string | undefined, quote: ReturnType<typeof useQ
 export function useQuoteFormLogic() {
   const { id } = useParams();
   const navigate = useNavigateTransition();
-  const { data: customers } = useCustomers();
+  const customerListQuery = useCustomers();
+  const customers = customerListQuery.data;
   const quoteQuery = useQuote(id);
   const { data: existingQuote, isSuccess: quoteSuccess } = quoteQuery;
   const modelsQuery = useEquipmentModels();
@@ -213,7 +214,7 @@ export function useQuoteFormLogic() {
     logisticsCost,
     includeInsurance,
     insuranceCost,
-    customers,
+    customers, customerListQuery,
     equipmentModels,
     equipmentModelsLoading,
     lineItems,

@@ -17,7 +17,7 @@ vi.mock("../../../hooks/invoices/collections/useCollectionNotes", () => ({
   useCreateCollectionNote: () => ({ mutate: mocks.createNote, isPending: false }),
 }));
 vi.mock("@/features/invoices/hooks/paymentIntents", () => ({
-  useAdminPaymentIntents: () => ({ data: [{ id: "intent-1", amount: 100, transfer_date: "2026-09-27",
+  useAdminPaymentIntents: () => ({ isSuccess: true, data: [{ id: "intent-1", amount: 100, transfer_date: "2026-09-27",
     status: "pending_review", proof_url: "org/proof.pdf" }] }),
   useReviewPaymentIntent: () => ({ mutate: mocks.review, isPending: false }),
 }));

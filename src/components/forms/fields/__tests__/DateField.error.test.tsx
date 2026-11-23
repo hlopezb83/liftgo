@@ -12,13 +12,13 @@ beforeEach(() => {
   vi.setSystemTime(new Date("2026-09-30T18:00:00Z"));
 });
 afterEach(() => vi.useRealTimers());
-function Field() {
+function Field({ disabledDateMessage }: { disabledDateMessage?: (date: Date) => string | null }) {
   const form = useForm<z.infer<typeof schema>>({
     resolver: zodResolver(schema),
     defaultValues: { date: new Date(2026, 8, 30) },
   });
   return <Form {...form}><form onSubmit={form.handleSubmit(() => {})}>
-    <DateField control={form.control} name="date" label="Fecha de inspección" required disabledMatcher={{ after: new Date(2026, 8, 30) }} />
+    <DateField control={form.control} name="date" label="Fecha de inspección" required disabledMatcher={{ after: new Date(2026, 8, 30) }} disabledDateMessage={disabledDateMessage} />
     <button type="submit">Guardar</button>
   </form></Form>;
 }
@@ -33,6 +33,15 @@ describe("DateField: error de fecha único", () => {
     expect(screen.getAllByText("Esta fecha no está permitida")).toHaveLength(1);
     expect(screen.queryByText("Selecciona una fecha válida")).not.toBeInTheDocument();
     expect(screen.queryByText(/Invalid input/)).not.toBeInTheDocument();
+  });
+
+  it("muestra el motivo de negocio al teclear una fecha bloqueada", async () => {
+    render(<Field disabledDateMessage={() => "La entrega debe caer dentro del periodo de la reserva"} />);
+    const input = screen.getByRole("textbox", { name: "Fecha de inspección" });
+    fireEvent.change(input, { target: { value: "01102026" } });
+    fireEvent.click(screen.getByRole("button", { name: "Guardar" }));
+    await waitFor(() => expect(input).toHaveAccessibleDescription(/La entrega debe caer dentro del periodo de la reserva/));
+    expect(screen.queryByText("Esta fecha no está permitida")).not.toBeInTheDocument();
   });
 
   it("explica en español una fecha vacía y la vincula al campo", async () => {

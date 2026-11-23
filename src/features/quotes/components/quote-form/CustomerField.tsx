@@ -1,5 +1,5 @@
 import { FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form";
-import { CustomerSelector, type Customer } from "@/features/customers";
+import { CustomerSelector, type Customer, type CustomerListQuery } from "@/features/customers";
 import type { QuoteFormValues } from "../../lib/quoteFormSchema";
 import type { UseFormReturn } from "react-hook-form";
 
@@ -7,10 +7,11 @@ type QuoteForm = UseFormReturn<QuoteFormValues>;
 
 interface Props {
   form: QuoteForm;
-  customers: Customer[];
+  customers: Customer[] | undefined;
+  customerListQuery?: CustomerListQuery;
 }
 
-export function CustomerField({ form, customers }: Props) {
+export function CustomerField({ form, customers, customerListQuery }: Props) {
   return (
     <FormField
       control={form.control}
@@ -20,6 +21,7 @@ export function CustomerField({ form, customers }: Props) {
           <FormControl>
             <CustomerSelector
               customers={customers}
+              customerListQuery={customerListQuery}
               customerId={field.value}
               customerName={form.getValues("customerName")}
               onCustomerIdChange={field.onChange}
@@ -27,7 +29,7 @@ export function CustomerField({ form, customers }: Props) {
               required
               hideManualName
               compact
-              helpText={customers.some((customer) => customer.name === "Público en General")
+              helpText={customers?.some((customer) => customer.name === "Público en General")
                 ? "Si tu cliente no aparece, selecciona 'Público en General' o regístralo en Clientes."
                 : "Si tu cliente no aparece, regístralo primero en Clientes."}
             />

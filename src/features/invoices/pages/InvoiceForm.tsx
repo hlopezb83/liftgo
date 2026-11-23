@@ -224,6 +224,7 @@ function InvoiceFormSession({ id, sources }: { id?: string; sources: ReturnType<
               isEdit={f.isEdit}
               form={f.form}
               customers={f.customers}
+              customerListQuery={f.customerListQuery}
               availableBookings={f.pickerBookings ?? f.availableBookings}
               bookingPicker={f.bookingPicker}
               handleCustomerSelect={f.handleCustomerSelect}

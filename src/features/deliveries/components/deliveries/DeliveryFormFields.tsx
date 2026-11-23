@@ -35,6 +35,7 @@ interface Props {
   onRetryBookings?: () => void;
   driversLoading?: boolean;
   driversError?: boolean;
+  driversCached?: boolean;
   onRetryDrivers?: () => void;
   hasMoreBookings?: boolean;
   onLoadMoreBookings?: () => void;
@@ -49,7 +50,7 @@ const TYPE_OPTIONS: SelectOption[] = [
 export function DeliveryFormFields({
   form, forklifts, bookings, activeDrivers,
   bookingsLoading, bookingsError, onRetryBookings, hasMoreBookings, onLoadMoreBookings, contextLocked,
-  driversLoading, driversError, onRetryDrivers,
+  driversLoading, driversError, driversCached, onRetryDrivers,
 }: Props) {
   const bookingId = useWatch({ control: form.control, name: "bookingId" });
   const transportType = useWatch({ control: form.control, name: "type" });
@@ -150,6 +151,7 @@ export function DeliveryFormFields({
           activeDrivers={activeDrivers}
           driversLoading={driversLoading}
           driversError={driversError}
+          driversCached={driversCached}
           onRetryDrivers={onRetryDrivers}
         />
 
@@ -270,13 +272,15 @@ function DeliveryBookingStatus({ cleared, bookingsLoading, bookingsError, onRetr
   </>;
 }
 
-function DeliveryOperatorFields({ form, activeDrivers, driversLoading, driversError, onRetryDrivers }: Pick<
-  Props, "form" | "activeDrivers" | "driversLoading" | "driversError" | "onRetryDrivers"
+function DeliveryOperatorFields({ form, activeDrivers, driversLoading, driversError, driversCached, onRetryDrivers }: Pick<
+  Props, "form" | "activeDrivers" | "driversLoading" | "driversError" | "driversCached" | "onRetryDrivers"
 >) {
   const noDrivers = activeDrivers?.length === 0;
-  const driverOptions = activeDrivers?.map((d) => ({ value: d.name, label: d.name })) ?? [];
+  const drivers = activeDrivers ?? [];
+  const canSelect = drivers.length > 0 && (driversCached || (!driversLoading && !driversError));
+  const driverOptions = drivers.map((d) => ({ value: d.name, label: d.name }));
   const selectDriver = (name: string) => {
-    const driver = activeDrivers?.find((d) => d.name === name);
+    const driver = drivers.find((d) => d.name === name);
     form.setValue("driverPhone", driver?.phone ?? "", { shouldDirty: true, shouldValidate: true });
   };
 
@@ -288,7 +292,7 @@ function DeliveryOperatorFields({ form, activeDrivers, driversLoading, driversEr
         label="Conductor"
         options={driverOptions}
         onValueChange={selectDriver}
-        disabled={noDrivers || driversLoading || driversError}
+        disabled={!canSelect}
         placeholder={noDrivers ? "Sin conductores activos" : "Seleccionar conductor"}
         description={noDrivers && !driversLoading && !driversError ? "No hay conductores activos registrados." : undefined}
       />
@@ -302,7 +306,11 @@ function DeliveryOperatorFields({ form, activeDrivers, driversLoading, driversEr
       {driversLoading && <p role="status" className="text-xs text-muted-foreground sm:col-span-2">Cargando conductores activos…</p>}
       {driversError && (
         <div className="flex flex-wrap items-center gap-2 sm:col-span-2">
-          <p role="alert" className="text-xs text-destructive">No se pudieron cargar los conductores.</p>
+          <p role="alert" className="text-xs text-destructive">
+            {driversCached && canSelect
+              ? "No se actualizaron los conductores. Se muestra la última lista disponible."
+              : "No se pudieron cargar los conductores."}
+          </p>
           <Button type="button" variant="outline" size="sm" onClick={onRetryDrivers} disabled={driversLoading}>
             Reintentar conductores
           </Button>

@@ -96,6 +96,7 @@ export function usePaymentIntentsColumns({
               {canWrite && pending && (
                 <>
                   <Button size="sm" onClick={() => onApprove(intent.id)} disabled={busy}
+                    data-payment-intent-approve={intent.id}
                     aria-busy={approvingId === intent.id}
                     aria-label={approvingId === intent.id
                       ? "Aprobando reporte de pago…"

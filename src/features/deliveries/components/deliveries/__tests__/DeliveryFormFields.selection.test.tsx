@@ -18,7 +18,9 @@ const drivers: Driver[] = [
   { id: "d3", name: "Luis Treviño", phone: null },
 ];
 
-function Harness({ activeDrivers = drivers, rows = bookings }: { activeDrivers?: Driver[]; rows?: typeof bookings }) {
+function Harness({
+  activeDrivers = drivers, rows = bookings, driversError = false, driversCached = false,
+}: { activeDrivers?: Driver[]; rows?: typeof bookings; driversError?: boolean; driversCached?: boolean }) {
   const form = useForm<DeliveryFormValues>({
     defaultValues: {
       forkliftId: "", bookingId: "", type: "delivery", alreadyCompleted: false,
@@ -26,7 +28,7 @@ function Harness({ activeDrivers = drivers, rows = bookings }: { activeDrivers?:
       address: "", driverName: "", driverPhone: "", notes: "", noEvidenceReason: "",
     },
   });
-  return <DeliveryFormFields form={form} forklifts={forklifts} bookings={rows} activeDrivers={activeDrivers} />;
+  return <DeliveryFormFields form={form} forklifts={forklifts} bookings={rows} activeDrivers={activeDrivers} driversError={driversError} driversCached={driversCached} />;
 }
 
 async function choose(label: string, option: string | RegExp) {
@@ -118,6 +120,19 @@ describe("DeliveryFormFields · selecciones relacionadas", () => {
     fireEvent.change(screen.getByLabelText("Teléfono del conductor"), { target: { value: "8180000099" } });
     rerender(<Harness activeDrivers={drivers.map((d) => ({ ...d }))} />);
     expect(screen.getByLabelText("Teléfono del conductor")).toHaveValue("8180000099");
+  });
+
+  it("permite elegir de la última lista confirmada aunque falle la actualización", async () => {
+    render(<Harness driversError driversCached />);
+    expect(screen.getByRole("alert")).toHaveTextContent("Se muestra la última lista disponible.");
+    await choose("Conductor", "Diego Salinas");
+    expect(screen.getByLabelText("Teléfono del conductor")).toHaveValue("8180000001");
+  });
+
+  it("bloquea la selección ante un fallo sin lista utilizable", () => {
+    render(<Harness activeDrivers={[]} driversError />);
+    expect(screen.getByRole("combobox", { name: "Conductor" })).toBeDisabled();
+    expect(screen.getByRole("alert")).toHaveTextContent("No se pudieron cargar los conductores.");
   });
 
   it("explica la ausencia de conductores en lugar de abrir una lista vacía", () => {
