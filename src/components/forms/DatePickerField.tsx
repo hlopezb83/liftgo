@@ -32,6 +32,7 @@ interface DatePickerFieldProps {
   onInvalidInput?: () => void;
   error?: string;
   disabled?: Matcher | Matcher[];
+  disabledDateMessage?: (date: Date) => string | null;
   captionLayout?: "label" | "dropdown" | "dropdown-months" | "dropdown-years";
   startMonth?: Date;
   endMonth?: Date;
@@ -51,6 +52,7 @@ export function DatePickerField({
   onInvalidInput,
   error,
   disabled,
+  disabledDateMessage,
   captionLayout,
   startMonth,
   endMonth,
@@ -112,6 +114,7 @@ export function DatePickerField({
               placeholder={placeholder === "Seleccionar fecha" ? undefined : placeholder}
               // §3.3: el teclado respeta el mismo matcher que el calendario.
               isDateDisabled={isDateDisabled}
+              disabledDateMessage={disabledDateMessage}
               aria-describedby={describedBy}
               className="w-full"
               errorMessage={error}

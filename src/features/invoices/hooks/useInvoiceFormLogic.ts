@@ -177,11 +177,11 @@ export function useInvoiceFormLogic({ id, fromQuoteId, extensionId = null, damag
   const isEdit = !!id;
   const quoteId = fromQuoteId || undefined;
 
-  const { data: customers } = useCustomers();
+  const customerListQuery = useCustomers();
   const { data: existing, isLoading: isLoadingExisting, ...invoiceRead } = useInvoice(id);
   const quoteQuery = useQuote(quoteId);
   const { data: sourceQuote } = quoteQuery;
-  const sourceCustomer = useInvoiceSourceCustomer({ isEdit, quoteId, quote: sourceQuote, extensionId, damageId, customers });
+  const sourceCustomer = useInvoiceSourceCustomer({ isEdit, quoteId, quote: sourceQuote, extensionId, damageId, customers: customerListQuery.data });
   const assignmentsQuery = useQuoteAssignments(quoteId);
   const { data: assignments } = assignmentsQuery;
   const invoiceBookingsQuery = useInvoiceBookings(id);
@@ -234,7 +234,7 @@ export function useInvoiceFormLogic({ id, fromQuoteId, extensionId = null, damag
     customers: sourceCustomer.prefillCustomers, isEdit, form, existingBookingIds, requestedQuoteId: fromQuoteId }, { extensionId, damageId }, chargeAvailability,
     [quoteQuery, assignmentsQuery, { isError: equipment.isError, refetch: equipment.retry }, ...sourceCustomer.dependencies]);
   const { handleCustomerSelect, handleBookingSelect, handleBookingsChange, isLoadingCharges, chargeSelectionError, retryChargeSelection } = useInvoiceFormHandlers({
-    form, customers, bookings: periods.handlerBookings, loadEquipment: equipment.loadForIds, quotes: bookingSourceQuotes,
+    form, customers: customerListQuery.data, bookings: periods.handlerBookings, loadEquipment: equipment.loadForIds, quotes: bookingSourceQuotes,
     loadQuoteSources: bookingQuoteSources.loadForIds, loadQuotedBookings: bookingsQuery.loadQuotedBookings,
     loadQuoteCharges: chargeAvailability.loadForQuotes, loadCustomer: sourceCustomer.loadForId,
   });
@@ -324,7 +324,7 @@ export function useInvoiceFormLogic({ id, fromQuoteId, extensionId = null, damag
     // transaccional un fallo revierte también el bump de versión, así que el
     // reintento usa el mismo expectedVersion sin falso stale_write.)
     invoiceVersion,
-    customers, availableBookings, pickerBookings,
+    customers: customerListQuery.data, customerListQuery, availableBookings, pickerBookings,
     bookingPicker: withEvidenceLoading(bookingPicker, periods),
     sourceQuote,
     sourceQuoteVersion: quotePrefill.sourceQuoteVersion,

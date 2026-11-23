@@ -1,3 +1,11 @@
+## [8.53.53] - 2026-11-23
+
+- La aprobación de reportes de pago devuelve el foco a la fila y exige abrir de nuevo la confirmación si se invalida.
+- Mantenimiento permite quitar un proveedor opcional cuando falla el catálogo.
+- Entregas conserva la selección de conductores ya cargados si falla la actualización.
+- El selector de cliente de facturas distingue una cartera en carga, un error y una lista vacía.
+- Al reprogramar una entrega o recolección, el campo de fecha indica la restricción que impide elegirla.
+
 ## [8.53.52] - 2026-11-23
 
 - Finanzas distingue los saldos omitidos de los liquidados, explica los bloqueos y ayuda a identificar cada operación antes de confirmarla.

@@ -1,3 +1,4 @@
+import { useRef } from "react";
 import { type FieldPath, type FieldValues, type Control } from "react-hook-form";
 import { RequiredMark } from "@/components/forms/RequiredMark";
 import { Button } from "@/components/ui/button";
@@ -32,6 +33,10 @@ export function SupplierField<TFieldValues extends FieldValues>({
   const { data: suppliers, isLoading, isError, isFetching, refetch } = useSuppliers();
   const noSuppliers = !isError && suppliers?.length === 0;
   const unavailable = disabled || isLoading || isError || (noSuppliers && !allowEmpty);
+  const canClearOnError = isError && allowEmpty && !required && !disabled;
+  const options = suppliers ?? [];
+  const placeholder = isLoading ? "Cargando…" : "Seleccionar proveedor";
+  const requiredMark = required && <RequiredMark />;
   return (
     <FormField
       control={control}
@@ -39,28 +44,28 @@ export function SupplierField<TFieldValues extends FieldValues>({
       render={({ field }) => {
         const rawValue = (field.value as string | null | undefined) ?? "";
         const value = rawValue === "" && allowEmpty ? EMPTY : rawValue;
-        const unknownSelection = rawValue && !suppliers?.some((supplier) => supplier.id === rawValue);
+        const unknownSelection = rawValue && !options.some((supplier) => supplier.id === rawValue);
         return (
           <FormItem className={className}>
             <FormLabel>
               {label}
-              {required && <RequiredMark />}
+              {requiredMark}
             </FormLabel>
             <Select
               value={value}
               onValueChange={(v) => field.onChange(v === EMPTY ? null : v)}
-              disabled={unavailable}
+              disabled={unavailable || field.disabled}
             >
               <FormControl>
                 <SelectTrigger aria-required={required || undefined}>
-                  <SelectValue placeholder={isLoading ? "Cargando…" : "Seleccionar proveedor"}>
+                  <SelectValue placeholder={placeholder}>
                     {unknownSelection ? "Proveedor seleccionado" : undefined}
                   </SelectValue>
                 </SelectTrigger>
               </FormControl>
               <SelectContent>
                 {allowEmpty && <SelectItem value={EMPTY}>Sin proveedor</SelectItem>}
-                {suppliers?.map((s) => (
+                {options.map((s) => (
                   <SelectItem key={s.id} value={s.id}>
                     {s.name}
                   </SelectItem>
@@ -71,7 +76,9 @@ export function SupplierField<TFieldValues extends FieldValues>({
               description={description}
               noSuppliers={noSuppliers}
               isError={isError}
-              retryDisabled={disabled || isFetching}
+              retryDisabled={disabled || field.disabled || isFetching}
+              onClear={canClearOnError && !field.disabled && rawValue
+                ? () => field.onChange(null) : undefined}
               onRetry={() => { void refetch(); }}
             />
             <FormMessage />
@@ -82,20 +89,30 @@ export function SupplierField<TFieldValues extends FieldValues>({
   );
 }
 
-function SupplierOptionsStatus({ description, noSuppliers, isError, retryDisabled, onRetry }: {
+function SupplierOptionsStatus({ description, noSuppliers, isError, retryDisabled, onRetry, onClear }: {
   description?: string;
   noSuppliers: boolean;
   isError: boolean;
   retryDisabled: boolean;
   onRetry: () => void;
+  onClear?: () => void;
 }) {
+  const errorRef = useRef<HTMLParagraphElement>(null);
   return <>
     {isError && (
       <div className="flex flex-wrap items-center gap-2">
-        <p role="alert" className="text-xs text-destructive">No se pudo cargar el catálogo de proveedores.</p>
+        <p ref={errorRef} role="alert" tabIndex={-1} className="text-xs text-destructive">No se pudo cargar el catálogo de proveedores.</p>
         <Button type="button" variant="outline" size="sm" disabled={retryDisabled} onClick={onRetry}>
           Reintentar proveedores
         </Button>
+        {onClear && (
+          <Button type="button" variant="outline" size="sm" onClick={() => {
+            errorRef.current?.focus();
+            onClear();
+          }}>
+            Quitar proveedor
+          </Button>
+        )}
       </div>
     )}
     {(description || noSuppliers) && (

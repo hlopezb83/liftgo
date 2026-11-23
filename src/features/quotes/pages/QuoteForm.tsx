@@ -58,7 +58,7 @@ export default function QuoteForm() {
             <div className="min-w-0 space-y-4">
               <QuoteTypeCard value={f.quoteType} onChange={(type) => { void f.handleTypeChange(type); }} />
 
-              <CustomerField form={form} customers={f.customers ?? []} />
+              <CustomerField form={form} customers={f.customers} customerListQuery={f.customerListQuery} />
 
               <QuoteDetailsCard form={form} isRental={isRental} />
 

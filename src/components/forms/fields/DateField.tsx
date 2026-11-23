@@ -11,6 +11,7 @@ interface DateFieldProps<TFieldValues extends FieldValues> {
   description?: string;
   required?: boolean;
   disabledMatcher?: Matcher | Matcher[];
+  disabledDateMessage?: (date: Date) => string | null;
 }
 
 /**
@@ -27,6 +28,7 @@ export function DateField<TFieldValues extends FieldValues>({
   description,
   required,
   disabledMatcher,
+  disabledDateMessage,
 }: DateFieldProps<TFieldValues>) {
   const form = useFormContext<TFieldValues>();
   // Controller reutiliza defaultValues cuando el campo queda en undefined.
@@ -50,6 +52,7 @@ export function DateField<TFieldValues extends FieldValues>({
               description={description}
               required={required}
               disabled={disabledMatcher}
+              disabledDateMessage={disabledDateMessage}
               error={fieldState.error?.message}
             />
           </FormControl>

@@ -71,7 +71,7 @@ function Harness({ saved }: { saved?: InvoiceFormValues }) {
   const handlers = useInvoiceFormHandlers({ form, customers: customers.data, bookings: [], forklifts: [],
     loadQuoteCharges: async () => ({ complete: true, quotes: [] }) });
   const values = useWatch({ control: form.control });
-  return <Form {...form}><InvoiceDetailsCard isEdit form={form} customers={customers.data} availableBookings={[]}
+  return <Form {...form}><InvoiceDetailsCard isEdit form={form} customers={customers.data} customerListQuery={customers} availableBookings={[]}
     handleCustomerSelect={handlers.handleCustomerSelect} handleBookingsChange={handlers.handleBookingsChange} />
     <output data-testid="values">{JSON.stringify(values)}</output></Form>;
 }

@@ -2,15 +2,19 @@ import { useMemo, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { hasReachedListLimit, visibleListRows } from "@/lib/supabase/constants";
 import { cn } from "@/lib/utils";
-import { useCustomer, useCustomerSelectorSearch } from "../../hooks/customers/customerQueries";
+import { useCustomer, useCustomerSelectorSearch, type useCustomers } from "../../hooks/customers/customerQueries";
 import {
   CustomerCombobox,
   ManualCustomerFields,
+  type CustomerListStatus,
   type CustomerSelectorOption,
 } from "./CustomerSelectorFields";
 
+export type CustomerListQuery = Pick<ReturnType<typeof useCustomers>, "isError" | "isFetching" | "refetch">;
+
 interface CustomerSelectorProps {
   customers: CustomerSelectorOption[] | undefined;
+  customerListQuery?: CustomerListQuery;
   customerId: string;
   customerName: string;
   onCustomerIdChange: (id: string) => void;
@@ -36,7 +40,7 @@ function useSelectorSearchState(customers: CustomerSelectorOption[] | undefined)
   const initialListTruncated = hasReachedListLimit(customers);
   const searchQuery = useCustomerSelectorSearch(searchTerm, open);
   const searchActive = searchTerm.trim().length >= 2;
-  const loadingRemote = searchActive && (searchQuery.isSearchPending || searchQuery.isFetching);
+  const loadingRemote = searchActive && (searchQuery.isSearchPending || searchQuery.isFetching || (!searchQuery.data && !searchQuery.isError));
   const remoteItems = loadingRemote ? [] : searchQuery.data?.customers ?? [];
   const items = searchActive ? remoteItems : initialItems;
 
@@ -71,8 +75,21 @@ function useSelectedCustomer(
   return selectedInMemory ?? selectedQuery.data ?? undefined;
 }
 
+function getCustomerListStatus(customers: CustomerSelectorOption[] | undefined, query?: CustomerListQuery): CustomerListStatus {
+  if (query?.isError && !query.isFetching) return "error";
+  return customers === undefined || query?.isError ? "loading" : "ready";
+}
+
+function getRegistrationHelp(helpText: string | undefined, customerId: string, search: ReturnType<typeof useSelectorSearchState>, listStatus: CustomerListStatus) {
+  if (customerId) return undefined;
+  if (!search.searchActive) return listStatus === "ready" && search.initialItems.length === 0 ? helpText : undefined;
+  const { data, isError } = search.searchQuery;
+  return !search.loadingRemote && !isError && !data?.isTruncated && data?.customers.length === 0 ? helpText : undefined;
+}
+
 export function CustomerSelector({
   customers,
+  customerListQuery,
   customerId,
   customerName,
   onCustomerIdChange,
@@ -89,6 +106,7 @@ export function CustomerSelector({
 }: CustomerSelectorProps) {
   const search = useSelectorSearchState(customers);
   const selected = useSelectedCustomer(search.initialItems, search.searchQuery, customerId);
+  const listStatus = getCustomerListStatus(customers, customerListQuery);
 
   const handleSelect = (customer: CustomerSelectorOption) => {
     if (onCustomerSelect) onCustomerSelect(customer);
@@ -112,7 +130,9 @@ export function CustomerSelector({
             customerId={customerId}
             required={required}
             compact={compact}
-            helpText={helpText}
+            helpText={getRegistrationHelp(helpText, customerId, search, listStatus)}
+            listStatus={listStatus}
+            onRetryList={customerListQuery && (() => { void customerListQuery.refetch(); })}
             initialListTruncated={search.initialListTruncated}
             searchTerm={search.searchTerm}
             searchActive={search.searchActive}

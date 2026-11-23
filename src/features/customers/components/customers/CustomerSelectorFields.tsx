@@ -1,4 +1,4 @@
-import { useId } from "react";
+import { useId, useRef, type RefObject } from "react";
 import { CloseIcon as XIcon, ChevronDownIcon, SuccessIcon as CheckIcon } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
@@ -6,6 +6,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
+
+export type CustomerListStatus = "loading" | "error" | "ready";
 
 export interface CustomerSelectorOption {
   id: string;
@@ -32,6 +34,12 @@ function buildOptionLabel(customer: CustomerSelectorOption): string {
   return customer.company && customer.company !== customer.name
     ? customer.name + " — " + customer.company
     : customer.name;
+}
+
+function getCustomerListMessage(status: CustomerListStatus): string {
+  if (status === "loading") return "Cargando cartera…";
+  if (status === "error") return "No se pudo cargar la cartera de clientes.";
+  return "Sin resultados.";
 }
 
 function getEmptyMessage(loadingRemote: boolean, searchError: boolean, searchTruncated: boolean): string {
@@ -116,6 +124,15 @@ function CustomerSelectorStatus({
   );
 }
 
+function RetryCustomerList({ onRetry, focusTarget }: { onRetry?: () => void; focusTarget: RefObject<HTMLElement | null> }) {
+  if (!onRetry) return null;
+  return (
+    <Button type="button" variant="link" size="sm" onClick={() => { focusTarget.current?.focus(); onRetry(); }}>
+      Reintentar cartera
+    </Button>
+  );
+}
+
 export function CustomerCombobox({
   items,
   selected,
@@ -123,6 +140,8 @@ export function CustomerCombobox({
   required,
   compact,
   helpText,
+  listStatus,
+  onRetryList,
   initialListTruncated,
   searchTerm,
   searchActive,
@@ -141,6 +160,8 @@ export function CustomerCombobox({
   required?: boolean;
   compact?: boolean;
   helpText?: string;
+  listStatus: CustomerListStatus;
+  onRetryList?: () => void;
   initialListTruncated: boolean;
   searchTerm: string;
   searchActive: boolean;
@@ -153,8 +174,12 @@ export function CustomerCombobox({
   onSelect: (customer: CustomerSelectorOption) => void;
   onClear: (e: React.MouseEvent) => void;
 }) {
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  const searchRef = useRef<HTMLInputElement>(null);
   const triggerLabel = buildTriggerLabel(selected, required);
-  const emptyMessage = getEmptyMessage(loadingRemote, searchError, searchTruncated);
+  const emptyMessage = searchActive
+    ? getEmptyMessage(loadingRemote, searchError, searchTruncated)
+    : getCustomerListMessage(listStatus);
 
   return (
     <div className="space-y-1.5">
@@ -162,6 +187,7 @@ export function CustomerCombobox({
       <Popover open={open} onOpenChange={onOpenChange}>
         <PopoverTrigger asChild>
           <Button
+            ref={triggerRef}
             type="button"
             variant="outline"
             role="combobox"
@@ -179,12 +205,16 @@ export function CustomerCombobox({
         <PopoverContent className="p-0" align="start" style={{ width: "var(--radix-popover-trigger-width)" }}>
           <Command shouldFilter={!searchActive} filter={filterCustomerLabel}>
             <CommandInput
+              ref={searchRef}
               placeholder="Buscar por nombre, razón social o RFC…"
               value={searchTerm}
               onValueChange={onSearchTermChange}
             />
             <CommandList>
-              <CommandEmpty>{emptyMessage}</CommandEmpty>
+              <CommandEmpty>
+                {emptyMessage}
+                {helpText && <p className="mt-1 text-muted-foreground">{helpText}</p>}
+              </CommandEmpty>
               <CommandGroup>
                 {items.map((customer) => (
                   <CommandItem
@@ -202,10 +232,19 @@ export function CustomerCombobox({
               </CommandGroup>
             </CommandList>
           </Command>
+          {!searchActive && listStatus === "error" && <RetryCustomerList onRetry={onRetryList} focusTarget={searchRef} />}
         </PopoverContent>
       </Popover>
+      {!open && listStatus !== "ready" && (
+        <div className="flex flex-wrap items-center gap-1">
+          <p role={listStatus === "error" ? "alert" : "status"} className="text-sm text-muted-foreground">
+            {getCustomerListMessage(listStatus)}
+          </p>
+          {listStatus === "error" && <RetryCustomerList onRetry={onRetryList} focusTarget={triggerRef} />}
+        </div>
+      )}
       <CustomerSelectorStatus
-        helpText={helpText}
+        helpText={open ? undefined : helpText}
         initialListTruncated={initialListTruncated}
         searchActive={searchActive}
         searchTruncated={searchTruncated}

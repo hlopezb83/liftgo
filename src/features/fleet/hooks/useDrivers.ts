@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
 import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
 import { defineEntityQueries } from "@/lib/query/defineEntityQueries";
+import { useVerifiedIdentityScope } from "@/lib/query/useVerifiedIdentityScope";
 import { driverKeys } from "../lib/queryKeys";
 
 const sel = (s: string): string => s;
@@ -22,11 +23,11 @@ type DriverInput = {
 
 const driverQueries = defineEntityQueries<"drivers", Driver[], never>("drivers", {
   staleTime: 5 * 60_000,
-  list: (filter) => async () => {
+  list: (filter) => async ({ signal }) => {
     const base = supabase.from("drivers").select(DRIVER_COLUMNS);
     const filtered = filter?.active === true ? base.eq("is_active", true) : base;
-    const { data, error } = await filtered.order("name").returns<Driver[]>();
-    if (error) throw error;
+    const { data, error, status } = await filtered.order("name").abortSignal(signal).returns<Driver[]>();
+    if (error) throw Object.assign(new Error(error.message), error, { status });
     return data;
   },
 });
@@ -36,7 +37,11 @@ export function useDrivers() {
 }
 
 export function useActiveDrivers() {
-  return useQuery(driverQueries.list({ active: true }));
+  const identity = useVerifiedIdentityScope();
+  return useQuery({
+    ...driverQueries.list({ active: true, identity }),
+    enabled: identity !== null,
+  });
 }
 
 export function useCreateDriver() {

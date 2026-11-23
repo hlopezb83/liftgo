@@ -1,0 +1,10 @@
+{
+  "description": "Correcciones de reintento, selección y captura",
+  "changes": [
+    "La aprobación de reportes de pago devuelve el foco a la fila y exige abrir de nuevo la confirmación si se invalida.",
+    "Mantenimiento permite quitar un proveedor opcional cuando falla el catálogo.",
+    "Entregas conserva la selección de conductores ya cargados si falla la actualización.",
+    "El selector de cliente de facturas distingue una cartera en carga, un error y una lista vacía.",
+    "Al reprogramar una entrega o recolección, el campo de fecha indica la restricción que impide elegirla."
+  ]
+}
