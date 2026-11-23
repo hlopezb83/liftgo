@@ -11,7 +11,7 @@ import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 import { formatCurrency } from "@/lib/format/formatCurrency";
 import { roundMoney, sumMoney } from "@/lib/money";
 import { useVerifiedIdentityScope } from "@/lib/query/useVerifiedIdentityScope";
-import { notifySuccess, notifyValidation } from "@/lib/ui/appFeedback";
+import { notifySuccess } from "@/lib/ui/appFeedback";
 import { MAINTENANCE_PART_PAGE_SIZE, useMaintenancePartOptions } from "../../hooks/maintenance/useMaintenancePartOptions";
 import { AddMaintenancePartForm } from "./AddMaintenancePartForm";
 
@@ -31,7 +31,7 @@ export function MaintenancePartsSection(props: Props) {
 function MaintenancePartsSession({ maintenanceLogId, currentCost, readOnly = false }: Props) {
   const [open, setOpen] = useState(false);
   const [selectedPartId, setSelectedPartId] = useState<string | null>(null);
-  const [quantity, setQuantity] = useState(1);
+  const [quantity, setQuantity] = useState("1");
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(0);
   const debouncedSearch = useDebouncedValue(search.trim());
@@ -48,21 +48,18 @@ function MaintenancePartsSession({ maintenanceLogId, currentCost, readOnly = fal
   const setSelectedPart = (part: PartInventory | null) => setSelectedPartId(part?.id ?? null);
   const usedUnavailable = loadingUsed || usedQuery.isError;
   const previousConsumption = usedParts.find(part => part.part_id === selectedPartId);
+  const availableStock = selectedReady ? selectedPart?.stock_quantity : undefined;
+  const quantityError = getQuantityError(quantity, availableStock);
+  const canAdd = selectedReady && !usedUnavailable && !quantityError;
 
   const handleAddPart = () => {
-    if (readOnly || addPart.isPending || usedUnavailable || !selectedReady) return;
-    if (!selectedPart) { notifyValidation({ message: "Selecciona una refacción" }); return; }
-    if (quantity < 1) { notifyValidation({ message: "La cantidad debe ser al menos 1" }); return; }
-    if (quantity > selectedPart.stock_quantity) {
-      notifyValidation({ message: `Solo hay ${selectedPart.stock_quantity} en stock` });
-      return;
-    }
+    if (readOnly || addPart.isPending || !selectedPart || !canAdd) return;
 
     addPart.mutate(
       {
         maintenance_log_id: maintenanceLogId,
         part_id: selectedPart.id,
-        quantity_used: quantity,
+        quantity_used: Number(quantity),
         // Kept for the existing hook signature; the consumption RPC owns valuation.
         cost_at_time: selectedPart.unit_cost,
         currentLogCost: currentCost,
@@ -71,7 +68,7 @@ function MaintenancePartsSession({ maintenanceLogId, currentCost, readOnly = fal
         onSuccess: () => {
           notifySuccess("Refacción agregada");
           setSelectedPart(null);
-          setQuantity(1);
+          setQuantity("1");
         },
       }
     );
@@ -97,6 +94,7 @@ function MaintenancePartsSession({ maintenanceLogId, currentCost, readOnly = fal
           availableParts={pickerPage.items}
           selectedPart={selectedPart} setSelectedPart={setSelectedPart}
           quantity={quantity} setQuantity={setQuantity}
+          availableStock={availableStock} quantityError={quantityError}
           loadingParts={!pickerPage.ready}
           search={search} onSearchChange={(value) => { setSearch(value); setPage(0); }}
           page={pickerPage.page}
@@ -104,7 +102,7 @@ function MaintenancePartsSession({ maintenanceLogId, currentCost, readOnly = fal
           onPageChange={setPage}
           error={pickerPage.error} retrying={pageQuery.isFetching}
           onRetry={() => { void pageQuery.refetch(); }}
-          canAdd={selectedReady && !usedUnavailable}
+          canAdd={canAdd}
           historicalUnitCost={previousConsumption?.cost_at_time}
           onAdd={handleAddPart}
           isAdding={addPart.isPending}
@@ -115,6 +113,14 @@ function MaintenancePartsSession({ maintenanceLogId, currentCost, readOnly = fal
       <UsedPartsHistory query={usedQuery} />
     </div>
   );
+}
+
+function getQuantityError(quantity: string, availableStock: number | undefined): string | undefined {
+  if (!quantity) return "Ingresa una cantidad.";
+  const units = Number(quantity);
+  if (!Number.isSafeInteger(units) || units < 1) return "Ingresa un número entero mayor que 0.";
+  if (availableStock !== undefined && units > availableStock) return `El stock disponible es de ${availableStock}.`;
+  return undefined;
 }
 
 type PickerQueries = ReturnType<typeof useMaintenancePartOptions>;

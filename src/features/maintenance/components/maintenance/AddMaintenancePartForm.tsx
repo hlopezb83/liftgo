@@ -16,8 +16,10 @@ interface Props {
   availableParts: PartInventory[];
   selectedPart: PartInventory | null;
   setSelectedPart: (p: PartInventory | null) => void;
-  quantity: number;
-  setQuantity: (q: number) => void;
+  quantity: string;
+  setQuantity: (q: string) => void;
+  availableStock?: number;
+  quantityError?: string;
   loadingParts: boolean;
   onAdd: () => void;
   isAdding: boolean;
@@ -36,14 +38,15 @@ interface Props {
 
 export function AddMaintenancePartForm({
   open, setOpen, availableParts, selectedPart, setSelectedPart,
-  quantity, setQuantity, loadingParts, onAdd, isAdding,
+  quantity, setQuantity, availableStock, quantityError, loadingParts, onAdd, isAdding,
   search, onSearchChange, page, pageSize, totalCount, onPageChange, error, retrying, onRetry, canAdd, historicalUnitCost,
 }: Props) {
   const pickerId = useId();
   const quantityId = useId();
+  const quantityErrorId = `${quantityId}-error`;
   return (
     <div className="space-y-2">
-    <div className="flex flex-col gap-2 sm:flex-row sm:items-end">
+    <div className="grid gap-2 sm:grid-cols-[minmax(0,1fr)_5rem_auto] sm:items-end">
       <div className="min-w-0 flex-1 space-y-1">
         <Label htmlFor={pickerId} className="text-xs">Refacción</Label>
         <Popover open={open} onOpenChange={setOpen}>
@@ -105,15 +108,22 @@ export function AddMaintenancePartForm({
           disabled={isAdding}
           type="number"
           min={1}
-          // Sin refacción seleccionada (o stock 0) el tope es 0: el hint HTML
-          // nunca permite exceder el stock real (la validación vive en handleAddPart).
-          max={selectedPart?.stock_quantity ?? 0}
+          step={1}
+          max={availableStock}
           value={quantity}
-          onChange={(e) => setQuantity(parseInt(e.target.value) || 1)}
+          onChange={(e) => setQuantity(e.target.value)}
+          aria-invalid={!!quantityError || undefined}
+          aria-describedby={quantityError ? quantityErrorId : undefined}
+          className={quantityError ? "border-destructive focus-visible:ring-destructive" : undefined}
         />
       </div>
 
-      <Button size="sm" onClick={onAdd} disabled={!selectedPart || !canAdd || isAdding}>
+      {quantityError && (
+        <p id={quantityErrorId} role="alert" className="text-xs text-destructive sm:col-span-full sm:row-start-2">
+          {quantityError}
+        </p>
+      )}
+      <Button size="sm" onClick={onAdd} disabled={!selectedPart || !canAdd || isAdding} className="sm:col-start-3 sm:row-start-1">
         <AddIcon className="h-4 w-4 mr-1" />
         Agregar
       </Button>

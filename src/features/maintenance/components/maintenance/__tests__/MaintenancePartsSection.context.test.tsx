@@ -13,6 +13,7 @@ const m = vi.hoisted(() => ({
       unit_cost: 100,
     },
   ],
+  selectedStock: undefined as number | undefined,
   mutate: vi.fn(),
   error: false,
   refetch: vi.fn(),
@@ -20,11 +21,14 @@ const m = vi.hoisted(() => ({
 vi.mock("@/lib/query/useVerifiedIdentityScope", () => ({ useVerifiedIdentityScope: () => "org-a:user" }));
 vi.mock("../../../hooks/maintenance/useMaintenancePartOptions", () => ({
   MAINTENANCE_PART_PAGE_SIZE: 25,
-  useMaintenancePartOptions: ({ selectedId }: { selectedId: string | null }) => ({
-    pageQuery: { data: { items: m.parts, totalCount: m.parts.length, pageIndex: 0 }, isSuccess: true, isFetching: false, isError: false },
-    selectedQuery: { data: m.parts.find(part => part.id === selectedId) ?? null, isSuccess: true, isFetching: false, isError: false },
-    contextError: false,
-  }),
+  useMaintenancePartOptions: ({ selectedId }: { selectedId: string | null }) => {
+    const part = m.parts.find(part => part.id === selectedId);
+    return {
+      pageQuery: { data: { items: m.parts, totalCount: m.parts.length, pageIndex: 0 }, isSuccess: true, isFetching: false, isError: false },
+      selectedQuery: { data: part ? { ...part, stock_quantity: m.selectedStock ?? part.stock_quantity } : null, isSuccess: true, isFetching: false, isError: false },
+      contextError: false,
+    };
+  },
 }));
 vi.mock("@/features/inventory", () => ({
   useMaintenanceParts: () => ({ data: [], isLoading: false, isError: m.error, refetch: m.refetch }),
@@ -41,7 +45,11 @@ vi.mock(
         <button onClick={() => p.setSelectedPart(p.availableParts[0])}>
           Elegir refacción
         </button>
-        <button onClick={() => p.setQuantity(5)}>Cantidad 5</button>
+        <label>
+          Cantidad
+          <input value={p.quantity} onChange={(event) => p.setQuantity(event.target.value)} />
+        </label>
+        {p.quantityError && <p role="alert">{p.quantityError}</p>}
         <button onClick={p.onAdd}>Agregar</button>
         <output>Cantidad seleccionada: {p.quantity}</output>
         <output>
@@ -52,13 +60,13 @@ vi.mock(
     ),
   }),
 );
-beforeEach(() => { m.error = false; m.mutate.mockClear(); m.refetch.mockClear(); });
+beforeEach(() => { m.error = false; m.selectedStock = undefined; m.mutate.mockClear(); m.refetch.mockClear(); });
 it("uses current inventory to validate stock and price after refresh", () => {
   const r = render(
     <MaintenancePartsSection maintenanceLogId="ot-a" currentCost={0} />,
   );
   fireEvent.click(screen.getByText("Elegir refacción"));
-  fireEvent.click(screen.getByText("Cantidad 5"));
+  fireEvent.change(screen.getByLabelText("Cantidad"), { target: { value: "5" } });
   m.parts = [{ ...m.parts[0], stock_quantity: 2, unit_cost: 150 }];
   r.rerender(
     <MaintenancePartsSection maintenanceLogId="ot-a" currentCost={0} />,
@@ -115,7 +123,7 @@ it("retries failed consumption reads without declaring empty or discarding the c
   m.parts = [{ ...m.parts[0], stock_quantity: 8 }];
   const view = render(<MaintenancePartsSection maintenanceLogId="ot-a" currentCost={0} />);
   fireEvent.click(screen.getByText("Elegir refacción"));
-  fireEvent.click(screen.getByText("Cantidad 5"));
+  fireEvent.change(screen.getByLabelText("Cantidad"), { target: { value: "5" } });
   m.error = true;
   view.rerender(<MaintenancePartsSection maintenanceLogId="ot-a" currentCost={0} />);
   expect(screen.getByText("No se pudo cargar las refacciones utilizadas")).toBeInTheDocument();
@@ -129,4 +137,31 @@ it("retries failed consumption reads without declaring empty or discarding the c
   expect(screen.getByText("Cantidad seleccionada: 5")).toBeInTheDocument();
   fireEvent.click(screen.getByRole("button", { name: "Agregar" }));
   expect(m.mutate.mock.calls[0][0]).toMatchObject({ part_id: "part-a", quantity_used: 5 });
+});
+
+it("keeps invalid quantity text and only submits whole units within confirmed stock", () => {
+  m.parts = [{ ...m.parts[0], stock_quantity: 8 }];
+  m.selectedStock = 3;
+  render(<MaintenancePartsSection maintenanceLogId="ot-a" currentCost={0} />);
+  fireEvent.click(screen.getByText("Elegir refacción"));
+  const input = screen.getByLabelText("Cantidad");
+  const add = screen.getByRole("button", { name: "Agregar" });
+  for (const [draft, error] of [
+    ["", "Ingresa una cantidad."],
+    ["0", "Ingresa un número entero mayor que 0."],
+    ["1.5", "Ingresa un número entero mayor que 0."],
+    ["4", "El stock disponible es de 3."],
+  ]) {
+    fireEvent.change(input, { target: { value: draft } });
+    expect(input).toHaveValue(draft);
+    expect(screen.getByRole("alert")).toHaveTextContent(error);
+    fireEvent.click(add);
+  }
+  expect(m.mutate).not.toHaveBeenCalled();
+
+  fireEvent.change(input, { target: { value: "3" } });
+  expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+  fireEvent.click(add);
+  expect(m.mutate).toHaveBeenCalledOnce();
+  expect(m.mutate.mock.calls[0][0]).toMatchObject({ part_id: "part-a", quantity_used: 3 });
 });

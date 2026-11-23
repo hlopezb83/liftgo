@@ -143,12 +143,13 @@ function SatValidationActions({ onlyPending, setOnlyPending, batchCount, canRun,
           Sólo sin validar
         </Button>
         <Button variant={onlyPending ? "ghost" : "secondary"} size="sm" aria-pressed={!onlyPending} onClick={() => setOnlyPending(false)}>
-          Toda la cartera
+          Cartera con RFC
         </Button>
       </div>
       <Button size="sm" onClick={onRun} disabled={!canRun}>
-        {isPending ? "Validando…" : `Validar ${onlyPending ? "pendientes" : "cartera"} (${batchCount})`}
+        {isPending ? "Validando…" : batchCount > 0 ? `Validar lote de ${batchCount}` : "Validar lote"}
       </Button>
+      <p className="text-sm text-muted-foreground">Hasta {VALIDATION_BATCH_LIMIT} clientes por ejecución</p>
     </div>
   );
 }
