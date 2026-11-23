@@ -11,7 +11,7 @@ import {
   type DragStartEvent,
 } from "@dnd-kit/core";
 import { sortableKeyboardCoordinates } from "@dnd-kit/sortable";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { MaintenanceIcon, ClockIcon, WaitingPartsIcon, SuccessIcon } from "@/components/icons";
 import { MAINTENANCE_WORK_STATUSES, MAINTENANCE_WORK_STATUS_LABELS } from "@/lib/constants";
 import { useMaintenanceKanban } from "../../hooks/maintenance/useMaintenanceKanban";
@@ -39,6 +39,7 @@ interface Props {
 
 export function MaintenanceKanban({ logs, archived = false, canWrite }: Props) {
   const [selectedLog, setSelectedLog] = useState<(MaintenanceLog & { forklift_name: string }) | null>(null);
+  const detailTriggerRef = useRef<HTMLButtonElement>(null);
   const [activeId, setActiveId] = useState<string | null>(null);
   const { onDragEnd, pendingCloseId, clearPendingClose } = useMaintenanceKanban(archived, canWrite);
   const closeCandidate = pendingCloseId ? logs.find((l) => l.id === pendingCloseId) ?? null : null;
@@ -97,20 +98,34 @@ export function MaintenanceKanban({ logs, archived = false, canWrite }: Props) {
               border={col.border}
               items={col.items}
               canWrite={canWrite}
-              onSelectLog={setSelectedLog}
+              onSelectLog={(log, trigger) => {
+                detailTriggerRef.current = trigger;
+                setSelectedLog(log);
+              }}
             />
           ))}
         </div>
         <DragOverlay dropAnimation={null}>
           {activeLog ? (
             <div className="shadow-lg rotate-1">
-              <MaintenanceKanbanCard log={activeLog} isDragging draggable onSelect={() => {}} />
+              <MaintenanceKanbanCard log={activeLog} isDragging />
             </div>
           ) : null}
         </DragOverlay>
       </DndContext>
 
-      <MaintenanceDetailSheet log={currentLog} canWrite={canWrite} onClose={() => setSelectedLog(null)} />
+      <MaintenanceDetailSheet
+        log={currentLog}
+        canWrite={canWrite}
+        onClose={() => setSelectedLog(null)}
+        onCloseAutoFocus={(event) => {
+          const trigger = detailTriggerRef.current;
+          if (trigger?.isConnected) {
+            event.preventDefault();
+            trigger.focus();
+          }
+        }}
+      />
 
       <CloseWorkOrderDialog
         open={!!pendingCloseLog}

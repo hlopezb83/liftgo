@@ -16,7 +16,7 @@ interface Props {
   border: string;
   items: (MaintenanceLog & { forklift_name: string })[];
   canWrite: boolean;
-  onSelectLog: (log: MaintenanceLog & { forklift_name: string }) => void;
+  onSelectLog: (log: MaintenanceLog & { forklift_name: string }, trigger: HTMLButtonElement) => void;
 }
 
 export function MaintenanceKanbanColumn({ id, label, icon: Icon, color, bg, border, items, canWrite, onSelectLog }: Props) {
@@ -52,7 +52,7 @@ export function MaintenanceKanbanColumn({ id, label, icon: Icon, color, bg, bord
               log={log}
               status={id}
               canWrite={canWrite}
-              onSelect={() => onSelectLog(log)}
+              onSelect={(trigger) => onSelectLog(log, trigger)}
             />
           ))}
         </SortableContext>
@@ -69,11 +69,11 @@ function SortableMaintenanceItem({
 }: {
   log: MaintenanceLog & { forklift_name: string };
   status: string;
-  onSelect: () => void;
+  onSelect: (trigger: HTMLButtonElement) => void;
   canWrite: boolean;
 }) {
   const canDrag = canModifyMaintenance(log, canWrite);
-  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
+  const { attributes, listeners, setNodeRef, setActivatorNodeRef, transform, transition, isDragging } = useSortable({
     id: log.id,
     data: { type: "card", status },
     disabled: { draggable: !canDrag, droppable: !canWrite },
@@ -89,21 +89,14 @@ function SortableMaintenanceItem({
     <div
       ref={setNodeRef}
       style={style}
-      {...(canDrag ? attributes : {})}
-      {...(canDrag ? listeners : {})}
-      role="button"
-      tabIndex={canDrag ? attributes.tabIndex : 0}
-      onKeyDown={(event) => {
-        if (canDrag) {
-          listeners?.onKeyDown?.(event);
-        } else if (event.key === "Enter" || event.key === " ") {
-          event.preventDefault();
-          onSelect();
-        }
-      }}
       data-testid={`maintenance-kanban-card-${log.id}`}
     >
-      <MaintenanceKanbanCard log={log} isDragging={isDragging} draggable={canDrag} onSelect={onSelect} />
+      <MaintenanceKanbanCard
+        log={log}
+        isDragging={isDragging}
+        onSelect={onSelect}
+        dragHandle={canDrag ? { ref: setActivatorNodeRef, ...attributes, ...listeners } : undefined}
+      />
     </div>
   );
 }

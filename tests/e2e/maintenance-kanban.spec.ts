@@ -9,13 +9,10 @@ import { TIMEOUTS } from "./fixtures/helpers";
  * /maintenance y verifica que:
  *   1. La tarjeta aparece en la columna "pending" (selector por data-testid
  *      estable, no por texto en español).
- *   2. Al hacer click sobre la tarjeta se abre el panel lateral de detalle.
+ *   2. Enter en el botón de apertura abre el detalle y Escape devuelve el foco.
  *
- * No probamos el drag-and-drop entre columnas: react-beautiful-dnd /
- * @hello-pangea/dnd requiere coordenadas reales del pointer en cada frame y
- * suele ser inestable en Playwright headless. Para validar la transición de
- * estado conviene un test de hook (`useMaintenanceKanban`) ya cubierto en
- * Vitest.
+ * Las transiciones entre columnas se verifican en los tests de
+ * `useMaintenanceKanban`.
  */
 test("seeded maintenance work order appears in pending column", async ({ page, seed }) => {
   page.on("pageerror", (e) => console.log("[pageerror]", e.message));
@@ -40,8 +37,13 @@ test("seeded maintenance work order appears in pending column", async ({ page, s
   // La tarjeta sembrada debe estar DENTRO de la columna pending, no en otra.
   await expect(pendingColumn.getByTestId(`maintenance-kanban-card-${seed.maintenance_log_id}`)).toBeVisible();
 
-  await seededCard.click();
+  const opener = seededCard.getByRole("button", { name: /abrir orden de mantenimiento/i });
+  await expect(seededCard.getByRole("button", { name: /mover orden de mantenimiento/i })).toBeVisible();
+  await opener.focus();
+  await opener.press("Enter");
   // El sheet de detalle usa role=dialog. No asertamos copy específico para no
   // acoplar al texto de la UI.
   await expect(page.getByRole("dialog")).toBeVisible({ timeout: TIMEOUTS.short });
+  await page.keyboard.press("Escape");
+  await expect(opener).toBeFocused();
 });
