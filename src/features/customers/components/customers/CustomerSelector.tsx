@@ -67,12 +67,15 @@ function useSelectedCustomer(
   initialItems: CustomerSelectorOption[],
   searchQuery: ReturnType<typeof useCustomerSelectorSearch>,
   customerId: string,
+  lastSelection: CustomerSelectorOption | undefined,
 ): CustomerSelectorOption | undefined {
   const selectedFromList = initialItems.find((customer) => customer.id === customerId);
   const selectedFromSearch = searchQuery.data?.customers.find((customer) => customer.id === customerId);
   const selectedInMemory = selectedFromList ?? selectedFromSearch;
   const selectedQuery = useCustomer(selectedInMemory ? undefined : customerId || undefined);
-  return selectedInMemory ?? selectedQuery.data ?? undefined;
+  const selectedDetail = selectedQuery.data?.id === customerId ? selectedQuery.data : undefined;
+  const fallback = lastSelection?.id === customerId ? lastSelection : undefined;
+  return selectedInMemory ?? selectedDetail ?? fallback;
 }
 
 function getCustomerListStatus(customers: CustomerSelectorOption[] | undefined, query?: CustomerListQuery): CustomerListStatus {
@@ -105,10 +108,12 @@ export function CustomerSelector({
   bare,
 }: CustomerSelectorProps) {
   const search = useSelectorSearchState(customers);
-  const selected = useSelectedCustomer(search.initialItems, search.searchQuery, customerId);
+  const [lastSelection, setLastSelection] = useState<CustomerSelectorOption>();
+  const selected = useSelectedCustomer(search.initialItems, search.searchQuery, customerId, lastSelection);
   const listStatus = getCustomerListStatus(customers, customerListQuery);
 
   const handleSelect = (customer: CustomerSelectorOption) => {
+    setLastSelection({ id: customer.id, name: customer.name, company: customer.company });
     if (onCustomerSelect) onCustomerSelect(customer);
     else onCustomerIdChange(customer.id);
     onCustomerNameChange(customer.name);
@@ -118,6 +123,7 @@ export function CustomerSelector({
 
   const handleClear = (e: React.MouseEvent) => {
     e.stopPropagation();
+    setLastSelection(undefined);
     onCustomerIdChange("");
     onCustomerNameChange("");
     onCustomerContactChange?.("");

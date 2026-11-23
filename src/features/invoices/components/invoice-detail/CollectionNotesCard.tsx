@@ -1,4 +1,4 @@
-import { useId, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import { QueryErrorState } from "@/components/feedback/QueryErrorState";
 import { DatePickerField } from "@/components/forms/DatePickerField";
 import { PhoneCall, AddIcon, CalendarIcon } from "@/components/icons";
@@ -16,6 +16,10 @@ interface CollectionNotesCardProps {
 }
 
 export function CollectionNotesCard({ invoiceId }: CollectionNotesCardProps) {
+  return <CollectionNotesContent key={invoiceId} invoiceId={invoiceId} />;
+}
+
+function CollectionNotesContent({ invoiceId }: CollectionNotesCardProps) {
   const noteInputId = useId();
   const canWrite = useHasModuleAccess("Facturas", "full");
   const query = useCollectionNotes(invoiceId);
@@ -25,12 +29,28 @@ export function CollectionNotesCard({ invoiceId }: CollectionNotesCardProps) {
   const [noteText, setNoteText] = useState("");
   const [followupDate, setFollowupDate] = useState<Date | undefined>(undefined);
   const hasDraft = Boolean(noteText || followupDate);
+  const noteRef = useRef<HTMLTextAreaElement>(null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  const restoreTriggerFocus = useRef(false);
+
+  useEffect(() => {
+    if (showForm) noteRef.current?.focus();
+    else if (restoreTriggerFocus.current) {
+      restoreTriggerFocus.current = false;
+      triggerRef.current?.focus();
+    }
+  }, [showForm]);
+
+  const closeDraft = () => {
+    restoreTriggerFocus.current = true;
+    setShowForm(false);
+  };
 
   const handleSubmit = () => {
     if (!canWrite || createNote.isPending || !noteText.trim()) return;
     createNote.mutate(
       { invoice_id: invoiceId, note: noteText.trim(), next_followup_date: toYMD(followupDate) ?? null },
-      { onSuccess: () => { setNoteText(""); setFollowupDate(undefined); setShowForm(false); } }
+      { onSuccess: () => { setNoteText(""); setFollowupDate(undefined); closeDraft(); } }
     );
   };
 
@@ -41,7 +61,7 @@ export function CollectionNotesCard({ invoiceId }: CollectionNotesCardProps) {
           <CardTitle className="text-base flex items-center gap-2">
             <PhoneCall className="h-4 w-4" /> Gestiones de Cobranza
           </CardTitle>
-          {canWrite && !showForm && <Button variant="outline" size="sm" onClick={() => setShowForm(true)}>
+          {canWrite && !showForm && <Button ref={triggerRef} variant="outline" size="sm" onClick={() => setShowForm(true)}>
             <AddIcon className="h-4 w-4 mr-1" />
             {hasDraft ? "Continuar borrador" : "Nueva Gestión"}
           </Button>}
@@ -53,6 +73,7 @@ export function CollectionNotesCard({ invoiceId }: CollectionNotesCardProps) {
             <div className="space-y-1.5">
               <Label htmlFor={noteInputId}>Nota de seguimiento</Label>
               <Textarea
+                ref={noteRef}
                 id={noteInputId}
                 placeholder="Ej: Se habló con el contacto, prometió pago para el viernes…"
                 value={noteText}
@@ -69,7 +90,7 @@ export function CollectionNotesCard({ invoiceId }: CollectionNotesCardProps) {
               <Button size="sm" onClick={handleSubmit} disabled={createNote.isPending || !noteText.trim()}>
                 Guardar
               </Button>
-              <Button size="sm" variant="ghost" onClick={() => setShowForm(false)}>Cerrar borrador</Button>
+              <Button size="sm" variant="ghost" onClick={closeDraft}>Cerrar borrador</Button>
             </div>
           </div>
         )}

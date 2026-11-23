@@ -26,7 +26,13 @@ export interface ValidateSupplierRepInput {
   force?: boolean;
 }
 
-export const MAX_BASE64_CHARS = Math.ceil(MAX_FILE_BYTES * 4 / 3);
+export const MAX_BASE64_CHARS = Math.ceil(MAX_FILE_BYTES / 3) * 4;
+
+function exceedsRepSize(base64: string): boolean {
+  if (base64.length > MAX_BASE64_CHARS) return true;
+  const padding = base64.endsWith("==") ? 2 : Number(base64.endsWith("="));
+  return Math.floor((base64.length - padding) * 3 / 4) > MAX_FILE_BYTES;
+}
 
 export function validateRepInput(
   g: RepGuards,
@@ -39,10 +45,10 @@ export function validateRepInput(
   if (!xml_base64 || typeof xml_base64 !== "string") {
     throw new g.HttpError(400, "xml_base64 es obligatorio");
   }
-  if (xml_base64.length > MAX_BASE64_CHARS) {
+  if (exceedsRepSize(xml_base64)) {
     throw new g.HttpError(413, "El XML excede el tamaño máximo permitido (5MB)");
   }
-  if (typeof pdf_base64 === "string" && pdf_base64.length > MAX_BASE64_CHARS) {
+  if (typeof pdf_base64 === "string" && exceedsRepSize(pdf_base64)) {
     throw new g.HttpError(413, "El PDF excede el tamaño máximo permitido (5MB)");
   }
 }

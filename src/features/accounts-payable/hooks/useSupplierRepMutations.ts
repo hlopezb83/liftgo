@@ -1,6 +1,7 @@
 import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
 import { callRpc } from "@/lib/rpc";
 import { validateSupplierRepFn } from "@/lib/supplierRep.functions";
+import { notifySuccess, notifyWarning } from "@/lib/ui/appFeedback";
 import { supplierBillKeys } from "./useSupplierBills";
 
 const invalidationKeys = (billId?: string | null) => {
@@ -34,7 +35,13 @@ export function useUploadSupplierRep() {
       });
     },
     invalidateKeysFn: (_d, vars) => invalidationKeys(vars.billId ?? null),
-    successMsg: "REP recibido y validado",
+    onSuccess: (result, { pdfFile }) => {
+      if (pdfFile && !result.pdf_url) {
+        notifyWarning("XML del REP validado", { description: "No se pudo guardar el PDF adjunto." });
+        return;
+      }
+      notifySuccess("REP recibido y validado", pdfFile ? { description: "El PDF adjunto quedó guardado." } : undefined);
+    },
     errorTitle: "No se pudo validar el REP",
   });
 }

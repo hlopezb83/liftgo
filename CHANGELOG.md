@@ -1,3 +1,11 @@
+## [8.53.54] - 2026-11-23
+
+- Los borradores de Cobranza se reinician al cambiar de factura para evitar que una nota termine en el documento equivocado.
+- Al abrir una gestión de Cobranza, el teclado pasa a la nota. Al cerrar, vuelve al botón de la gestión.
+- Al cargar un REP, se avisa si el XML quedó validado y el PDF adjunto no pudo guardarse.
+- El formulario del REP muestra y valida el límite de 5 MB por archivo antes de enviar.
+- El selector de clientes conserva el nombre seleccionado mientras carga su ficha.
+
 ## [8.53.53] - 2026-11-23
 
 - La aprobación de reportes de pago devuelve el foco a la fila y exige abrir de nuevo la confirmación si se invalida.
