@@ -15,16 +15,17 @@ import type { MaintenanceLog } from "../../../hooks/maintenance/useMaintenanceLo
 interface Props {
   log: (MaintenanceLog & { forklift_name: string }) | null;
   onClose: () => void;
+  onCloseAutoFocus?: (event: Event) => void;
   canWrite: boolean;
 }
 
-export function MaintenanceDetailSheet({ log, onClose, canWrite }: Props) {
+export function MaintenanceDetailSheet({ log, onClose, onCloseAutoFocus, canWrite }: Props) {
   const readOnly = !canModifyMaintenance(log, canWrite);
   const laborDraft = useLaborDraftGuard(log?.id, !!log);
   return (
     <>
     <Sheet open={!!log} onOpenChange={(open) => !open && laborDraft.requestLeave(onClose)}>
-      <SheetContent className="sm:max-w-md overflow-y-auto">
+      <SheetContent className="sm:max-w-md overflow-y-auto" onCloseAutoFocus={onCloseAutoFocus}>
         {log && (
           <>
             <SheetHeader>

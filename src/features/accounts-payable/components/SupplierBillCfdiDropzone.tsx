@@ -1,3 +1,4 @@
+import { useId, useState } from "react";
 import { useDropzone } from "react-dropzone";
 import { FileUp, SpinnerIcon, SuccessIcon, InfoAlertIcon, X } from "@/components/icons";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -22,10 +23,24 @@ interface Props {
  * y validación de tipo con `accept`. El pipeline visual se conserva 1:1.
  */
 export function SupplierBillCfdiDropzone({ busy, error, result, onFile, onClear }: Props) {
+  const errorId = useId();
+  const [dropError, setDropError] = useState<string | null>(null);
+  const visibleError = dropError ?? error;
   const { getRootProps, getInputProps, isDragActive, isDragReject } = useDropzone({
-    onDropAccepted: (files) => {
+    onDrop: (files, rejections) => {
+      if (files.length + rejections.length > 1) {
+        setDropError("Selecciona un solo archivo XML por intento.");
+        return;
+      }
+      if (rejections.length > 0) {
+        setDropError("El archivo seleccionado debe estar en formato XML.");
+        return;
+      }
       const file = files[0];
-      if (file) onFile(file);
+      if (file) {
+        setDropError(null);
+        onFile(file);
+      }
     },
     accept: {
       "application/xml": [".xml"],
@@ -61,6 +76,10 @@ export function SupplierBillCfdiDropzone({ busy, error, result, onFile, onClear 
     <div className="space-y-2">
       <div
         {...getRootProps({
+          role: "button",
+          "aria-label": "Zona para importar CFDI XML",
+          "aria-describedby": visibleError ? errorId : undefined,
+          "aria-disabled": busy,
           className: cn(
             "w-full rounded-md border-2 border-dashed px-4 py-3 transition-colors flex items-center justify-center gap-2 outline-none focus-visible:ring-2 focus-visible:ring-primary",
             isDragReject
@@ -71,7 +90,6 @@ export function SupplierBillCfdiDropzone({ busy, error, result, onFile, onClear 
             busy ? "opacity-60 cursor-wait" : "cursor-pointer",
           ),
         })}
-        aria-label="Zona para importar CFDI XML"
       >
         <input {...getInputProps()} />
         {busy ? (
@@ -83,17 +101,17 @@ export function SupplierBillCfdiDropzone({ busy, error, result, onFile, onClear 
           {busy
             ? "Procesando XML…"
             : isDragReject
-              ? "Formato no válido — solo XML"
+              ? "Solo se admite un archivo XML"
               : isDragActive
                 ? "Suelta el XML aquí"
                 : "Arrastra un XML CFDI o haz clic para autocompletar (opcional)"}
         </span>
       </div>
-      {error && (
+      {visibleError && (
         <Alert variant="destructive">
           <InfoAlertIcon className="h-4 w-4" />
           <AlertTitle>No se pudo importar</AlertTitle>
-          <AlertDescription>{error}</AlertDescription>
+          <AlertDescription id={errorId}>{visibleError}</AlertDescription>
         </Alert>
       )}
     </div>

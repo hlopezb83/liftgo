@@ -118,7 +118,7 @@ function MaintenancePartsSession({ maintenanceLogId, currentCost, readOnly = fal
 function getQuantityError(quantity: string, availableStock: number | undefined): string | undefined {
   if (!quantity) return "Ingresa una cantidad.";
   const units = Number(quantity);
-  if (!Number.isSafeInteger(units) || units < 1) return "Ingresa un número entero mayor que 0.";
+  if (!/^\d+$/.test(quantity) || !Number.isSafeInteger(units) || units < 1) return "Ingresa un número entero mayor que 0.";
   if (availableStock !== undefined && units > availableStock) return `El stock disponible es de ${availableStock}.`;
   return undefined;
 }

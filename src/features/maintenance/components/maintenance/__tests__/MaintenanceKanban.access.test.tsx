@@ -18,7 +18,7 @@ vi.mock("@dnd-kit/sortable", () => ({
     return {
       attributes: { role: "button", tabIndex: 0 },
       listeners: { onPointerDown: mocks.pointer, onKeyDown: mocks.keyboard },
-      setNodeRef: vi.fn(), transform: null, transition: undefined, isDragging: false,
+      setNodeRef: vi.fn(), setActivatorNodeRef: vi.fn(), transform: null, transition: undefined, isDragging: false,
     };
   },
 }));
@@ -65,21 +65,39 @@ describe("Tablero mantenimiento · consulta y orden terminal", () => {
     expect(screen.getByText("Mano de Obra")).toBeInTheDocument();
   });
 
-  it.each([[false, "pending"], [true, "completed"]])("no arrastra canWrite=%s, estado=%s pero permite consultar con teclado", (canWrite, work_status) => {
+  it.each([[false, "pending"], [true, "completed"]])("ofrece consulta sin control de arrastre con canWrite=%s, estado=%s", (canWrite, work_status) => {
     const onSelect = vi.fn();
     render(<MaintenanceKanbanColumn id="pending" label="Pendiente" icon={() => null} color="" bg="" border="" items={[{ ...log, work_status }]} canWrite={canWrite} onSelectLog={onSelect} />);
-    const card = screen.getByTestId("maintenance-kanban-card-log-1");
-    fireEvent.pointerDown(card);
+    const open = screen.getByRole("button", { name: /abrir orden de mantenimiento/i });
+    expect(open.tagName).toBe("BUTTON");
+    expect(screen.queryByRole("button", { name: /mover orden de mantenimiento/i })).not.toBeInTheDocument();
+    fireEvent.pointerDown(open);
     expect(mocks.pointer).not.toHaveBeenCalled();
-    fireEvent.keyDown(card, { key: "Enter" });
-    expect(onSelect).toHaveBeenCalledOnce();
+    fireEvent.click(open);
+    expect(onSelect).toHaveBeenCalledWith(expect.objectContaining({ id: log.id }), open);
     expect(mocks.sortable).toHaveBeenCalledWith(expect.objectContaining({ disabled: { draggable: true, droppable: !canWrite } }));
   });
 
-  it("conserva arrastre para una orden abierta y permiso full", () => {
-    render(<MaintenanceKanbanColumn id="pending" label="Pendiente" icon={() => null} color="" bg="" border="" items={[log]} canWrite onSelectLog={vi.fn()} />);
-    fireEvent.pointerDown(screen.getByTestId("maintenance-kanban-card-log-1"));
+  it("separa la apertura del arrastre por puntero y teclado en órdenes editables", () => {
+    const onSelect = vi.fn();
+    render(<MaintenanceKanbanColumn id="pending" label="Pendiente" icon={() => null} color="" bg="" border="" items={[log]} canWrite onSelectLog={onSelect} />);
+    const open = screen.getByRole("button", { name: /abrir orden de mantenimiento/i });
+    const drag = screen.getByRole("button", { name: /mover orden de mantenimiento/i });
+
+    fireEvent.pointerDown(open);
+    fireEvent.keyDown(open, { key: "Enter" });
+    expect(mocks.pointer).not.toHaveBeenCalled();
+    expect(mocks.keyboard).not.toHaveBeenCalled();
+
+    fireEvent.pointerDown(drag);
+    fireEvent.keyDown(drag, { key: " " });
+    fireEvent.click(drag);
     expect(mocks.pointer).toHaveBeenCalledOnce();
+    expect(mocks.keyboard).toHaveBeenCalledOnce();
+    expect(onSelect).not.toHaveBeenCalled();
+
+    fireEvent.click(open);
+    expect(onSelect).toHaveBeenCalledWith(log, open);
     expect(mocks.sortable).toHaveBeenCalledWith(expect.objectContaining({ disabled: { draggable: false, droppable: false } }));
   });
 });

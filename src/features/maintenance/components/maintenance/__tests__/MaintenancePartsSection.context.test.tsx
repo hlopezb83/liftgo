@@ -150,6 +150,8 @@ it("keeps invalid quantity text and only submits whole units within confirmed st
     ["", "Ingresa una cantidad."],
     ["0", "Ingresa un número entero mayor que 0."],
     ["1.5", "Ingresa un número entero mayor que 0."],
+    ["1.0000000000000001", "Ingresa un número entero mayor que 0."],
+    ["1e1", "Ingresa un número entero mayor que 0."],
     ["4", "El stock disponible es de 3."],
   ]) {
     fireEvent.change(input, { target: { value: draft } });
