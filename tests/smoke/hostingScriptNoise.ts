@@ -11,6 +11,9 @@ const HOSTING_SCRIPT_URLS = new Set([
   // Verified 2026-10-31: served from the published origin, byte-identical to 59f10ad6d72ea62d
   // (29,187 bytes, SHA256 9005204863a3d003ce0c18bbbe50df0f4d246587e4d19a0d18de980479c61238).
   `${PUBLISHED_APP_ORIGIN}/__l5e/events.270c78a44fc53e7b.js`,
+  // Verified 2026-11-23: Lovable serves byte-identical analytics at this URL
+  // and the two preceding /__l5e/ hashes (SHA256 89368bc12cf7846d9e34c710f6c03e0736fb677b26f07d879a75aea1b05d569c).
+  `${PUBLISHED_APP_ORIGIN}/__l5e/events.9f6b1a5f4b7ae01b.js`,
 ]);
 
 /** Exact URLs only; fragments never travel to the server. No other rewriting. */
