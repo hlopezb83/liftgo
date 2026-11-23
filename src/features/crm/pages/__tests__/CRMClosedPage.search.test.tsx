@@ -23,16 +23,18 @@ beforeEach(() => { state.empty = false; state.loading = false; state.error = fal
 afterEach(cleanup);
 
 describe("CRMClosedPage: resultados de búsqueda", () => {
-  it.each(["Ganados", "Perdidos"])("limpia una búsqueda sin coincidencias en %s y conserva los conteos globales", (tab) => {
+  it.each(["Ganados", "Perdidos"])("muestra coincidencias en %s y restaura los totales al limpiar la búsqueda", (tab) => {
     render(<CRMClosedPage />, { wrapper: createQueryWrapper().Wrapper });
     fireEvent.mouseDown(screen.getByRole("tab", { name: `${tab} (1)` }), { button: 0, ctrlKey: false });
     fireEvent.change(screen.getByPlaceholderText("Buscar empresa o contacto…"), { target: { value: "No coincide" } });
     expect(screen.getByText("No hay prospectos que coincidan con la búsqueda")).toBeInTheDocument();
     expect(screen.queryByText("Aún no hay registros aquí.")).not.toBeInTheDocument();
-    expect(screen.getByRole("tab", { name: "Ganados (1)" })).toBeInTheDocument();
-    expect(screen.getByRole("tab", { name: "Perdidos (1)" })).toBeInTheDocument();
+    expect(screen.getByRole("tab", { name: "Ganados (0 de 1)" })).toBeInTheDocument();
+    expect(screen.getByRole("tab", { name: "Perdidos (0 de 1)" })).toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "Limpiar búsqueda" }));
     expect(screen.getByPlaceholderText("Buscar empresa o contacto…")).toHaveValue("");
+    expect(screen.getByRole("tab", { name: "Ganados (1)" })).toBeInTheDocument();
+    expect(screen.getByRole("tab", { name: "Perdidos (1)" })).toBeInTheDocument();
     expect(screen.getByText(tab === "Ganados" ? "Empresa ganada" : "Empresa perdida")).toBeInTheDocument();
   });
 
