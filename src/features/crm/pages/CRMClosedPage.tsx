@@ -11,19 +11,25 @@ import { formatCurrency } from "@/lib/format/formatCurrency";
 import { ClosedTable } from "../components/closed/ClosedTable";
 import { useClosedProspects } from "../hooks/useClosedProspects";
 
+function closedTabLabel(label: string, filtered: number, total: number, searching: boolean): string {
+  return searching ? label + " (" + filtered + " de " + total + ")" : label + " (" + total + ")";
+}
+
 export default function CRMClosedPage() {
   const s = useClosedProspects();
   const navigate = useNavigateTransition();
   const handleViewCustomer = (id: string) => navigate(`/customers/${id}`);
   // R18-C1: sólo roles con acceso full a Clientes ven "Convertir".
   const canConvert = useHasModuleAccess("Clientes", "full");
+  const searching = !!s.search.trim();
+  const metricsSummary = `Cierres ganados (30 días): ${s.metrics.winRate30d}% · Ganados este mes: ${s.metrics.wonCountMTD} (${formatCurrency(s.metrics.wonTotalMTD)}) · Perdidos este mes: ${s.metrics.lostCountMTD}`;
 
   return (
     <PageTransition>
       <PageContainer>
         <PageHeader
           title="Historial de prospectos cerrados"
-          subtitle={`Cierres ganados (30 días): ${s.metrics.winRate30d}% · Ganados este mes: ${s.metrics.wonCountMTD} (${formatCurrency(s.metrics.wonTotalMTD)}) · Perdidos este mes: ${s.metrics.lostCountMTD}`}
+          subtitle={s.isError ? undefined : s.isLoading ? "Cargando indicadores…" : metricsSummary}
           backHref="/crm"
           backLabel="Etapas de venta"
           actions={
@@ -45,14 +51,14 @@ export default function CRMClosedPage() {
         ) : (
           <Tabs defaultValue="won">
             <TabsList>
-              <TabsTrigger value="won">Ganados ({s.metrics.won.length})</TabsTrigger>
-              <TabsTrigger value="lost">Perdidos ({s.metrics.lost.length})</TabsTrigger>
+              <TabsTrigger value="won">{s.isLoading ? "Ganados" : closedTabLabel("Ganados", s.wonRows.length, s.metrics.won.length, searching)}</TabsTrigger>
+              <TabsTrigger value="lost">{s.isLoading ? "Perdidos" : closedTabLabel("Perdidos", s.lostRows.length, s.metrics.lost.length, searching)}</TabsTrigger>
             </TabsList>
             <TabsContent value="won" className="mt-4">
-              <ClosedTable rows={s.wonRows} kind="won" isLoading={s.isLoading} hasActiveSearch={Boolean(s.search.trim())} onClearSearch={() => s.setSearch("")} onConvert={canConvert ? s.handleConvert : undefined} onViewCustomer={handleViewCustomer} />
+              <ClosedTable rows={s.wonRows} kind="won" isLoading={s.isLoading} hasActiveSearch={searching} onClearSearch={() => s.setSearch("")} onConvert={canConvert ? s.handleConvert : undefined} onViewCustomer={handleViewCustomer} />
             </TabsContent>
             <TabsContent value="lost" className="mt-4">
-              <ClosedTable rows={s.lostRows} kind="lost" isLoading={s.isLoading} hasActiveSearch={Boolean(s.search.trim())} onClearSearch={() => s.setSearch("")} />
+              <ClosedTable rows={s.lostRows} kind="lost" isLoading={s.isLoading} hasActiveSearch={searching} onClearSearch={() => s.setSearch("")} />
             </TabsContent>
           </Tabs>
         )}

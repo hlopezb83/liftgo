@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { QueryErrorState } from "@/components/feedback/QueryErrorState";
 import { HistoryIcon, ViewIcon } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -41,7 +42,7 @@ function summarizeChanges(log: AuditLog): string[] {
 }
 
 export function InvoiceHistoryCard({ invoiceId }: Props) {
-  const { data: logs = [], isLoading } = useAuditLogs({ table_name: "invoices", record_id: invoiceId });
+  const { data: logs = [], isLoading, isError, error, refetch, isFetching } = useAuditLogs({ table_name: "invoices", record_id: invoiceId });
   const [expanded, setExpanded] = useState(false);
   const [selected, setSelected] = useState<AuditLog | null>(null);
 
@@ -59,6 +60,9 @@ export function InvoiceHistoryCard({ invoiceId }: Props) {
         <CardContent>
           {isLoading ? (
             <Skeleton className="h-24" />
+          ) : isError ? (
+            <QueryErrorState bare entity="el historial de la factura" error={error}
+              onRetry={() => { void refetch(); }} isRetrying={isFetching} />
           ) : logs.length === 0 ? (
             <p className="text-sm text-muted-foreground">Sin cambios registrados</p>
           ) : (

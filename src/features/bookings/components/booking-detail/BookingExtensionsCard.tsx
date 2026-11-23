@@ -1,5 +1,6 @@
 import { ROUTES } from "@/app-routes/routes";
 import { BlockedActionButton } from "@/components/feedback/BlockedActionButton";
+import { QueryErrorState } from "@/components/feedback/QueryErrorState";
 import { HistoryIcon, InvoiceIcon } from "@/components/icons";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -9,7 +10,6 @@ import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import { formatDateMty } from "@/lib/format/dateFormats";
 import { useLocation } from "@/lib/router-compat";
 import { describeBusinessBlock } from "@/lib/rules/businessBlocks";
-import { formatDateRange } from "@/lib/utils";
 import { extensionBillableRange } from "../../lib/extensionBilling";
 
 interface Extension {
@@ -46,7 +46,7 @@ export function BookingExtensionsCard({ extensions, recurringBilling, billingChe
   const showBilling = canSeeFinancials && !recurringBilling;
   const billingUnavailable = billingChecking || billingError;
 
-  if (!extensions || extensions.length === 0) return null;
+  if (!extensions.length && !billingChecking && !billingError) return null;
 
   return (
     <Card>
@@ -56,17 +56,12 @@ export function BookingExtensionsCard({ extensions, recurringBilling, billingChe
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-2">
-        {showBilling && billingError ? (
-          <div role="alert" className="text-sm">
-            <p>No se pudo verificar la facturación de las extensiones.</p>
-            <Button size="sm" variant="outline" onClick={onRetryBilling} disabled={billingChecking}>
-              Reintentar verificación
-            </Button>
-          </div>
-        ) : showBilling && billingChecking ? (
-          <p role="status" className="text-xs text-muted-foreground">Verificando facturación de las extensiones…</p>
+        {billingError && onRetryBilling ? (
+          <QueryErrorState bare entity="las extensiones de la reserva" isRetrying={billingChecking} onRetry={onRetryBilling} />
+        ) : billingChecking ? (
+          <p role="status" className="text-sm text-muted-foreground">Cargando extensiones…</p>
         ) : null}
-        {canSeeFinancials && recurringBilling && (
+        {extensions.length > 0 && canSeeFinancials && recurringBilling && (
           <p className="text-xs text-muted-foreground">
             Los días adicionales de esta reserva se incluyen al generar el borrador
             del periodo mensual correspondiente.
@@ -87,14 +82,20 @@ export function BookingExtensionsCard({ extensions, recurringBilling, billingChe
           const showBillAction = !recurringBilling && !!range && canInvoice;
           return (
             <div key={ext.id} className="p-3 rounded-lg bg-muted/40 text-sm space-y-1.5">
-              <div className="flex justify-between gap-2">
-                <span className="text-muted-foreground">
-                  {formatDateRange(ext.original_end_date, ext.new_end_date)}
-                </span>
-                <span className="text-xs text-muted-foreground">
-                  {formatDateMty(ext.created_at)}
-                </span>
-              </div>
+              <dl className="grid grid-cols-1 gap-2 sm:grid-cols-3">
+                <div>
+                  <dt className="text-xs text-muted-foreground">Fin anterior</dt>
+                  <dd>{formatDateMty(ext.original_end_date)}</dd>
+                </div>
+                <div>
+                  <dt className="text-xs text-muted-foreground">Nuevo fin</dt>
+                  <dd>{formatDateMty(ext.new_end_date)}</dd>
+                </div>
+                <div>
+                  <dt className="text-xs text-muted-foreground">Registrada</dt>
+                  <dd>{formatDateMty(ext.created_at)}</dd>
+                </div>
+              </dl>
               {ext.reason && <p className="text-xs">{ext.reason}</p>}
               {showBilling && range && (
                 <div className="flex flex-wrap items-center gap-2">

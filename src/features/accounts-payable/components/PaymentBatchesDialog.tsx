@@ -92,10 +92,20 @@ function PaymentBatchCard({ batch, disabled, onDownload, onCancel }: {
       {cancelled ? (
         <p className="text-sm text-muted-foreground">Cancelado el {cancellationDate}. El archivo de este lote no debe usarse para pagar.</p>
       ) : (
-        <div className="flex flex-wrap justify-end gap-2">
-          <Button variant="outline" disabled={disabled} onClick={onDownload}><DownloadIcon className="mr-2 h-4 w-4" />Descargar original</Button>
-          <Button variant="outline" disabled={disabled || batch.payment_count > 0} onClick={onCancel}><DeleteIcon className="mr-2 h-4 w-4" />Cancelar lote</Button>
-        </div>
+        <>
+          {batch.payment_count > 0 && (
+            <p id={`batch-cancel-${batch.id}`} className="text-sm text-muted-foreground">
+              Este lote tiene pagos registrados y ya no se puede cancelar.
+            </p>
+          )}
+          <div className="flex flex-wrap justify-end gap-2">
+            <Button variant="outline" disabled={disabled} onClick={onDownload}><DownloadIcon className="mr-2 h-4 w-4" />Descargar original</Button>
+            <Button variant="outline" disabled={disabled || batch.payment_count > 0} onClick={onCancel}
+              aria-describedby={batch.payment_count > 0 ? `batch-cancel-${batch.id}` : undefined}>
+              <DeleteIcon className="mr-2 h-4 w-4" />Cancelar lote
+            </Button>
+          </div>
+        </>
       )}
     </article>
   );

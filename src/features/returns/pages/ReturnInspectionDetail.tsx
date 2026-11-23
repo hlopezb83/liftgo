@@ -13,6 +13,7 @@ import { useUserRole } from "@/features/users";
 import { useDocuments } from "@/hooks/useDocuments";
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import { useParams } from "@/lib/router-compat";
+import { Link } from "@/lib/router-compat-ui";
 import { BookingCard } from "../components/return-inspection/BookingCard";
 import { DamagesCard } from "../components/return-inspection/DamagesCard";
 import { EquipmentCard } from "../components/return-inspection/EquipmentCard";
@@ -42,10 +43,17 @@ export default function ReturnInspectionDetail() {
     );
   }
 
+  const backToReturns = (
+    <Button asChild variant="outline" size="sm">
+      <Link to="/returns">Volver a devoluciones</Link>
+    </Button>
+  );
+
   if (isError) {
     return (
       <PageContainer maxWidth="wide">
         <QueryErrorState entity="la devolución" onRetry={() => { void refetch(); }} />
+        {backToReturns}
       </PageContainer>
     );
   }
@@ -53,8 +61,9 @@ export default function ReturnInspectionDetail() {
   if (!ins) {
     return (
       <PageContainer maxWidth="wide">
-        <div className="flex flex-col items-center justify-center h-[60vh]">
+        <div className="flex flex-col items-center justify-center gap-3 h-[60vh]">
           <p className="text-muted-foreground">Devolución no encontrada</p>
+          {backToReturns}
         </div>
       </PageContainer>
     );

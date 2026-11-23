@@ -5,6 +5,7 @@ import {
   DEFAULT_MAINTENANCE_BUFFER_DAYS,
   useMaintenanceBuffer,
 } from "@/features/company-settings";
+import { useHasModuleAccess } from "@/features/users";
 import type { Tables } from "@/integrations/supabase/types";
 import { BOOKING_STATUS } from "@/lib/constants";
 import { toYMD } from "@/lib/date/toYMD";
@@ -65,6 +66,7 @@ function ChipCloud({ groups }: { groups: Array<{ key: string; count: number }> }
 
 export function GanttChart({ forklifts, bookings, rangeStart, rangeEnd, maintenanceWindows }: GanttChartProps) {
   const todayYmd = useServerTodayMty();
+  const canOpenBookings = useHasModuleAccess("Reservas", "read");
   // A5-07: el buffer configurable de mantenimiento (mismo valor que usan las
   // RPC de reservas) define el ancho real de la ventana dibujada.
   const { data: buffer } = useMaintenanceBuffer();
@@ -128,6 +130,7 @@ export function GanttChart({ forklifts, bookings, rangeStart, rangeEnd, maintena
             segments={getSegments(fl.id)}
             maintenanceSegments={getMaintenanceSegments(fl.id)}
             days={days}
+            canOpenBookings={canOpenBookings}
           />
         ))}
 

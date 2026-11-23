@@ -31,6 +31,7 @@ export function FeedbackFormFields({
           type="button"
           size="sm"
           variant={type === "bug" ? "default" : "outline"}
+          aria-pressed={type === "bug"}
           onClick={() => form.setValue("type", "bug")}
           className="flex-1"
         >
@@ -40,6 +41,7 @@ export function FeedbackFormFields({
           type="button"
           size="sm"
           variant={type === "improvement" ? "default" : "outline"}
+          aria-pressed={type === "improvement"}
           onClick={() => form.setValue("type", "improvement")}
           className="flex-1"
         >

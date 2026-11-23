@@ -28,6 +28,7 @@ export function SaleLineRow({ line, index, models, disableRemove, currency = "MX
   const errorId = (field: string) => errorTarget ? `${errorTarget}.${field}` : undefined;
   const model = models.find((item) => item.id === line.modelId);
   const modelName = model ? `${model.manufacturer} - ${model.model}` : undefined;
+  const removeLabel = "Quitar partida " + (index + 1) + (modelName ? ", " + modelName : "");
   return (
     <div role="group" aria-label={`Equipo de venta ${index + 1}`} className="space-y-3 rounded-lg border border-border p-3 sm:p-4">
       <div className="grid grid-cols-[minmax(0,1fr)_40px] items-start gap-3">
@@ -49,7 +50,7 @@ export function SaleLineRow({ line, index, models, disableRemove, currency = "MX
         </Select>
         {modelName && <p id={`${fieldId}-identity`} className="break-words text-xs text-muted-foreground">{modelName}</p>}
       </div>
-      <Button type="button" variant="ghost" size="icon" className="mt-6 h-10 w-10" aria-label="Eliminar línea" title="Eliminar línea" onClick={() => onRemove(index)} disabled={disableRemove}>
+      <Button type="button" variant="ghost" size="icon" className="mt-6 h-10 w-10" aria-label={removeLabel} title={removeLabel} onClick={() => onRemove(index)} disabled={disableRemove}>
         <DeleteIcon className="h-4 w-4 text-destructive" />
       </Button>
       </div>

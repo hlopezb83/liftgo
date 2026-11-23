@@ -1,3 +1,4 @@
+import { useId } from "react";
 import { ROUTES } from "@/app-routes/routes";
 import { FiltersToolbar } from "@/components/filters/FiltersToolbar";
 import { PlusCircle, DownloadIcon } from "@/components/icons";
@@ -31,13 +32,18 @@ export function CustomersActions({ filtered, onCreate, exportDisabled }: Pick<Pr
 }
 
 export function CustomersSecondaryActions({ filtered, exportDisabled }: Pick<Props, "filtered" | "exportDisabled">) {
+  const exportHintId = useId();
+  const exportHint = exportDisabled ? "Carga todas las páginas antes de exportar."
+    : !filtered ? "Aún no hay datos de clientes listos para exportar."
+    : filtered.length === 0 ? "No hay clientes en esta búsqueda para exportar." : null;
   return (
     <>
+      <div className="space-y-1">
       <Button
         variant="outline"
         size="sm"
-        disabled={exportDisabled}
-        title={exportDisabled ? "Carga todas las páginas antes de exportar" : undefined}
+        disabled={!!exportHint}
+        aria-describedby={exportHint ? exportHintId : undefined}
         onClick={() =>
           exportToCsv(
             "clientes.csv",
@@ -53,6 +59,8 @@ export function CustomersSecondaryActions({ filtered, exportDisabled }: Pick<Pro
       >
         <DownloadIcon className="h-4 w-4 mr-1" />Exportar CSV
       </Button>
+      {exportHint && <p id={exportHintId} className="max-w-52 text-xs text-muted-foreground">{exportHint}</p>}
+      </div>
       <RoleGuard module="Clientes" minAccess="full" allowedRoles={SAT_VALIDATION_ROLES} fallback={null}>
         <Button asChild variant="outline" size="sm">
           <Link to={ROUTES.customers.satValidation}>Validar SAT</Link>

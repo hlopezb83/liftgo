@@ -48,6 +48,7 @@ export function TextareaField<TFieldValues extends FieldValues, TContext = unkno
                 value={value}
                 placeholder={placeholder}
                 disabled={disabled}
+                aria-required={required || undefined}
                 rows={rows}
                 maxLength={maxLength}
               />

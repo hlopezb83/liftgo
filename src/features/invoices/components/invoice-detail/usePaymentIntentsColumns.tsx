@@ -15,11 +15,15 @@ interface Options {
   canWrite: boolean;
   onOpenProof: (path: string) => void;
   onApprove: (intentId: string) => void;
+  busy: boolean;
+  approvingId?: string;
   onReject: (intentId: string) => void;
 }
 
 export function usePaymentIntentsColumns({
   canWrite,
+  busy,
+  approvingId,
   onOpenProof,
   onApprove,
   onReject,
@@ -91,12 +95,17 @@ export function usePaymentIntentsColumns({
               )}
               {canWrite && pending && (
                 <>
-                  <Button size="sm" onClick={() => onApprove(intent.id)}>
-                    Aprobar
+                  <Button size="sm" onClick={() => onApprove(intent.id)} disabled={busy}
+                    aria-busy={approvingId === intent.id}
+                    aria-label={approvingId === intent.id
+                      ? "Aprobando reporte de pago…"
+                      : `Aprobar reporte de ${formatCurrency(Number(intent.amount))} · ${intent.tracking_key || formatDateMty(intent.transfer_date)}`}>
+                    {approvingId === intent.id ? "Aprobando…" : "Aprobar"}
                   </Button>
                   <Button
                     size="sm"
                     variant="destructive"
+                    disabled={busy}
                     onClick={() => onReject(intent.id)}
                   >
                     Rechazar
@@ -108,6 +117,6 @@ export function usePaymentIntentsColumns({
         },
       },
     ],
-    [canWrite, onOpenProof, onApprove, onReject],
+    [canWrite, busy, approvingId, onOpenProof, onApprove, onReject],
   );
 }

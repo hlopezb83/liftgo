@@ -8,9 +8,12 @@ import { FormDialog, FormDialogFooter } from "@/components/forms/FormDialog";
 import { FormDialogCancelButton } from "@/components/forms/FormDialogCancelButton";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { Form } from "@/components/ui/form";
 import { useAdminPaymentIntents, useReviewPaymentIntent } from "@/features/invoices/hooks/paymentIntents";
 import { useHasModuleAccess } from "@/features/users";
+import { formatDateMty } from "@/lib/format/dateFormats";
+import { formatCurrency } from "@/lib/format/formatCurrency";
 import { zodResolver } from "@/lib/forms/zodResolver";
 import { openStorageFile } from "@/lib/storage/openStorageFile";
 import {
@@ -30,10 +33,17 @@ const schema = z.object({
 });
 type FormValues = z.input<typeof schema>;
 
+function paymentApprovalDescription(approval: PaymentIntent | undefined) {
+  if (!approval) return undefined;
+  return `Monto: ${formatCurrency(Number(approval.amount))}. Fecha de transferencia: ${formatDateMty(approval.transfer_date)}. Rastreo: ${approval.tracking_key || "Sin referencia"}.`;
+}
+
 export function PaymentIntentsSection({ invoiceId }: Props) {
   const canWrite = useHasModuleAccess("Facturas", "full");
   const { data: intents, isLoading, isError, isSuccess, error, refetch, isFetching } = useAdminPaymentIntents(invoiceId);
+  const canApprove = canWrite && !isError;
   const review = useReviewPaymentIntent();
+  const [approveId, setApproveId] = useState<string | null>(null);
   const [rejectId, setRejectId] = useState<string | null>(null);
   const form = useForm<FormValues>({
     resolver: zodResolver(schema),
@@ -53,10 +63,9 @@ export function PaymentIntentsSection({ invoiceId }: Props) {
       }),
     [],
   );
-  const onApprove = useCallback(
-    (intentId: string) => { if (canWrite && !review.isPending) review.mutate({ intentId, action: "approve" }); },
-    [canWrite, review],
-  );
+  const onApprove = useCallback((intentId: string) => { if (canWrite) setApproveId(intentId); }, [canWrite]);
+  const approval = intents?.find((intent) => intent.id === approveId && intent.status === "pending_review");
+  const approvingId = review.isPending && review.variables?.action === "approve" ? review.variables.intentId : undefined;
   const onReject = useCallback((intentId: string) => { if (canWrite) setRejectId(intentId); }, [canWrite]);
 
   const submitReject = form.handleSubmit((values) => {
@@ -67,7 +76,7 @@ export function PaymentIntentsSection({ invoiceId }: Props) {
     );
   });
 
-  const columns = usePaymentIntentsColumns({ onOpenProof: openProof, onApprove, onReject, canWrite });
+  const columns = usePaymentIntentsColumns({ onOpenProof: openProof, onApprove, onReject, canWrite, busy: review.isPending, approvingId });
 
   const table = useLiftgoTable<PaymentIntent>({
     data: intents,
@@ -95,6 +104,19 @@ export function PaymentIntentsSection({ invoiceId }: Props) {
         </div>}
       </CardContent>
 
+      <ConfirmDialog
+        open={canApprove && !!approval}
+        onOpenChange={(open) => { if (!open) setApproveId(null); }}
+        title="Aprobar reporte de pago"
+        description={paymentApprovalDescription(approval)}
+        confirmLabel="Confirmar aprobación"
+        loading={review.isPending}
+        onConfirm={() => {
+          if (canApprove && approval && !review.isPending) {
+            review.mutate({ intentId: approval.id, action: "approve" });
+          }
+        }}
+      />
       <FormDialog
       isPending={review.isPending}
         open={canWrite && !!rejectId}

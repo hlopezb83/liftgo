@@ -30,7 +30,10 @@ export function FleetMobileCard({ forklift: f, hasActivePolicy, location, onClic
         <div className="flex items-start justify-between gap-2 mb-2">
           <Untranslated as="span" className="min-w-0 break-words font-mono font-semibold text-sm flex items-center gap-1.5">
             {f.name}
-            {hasActivePolicy && <SecurityIcon className="h-3.5 w-3.5 text-success shrink-0" />}
+            {hasActivePolicy && <>
+              <SecurityIcon aria-hidden="true" className="h-3.5 w-3.5 text-success shrink-0" />
+              <span className="sr-only">Póliza de mantenimiento activa</span>
+            </>}
           </Untranslated>
           <StatusBadge status={f.status} />
         </div>

@@ -1,4 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
+import { useId, useState } from "react";
 import { QueryErrorState } from "@/components/feedback/QueryErrorState";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -7,7 +8,7 @@ import { listPlatformFiscalActionsFn } from "@/lib/platformFiscalActions.functio
 import { FISCAL_ACTION_STATUS, type FiscalAction } from "@/lib/platformFiscalActions.types";
 import type { FiscalJob } from "@/lib/platformFiscalJobs.types";
 import { usePlatformCapabilities } from "../hooks/usePlatformAccess";
-import { usePlatformFiscalAction } from "../hooks/usePlatformFiscalAction";
+import { FISCAL_REASON_MIN_LENGTH, usePlatformFiscalAction } from "../hooks/usePlatformFiscalAction";
 import { healthDate } from "../hooks/usePlatformHealth";
 
 function actionAvailable(job: FiscalJob) {
@@ -20,19 +21,33 @@ function reconcileLabel(busy: boolean, pendingIntent: "reconcile" | "retry" | un
 }
 function ActionForm({ job, leaseExpired }: { job: FiscalJob; leaseExpired: boolean }) {
   const { reason, setReason, busy, pending, act } = usePlatformFiscalAction(job);
+  const reasonId = useId();
+  const hintId = `${reasonId}-hint`;
+  const [attempted, setAttempted] = useState(false);
+  const invalid = attempted && reason.trim().length < FISCAL_REASON_MIN_LENGTH;
+  const submit = (intent: "reconcile" | "retry") => {
+    setAttempted(reason.trim().length < FISCAL_REASON_MIN_LENGTH);
+    void act(intent);
+  };
   const available = actionAvailable(job) || leaseExpired;
   const disabled = busy || (!available && !pending);
   return <>
     {!available && <p className="text-sm text-muted-foreground">Para actuar se necesita un documento disponible, un trabajo libre y el ambiente histórico conocido sin cambios. Actualiza el historial o revisa la configuración de la empresa.</p>}
     {leaseExpired && <p className="text-sm text-muted-foreground">La consulta anterior venció. La siguiente solicitud liberará la reserva y actualizará el historial, sin consultar de nuevo al proveedor.</p>}
-    <div className="space-y-2"><Label htmlFor={`fiscal-reason-${job.id}`}>Motivo de la consulta</Label>
-      <Textarea id={`fiscal-reason-${job.id}`} maxLength={300} value={reason} disabled={busy || !!pending}
-        onChange={(event) => setReason(event.target.value)} placeholder="Describe lo que deseas comprobar. No incluyas llaves ni contraseñas." /></div>
+    <div className="space-y-2">
+      <Label htmlFor={reasonId}>Motivo de la consulta</Label>
+      <Textarea id={reasonId} maxLength={300} value={reason} disabled={busy || !!pending}
+        className="peer" aria-invalid={invalid} aria-describedby={hintId}
+        onChange={(event) => setReason(event.target.value)} placeholder="Describe lo que deseas comprobar. No incluyas llaves ni contraseñas." />
+      <p id={hintId} className="text-xs text-muted-foreground peer-aria-invalid:text-destructive">
+        Mínimo {FISCAL_REASON_MIN_LENGTH} caracteres.
+      </p>
+    </div>
     <div className="flex flex-wrap gap-2">
       <Button type="button" variant="outline" className="min-h-11" disabled={disabled || pending?.intent === "retry"}
-        onClick={() => void act("reconcile")}>{reconcileLabel(busy, pending?.intent)}</Button>
+        onClick={() => submit("reconcile")}>{reconcileLabel(busy, pending?.intent)}</Button>
       <Button type="button" className="min-h-11" disabled={disabled || pending?.intent === "reconcile"}
-        onClick={() => void act("retry")}>{pending?.intent === "retry" ? "Comprobar la misma solicitud" : "Consultar y reprogramar si procede"}</Button>
+        onClick={() => submit("retry")}>{pending?.intent === "retry" ? "Comprobar la misma solicitud" : "Consultar y reprogramar si procede"}</Button>
     </div>
     <p className="text-xs text-muted-foreground">Máximo cinco reprogramaciones adicionales. Un resultado incierto, pendiente o fallido no habilita otro timbrado; cada consulta registra operador, motivo y resultado.</p>
   </>;

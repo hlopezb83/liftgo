@@ -41,6 +41,7 @@ export function useContractFormState(existing: ContractRow | null | undefined, i
     resolver: zodResolver(contractFormSchema),
     defaultValues: defaultContractForm,
     mode: "onBlur",
+    shouldFocusError: false,
   });
   const [templateApplied, setTemplateApplied] = useState(false);
 

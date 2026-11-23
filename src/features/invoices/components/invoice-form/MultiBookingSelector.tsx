@@ -89,12 +89,12 @@ function SelectedBookingBadges({ selected, selectedIds, onChange }: {
   const byId = new Map(selected.map((booking) => [booking.id, booking]));
   return (
     <div className="flex flex-wrap items-center gap-1.5">
-      {selectedIds.map((id) => (
+      {selectedIds.map((id, index) => (
         <Badge key={id} variant="secondary" className="gap-1 pr-1">
           <CalendarIcon className="h-3 w-3" />
           <span>{bookingBadgeLabel(byId.get(id))}</span>
           <button type="button" onClick={() => onChange(selectedIds.filter((candidate) => candidate !== id))}
-            className="ml-1 rounded hover:bg-muted-foreground/20 p-0.5" aria-label="Quitar reserva">
+            className="ml-1 rounded hover:bg-muted-foreground/20 p-0.5" aria-label={`Quitar reserva ${byId.get(id)?.booking_number || index + 1}`}>
             <X className="h-3 w-3" />
           </button>
         </Badge>

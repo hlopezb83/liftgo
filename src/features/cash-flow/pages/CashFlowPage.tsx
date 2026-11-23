@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { QueryErrorState } from "@/components/feedback/QueryErrorState";
 import { TableSkeleton } from "@/components/feedback/TableSkeleton";
 import { TrendingUpIcon } from "@/components/icons";
@@ -37,7 +37,7 @@ function CashFlowBody({
   noDueDate: number;
   outOfHorizon: number;
   recurringCoverage: number;
-  onSelect: (bucket: CashFlowBucket) => void;
+  onSelect: (bucket: CashFlowBucket, trigger: HTMLButtonElement) => void;
 }) {
   if (loading || !buckets) {
     return <>
@@ -67,6 +67,7 @@ function CashFlowBody({
 export default function CashFlowPage() {
   const [weeks, setWeeks] = useState(8);
   const [selected, setSelected] = useState<CashFlowBucket | null>(null);
+  const detailTrigger = useRef<HTMLButtonElement>(null);
 
   const {
     data: settings,
@@ -113,7 +114,10 @@ export default function CashFlowPage() {
               noDueDate={excludedNoDueDate}
               outOfHorizon={excludedOutOfHorizon}
               recurringCoverage={excludedRecurringCoverage}
-              onSelect={setSelected}
+              onSelect={(bucket, trigger) => {
+                detailTrigger.current = trigger;
+                setSelected(bucket);
+              }}
             />
           )}
 
@@ -121,6 +125,13 @@ export default function CashFlowPage() {
             bucket={selected}
             open={!!selected}
             onOpenChange={(o) => { if (!o) setSelected(null); }}
+            onCloseAutoFocus={(event) => {
+              const trigger = detailTrigger.current;
+              if (trigger?.isConnected) {
+                event.preventDefault();
+                trigger.focus();
+              }
+            }}
           />
         </PageContainer>
       </PageTransition>

@@ -7,7 +7,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sh
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import { exportToCsv } from "@/lib/exportCsv";
 import { formatDateMty } from "@/lib/format/dateFormats";
-import { formatCurrency } from "@/lib/format/formatCurrency";
+import { formatCurrency, formatCurrencyWithCode } from "@/lib/format/formatCurrency";
 import { invoiceNetMxn, invoiceTotalMxn, type DrilldownInvoice } from "../../../lib/drilldown";
 
 interface Props {
@@ -29,6 +29,26 @@ function Stat({ label, value }: { label: string; value: string }) {
     <div>
       <p className="text-3xs uppercase text-muted-foreground">{label}</p>
       <p className="tabular-nums font-bold">{value}</p>
+    </div>
+  );
+}
+
+function InvoiceAmount({ invoice }: { invoice: DrilldownInvoice }) {
+  const netMxn = invoiceNetMxn(invoice);
+  const credit = Number(invoice.credited_mxn ?? 0);
+  return (
+    <div className="ml-auto min-w-0 text-right">
+      <p className="font-mono font-bold">
+        {netMxn === null ? formatCurrencyWithCode(Number(invoice.total), invoice.moneda ?? "MXN") : formatCurrency(netMxn)}
+      </p>
+      {netMxn === null && (
+        <p className="max-w-40 whitespace-normal text-3xs text-muted-foreground">Sin tipo de cambio · no incluido en el total MXN</p>
+      )}
+      {netMxn !== null && credit > 0 && (
+        <p className="text-3xs text-muted-foreground">
+          Bruto {formatCurrency(invoiceTotalMxn(invoice))} − NC {formatCurrency(credit)}
+        </p>
+      )}
     </div>
   );
 }
@@ -105,16 +125,7 @@ export function RevenueMonthDetailSheet({
                     </div>
                     <div className="flex w-full flex-wrap items-center justify-between gap-2 sm:w-auto sm:shrink-0">
                       <StatusBadge status={inv.status} />
-                      <div className="text-right ml-auto">
-                        <span className="font-mono font-bold" title={invoiceNetMxn(inv) === null ? "Factura en divisa sin tipo de cambio" : undefined}>
-                          {invoiceNetMxn(inv) === null ? "Sin T.C." : formatCurrency(invoiceNetMxn(inv) ?? 0)}
-                        </span>
-                        {Number(inv.credited_mxn ?? 0) > 0 && (
-                          <p className="text-3xs text-muted-foreground">
-                            Bruto {formatCurrency(invoiceTotalMxn(inv))} − NC {formatCurrency(Number(inv.credited_mxn))}
-                          </p>
-                        )}
-                      </div>
+                      <InvoiceAmount invoice={inv} />
                     </div>
                   </Button>
                 </li>

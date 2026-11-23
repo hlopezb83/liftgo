@@ -5,7 +5,6 @@ import { BlockedActionButton } from "@/components/feedback/BlockedActionButton";
 import { EditIcon, DeliveryIcon, SuccessIcon, ErrorIcon, BookOpen, DeleteIcon, InvoiceIcon } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { useHasModuleAccess, useUserRole } from "@/features/users";
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import type { Tables } from "@/integrations/supabase/types";
@@ -110,17 +109,15 @@ function InvoiceButton({ quote, isSale, alreadyInvoiced, canInvoice, invoiceBloc
       </Button>
     );
   }
+  const reason = invoiceBlockedReason ?? "Asigna los equipos antes de facturar";
+  const block = describeBusinessBlock("quote_sale_assignment_incomplete", { reason });
   return (
-    <Tooltip>
-      <TooltipTrigger asChild>
-        <span>
-          <Button size="sm" variant="default" disabled className="pointer-events-none opacity-60">
-            <InvoiceIcon className="h-4 w-4 mr-1" />Facturar
-          </Button>
-        </span>
-      </TooltipTrigger>
-      <TooltipContent>{invoiceBlockedReason ?? "Asigna los equipos antes de facturar"}</TooltipContent>
-    </Tooltip>
+    <div className="max-w-xs space-y-1">
+      <BlockedActionButton size="sm" block={block}>
+        <InvoiceIcon className="h-4 w-4 mr-1" />Facturar
+      </BlockedActionButton>
+      <p className="text-xs text-muted-foreground">{reason}</p>
+    </div>
   );
 }
 

@@ -82,19 +82,27 @@ export default function MaintenancePage() {
   const isBoard = viewMode === "board";
   const kanbanContent = isBoard ? <MaintenanceKanban logs={filtered} archived={showArchived} canWrite={canWrite} /> : undefined;
 
-  const totalCost = sumCost(filtered);
-  const exportCsv = () => exportToCsv("mantenimiento.csv", maintenanceCsvRows(filtered, forkliftMap));
+
+  const { summary, exportDisabledReason } = getMaintenanceSummary(isError, isLoading, filtered);
+  const empty = getMaintenanceEmptyState({
+    showArchived, hasActive, totalCount: enrichedLogs.length, canWrite,
+    onViewActive: () => setShowArchived(false), onCreate: formCtl.openCreate,
+  });
+  const exportCsv = () => {
+    if (!exportDisabledReason) exportToCsv("mantenimiento.csv", maintenanceCsvRows(filtered, forkliftMap));
+  };
 
   return (
     <>
       <ListPageLayout
         title="Mantenimiento"
-        subtitle={`${filtered.length} registros de servicio — ${formatCurrency(totalCost)} costo total`}
+        subtitle={summary}
         actions={
           <MaintenancePageActions
             viewMode={viewMode}
             onViewModeChange={setViewMode}
             onExport={exportCsv}
+            exportDisabledReason={exportDisabledReason}
             onGenerateRecurring={() => generateRecurring.mutate()}
             isGenerating={generateRecurring.isPending}
             onCreate={formCtl.openCreate}
@@ -127,12 +135,9 @@ export default function MaintenancePage() {
         table={table}
         rowAction={{ columnId: "forklift_name", label: (log) => `Ver servicio de ${log.forklift_name || "equipo"}` }}
         onRowClick={(log) => detail.open(log)}
-        hasActiveFilters={hasActive}
+        {...empty}
         onClearFilters={reset}
-        emptyMessage="No se encontraron registros de mantenimiento"
         emptyIcon={MaintenanceIcon}
-        emptyActionLabel={canWrite ? "Nuevo servicio" : undefined}
-        onEmptyAction={canWrite ? formCtl.openCreate : undefined}
         customContent={kanbanContent}
         mobileCardRender={(log) => (
           <MaintenanceMobileCard log={log} forkliftMap={forkliftMap} onClick={() => detail.open(log)} />
@@ -170,4 +175,35 @@ export default function MaintenancePage() {
       )}
     </>
   );
+}
+
+function getMaintenanceSummary(isError: boolean, isLoading: boolean, logs: EnrichedMaintenanceLog[]) {
+  if (isError) return { summary: "Resumen no disponible", exportDisabledReason: "Reintenta la carga para volver a exportar." };
+  if (isLoading) return { summary: "Cargando registros de mantenimiento…", exportDisabledReason: "Espera a que se carguen los registros para exportar." };
+  return {
+    summary: `${logs.length} registros de servicio — ${formatCurrency(sumCost(logs))} costo total`,
+    exportDisabledReason: logs.length === 0 ? "No hay registros para exportar." : undefined,
+  };
+}
+
+function getMaintenanceEmptyState({ showArchived, hasActive, totalCount, canWrite, onViewActive, onCreate }: {
+  showArchived: boolean;
+  hasActive: boolean;
+  totalCount: number;
+  canWrite: boolean;
+  onViewActive: () => void;
+  onCreate: () => void;
+}) {
+  if (showArchived) return {
+    hasActiveFilters: hasActive && totalCount > 0,
+    emptyMessage: "No hay registros archivados",
+    emptyActionLabel: "Ver activos",
+    onEmptyAction: onViewActive,
+  };
+  return {
+    hasActiveFilters: hasActive,
+    emptyMessage: "No se encontraron registros de mantenimiento",
+    emptyActionLabel: canWrite ? "Nuevo servicio" : undefined,
+    onEmptyAction: canWrite ? onCreate : undefined,
+  };
 }

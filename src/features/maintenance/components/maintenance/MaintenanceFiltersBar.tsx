@@ -41,7 +41,7 @@ export function MaintenanceFiltersBar({
         placeholder="Buscar por servicio, técnico…"
       />
       <Select value={forkliftFilter || "all"} onValueChange={onForkliftFilterChange}>
-        <SelectTrigger className="w-full sm:w-[200px] h-9">
+        <SelectTrigger aria-label="Filtrar por equipo" className="w-full sm:w-[200px] h-9">
           <SelectValue placeholder="Todos los montacargas" />
         </SelectTrigger>
         <SelectContent className="w-[var(--radix-select-trigger-width)] max-w-[calc(100vw-2rem)]">
@@ -55,7 +55,7 @@ export function MaintenanceFiltersBar({
       </Select>
       {onArchivedChange && (
         <Select value={archived ? "archived" : "active"} onValueChange={(v) => onArchivedChange(v === "archived")}>
-          <SelectTrigger className="w-full sm:w-[160px] h-9">
+          <SelectTrigger aria-label="Mostrar registros activos o archivados" className="w-full sm:w-[160px] h-9">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>

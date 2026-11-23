@@ -4,11 +4,14 @@ import {
   useLiftgoTable,
   type ColumnDef,
 } from "@/components/dataTable/v2";
+import { DuplicateIcon } from "@/components/icons";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { APP_CONFIG } from "@/lib/config";
 import { STATUS_LABELS } from "@/lib/constants";
 import { formatDateMty } from "@/lib/format/dateFormats";
 import { Link } from "@/lib/router-compat-ui";
+import { copyWithFeedback } from "@/lib/ui/copyWithFeedback";
 
 interface Row {
   id: string;
@@ -37,6 +40,20 @@ function FiscalBadge({ cfdiStatus, status }: { cfdiStatus: string | null; status
   if (status === "draft") return <Badge variant="outline">Borrador</Badge>;
   // BL-R8-25: no mostrar el enum crudo ("paid" → "Pagada").
   return <Badge variant="secondary">{STATUS_LABELS[status] ?? status}</Badge>;
+}
+
+function FiscalIdentifier({ label, value, folio }: { label: string; value: string | null; folio: string }) {
+  if (!value) return <span className="text-muted-foreground">—</span>;
+  return (
+    <div className="flex max-w-[220px] min-w-0 items-center gap-1">
+      <span className="truncate font-mono text-xs" title={value}>{value}</span>
+      <Button type="button" size="icon" variant="ghost" className="h-8 w-8 shrink-0"
+        aria-label={`Copiar ${label} de factura ${folio}`}
+        onClick={() => { void copyWithFeedback(value, label); }}>
+        <DuplicateIcon className="h-3.5 w-3.5" />
+      </Button>
+    </div>
+  );
 }
 
 export function ReconciliationTable({ rows, isLoading }: { rows: Row[]; isLoading: boolean }) {
@@ -81,12 +98,7 @@ export function ReconciliationTable({ rows, isLoading }: { rows: Row[]; isLoadin
         header: "UUID SAT",
         accessorKey: "cfdi_uuid",
         cell: ({ row }) => (
-          <span
-            className="font-mono text-xs max-w-[220px] truncate inline-block align-middle"
-            title={row.original.cfdi_uuid ?? undefined}
-          >
-            {row.original.cfdi_uuid ?? "—"}
-          </span>
+          <FiscalIdentifier label="UUID SAT" value={row.original.cfdi_uuid} folio={row.original.invoice_number} />
         ),
       },
       {
@@ -94,12 +106,7 @@ export function ReconciliationTable({ rows, isLoading }: { rows: Row[]; isLoadin
         header: "ID Facturapi",
         accessorKey: "facturapi_invoice_id",
         cell: ({ row }) => (
-          <span
-            className="font-mono text-xs max-w-[180px] truncate inline-block align-middle"
-            title={row.original.facturapi_invoice_id ?? undefined}
-          >
-            {row.original.facturapi_invoice_id ?? "—"}
-          </span>
+          <FiscalIdentifier label="ID Facturapi" value={row.original.facturapi_invoice_id} folio={row.original.invoice_number} />
         ),
       },
       {

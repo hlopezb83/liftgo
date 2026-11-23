@@ -26,6 +26,7 @@ interface DatePickerFieldProps {
   date?: Date;
   onSelect: (d?: Date) => void;
   placeholder?: string;
+  description?: string;
   required?: boolean;
   invalidateOnPartial?: boolean;
   onInvalidInput?: () => void;
@@ -44,6 +45,7 @@ export function DatePickerField({
   date,
   onSelect,
   placeholder = "Seleccionar fecha",
+  description,
   required,
   invalidateOnPartial,
   onInvalidInput,
@@ -59,6 +61,8 @@ export function DatePickerField({
   const [inputRevision, setInputRevision] = useState(0);
   const fieldId = useId();
   const noteId = `${fieldId}-note`;
+  const descriptionId = `${fieldId}-description`;
+  const describedBy = description ? `${noteId} ${descriptionId}` : noteId;
 
   // §3.3 auditoría v2: mismo criterio de bloqueo para calendario y teclado.
   const isDateDisabled = disabled
@@ -108,7 +112,7 @@ export function DatePickerField({
               placeholder={placeholder === "Seleccionar fecha" ? undefined : placeholder}
               // §3.3: el teclado respeta el mismo matcher que el calendario.
               isDateDisabled={isDateDisabled}
-              aria-describedby={noteId}
+              aria-describedby={describedBy}
               className="w-full"
               errorMessage={error}
             />
@@ -170,6 +174,7 @@ export function DatePickerField({
         </DialogContent>
       </Dialog>
       <DateHintNote date={date} id={noteId} />
+      {description && <p id={descriptionId} className="text-xs text-muted-foreground">{description}</p>}
     </div>
   );
 }

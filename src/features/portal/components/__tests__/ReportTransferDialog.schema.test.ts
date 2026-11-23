@@ -1,4 +1,6 @@
+import { subDays } from "date-fns";
 import { describe, it, expect } from "vitest";
+import { nowMty } from "@/lib/utils";
 import { makeSchema } from "../reportTransferSchema";
 
 const balance = 1234.5;
@@ -51,4 +53,10 @@ describe("ReportTransferDialog — validación de monto (R9-P2-04)", () => {
     if (result.success) return;
     expect(result.error.issues.map((issue) => issue.message).join(" ")).toContain("no puede ser futura");
   });
+});
+
+it("acepta el día 60 y rechaza el día 61 con el calendario de Monterrey", () => {
+  const today = nowMty();
+  expect(schema.safeParse({ ...valid, transferDate: subDays(today, 60) }).success).toBe(true);
+  expect(schema.safeParse({ ...valid, transferDate: subDays(today, 61) }).success).toBe(false);
 });

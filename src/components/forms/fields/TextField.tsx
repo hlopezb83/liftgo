@@ -13,6 +13,8 @@ interface TextFieldProps<TFieldValues extends FieldValues, TContext = unknown, T
   disabled?: boolean;
   type?: "text" | "email" | "url" | "tel" | "password" | "time" | "date" | "number";
   autoComplete?: string;
+  inputMode?: React.ComponentProps<"input">["inputMode"];
+  maxLength?: number;
   className?: string;
 }
 
@@ -30,6 +32,8 @@ export function TextField<TFieldValues extends FieldValues, TContext = unknown, 
   disabled,
   type = "text",
   autoComplete,
+  inputMode,
+  maxLength,
   className,
 }: TextFieldProps<TFieldValues, TContext, TTransformedValues>) {
   return (
@@ -50,6 +54,8 @@ export function TextField<TFieldValues extends FieldValues, TContext = unknown, 
               placeholder={placeholder}
               disabled={disabled}
               autoComplete={autoComplete}
+              inputMode={inputMode}
+              maxLength={maxLength}
             />
           </FormControl>
           {description && <FormDescription>{description}</FormDescription>}

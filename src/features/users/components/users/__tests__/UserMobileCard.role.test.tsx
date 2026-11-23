@@ -51,8 +51,13 @@ describe("UserMobileCard: rol confirmado", () => {
     render(<UserMobileCard canManage u={{ ...user, role: "admin" }} actions={{ isToggling: false, lastAdminId: user.user_id,
       onRoleChange: vi.fn(), onToggleStatus: vi.fn(), onEdit: vi.fn(), onSetPassword: vi.fn(), onDelete: vi.fn(),
     }} />);
-    expect(screen.getByRole("combobox")).toBeDisabled();
-    expect(screen.getByRole("switch")).toBeDisabled();
+    const role = screen.getByRole("combobox");
+    const status = screen.getByRole("switch", { name: "Estado de Persona de prueba" });
+    expect(role).toBeDisabled();
+    expect(status).toBeDisabled();
+    expect(status).toBeChecked();
+    expect(role).toHaveAccessibleDescription(/único administrador activo/);
+    expect(status).toHaveAccessibleDescription(/rol y estado están protegidos/);
     expect(screen.queryByRole("button", { name: "Eliminar usuario" })).not.toBeInTheDocument();
   });
 
@@ -76,4 +81,17 @@ describe("UserMobileCard: rol confirmado", () => {
     rerender(<Harness u={{ ...user, role: "mechanic" }} />);
     expect(screen.getByRole("combobox")).toHaveTextContent("Mecánico");
   });
+});
+
+it("muestra el estado inactivo en lectura y usa el correo como nombre alternativo", () => {
+  const inactive = { ...user, is_active: false, full_name: null };
+  const actions = {
+    isToggling: false, onRoleChange: vi.fn(), onToggleStatus: vi.fn(),
+    onEdit: vi.fn(), onSetPassword: vi.fn(), onDelete: vi.fn(),
+  };
+  const view = render(<UserMobileCard canManage={false} u={inactive} actions={actions} />);
+  expect(screen.getByText("Inactivo")).toBeVisible();
+  expect(screen.queryByRole("switch")).not.toBeInTheDocument();
+  view.rerender(<UserMobileCard canManage u={inactive} actions={actions} />);
+  expect(screen.getByRole("switch", { name: "Estado de qa@example.test" })).not.toBeChecked();
 });

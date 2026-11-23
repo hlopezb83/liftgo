@@ -102,6 +102,7 @@ export function AssignForkliftsCard({ quoteId, lineItems }: Props) {
           <AssignForkliftsLineRow
             key={index}
             description={item.description}
+            index={index}
             quantity={quantity}
             assignedCount={assignedCount}
             assignedForklifts={assignedForklifts}

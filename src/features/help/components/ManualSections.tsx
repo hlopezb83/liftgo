@@ -1,9 +1,10 @@
+import { useState } from "react";
 import { DocumentIcon, SearchIcon } from "@/components/icons";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Input } from "@/components/ui/input";
 import { renderSafeMarkdown } from "../lib/markdown";
 
-interface Section { title: string; content: string }
+interface Section { id: string; title: string; content: string }
 interface Props {
   search: string;
   onSearchChange: (v: string) => void;
@@ -11,6 +12,7 @@ interface Props {
 }
 
 export function ManualSections({ search, onSearchChange, sections }: Props) {
+  const [openSections, setOpenSections] = useState<string[]>([]);
   return (
     <>
       <div className="relative">
@@ -29,11 +31,11 @@ export function ManualSections({ search, onSearchChange, sections }: Props) {
           No se encontraron secciones que coincidan con "{search}"
         </p>
       ) : (
-        <Accordion type="multiple" className="space-y-2">
-          {sections.map((section, idx) => (
+        <Accordion type="multiple" value={openSections} onValueChange={setOpenSections} className="space-y-2">
+          {sections.map((section) => (
             <AccordionItem
-              key={idx}
-              value={`section-${idx}`}
+              key={section.id}
+              value={section.id}
               className="border rounded-lg px-4 bg-card"
             >
               <AccordionTrigger className="text-left font-semibold">

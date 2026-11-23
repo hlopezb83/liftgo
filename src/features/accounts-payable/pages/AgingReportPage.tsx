@@ -52,6 +52,13 @@ function AgingReportKpis({ totals, isLoading }: Pick<ReturnType<typeof useAgingR
   );
 }
 
+function AgingEmptyState({ missingExchangeRate }: { missingExchangeRate: boolean }) {
+  return missingExchangeRate
+    ? <EmptyState icon={FileClock} title="No hay saldos calculables"
+        subtitle="Captura el tipo de cambio en las facturas pendientes para incluirlas en el reporte." />
+    : <EmptyState icon={FileClock} title="Sin saldos pendientes" subtitle="Todas las facturas están pagadas o canceladas." />;
+}
+
 export default function AgingReportPage() {
   const { rows, totals, fxMissingCount, noDueDateCount, isLoading, isError, refetch } = useAgingReport();
 
@@ -119,7 +126,7 @@ export default function AgingReportPage() {
           {isLoading ? (
             <div className="p-4"><TableSkeleton columnCount={8} rows={5} /></div>
           ) : rows.length === 0 ? (
-            <EmptyState icon={FileClock} title="Sin saldos pendientes" subtitle="Todas las facturas están pagadas o canceladas." />
+            <AgingEmptyState missingExchangeRate={fxMissingCount > 0} />
           ) : (
             <Table>
               <TableHeader>

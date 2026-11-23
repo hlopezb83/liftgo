@@ -97,7 +97,7 @@ export function CustomerInviteDialog({
       open={open}
       onOpenChange={handleOpenChange}
       title="Invitar al Portal de Clientes"
-      description={`Crear una cuenta de portal para ${customerName}.`}
+      description={`Crea una cuenta de portal para ${customerName}. Después podrás copiar el enlace para compartirlo.`}
     >
       <Form {...form}>
         <form onSubmit={onSubmit} className="space-y-3">
@@ -112,7 +112,7 @@ export function CustomerInviteDialog({
           <FormDialogFooter>
             <FormDialogCancelButton onCancel={() => handleOpenChange(false)} disabled={isPending} />
             <Button type="submit" disabled={isPending || !form.formState.isValid}>
-              {isPending ? "Enviando…" : "Crear acceso"}
+              {isPending ? "Creando acceso…" : "Crear acceso"}
             </Button>
           </FormDialogFooter>
         </form>

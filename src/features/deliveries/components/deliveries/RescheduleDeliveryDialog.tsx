@@ -50,19 +50,16 @@ export function RescheduleDeliveryDialog({ delivery, linkedBooking, open, onOpen
     },
   });
 
+  const getDateError = (date: string) => {
+    if (date < toYMD(nowMty())) return "Elige hoy o una fecha futura";
+    return linkedBooking ? deliveryBookingDateError(delivery.type, date, linkedBooking) : null;
+  };
   const onSubmit = (values: FormValues) => {
     const date = toYMD(values.scheduledDate);
-    const today = toYMD(nowMty());
-    if (date < today) {
-      form.setError("scheduledDate", { message: "Elige hoy o una fecha futura" });
+    const dateError = getDateError(date);
+    if (dateError) {
+      form.setError("scheduledDate", { type: "manual", message: dateError });
       return;
-    }
-    if (linkedBooking) {
-      const dateError = deliveryBookingDateError(delivery.type, date, linkedBooking);
-      if (dateError) {
-        form.setError("scheduledDate", { type: "manual", message: dateError });
-        return;
-      }
     }
 
     updateDelivery.mutate({
@@ -101,7 +98,13 @@ export function RescheduleDeliveryDialog({ delivery, linkedBooking, open, onOpen
             </p>
           )}
           <div className="grid gap-3 sm:grid-cols-2">
-            <DateField control={form.control} name="scheduledDate" label={`Fecha de ${operationLabel}`} required />
+            <DateField
+              control={form.control}
+              name="scheduledDate"
+              label={`Fecha de ${operationLabel}`}
+              required
+              disabledMatcher={(date) => !!getDateError(toYMD(date))}
+            />
             <TextField control={form.control} name="scheduledTime" label="Hora programada" type="time" />
           </div>
           <TextField control={form.control} name="address" label={`Dirección de ${operationLabel}`} />

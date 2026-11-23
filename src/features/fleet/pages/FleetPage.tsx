@@ -3,6 +3,7 @@ import { useLiftgoTable } from "@/components/dataTable/v2";
 import { FiltersToolbar } from "@/components/filters/FiltersToolbar";
 import { Forklift as ForkliftIcon } from "@/components/icons";
 import { ListPageLayout } from "@/components/layout/ListPageLayout";
+import { Button } from "@/components/ui/button";
 import { usePageActions } from "@/contexts/pageActions";
 import { useHasModuleAccess } from "@/features/users";
 import { useTableFilters } from "@/hooks/filters/useTableFilters";
@@ -52,7 +53,8 @@ export default function FleetPage() {
 
   // Tanda 3 P1-5: 1 request a la vista `forklift_current_location`
   // reemplaza useContracts + useDeliveries + useMaintenancePolicies.
-  const { data: fleetLocations } = useFleetLocations();
+  const locationsQuery = useFleetLocations();
+  const fleetLocations = locationsQuery.data;
   const locationMap = fleetLocations?.locationMap ?? EMPTY_MAP;
   const activePolicyForkliftIds = fleetLocations?.activePolicyForkliftIds ?? EMPTY_SET;
 
@@ -89,6 +91,14 @@ export default function FleetPage() {
 
   const notice = <div className="space-y-2">
     <EquipmentAvailabilityLookup equipment={forklifts} />
+    {locationsQuery.isError && (
+      <div className="flex flex-wrap items-center gap-2">
+        <p role="alert" className="text-sm text-destructive">No se pudo actualizar ubicación y pólizas. La información mostrada puede estar incompleta.</p>
+        <Button type="button" size="sm" variant="outline" disabled={locationsQuery.isFetching} onClick={() => { void locationsQuery.refetch(); }}>
+          Reintentar ubicación y pólizas
+        </Button>
+      </div>
+    )}
     {forkliftPages.hasNextPage && <p className="text-xs text-muted-foreground">La búsqueda y la consulta de disponibilidad incluyen los equipos cargados. Usa «Cargar más» para ampliar la lista; la exportación estará disponible al cargar todos.</p>}
   </div>;
 

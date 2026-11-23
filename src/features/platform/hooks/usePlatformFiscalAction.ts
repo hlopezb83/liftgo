@@ -6,6 +6,8 @@ import type { FiscalJob } from "@/lib/platformFiscalJobs.types";
 import { notifyError, notifySuccess, notifyValidation, notifyWarning } from "@/lib/ui/appFeedback";
 import { extractErrorDetails } from "@/lib/ui/errorDetailsExtract";
 
+export const FISCAL_REASON_MIN_LENGTH = 10;
+
 export function usePlatformFiscalAction(job: FiscalJob) {
   const client = useQueryClient();
   const [reason, setReason] = useState("");
@@ -14,7 +16,7 @@ export function usePlatformFiscalAction(job: FiscalJob) {
   const guard = useRef(false);
   async function act(intent: FiscalActionInput["intent"]) {
     if (guard.current) return;
-    if (reason.trim().length < 10) { notifyValidation({ message: "Escribe un motivo de al menos 10 caracteres." }); return; }
+    if (reason.trim().length < FISCAL_REASON_MIN_LENGTH) { notifyValidation({ message: `Escribe un motivo de al menos ${FISCAL_REASON_MIN_LENGTH} caracteres.` }); return; }
     guard.current = true; setBusy(true);
     const input = pending ?? { jobId: job.id, revision: job.revision, requestId: crypto.randomUUID(), intent, reason: reason.trim() };
     setPending(input);

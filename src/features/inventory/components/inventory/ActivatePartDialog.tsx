@@ -1,4 +1,4 @@
-import { useId, useState } from "react";
+import { useId, useRef, useState, type Ref } from "react";
 import { QueryErrorState } from "@/components/feedback/QueryErrorState";
 import { FormDialog, FormDialogFooter } from "@/components/forms/FormDialog";
 import { FormDialogCancelButton } from "@/components/forms/FormDialogCancelButton";
@@ -46,48 +46,59 @@ function useCatalogSelection(open: boolean) {
     setSearch("");
     setPage(0);
   }, [open]);
+  const selectedUnavailable = catalogReady && !!catalogPartId && !selectedActive;
   return { catalogPartId, setCatalogPartId, search, setSearch, page, setPage,
-    catalogQuery, catalogReady, data, availableCatalog, options, selectedActive };
+    catalogQuery, catalogReady, data, availableCatalog, options, selectedActive, selectedUnavailable };
+}
+
+const ACTIVATION_NUMBER_FIELDS = [
+  { key: "stock", label: "Stock inicial" },
+  { key: "minimum", label: "Stock mínimo" },
+  { key: "cost", label: "Costo unitario" },
+] as const;
+
+type ActivationNumberField = (typeof ACTIVATION_NUMBER_FIELDS)[number]["key"];
+
+function activationNumberError(key: ActivationNumberField, value: number) {
+  if (!Number.isFinite(value) || value < 0) return "Ingresa un número mayor o igual a 0.";
+  if (key !== "cost" && !Number.isInteger(value)) return "Ingresa un número entero.";
+  return undefined;
 }
 
 function ActivationForm({ open, onOpenChange }: Props) {
   const activate = useActivateCatalogPart();
   const catalog = useCatalogSelection(open);
   const { catalogPartId, catalogReady, selectedActive } = catalog;
-  const [stock, setStock] = useState("0");
-  const [minimum, setMinimum] = useState("0");
-  const [cost, setCost] = useState("0");
+  const [numbers, setNumbers] = useState({ stock: "0", minimum: "0", cost: "0" });
+  const [showNumberErrors, setShowNumberErrors] = useState(false);
+  const numberInputs = useRef<Partial<Record<ActivationNumberField, HTMLInputElement | null>>>({});
   const [location, setLocation] = useState("");
-  const isDirty = !!catalogPartId || stock !== "0" || minimum !== "0" || cost !== "0" || !!location;
+  const isDirty = !!catalogPartId || Object.values(numbers).some((value) => value !== "0") || !!location;
   useUnsavedChangesGuard(open && isDirty && !activate.isPending);
   usePrefillEffect(() => {
     if (!open) return;
-    setStock("0");
-    setMinimum("0");
-    setCost("0");
+    setNumbers({ stock: "0", minimum: "0", cost: "0" });
+    setShowNumberErrors(false);
     setLocation("");
   }, [open]);
 
   const submit = () => {
     if (!catalogReady || activate.isPending) return;
-    const values = [Number(stock), Number(minimum), Number(cost)];
     if (!selectedActive) {
       notifyValidation({ message: "Selecciona un SKU del catálogo LiftGo" });
       return;
     }
-    if (!Number.isInteger(values[0]) || !Number.isInteger(values[1])) {
-      notifyValidation({ message: "Las existencias y el mínimo deben ser enteros" });
-      return;
-    }
-    if (values.some((value) => !Number.isFinite(value) || value < 0)) {
-      notifyValidation({ message: "Existencias, mínimo y costo deben ser valores no negativos" });
+    const invalid = ACTIVATION_NUMBER_FIELDS.find(({ key }) => activationNumberError(key, Number(numbers[key])));
+    if (invalid) {
+      setShowNumberErrors(true);
+      numberInputs.current[invalid.key]?.focus();
       return;
     }
     activate.mutate({
       catalogPartId,
-      stockQuantity: values[0],
-      minStockLevel: values[1],
-      unitCost: values[2],
+      stockQuantity: Number(numbers.stock),
+      minStockLevel: Number(numbers.minimum),
+      unitCost: Number(numbers.cost),
       location: location || null,
     }, { onSuccess: () => onOpenChange(false) });
   };
@@ -104,9 +115,17 @@ function ActivationForm({ open, onOpenChange }: Props) {
       <div className="grid gap-4 py-2">
         <CatalogSearchPicker catalog={catalog} pending={activate.isPending} />
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-          <Field label="Stock inicial" value={stock} onChange={setStock} type="number" />
-          <Field label="Stock mínimo" value={minimum} onChange={setMinimum} type="number" />
-          <Field label="Costo unitario" value={cost} onChange={setCost} type="number" />
+          {ACTIVATION_NUMBER_FIELDS.map(({ key, label }) => (
+            <Field
+              key={key}
+              label={label}
+              value={numbers[key]}
+              onChange={(value) => setNumbers((previous) => ({ ...previous, [key]: value }))}
+              type="number"
+              error={showNumberErrors ? activationNumberError(key, Number(numbers[key])) : undefined}
+              inputRef={(input) => { numberInputs.current[key] = input; }}
+            />
+          ))}
         </div>
         <Field label="Ubicación" value={location} onChange={setLocation} placeholder="Ej. Pasillo A · Estante 3" />
       </div>
@@ -120,14 +139,15 @@ function ActivationForm({ open, onOpenChange }: Props) {
 
 function CatalogSearchPicker({ catalog, pending }: { catalog: ReturnType<typeof useCatalogSelection>; pending: boolean }) {
   const { catalogPartId, setCatalogPartId, search, setSearch, page, setPage,
-    catalogQuery, catalogReady, data, availableCatalog, options } = catalog;
+    catalogQuery, catalogReady, data, availableCatalog, options, selectedUnavailable } = catalog;
   const catalogId = useId();
   const searchId = useId();
+  const searchRef = useRef<HTMLInputElement>(null);
   const totalPages = Math.max(1, Math.ceil((data?.totalCount ?? 0) / ACTIVATION_CATALOG_PAGE_SIZE));
   return <>
     <div className="space-y-1.5">
       <Label htmlFor={searchId}>Buscar SKU o nombre</Label>
-      <Input id={searchId} value={search} disabled={pending}
+      <Input ref={searchRef} id={searchId} value={search} disabled={pending}
         onChange={(event) => { setSearch(event.target.value); setPage(0); }} placeholder="Buscar en todo el catálogo…" />
     </div>
     <CatalogPicker id={catalogId} catalog={options} value={catalogPartId}
@@ -135,6 +155,17 @@ function CatalogSearchPicker({ catalog, pending }: { catalog: ReturnType<typeof 
       onChange={(value) => { if (value) setCatalogPartId(value); }}
       loading={!catalogReady} error={catalogQuery.isError} retrying={catalogQuery.isFetching} pending={pending}
       onRetry={() => { void catalogQuery.refetch(); }} />
+    {selectedUnavailable && (
+      <div className="flex flex-wrap items-center gap-2">
+        <p role="status" className="text-sm text-muted-foreground">El SKU seleccionado ya no está disponible para habilitar.</p>
+        <Button type="button" size="sm" variant="outline" disabled={pending} onClick={() => {
+          setCatalogPartId("");
+          setSearch("");
+          setPage(0);
+          searchRef.current?.focus();
+        }}>Elegir otro SKU</Button>
+      </div>
+    )}
     {catalogReady && availableCatalog.length === 0 && <p className="text-sm text-muted-foreground">
       {data?.totalCount === 0 ? "No hay SKUs activos que coincidan con la búsqueda." : "Los SKUs de esta página ya están habilitados. Busca otro SKU o cambia de página."}
     </p>}
@@ -162,18 +193,32 @@ function CatalogPicker({ id, catalog, value, onChange, loading, error, retrying,
   </div>;
 }
 
-function Field({ label, value, onChange, type = "text", placeholder }: {
+function Field({ label, value, onChange, type = "text", placeholder, error, inputRef }: {
   label: string;
   value: string;
   onChange: (value: string) => void;
   type?: string;
   placeholder?: string;
+  error?: string;
+  inputRef?: Ref<HTMLInputElement>;
 }) {
   const id = useId();
+  const errorId = `${id}-error`;
   return (
     <div className="space-y-1.5">
       <Label htmlFor={id}>{label}</Label>
-      <Input id={id} type={type} min={type === "number" ? 0 : undefined} value={value} placeholder={placeholder} onChange={(event) => onChange(event.target.value)} />
+      <Input
+        ref={inputRef}
+        id={id}
+        type={type}
+        min={type === "number" ? 0 : undefined}
+        value={value}
+        placeholder={placeholder}
+        aria-invalid={error ? true : undefined}
+        aria-describedby={error ? errorId : undefined}
+        onChange={(event) => onChange(event.target.value)}
+      />
+      {error && <p id={errorId} role="alert" className="text-xs text-destructive">{error}</p>}
     </div>
   );
 }

@@ -1,3 +1,4 @@
+import { useId } from "react";
 import { NotesCard } from "@/components/domain/NotesCard";
 import { EmptyState } from "@/components/feedback/EmptyState";
 import { QueryErrorState } from "@/components/feedback/QueryErrorState";
@@ -6,7 +7,7 @@ import { DetailPageHeader } from "@/components/layout/DetailPageHeader";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useHasFinancialAccess } from "@/features/users";
+import { useHasFinancialAccess, useHasModuleAccess } from "@/features/users";
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import { RoleGuard } from "@/layouts/RoleGuard";
 import { getCustomerListBackTo } from "@/lib/navigation/customerInvoiceOrigins";
@@ -32,6 +33,20 @@ function customerSubtitle(customer: { name: string; company?: string | null; rfc
 
 type FinancialState = Pick<ReturnType<typeof useCustomerDetailPage>, "summaryReady" | "profitability" | "totalInvoiced" | "totalPaid" | "outstanding">;
 
+function SummaryActionNote({ id, s }: { id: string; s: ReturnType<typeof useCustomerDetailPage> }) {
+  const canRetry = s.summaryIsError && !s.summaryFetching;
+  return (
+    <div className="basis-full text-xs text-muted-foreground">
+      <span id={id} role="status">{canRetry ? "Reintenta cargar el resumen para continuar." : "Cargando resumen…"}</span>
+      {canRetry && (
+        <Button type="button" variant="link" size="sm" onClick={() => { void s.refetchSummary(); }}>
+          Reintentar resumen
+        </Button>
+      )}
+    </div>
+  );
+}
+
 function CustomerFinancialCards({ s, visible }: { s: FinancialState; visible: boolean }) {
   if (!visible) return null;
   return <>
@@ -43,6 +58,46 @@ function CustomerFinancialCards({ s, visible }: { s: FinancialState; visible: bo
       gross_margin={s.profitability.gross_margin} margin_percent={s.profitability.margin_percent}
     />}
   </>;
+}
+
+function CustomerHeaderActions({ s, canSeeFinancials, onExportStatement }: {
+  s: ReturnType<typeof useCustomerDetailPage>;
+  canSeeFinancials: boolean;
+  onExportStatement: () => Promise<void>;
+}) {
+  const canArchive = useHasModuleAccess("Clientes", "full");
+  const summaryNoteId = useId();
+  const waitingForSummary = (canSeeFinancials || canArchive) && !s.summaryActionsReady;
+  const summaryDescriptionId = waitingForSummary ? summaryNoteId : undefined;
+  return (
+    <>
+      {canSeeFinancials && <Button variant="outline" size="sm" disabled={!s.summaryActionsReady} aria-describedby={summaryDescriptionId} onClick={onExportStatement}>
+        <FileDown className="h-4 w-4 mr-2" /> Estado de Cuenta
+      </Button>}
+      {/* R7 Bloque 8: matriz (read/full). Editar/Eliminar/Invitar exigen full. */}
+      <RoleGuard module="Clientes" minAccess="full" fallback={null}>
+        <Button variant="outline" size="sm" onClick={() => s.setEditOpen(true)}>
+          <EditIcon className="h-4 w-4 mr-2" /> Editar
+        </Button>
+      </RoleGuard>
+      <RoleGuard module="Clientes" minAccess="full" fallback={null}>
+        <Button variant="destructive" size="sm" disabled={!s.summaryActionsReady} aria-describedby={summaryDescriptionId} onClick={() => s.setDeleteOpen(true)}>
+          <DeleteIcon className="h-4 w-4 mr-2" /> Archivar
+        </Button>
+      </RoleGuard>
+      {!s.hasPortalAccess && (
+        <RoleGuard module="Clientes" minAccess="full" fallback={null}>
+          <Button variant="outline" onClick={() => s.setInviteOpen(true)}>
+            <UserPlus className="h-4 w-4 mr-2" /> Invitar al Portal
+          </Button>
+        </RoleGuard>
+      )}
+      {s.hasPortalAccess && (
+        <span className="text-xs text-muted-foreground bg-muted px-2 py-1 rounded">Acceso al portal activo</span>
+      )}
+      {waitingForSummary && <SummaryActionNote id={summaryNoteId} s={s} />}
+    </>
+  );
 }
 
 export default function CustomerDetailPage() {
@@ -94,34 +149,7 @@ export default function CustomerDetailPage() {
         subtitle={customerSubtitle(s.customer)}
         backTo={listBackTo ?? "/customers"}
         restoreListFilters={!listBackTo}
-        actions={
-          <>
-            {canSeeFinancials && <Button variant="outline" size="sm" disabled={!s.summaryActionsReady} onClick={handleExportStatement}>
-              <FileDown className="h-4 w-4 mr-2" /> Estado de Cuenta
-            </Button>}
-            {/* R7 Bloque 8: matriz (read/full). Editar/Eliminar/Invitar exigen full. */}
-            <RoleGuard module="Clientes" minAccess="full" fallback={null}>
-              <Button variant="outline" size="sm" onClick={() => s.setEditOpen(true)}>
-                <EditIcon className="h-4 w-4 mr-2" /> Editar
-              </Button>
-            </RoleGuard>
-            <RoleGuard module="Clientes" minAccess="full" fallback={null}>
-              <Button variant="destructive" size="sm" disabled={!s.summaryActionsReady} onClick={() => s.setDeleteOpen(true)}>
-                <DeleteIcon className="h-4 w-4 mr-2" /> Archivar
-              </Button>
-            </RoleGuard>
-            {!s.hasPortalAccess && (
-              <RoleGuard module="Clientes" minAccess="full" fallback={null}>
-                <Button variant="outline" onClick={() => s.setInviteOpen(true)}>
-                  <UserPlus className="h-4 w-4 mr-2" /> Invitar al Portal
-                </Button>
-              </RoleGuard>
-            )}
-            {s.hasPortalAccess && (
-              <span className="text-xs text-muted-foreground bg-muted px-2 py-1 rounded">Acceso al portal activo</span>
-            )}
-          </>
-        }
+        actions={<CustomerHeaderActions s={s} canSeeFinancials={canSeeFinancials} onExportStatement={handleExportStatement} />}
       />
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">

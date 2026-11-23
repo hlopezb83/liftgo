@@ -23,10 +23,11 @@ interface CancelRepDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   paymentId: string | null;
+  paymentLabel?: string;
   onSuccess?: () => void;
 }
 
-export function CancelRepDialog({ open, onOpenChange, paymentId, onSuccess }: CancelRepDialogProps) {
+export function CancelRepDialog({ open, onOpenChange, paymentId, paymentLabel, onSuccess }: CancelRepDialogProps) {
   const cancelRep = useCancelPaymentComplement();
   const form = useForm<FormValues>({
     resolver: zodResolver(schema),
@@ -56,7 +57,9 @@ export function CancelRepDialog({ open, onOpenChange, paymentId, onSuccess }: Ca
       open={open}
       onOpenChange={onOpenChange}
       title="Cancelar Complemento de Pago"
-      description="Selecciona el motivo de cancelación del REP según el SAT."
+      description={paymentLabel
+        ? `${paymentLabel}. Selecciona el motivo de cancelación del REP según el SAT.`
+        : "Selecciona el motivo de cancelación del REP según el SAT."}
     >
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">

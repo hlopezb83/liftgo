@@ -51,7 +51,7 @@ export function DamageDetailSheet({ record, open, onOpenChange }: Props) {
           <div className="space-y-1">
             <DetailRow icon={FleetIcon} label="Montacargas" value={record.forklifts?.name || "—"} />
             <DetailRow icon={UserIcon} label="Cliente" value={record.customers?.name || "—"} />
-            <DetailRow icon={CostIcon} label="Costo Estimado" value={formatCurrency(record.estimated_cost ?? 0)} />
+            <DetailRow icon={CostIcon} label="Costo Estimado" value={record.estimated_cost == null ? "Sin estimación" : formatCurrency(record.estimated_cost)} />
             <DetailRow
               icon={CostIcon}
               label="Costo real de reparación"

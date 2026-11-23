@@ -9,7 +9,7 @@ import type { EquipmentModel } from "@/features/fleet";
 import { formatCurrencyWithCode } from "@/lib/format/formatCurrency";
 import { useFormErrorTarget } from "@/lib/forms/formErrorTargets";
 import { cn } from "@/lib/utils";
-import { computeRentalLineTotal } from "./rentalLineHelpers";
+import { getRentalLineEstimate } from "./rentalLineHelpers";
 import type { RentalLine } from "./RentalLineItems";
 
 
@@ -32,7 +32,8 @@ export function RentalLineRow({ line, index, models, disableRemove, startDate, e
   const errorId = (field: string) => errorTarget ? `${errorTarget}.${field}` : undefined;
   const model = models.find((item) => item.id === line.modelId);
   const modelName = model ? `${model.manufacturer} - ${model.model}` : line.legacyDescription;
-  const estimatedTotal = computeRentalLineTotal(line, startDate, endDate);
+  const removeLabel = "Quitar partida " + (index + 1) + (modelName ? ", " + modelName : "");
+  const estimatedTotal = getRentalLineEstimate(line, startDate, endDate);
   return (
 
     <div role="group" aria-label={`Equipo de renta ${index + 1}`} className="space-y-3 rounded-lg border border-border p-3 sm:p-4">
@@ -72,7 +73,7 @@ export function RentalLineRow({ line, index, models, disableRemove, startDate, e
           />
         </div>
         {!disableRemove && <div>
-          <Button type="button" variant="ghost" size="icon" className="h-10 w-10" aria-label="Eliminar línea" title="Eliminar línea" onClick={() => onRemove(index)}>
+          <Button type="button" variant="ghost" size="icon" className="h-10 w-10" aria-label={removeLabel} title={removeLabel} onClick={() => onRemove(index)}>
             <DeleteIcon className="h-4 w-4 text-destructive" />
           </Button>
         </div>}
@@ -105,11 +106,10 @@ export function RentalLineRow({ line, index, models, disableRemove, startDate, e
             </ToggleGroup>
           </div>
         </div>
-        {/* R14-FE-07: sin modelo ni fechas el "$0.00" se leía como precio real. */}
         <div className="ml-auto text-right">
           <span className="text-xs text-muted-foreground">Total estimado {currency}</span>
           <p className="text-sm font-semibold tabular-nums">
-            {estimatedTotal > 0 ? formatCurrencyWithCode(estimatedTotal, currency) : <span className="text-muted-foreground">-</span>}
+            {estimatedTotal !== null ? formatCurrencyWithCode(estimatedTotal, currency) : <span className="text-muted-foreground">-</span>}
           </p>
         </div>
 

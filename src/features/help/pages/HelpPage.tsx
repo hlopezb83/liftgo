@@ -18,11 +18,10 @@ export default function HelpPage() {
   const [search, setSearch] = useState("");
   const isAdmin = role === "admin";
 
-  const filteredSections = manual?.content?.filter((s) =>
-    search === "" ||
-    s.title.toLowerCase().includes(search.toLowerCase()) ||
-    s.content.toLowerCase().includes(search.toLowerCase())
-  ) ?? [];
+  const query = search.toLowerCase();
+  const filteredSections = (manual?.content ?? [])
+    .map((section, index) => ({ ...section, id: `section-${index}` }))
+    .filter((section) => section.title.toLowerCase().includes(query) || section.content.toLowerCase().includes(query));
 
   if (isLoading) {
     return (
@@ -74,7 +73,7 @@ export default function HelpPage() {
       {isGenerating && <ManualGeneratingCard />}
       {!manual && !isGenerating && <ManualEmptyCard isAdmin={isAdmin} onGenerate={() => generate()} />}
       {manual && !isGenerating && (
-        <ManualSections search={search} onSearchChange={setSearch} sections={filteredSections} />
+        <ManualSections key={manual.id} search={search} onSearchChange={setSearch} sections={filteredSections} />
       )}
     </PageContainer>
   );

@@ -1,4 +1,5 @@
 import { StatusBadge } from "@/components/feedback/StatusBadge";
+import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { formatCurrency } from "@/lib/format/formatCurrency";
 import { cn } from "@/lib/utils";
@@ -8,7 +9,7 @@ const LIGHT_LABELS: Record<LightColor, string> = { red: "En riesgo", amber: "Pre
 
 interface Props {
   buckets: CashFlowBucket[];
-  onSelect: (bucket: CashFlowBucket) => void;
+  onSelect: (bucket: CashFlowBucket, trigger: HTMLButtonElement) => void;
 }
 
 const LIGHT_STATUSES: Record<LightColor, string> = { red: "overdue", amber: "pending", green: "available" };
@@ -32,20 +33,20 @@ export function CashFlowTable({ buckets, onSelect }: Props) {
           <TableRow
             key={b.index}
             className={cn(
-              "cursor-pointer odd:bg-muted/30 hover:bg-muted/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset",
+              "cursor-pointer odd:bg-muted/30 hover:bg-muted/60",
               b.items.length === 0 && "text-muted-foreground",
             )}
-            onClick={() => onSelect(b)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter" || e.key === " ") {
-                e.preventDefault();
-                onSelect(b);
-              }
+            onClick={(event) => {
+              const trigger = event.currentTarget.querySelector("button");
+              if (trigger) onSelect(b, trigger);
             }}
-            tabIndex={0}
-            role="button"
           >
-            <TableCell className="font-medium">{b.label}</TableCell>
+            <TableCell>
+              <Button type="button" variant="ghost" className="h-auto px-0 font-medium underline-offset-4 hover:underline"
+                aria-label={`Ver detalle de ${b.label}`} aria-haspopup="dialog">
+                {b.label}
+              </Button>
+            </TableCell>
             <TableCell className="text-xs">{b.rangeLabel}</TableCell>
             <TableCell className="text-right font-mono">{b.inflow > 0 ? formatCurrency(b.inflow) : "—"}</TableCell>
             <TableCell className="text-right font-mono">{b.outflow > 0 ? formatCurrency(b.outflow) : "—"}</TableCell>

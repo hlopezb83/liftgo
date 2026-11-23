@@ -1,6 +1,7 @@
 
 import { parseISO } from "date-fns";
 import { useMemo } from "react";
+import { ROUTES } from "@/app-routes/routes";
 import { StatusBadge } from "@/components/feedback/StatusBadge";
 import { ChevronRightIcon } from "@/components/icons";
 import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "@/components/ui/collapsible";
@@ -8,8 +9,11 @@ import { computeFleetAvailability, useServerTodayMty } from "@/features/availabi
 import type { BookingWithForklift } from "@/features/bookings";
 import { RecurringBillingBadge } from "@/features/bookings";
 import { rentalDaysInclusive } from "@/features/bookings";
+import { useHasModuleAccess } from "@/features/users";
 import type { Tables } from "@/integrations/supabase/types";
 import { BOOKING_STATUS } from "@/lib/constants";
+import { useLocation } from "@/lib/router-compat";
+import { Link } from "@/lib/router-compat-ui";
 import { formatMtyDate } from "@/lib/utils";
 
 type Forklift = Tables<"forklifts">;
@@ -45,6 +49,9 @@ function enrichBookings(bookings: BookingWithForklift[] | undefined): Map<string
 }
 
 export function EquipmentListView({ forklifts, bookings, currentBookings }: EquipmentListViewProps) {
+  const canOpenBookings = useHasModuleAccess("Reservas", "read");
+  const { pathname, search } = useLocation();
+  const calendarReturnTo = canOpenBookings ? pathname + search : undefined;
   const bookingsByForklift = useMemo(() => enrichBookings(bookings), [bookings]);
   // M12: día calendario MTY (YYYY-MM-DD) — los timestamps perdían el último
   // día de la renta (end_date a medianoche < ahora) y el badge "Activa".
@@ -58,6 +65,10 @@ export function EquipmentListView({ forklifts, bookings, currentBookings }: Equi
     () => (currentBookings ? computeFleetAvailability(forklifts, currentBookings, todayYmd)?.rentedForkliftIds : undefined),
     [forklifts, currentBookings, todayYmd],
   );
+
+  if (forklifts?.length === 0) {
+    return <p className="py-6 text-center text-sm text-muted-foreground">No hay equipos para mostrar en el calendario.</p>;
+  }
 
   return (
     <div className="space-y-1">
@@ -96,6 +107,7 @@ export function EquipmentListView({ forklifts, bookings, currentBookings }: Equi
                     key={booking.id}
                     booking={booking}
                     label={bookingListLabel(booking, todayYmd)}
+                    calendarReturnTo={calendarReturnTo}
                   />
                 ))}
                 {periodBookings.length === 0 && (
@@ -120,7 +132,7 @@ function bookingListLabel(booking: BookingWithForklift, todayYmd: string): strin
   return "Confirmada";
 }
 
-function BookingRow({ booking, label }: { booking: BookingWithForklift; label: string }) {
+function BookingRow({ booking, label, calendarReturnTo }: { booking: BookingWithForklift; label: string; calendarReturnTo?: string }) {
   const duration = rentalDaysInclusive(parseISO(booking.start_date), parseISO(booking.end_date));
   return (
     <div className="flex flex-col items-start gap-2 sm:flex-row sm:items-center sm:justify-between p-2 rounded bg-background border text-sm">
@@ -128,6 +140,12 @@ function BookingRow({ booking, label }: { booking: BookingWithForklift; label: s
         <span className={`text-3xs font-medium px-1.5 py-0.5 rounded ${label === "Activa" ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground"}`}>
           {label}
         </span>
+        {booking.booking_number && (calendarReturnTo ? (
+          <Link to={ROUTES.bookings.detail(booking.id)} state={{ calendarReturnTo }}
+            className="font-medium text-primary underline-offset-4 hover:underline">
+            {booking.booking_number}
+          </Link>
+        ) : <span className="font-medium">{booking.booking_number}</span>)}
         <span className="font-medium">{booking.customer_name || "Sin cliente"}</span>
         <RecurringBillingBadge booking={booking} />
       </div>

@@ -1,3 +1,4 @@
+import { useId } from "react";
 import { DataTableV2, useLiftgoTable, type ColumnDef } from "@/components/dataTable/v2";
 import { InfoAlertIcon } from "@/components/icons";
 import { Badge } from "@/components/ui/badge";
@@ -7,6 +8,7 @@ import { isFxMissing } from "@/features/cash-flow";
 import { formatDateMty } from "@/lib/format/dateFormats";
 import { formatCurrencyWithCode } from "@/lib/format/formatCurrency";
 import { cn } from "@/lib/utils";
+import { paymentAmountIssue } from "../hooks/usePaymentSelection";
 import type { ExportablePayable } from "../hooks/useExportablePayables";
 
 interface RowState {
@@ -24,6 +26,43 @@ interface Props {
   onChangeAmount: (id: string, amount: number) => void;
 }
 
+function PaymentAmountCell({ bill, state, onChangeAmount }: {
+  bill: ExportablePayable;
+  state?: RowState;
+  onChangeAmount: Props["onChangeAmount"];
+}) {
+  const errorId = useId();
+  const amount = state?.amount ?? bill.balance;
+  const problem = state?.selected ? paymentAmountIssue(amount, bill.balance) : null;
+  return (
+    <div className="space-y-1">
+      <Input
+        type="number"
+        step="0.01"
+        min={0.01}
+        max={bill.balance}
+        disabled={!bill.has_valid_clabe || !state?.selected || !!bill.payment_in_progress_at}
+        value={amount}
+        onChange={(event) => onChangeAmount(bill.id, Number(event.target.value))}
+        aria-label={`Monto a pagar de factura ${bill.bill_number}`}
+        aria-invalid={!!problem}
+        aria-describedby={problem ? errorId : undefined}
+        className={cn(
+          "h-7 w-28 ml-auto text-right font-mono text-xs",
+          problem && "border-destructive text-destructive focus-visible:ring-destructive",
+        )}
+      />
+      {problem && (
+        <p id={errorId} className="min-w-28 text-right text-xs text-destructive">
+          {problem === "non-positive"
+            ? "Captura un monto mayor a cero."
+            : `No debe superar el saldo de ${formatCurrencyWithCode(bill.balance, bill.currency)}.`}
+        </p>
+      )}
+    </div>
+  );
+}
+
 export function PaymentsExportTable({
   bills,
   isLoading,
@@ -33,14 +72,15 @@ export function PaymentsExportTable({
   onToggleRow,
   onChangeAmount,
 }: Props) {
+  const anyEligibleSelected = bills?.some((bill) => bill.has_valid_clabe && !bill.payment_in_progress_at && rowState[bill.id]?.selected);
   const columns: ColumnDef<ExportablePayable>[] = [
     {
       id: "select",
       header: () => (
         <Checkbox
-          checked={allEligibleSelected}
+          checked={allEligibleSelected || (anyEligibleSelected ? "indeterminate" : false)}
           onCheckedChange={(v) => onToggleAll(Boolean(v))}
-          aria-label="Seleccionar todas"
+          aria-label="Seleccionar facturas elegibles"
         />
       ),
       enableSorting: false,
@@ -132,31 +172,9 @@ export function PaymentsExportTable({
       header: "A pagar",
       enableSorting: false,
       meta: { kind: "number" },
-      cell: ({ row }) => {
-        const st = rowState[row.original.id];
-        const inProgress = !!row.original.payment_in_progress_at;
-        const amount = st?.amount ?? row.original.balance;
-        // M-20: marcar el renglón cuando el monto excede el saldo (misma
-        // tolerancia que RegisterSupplierPaymentDialog) o no es positivo.
-        const invalidAmount = !!st?.selected && (amount <= 0 || amount > row.original.balance + 0.0001);
-        return (
-          <Input
-            type="number"
-            step="0.01"
-            min={0.01}
-            max={row.original.balance}
-            disabled={!row.original.has_valid_clabe || !st?.selected || inProgress}
-            value={st?.amount ?? row.original.balance}
-            onChange={(e) => onChangeAmount(row.original.id, Number(e.target.value))}
-            aria-label={`Monto a pagar de factura ${row.original.bill_number}`}
-            aria-invalid={invalidAmount}
-            className={cn(
-              "h-7 w-28 ml-auto text-right font-mono text-xs",
-              invalidAmount && "border-destructive text-destructive focus-visible:ring-destructive",
-            )}
-          />
-        );
-      },
+      cell: ({ row }) => (
+        <PaymentAmountCell bill={row.original} state={rowState[row.original.id]} onChangeAmount={onChangeAmount} />
+      ),
     },
   ];
 

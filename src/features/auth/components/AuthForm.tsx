@@ -1,15 +1,18 @@
-import { ViewIcon, HideIcon } from "@/components/icons";
+import { useId, type FormEvent as ReactFormEvent, type Ref } from "react";
+import { PasswordVisibilityToggle } from "@/components/forms/PasswordVisibilityToggle";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { getAuthSubmitLabel, type AuthMode } from "../lib/authTypes";
-import type { FormEvent as ReactFormEvent } from "react";
 
 export type { AuthMode };
+
+const MIN_PASSWORD_LENGTH = 6;
 
 interface Props {
   mode: AuthMode;
   email: string;
+  emailRef?: Ref<HTMLInputElement>;
   password: string;
   showPassword: boolean;
   loading: boolean;
@@ -20,15 +23,17 @@ interface Props {
 }
 
 export function AuthForm({
-  mode, email, password, showPassword, loading,
+  mode, email, emailRef, password, showPassword, loading,
   onEmailChange, onPasswordChange, onToggleShowPassword, onSubmit,
 }: Props) {
+  const passwordHelpId = useId();
+  const isReset = mode === "reset";
   return (
     <form onSubmit={onSubmit} className="space-y-4">
       {mode !== "reset" && (
         <div className="space-y-1.5">
           <Label htmlFor="auth-email">Correo Electrónico</Label>
-          <Input id="auth-email" type="email" value={email} onChange={(e) => onEmailChange(e.target.value)} placeholder="tu@empresa.com" required autoComplete="email" className="touch:h-11" />
+          <Input ref={emailRef} id="auth-email" type="email" value={email} onChange={(e) => onEmailChange(e.target.value)} placeholder="tu@empresa.com" required autoComplete="email" className="touch:h-11" />
         </div>
       )}
       {(mode === "sign-in" || mode === "reset") && (
@@ -42,19 +47,14 @@ export function AuthForm({
               onChange={(e) => onPasswordChange(e.target.value)}
               placeholder="••••••••"
               required
-              minLength={6}
+              minLength={MIN_PASSWORD_LENGTH}
+              aria-describedby={isReset ? passwordHelpId : undefined}
               className="pr-10 touch:h-11"
               autoComplete={mode === "reset" ? "new-password" : "current-password"}
             />
-            <button
-              type="button"
-              aria-label={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
-              onClick={onToggleShowPassword}
-              className="absolute right-1 top-1/2 -translate-y-1/2 p-2.5 touch:min-h-11 touch:min-w-11 grid place-items-center text-muted-foreground hover:text-foreground"
-            >
-              {showPassword ? <HideIcon className="h-4 w-4" /> : <ViewIcon className="h-4 w-4" />}
-            </button>
+            <PasswordVisibilityToggle visible={showPassword} onToggle={onToggleShowPassword} />
           </div>
+          {isReset && <p id={passwordHelpId} className="text-xs text-muted-foreground">Usa al menos {MIN_PASSWORD_LENGTH} caracteres.</p>}
         </div>
       )}
       <Button type="submit" className="w-full touch:h-11" disabled={loading} data-testid="auth-submit">

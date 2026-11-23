@@ -17,6 +17,7 @@ interface AvailableForklift {
 
 interface Props {
   description: string;
+  index: number;
   quantity: number;
   assignedCount: number;
   assignedForklifts: AssignedForklift[];
@@ -31,12 +32,13 @@ interface Props {
 }
 
 export function AssignForkliftsLineRow({
-  description, quantity, assignedCount, assignedForklifts, available,
+  description, index, quantity, assignedCount, assignedForklifts, available,
   selectedValue, selectedElsewhere, isAssigning, isUnassigning,
   onSelect, onAssign, onUnassign,
 }: Props) {
   const needsMore = assignedCount < quantity;
-  const noStock = needsMore && available.length === 0 && assignedCount === 0;
+  const eligibleForklifts = available.filter((forklift) => !selectedElsewhere.has(forklift.id));
+  const canAssign = eligibleForklifts.some((forklift) => forklift.id === selectedValue);
 
   return (
     <div className="space-y-2 border-b border-border pb-4 last:border-0 last:pb-0">
@@ -69,34 +71,28 @@ export function AssignForkliftsLineRow({
 
       {needsMore && (
         <div className="flex gap-2">
-          <Select value={selectedValue} onValueChange={onSelect}>
-            <SelectTrigger className="flex-1">
+          <Select value={canAssign ? selectedValue : ""} onValueChange={onSelect} disabled={eligibleForklifts.length === 0}>
+            <SelectTrigger className="flex-1" aria-label={"Equipo para partida " + (index + 1) + ", " + description}>
               <SelectValue placeholder="Seleccionar equipo disponible" />
             </SelectTrigger>
             <SelectContent>
-              {available.length === 0 ? (
-                <div className="px-3 py-2 text-sm text-muted-foreground">Sin equipos disponibles</div>
-              ) : (
-                available
-                  .filter((f) => f.id === selectedValue || !selectedElsewhere.has(f.id))
-                  .map((f) => (
-                    <SelectItem key={f.id} value={f.id}>
-                      {f.name} {f.serial_number ? `— S/N: ${f.serial_number}` : ""}
-                    </SelectItem>
-                  ))
-              )}
+              {eligibleForklifts.map((f) => (
+                <SelectItem key={f.id} value={f.id}>
+                  {f.name} {f.serial_number ? "— S/N: " + f.serial_number : ""}
+                </SelectItem>
+              ))}
             </SelectContent>
           </Select>
-          <Button size="sm" disabled={!selectedValue || isAssigning} onClick={onAssign}>
+          <Button size="sm" disabled={!canAssign || isAssigning} onClick={onAssign}>
             Asignar
           </Button>
         </div>
       )}
 
-      {noStock && (
+      {needsMore && eligibleForklifts.length === 0 && (
         <p className="text-xs text-warning flex items-center gap-1">
           <WarnIcon className="h-3 w-3" />
-          No hay equipos disponibles de este modelo en inventario
+          No quedan equipos disponibles para esta partida
         </p>
       )}
     </div>

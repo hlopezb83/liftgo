@@ -1,6 +1,7 @@
-import { useState, useEffect, useSyncExternalStore, type FormEvent as ReactFormEvent } from "react";
+import { useState, useEffect, useRef, useSyncExternalStore, type FormEvent as ReactFormEvent } from "react";
 import { AuthBrandPanel } from "@/components/branding/AuthBrandPanel";
 import { BrandLockup, GLOBAL_BRAND_NAME } from "@/components/BrandMark";
+import { PasswordVisibilityToggle } from "@/components/forms/PasswordVisibilityToggle";
 import { CompanyIcon } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import {
@@ -36,12 +37,20 @@ export default function PortalLogin() {
   const navigate = useNavigateTransition();
   const [mode, setMode] = useState<Mode>("sign-in");
   const [email, setEmail] = useState("");
+  const emailRef = useRef<HTMLInputElement>(null);
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     if (user) navigate("/", { replace: true });
   }, [user, navigate]);
+
+  const changeMode = (nextMode: Mode) => {
+    setMode(nextMode);
+    setShowPassword(false);
+    emailRef.current?.focus();
+  };
 
   const handleSubmit = async (e: ReactFormEvent) => {
     e.preventDefault();
@@ -75,7 +84,7 @@ export default function PortalLogin() {
               <BrandLockup size="lg" />
               <span className="sr-only">{GLOBAL_BRAND_NAME}</span>
             </div>
-            <CardTitle>
+            <CardTitle as="h1">
               {mode === "forgot"
                 ? "Restablecer contraseña"
                 : "Portal de clientes"}
@@ -92,10 +101,12 @@ export default function PortalLogin() {
                 <div className="space-y-1.5">
                   <Label htmlFor="auth-email">Correo electrónico</Label>
                   <Input
+                    ref={emailRef}
                     id="auth-email"
                     type="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
+                    autoComplete={mode === "forgot" ? "email" : "username"}
                     placeholder="tu@empresa.com"
                     required
                     className="touch:h-11"
@@ -104,16 +115,20 @@ export default function PortalLogin() {
                 {mode === "sign-in" && (
                   <div className="space-y-1.5">
                     <Label htmlFor="auth-password">Contraseña</Label>
-                    <Input
-                      id="auth-password"
-                      type="password"
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      placeholder="••••••••"
-                      required
-                      minLength={8}
-                      className="touch:h-11"
-                    />
+                    <div className="relative">
+                      <Input
+                        id="auth-password"
+                        type={showPassword ? "text" : "password"}
+                        autoComplete="current-password"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        placeholder="••••••••"
+                        required
+                        minLength={8}
+                        className="pr-10 touch:h-11"
+                      />
+                      <PasswordVisibilityToggle visible={showPassword} onToggle={() => setShowPassword((value) => !value)} />
+                    </div>
                   </div>
                 )}
                 <Button
@@ -130,7 +145,7 @@ export default function PortalLogin() {
                   <Button
                     variant="link"
                     className="touch:min-h-11"
-                    onClick={() => setMode("forgot")}
+                    onClick={() => changeMode("forgot")}
                   >
                     ¿Olvidaste tu contraseña?
                   </Button>
@@ -138,7 +153,7 @@ export default function PortalLogin() {
                   <Button
                     variant="link"
                     className="touch:min-h-11"
-                    onClick={() => setMode("sign-in")}
+                    onClick={() => changeMode("sign-in")}
                   >
                     Volver a iniciar sesión
                   </Button>

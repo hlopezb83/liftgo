@@ -20,8 +20,10 @@ const emptyForm: ForkliftFormData = {
 export function useForkliftFormLogic() {
   const { id } = useParams();
   const isEdit = !!id;
-  const { data: existing, refetch } = useForklift(id);
-  const { data: equipmentModels } = useEquipmentModels();
+  const recordQuery = useForklift(id);
+  const modelsQuery = useEquipmentModels();
+  const { data: existing, refetch } = recordQuery;
+  const { data: equipmentModels } = modelsQuery;
 
   const form = useForm<ForkliftFormData>({
     resolver: zodResolver(forkliftFormSchema),
@@ -72,5 +74,14 @@ export function useForkliftFormLogic() {
     isPending,
     reload: session.reload, isReloading: session.isReloading, hasServerChanges: session.hasServerChanges,
     awaitingRecord: isEdit && !session.record,
+    recordLoading: isEdit && recordQuery.isLoading,
+    recordMissing: isEdit && recordQuery.isSuccess && !existing,
+    recordError: isEdit && !session.record && recordQuery.isError,
+    recordRetrying: recordQuery.isFetching,
+    retryRecord: refetch,
+    modelsLoading: modelsQuery.isLoading,
+    modelsError: !equipmentModels && modelsQuery.isError,
+    modelsRetrying: modelsQuery.isFetching,
+    retryModels: modelsQuery.refetch,
   };
 }

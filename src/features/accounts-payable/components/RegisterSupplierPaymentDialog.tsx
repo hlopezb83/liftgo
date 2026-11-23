@@ -56,7 +56,7 @@ function ReceiptField({ file, onChange, disabled }: ReceiptFieldProps) {
     return (
       <div className="flex items-center justify-between rounded-md border p-2 text-sm">
         <span className="truncate">{file.name}</span>
-        <Button type="button" variant="ghost" size="sm" onClick={() => onChange(null)} disabled={disabled}>
+        <Button type="button" variant="ghost" size="sm" onClick={() => onChange(null)} disabled={disabled} aria-label="Quitar comprobante">
           <X className="h-4 w-4" />
         </Button>
       </div>
@@ -186,7 +186,7 @@ function SupplierPaymentSession({
             placeholder="Folio de transferencia, cheque…"
           />
           <div className="space-y-1.5">
-            <Label>Comprobante (PDF/JPG/PNG, máx 5 MB)</Label>
+            <Label>Comprobante (PDF, JPG, PNG o WebP · máx. 5 MB)</Label>
             <ReceiptField file={receiptFile} onChange={setReceiptFile} disabled={isPending} />
           </div>
 

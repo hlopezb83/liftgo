@@ -4,6 +4,7 @@ import { computeFleetAvailability, useServerTodayMty } from "@/features/availabi
 import type { BookingWithForklift } from "@/features/bookings";
 import { StatCards } from "@/features/dashboard";
 import type { Tables } from "@/integrations/supabase/types";
+import { formatDateMty } from "@/lib/format/dateFormats";
 
 type Forklift = Tables<"forklifts">;
 
@@ -30,5 +31,12 @@ export function CalendarStatCards({ forklifts, bookings }: CalendarStatCardsProp
     { label: "Utilización", value: stats.utilization, icon: ChartIcon, color: "text-chart-5" },
   ];
 
-  return <StatCards cards={cards} columns={4} />;
+  return (
+    <section className="space-y-2">
+      <h2 className="text-sm font-semibold">
+        Estado de la flota hoy <span className="font-normal text-muted-foreground">({formatDateMty(todayYmd)})</span>
+      </h2>
+      <StatCards cards={cards} columns={4} />
+    </section>
+  );
 }

@@ -8,6 +8,7 @@ interface DateFieldProps<TFieldValues extends FieldValues> {
   name: FieldPath<TFieldValues>;
   label: string;
   placeholder?: string;
+  description?: string;
   required?: boolean;
   disabledMatcher?: Matcher | Matcher[];
 }
@@ -23,6 +24,7 @@ export function DateField<TFieldValues extends FieldValues>({
   name,
   label,
   placeholder,
+  description,
   required,
   disabledMatcher,
 }: DateFieldProps<TFieldValues>) {
@@ -45,6 +47,7 @@ export function DateField<TFieldValues extends FieldValues>({
               onSelect={field.onChange}
               onInvalidInput={() => field.onChange(null)}
               placeholder={placeholder}
+              description={description}
               required={required}
               disabled={disabledMatcher}
               error={fieldState.error?.message}

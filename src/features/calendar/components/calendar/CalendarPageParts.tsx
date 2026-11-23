@@ -82,6 +82,7 @@ export function CalendarToolbar({
 }: CalendarToolbarProps) {
   return (
     <div className="flex items-center flex-wrap gap-2">
+      <span className="sr-only" role="status" aria-atomic="true">Periodo seleccionado: {rangeLabel}</span>
       <Tabs value={viewMode} onValueChange={(v) => setViewMode(v as "gantt" | "list")}>
         <TabsList className="h-8 touch:h-11">
           {/* R6-FE-09: h-6 = 24px; en táctil sube a 44px. */}

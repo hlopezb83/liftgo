@@ -1,18 +1,17 @@
-import { isAfter, startOfDay } from "date-fns";
 import { useEffect, useRef } from "react";
 import { useForm } from "react-hook-form";
 import { TextField, CurrencyField, DateField } from "@/components/forms/fields";
 import { FormDialog, FormDialogFooter } from "@/components/forms/FormDialog";
 import { FormDialogCancelButton } from "@/components/forms/FormDialogCancelButton";
 import { Button } from "@/components/ui/button";
-import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
+import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage, FormDescription } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { toYMD } from "@/lib/date/toYMD";
 import { formatCurrency } from "@/lib/format/formatCurrency";
 import { zodResolver } from "@/lib/forms/zodResolver";
 import { nowMty } from "@/lib/utils";
 import { useCreatePaymentIntent } from "../hooks/usePortalExtras";
-import { makeSchema, type ReportTransferFormValues } from "./reportTransferSchema";
+import { makeSchema, transferDateError, TRANSFER_DATE_MAX_AGE_DAYS, TRANSFER_PROOF_MAX_MB, type ReportTransferFormValues } from "./reportTransferSchema";
 
 interface Props {
   open: boolean;
@@ -103,7 +102,8 @@ export function ReportTransferDialog({ open, onOpenChange, invoiceId, customerId
               name="transferDate"
               label="Fecha"
               required
-              disabledMatcher={(date) => isAfter(startOfDay(date), startOfDay(nowMty()))}
+              description={`Puedes reportar transferencias de los últimos ${TRANSFER_DATE_MAX_AGE_DAYS} días.`}
+              disabledMatcher={(date) => transferDateError(date) !== null}
             />
             <CurrencyField control={form.control} name="amount" label="Monto" required currency="MXN" />
           </div>
@@ -116,7 +116,9 @@ export function ReportTransferDialog({ open, onOpenChange, invoiceId, customerId
           <TextField
             control={form.control}
             name="senderLast4"
-            label="Últimos 4 dígitos cuenta origen"
+            label="Últimos 4 dígitos de la cuenta de origen (opcional)"
+            inputMode="numeric"
+            maxLength={4}
           />
           <TextField
             control={form.control}
@@ -137,6 +139,7 @@ export function ReportTransferDialog({ open, onOpenChange, invoiceId, customerId
                     onChange={(e) => field.onChange(e.target.files?.[0] ?? null)}
                   />
                 </FormControl>
+                <FormDescription>Máximo {TRANSFER_PROOF_MAX_MB} MB por archivo.</FormDescription>
                 <FormMessage />
               </FormItem>
             )}

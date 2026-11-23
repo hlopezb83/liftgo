@@ -25,6 +25,16 @@ function accountIdentifier({ clabe, account_number }: SupplierBankAccount) {
   return accountNumber.length > 4 ? `Cuenta ${maskClabe(accountNumber)}` : "—";
 }
 
+function accountReference(account: SupplierBankAccount) {
+  const identifier = accountIdentifier(account);
+  if (identifier === "—") return `titular: ${account.account_holder}`;
+  return identifier.startsWith("Cuenta") ? identifier : `CLABE ${identifier}`;
+}
+
+function accountActionLabel(action: "Editar" | "Eliminar", account: SupplierBankAccount) {
+  return `${action} cuenta bancaria de ${account.bank_name}, ${account.currency}, ${accountReference(account)}`;
+}
+
 export function SupplierBankAccountsSection({ supplierId }: { supplierId: string }) {
   const { data: accounts = [], isLoading, isError, isFetching, error, refetch } = useSupplierBankAccounts(supplierId);
   const del = useDeleteSupplierBankAccount();
@@ -35,16 +45,10 @@ export function SupplierBankAccountsSection({ supplierId }: { supplierId: string
   const onAdd = () => { setEditing(null); setOpen(true); };
   const onEdit = (a: SupplierBankAccount) => { setEditing(a); setOpen(true); };
   const onDelete = async (a: SupplierBankAccount) => {
-    const clabe = a.clabe?.trim() ?? "";
-    const accountNumber = a.account_number?.trim() ?? "";
-    const accountReference = clabe.length > 4
-      ? `CLABE ${maskClabe(clabe)}`
-      : accountNumber.length > 4
-        ? `cuenta ${maskClabe(accountNumber)}`
-        : `titular: ${a.account_holder}`;
+
     const ok = await confirm({
       title: "Eliminar cuenta bancaria",
-      description: `¿Eliminar la cuenta de "${a.bank_name}" (${a.currency}, ${accountReference})? Esta acción no se puede deshacer.`,
+      description: `¿Eliminar la cuenta de "${a.bank_name}" (${a.currency}, ${accountReference(a)})? Esta acción no se puede deshacer.`,
       confirmLabel: "Eliminar",
       destructive: true,
     });
@@ -100,10 +104,10 @@ export function SupplierBankAccountsSection({ supplierId }: { supplierId: string
                   <TableCell className="text-sm">{a.currency}</TableCell>
                   <TableCell className="text-right">
                     <RoleGuard module="Proveedores" minAccess="full" fallback={null}>
-                      <Button size="icon" variant="ghost" aria-label="Editar cuenta bancaria" title="Editar cuenta bancaria" onClick={() => onEdit(a)}>
+                      <Button size="icon" variant="ghost" aria-label={accountActionLabel("Editar", a)} title="Editar cuenta bancaria" onClick={() => onEdit(a)}>
                         <EditIcon className="h-4 w-4" />
                       </Button>
-                      <Button size="icon" variant="ghost" aria-label="Eliminar cuenta bancaria" title="Eliminar cuenta bancaria" onClick={() => onDelete(a)}>
+                      <Button size="icon" variant="ghost" aria-label={accountActionLabel("Eliminar", a)} title="Eliminar cuenta bancaria" onClick={() => onDelete(a)}>
                         <DeleteIcon className="h-4 w-4" />
                       </Button>
                     </RoleGuard>

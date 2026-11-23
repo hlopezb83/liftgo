@@ -1,6 +1,7 @@
 import { DataTableV2, useLiftgoTable } from "@/components/dataTable/v2";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import type { Tables } from "@/integrations/supabase/types";
+import { formatDateMty } from "@/lib/format/dateFormats";
 import { formatCurrencyWithCode } from "@/lib/format/formatCurrency";
 import { usePaymentHistoryColumns } from "../../hooks/invoices/usePaymentHistoryColumns";
 import { canStampPaymentRep } from "../../lib/canStampPaymentRep";
@@ -81,6 +82,7 @@ export function InvoicePaymentSummary({
     paginated: false,
   });
 
+  const selectedRepPayment = payments.find((payment) => payment.id === cancelRepPaymentId);
   const pendingReps = ppdStamped ? countPendingReps(payments) : 0;
   const showSummary = totalPaid > 0 || creditedAmount > 0;
 
@@ -121,6 +123,7 @@ export function InvoicePaymentSummary({
           open={cancelRepPaymentId !== null}
           onOpenChange={(open) => { if (!open) setCancelRepPaymentId(null); }}
           paymentId={cancelRepPaymentId}
+          paymentLabel={selectedRepPayment ? `Pago del ${formatDateMty(selectedRepPayment.payment_date)} · ${formatCurrencyWithCode(Number(selectedRepPayment.amount), selectedRepPayment.currency ?? currency)}` : undefined}
         />
       )}
     </>
