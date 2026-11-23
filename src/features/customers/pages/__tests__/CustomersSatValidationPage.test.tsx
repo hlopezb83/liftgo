@@ -53,10 +53,10 @@ describe("CustomersSatValidationPage", () => {
     renderPage();
 
     expect(await screen.findByRole("button", { name: "Sólo sin validar" })).toHaveAttribute("aria-pressed", "true");
-    expect(screen.getByRole("button", { name: "Validar pendientes (0)" })).toBeDisabled();
-    fireEvent.click(screen.getByRole("button", { name: "Toda la cartera" }));
-    expect(screen.getByRole("button", { name: "Toda la cartera" })).toHaveAttribute("aria-pressed", "true");
-    fireEvent.click(screen.getByRole("button", { name: "Validar cartera (3)" }));
+    expect(screen.getByRole("button", { name: "Validar lote" })).toBeDisabled();
+    fireEvent.click(screen.getByRole("button", { name: "Cartera con RFC" }));
+    expect(screen.getByRole("button", { name: "Cartera con RFC" })).toHaveAttribute("aria-pressed", "true");
+    fireEvent.click(screen.getByRole("button", { name: "Validar lote de 3" }));
     expect(state.mutate).toHaveBeenCalledWith(
       { limit: 3, onlyPending: false }, expect.objectContaining({ onSuccess: expect.any(Function) }),
     );
@@ -67,7 +67,7 @@ describe("CustomersSatValidationPage", () => {
     state.rows[0] = makeRow("observado", "mismatch");
     renderPage();
 
-    fireEvent.click(await screen.findByRole("button", { name: "Validar pendientes (40)" }));
+    fireEvent.click(await screen.findByRole("button", { name: "Validar lote de 40" }));
     expect(state.mutate).toHaveBeenCalledWith(
       { limit: 40, onlyPending: true }, expect.objectContaining({ onSuccess: expect.any(Function) }),
     );
@@ -83,13 +83,14 @@ describe("CustomersSatValidationPage", () => {
     renderPage();
 
     expect(await screen.findByText("1,100")).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Validar pendientes (1)" })).toBeEnabled();
+    expect(screen.getByText("Hasta 40 clientes por ejecución")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Validar lote de 1" })).toBeEnabled();
     expect(screen.getByText("Mostrando 1–25 de 1,100 clientes")).toBeInTheDocument();
     expect(screen.getAllByRole("article")).toHaveLength(25);
 
     fireEvent.click(screen.getByRole("button", { name: "Ir a la página 44" }));
     expect(screen.getByText("Mostrando 1,076–1,100 de 1,100 clientes")).toBeInTheDocument();
     expect(screen.getByRole("article", { name: "Cliente Empresa 1099" })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Validar pendientes (1)" })).toBeEnabled();
+    expect(screen.getByRole("button", { name: "Validar lote de 1" })).toBeEnabled();
   });
 });
