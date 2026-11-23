@@ -70,7 +70,7 @@ describe("extension action while the production query refreshes cached rows", ()
     fireEvent.click(button);
     expect(state.navigate).not.toHaveBeenCalled();
     state.read.mockResolvedValue({ data: [extension], error: null });
-    fireEvent.click(screen.getByRole("button", { name: "Reintentar", exact: true }));
+    fireEvent.click(screen.getByRole("button", { name: /^Reintentar$/ }));
     await waitFor(() => expect(button).toBeEnabled());
     fireEvent.click(button);
     expect(state.navigate).toHaveBeenCalledWith("/invoices/new?extension_id=extension-1");
