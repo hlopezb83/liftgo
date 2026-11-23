@@ -56,12 +56,17 @@ export const isMissingOperationalEvidence = (
 ): boolean => !signature && !driverName?.trim();
 
 
+export function deliveryTypeLabel(type: string) {
+  if (type === "return") return "Devolución";
+  return type === "pickup" ? "Recolección" : "Entrega";
+}
+
 export const buildDeliverySubtitle = (
   forkliftName: string | null | undefined,
   type: string,
 ): string => {
   const name = forkliftName ?? "Equipo";
-  const label = type === "delivery" ? "Entrega" : "Recolección";
+  const label = deliveryTypeLabel(type);
   return `${name} · ${label}`;
 };
 

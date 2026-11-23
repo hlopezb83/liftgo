@@ -24,6 +24,7 @@ export function CollectionNotesCard({ invoiceId }: CollectionNotesCardProps) {
   const [showForm, setShowForm] = useState(false);
   const [noteText, setNoteText] = useState("");
   const [followupDate, setFollowupDate] = useState<Date | undefined>(undefined);
+  const hasDraft = Boolean(noteText || followupDate);
 
   const handleSubmit = () => {
     if (!canWrite || createNote.isPending || !noteText.trim()) return;
@@ -40,8 +41,9 @@ export function CollectionNotesCard({ invoiceId }: CollectionNotesCardProps) {
           <CardTitle className="text-base flex items-center gap-2">
             <PhoneCall className="h-4 w-4" /> Gestiones de Cobranza
           </CardTitle>
-          {canWrite && <Button variant="outline" size="sm" onClick={() => setShowForm(!showForm)}>
-            <AddIcon className="h-4 w-4 mr-1" /> Nueva Gestión
+          {canWrite && !showForm && <Button variant="outline" size="sm" onClick={() => setShowForm(true)}>
+            <AddIcon className="h-4 w-4 mr-1" />
+            {hasDraft ? "Continuar borrador" : "Nueva Gestión"}
           </Button>}
         </div>
       </CardHeader>
@@ -67,7 +69,7 @@ export function CollectionNotesCard({ invoiceId }: CollectionNotesCardProps) {
               <Button size="sm" onClick={handleSubmit} disabled={createNote.isPending || !noteText.trim()}>
                 Guardar
               </Button>
-              <Button size="sm" variant="ghost" onClick={() => setShowForm(false)}>Cancelar</Button>
+              <Button size="sm" variant="ghost" onClick={() => setShowForm(false)}>Cerrar borrador</Button>
             </div>
           </div>
         )}

@@ -53,7 +53,7 @@ vi.mock("../../components/calendar/CalendarStatCards", () => ({ CalendarStatCard
 vi.mock("../../components/calendar/EquipmentListView", () => ({ EquipmentListView: () => <div>Lista de equipos</div> }));
 vi.mock("../../components/calendar/GanttChart", async () => {
   const { GanttRow } = await import("../../components/calendar/GanttRow");
-  return { GanttChart: () => <GanttRow forklift={fixture.forklift as never} days={[new Date(2026, 10, 1)]} segments={[{
+  return { GanttChart: () => <GanttRow canOpenBookings={fixture.canReadBookings} forklift={fixture.forklift as never} days={[new Date(2026, 10, 1)]} segments={[{
     booking: fixture.booking as never, label: "Cliente noviembre", durationDays: 30, color: "blue", leftPercent: 0, widthPercent: 100,
   }]} /> };
 });
@@ -95,6 +95,7 @@ describe("Calendar navigation audit N5/N6", () => {
   });
 
   it("opening a November Gantt booking carries the exact calendar origin and restores it on remount", async () => {
+    fixture.canReadBookings = true;
     renderCalendar();
     fireEvent.click(await screen.findByRole("button", { name: "Mes siguiente" }));
     await waitFor(() => expect(screen.getByTestId("url")).toHaveTextContent("date=2026-11-18"));
@@ -128,6 +129,8 @@ describe("Calendar navigation audit N5/N6", () => {
 
     expect(await screen.findByText(/Cliente próximo/)).toBeVisible();
     expect(screen.queryByRole("link", { name: /Cliente próximo/ })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /Abrir reserva/ })).not.toBeInTheDocument();
+    expect(screen.getByRole("img", { name: /Reserva Cliente noviembre/ })).toBeInTheDocument();
   });
 
   it("restores the last calendar date, view and range when reentering without a query", async () => {
@@ -147,6 +150,7 @@ describe("Calendar navigation audit N5/N6", () => {
     fireEvent.click(next);
     await waitFor(() => expect(screen.getByRole("button", { name: "Mes siguiente" })).toBe(next));
     expect(next).toHaveFocus();
+    expect(screen.getByText(/Periodo seleccionado: noviembre/i)).toBeInTheDocument();
     expect(screen.getByRole("status", { name: "Cargando calendario" })).toHaveTextContent("Cargando calendario");
     act(() => { fixture.loading = false; fixture.listeners.forEach((listener) => listener()); });
     await waitFor(() => expect(screen.queryByRole("status", { name: "Cargando calendario" })).not.toBeInTheDocument());

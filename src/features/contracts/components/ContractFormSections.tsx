@@ -1,5 +1,4 @@
 import { parseISO } from "date-fns";
-import { Controller } from "react-hook-form";
 import { DatePickerField } from "@/components/forms/DatePickerField";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
@@ -47,23 +46,26 @@ export function GeneralInfoCard({ control, customers, forklifts, linkedToBooking
               El cliente y el equipo se mantienen ligados a la reserva seleccionada.
             </p>
           )}
-          <Controller control={control} name="start_date" render={({ field }) => (
-            <DatePickerField
-              label="Fecha de Inicio"
-              date={field.value ? parseISO(field.value) : undefined}
-              onSelect={(d) => field.onChange(d ? toYMD(d) : "")}
-              placeholder="Seleccionar fecha"
-            />
+          <FormField control={control} name="start_date" render={({ field, fieldState }) => (
+            <FormItem>
+              <DatePickerField
+                label="Fecha de Inicio"
+                date={field.value ? parseISO(field.value) : undefined}
+                onSelect={(d) => field.onChange(d ? toYMD(d) : "")}
+                placeholder="Seleccionar fecha"
+                error={fieldState.error?.message}
+              />
+            </FormItem>
           )} />
-          <FormField control={control} name="end_date" render={({ field }) => (
+          <FormField control={control} name="end_date" render={({ field, fieldState }) => (
             <FormItem>
               <DatePickerField
                 label="Fecha de Fin"
                 date={field.value ? parseISO(field.value) : undefined}
                 onSelect={(d) => field.onChange(d ? toYMD(d) : "")}
                 placeholder="Seleccionar fecha"
+                error={fieldState.error?.message}
               />
-              <FormMessage />
             </FormItem>
           )} />
         </div>

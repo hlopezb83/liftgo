@@ -1,4 +1,5 @@
-import { SaveIcon } from "@/components/icons";
+import { useId } from "react";
+import { SaveIcon, SpinnerIcon } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -51,6 +52,8 @@ export function CashFlowSettingsBar({ weeks, onChangeWeeks }: Props) {
   const { data: role } = useUserRole();
   const canEdit = role === "admin" || role === "administrativo";
   const update = useUpdateCashFlowSettings();
+  const horizonId = useId();
+  const amountsDisabled = isLoading || !canEdit || update.isPending;
 
   const { initial, buffer, setInitial, setBuffer, dirty, remoteChanged, markSaved } = useCashFlowDraft(settings);
 
@@ -60,12 +63,12 @@ export function CashFlowSettingsBar({ weeks, onChangeWeeks }: Props) {
 
   return (
     <div className="flex flex-wrap items-end gap-3 p-3 border rounded-md bg-muted/30">
-      <CashFlowAmountInput id="cf-initial" label="Saldo inicial (MXN)" value={initial} disabled={isLoading || !canEdit || update.isPending} onChange={setInitial} />
-      <CashFlowAmountInput id="cf-buffer" label="Colchón mínimo (MXN)" value={buffer} disabled={isLoading || !canEdit || update.isPending} onChange={setBuffer} />
+      <CashFlowAmountInput id="cf-initial" label="Saldo inicial (MXN)" value={initial} disabled={amountsDisabled} onChange={setInitial} />
+      <CashFlowAmountInput id="cf-buffer" label="Colchón mínimo (MXN)" value={buffer} disabled={amountsDisabled} onChange={setBuffer} />
       <div className="space-y-1">
-        <Label className="text-xs">Horizonte</Label>
+        <Label htmlFor={horizonId} className="text-xs">Horizonte</Label>
         <Select value={String(weeks)} onValueChange={(v) => onChangeWeeks(Number(v))}>
-          <SelectTrigger className="w-32 h-9"><SelectValue /></SelectTrigger>
+          <SelectTrigger id={horizonId} className="w-32 h-9"><SelectValue /></SelectTrigger>
           <SelectContent>
             <SelectItem value="4">4 semanas</SelectItem>
             <SelectItem value="8">8 semanas</SelectItem>
@@ -77,6 +80,7 @@ export function CashFlowSettingsBar({ weeks, onChangeWeeks }: Props) {
         <Button
           size="sm"
           disabled={!dirty || !validAmounts || update.isPending || !settings?.id}
+          aria-busy={update.isPending}
           onClick={() => {
             if (!settings?.id || !validAmounts) return;
             const saved = {
@@ -87,9 +91,12 @@ export function CashFlowSettingsBar({ weeks, onChangeWeeks }: Props) {
             update.mutate(saved, { onSuccess: () => markSaved(saved) });
           }}
         >
-          <SaveIcon className="h-4 w-4 mr-1" /> Guardar
+          {update.isPending
+            ? <><SpinnerIcon className="mr-1 h-4 w-4 animate-spin" /> Guardando…</>
+            : <><SaveIcon className="mr-1 h-4 w-4" /> Guardar</>}
         </Button>
       )}
+      <span aria-live="polite" className="sr-only">{update.isPending && "Guardando la configuración de flujo de caja…"}</span>
       {remoteChanged && <p role="status" className="w-full text-sm text-muted-foreground">
         Los saldos se actualizaron mientras capturabas. Conservamos tus cambios; al guardar se aplicarán los importes que ves aquí.
       </p>}

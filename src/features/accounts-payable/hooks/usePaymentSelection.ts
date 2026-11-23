@@ -13,6 +13,12 @@ export interface CurrencyTotal {
 export type SupplierBillRow = ExportablePayable;
 const AMOUNT_TOLERANCE = 0.0001;
 
+export function paymentAmountIssue(amount: number, balance: number) {
+  if (!Number.isFinite(amount) || amount <= 0) return "non-positive";
+  if (amount > balance + AMOUNT_TOLERANCE) return "exceeds-balance";
+  return null;
+}
+
 function reconcileRows(
   bills: SupplierBillRow[],
   previous: Record<string, RowState>,
@@ -58,8 +64,7 @@ export function usePaymentSelection(open: boolean, bills: SupplierBillRow[] | un
 
   const hasInvalid = selected.some((bill) => {
     const amount = rowState[bill.id]?.amount ?? bill.balance;
-    return !bill.has_valid_clabe || !Number.isFinite(amount) ||
-      amount <= 0 || amount > bill.balance + AMOUNT_TOLERANCE;
+    return !bill.has_valid_clabe || paymentAmountIssue(amount, bill.balance) !== null;
   });
   const eligible = (bills ?? []).filter((bill) => bill.has_valid_clabe && !bill.payment_in_progress_at);
   const allEligibleSelected = eligible.length > 0 && eligible.every((bill) => rowState[bill.id]?.selected);

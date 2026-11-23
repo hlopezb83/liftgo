@@ -1,3 +1,5 @@
+import { EmptyState } from "@/components/feedback/EmptyState";
+import { QueryErrorState } from "@/components/feedback/QueryErrorState";
 import { FormActions } from "@/components/forms/FormActions";
 import { WarnIcon } from "@/components/icons";
 import { FormPageHeader } from "@/components/layout/FormPageHeader";
@@ -18,7 +20,19 @@ export default function ForkliftForm() {
     hasModels, manufacturers, filteredModels,
     handleManufacturerChange, handleModelChange, onSubmit, isPending,
     reload, isReloading, hasServerChanges, awaitingRecord,
+    ...readState
   } = useForkliftFormLogic();
+
+  const title = isEdit ? "Editar montacargas" : "Agregar montacargas";
+  const unavailable = renderForkliftReadState(readState, () => navigate("/fleet"));
+  if (unavailable) {
+    return (
+      <PageContainer maxWidth="form">
+        <FormPageHeader title={title} />
+        {unavailable}
+      </PageContainer>
+    );
+  }
 
   if (!isEdit && !hasModels) {
     return (
@@ -41,7 +55,7 @@ export default function ForkliftForm() {
 
   return (
     <PageContainer maxWidth="form">
-      <FormPageHeader title={isEdit ? "Editar montacargas" : "Agregar montacargas"} />
+      <FormPageHeader title={title} />
       {isEdit && <div className="space-y-2">
         <Button variant="outline" disabled={isPending || isReloading} onClick={() => { void reload(); }}>
           {isReloading ? "Recargando…" : "Recargar datos"}
@@ -98,4 +112,32 @@ export default function ForkliftForm() {
       </Form>
     </PageContainer>
   );
+}
+
+type ForkliftReadState = Pick<ReturnType<typeof useForkliftFormLogic>,
+  "recordLoading" | "recordMissing" | "recordError" | "recordRetrying" | "retryRecord" |
+  "modelsLoading" | "modelsError" | "modelsRetrying" | "retryModels">;
+
+function renderForkliftReadState(state: ForkliftReadState, onBack: () => void) {
+  if (state.recordLoading || state.modelsLoading) {
+    return (
+      <p role="status" className="mt-4 text-sm text-muted-foreground">
+        {state.recordLoading ? "Cargando datos del equipo…" : "Cargando modelos de equipo…"}
+      </p>
+    );
+  }
+  if (state.recordError || state.modelsError) {
+    return <>
+      <QueryErrorState
+        entity={state.recordError ? "el equipo" : "los modelos de equipo"}
+        isRetrying={state.recordError ? state.recordRetrying : state.modelsRetrying}
+        onRetry={() => { void (state.recordError ? state.retryRecord() : state.retryModels()); }}
+      />
+      <Button type="button" variant="outline" className="mt-4" onClick={onBack}>Volver a equipos</Button>
+    </>;
+  }
+  if (state.recordMissing) {
+    return <EmptyState title="Equipo no encontrado" actionLabel="Volver a equipos" onAction={onBack} />;
+  }
+  return null;
 }

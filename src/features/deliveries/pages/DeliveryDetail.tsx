@@ -95,6 +95,8 @@ export default function DeliveryDetail() {
               )}
               {!isHistoricallyReconciled(delivery) && <DeliveryActions
                 status={delivery.status}
+                type={delivery.type}
+                number={delivery.delivery_number}
                 canDelete={canDeleteDeliveryFor(delivery.status, role)}
                 onEdit={() => setEditOpen(true)}
                 onComplete={() => completion.setSignatureOpen(true)}

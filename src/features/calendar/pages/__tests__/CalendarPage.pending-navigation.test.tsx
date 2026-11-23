@@ -46,7 +46,7 @@ vi.mock("../../hooks/useMaintenanceWindows", () => ({
 vi.mock("../../components/calendar/CalendarStatCards", () => ({ CalendarStatCards: () => null }));
 vi.mock("../../components/calendar/EquipmentListView", () => ({ EquipmentListView: () => null }));
 vi.mock("../../components/calendar/GanttChart", () => ({
-  GanttChart: () => <GanttRow forklift={{ id: "fl-1", name: "FL-01" } as never} days={[new Date(2026, 10, 16)]} segments={[{
+  GanttChart: () => <GanttRow canOpenBookings forklift={{ id: "fl-1", name: "FL-01" } as never} days={[new Date(2026, 10, 16)]} segments={[{
     booking: booking as never, label: "Cliente noviembre", durationDays: 2, color: "blue", leftPercent: 0, widthPercent: 100,
   }]} />,
 }));

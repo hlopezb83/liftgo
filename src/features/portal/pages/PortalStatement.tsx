@@ -34,6 +34,8 @@ export default function PortalStatement() {
   } = useCustomerSummary(customer?.id);
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
   const onlyBalanceId = useId();
+  const disabledPdfHintId = useId();
+  const withoutInvoices = summary?.invoices.length === 0;
 
   // La tabla se pagina en servidor y los pagos se cargan sólo al expandir una
   // factura. Los KPI vienen del resumen autoritativo completo, no de la página.
@@ -94,16 +96,17 @@ export default function PortalStatement() {
       <PageHeader
         title="Estado de Cuenta"
         actions={
-          <Button
-            variant="outline"
-            onClick={handleDownload}
-            // R7-FE-09d (N7-POR-07): sin facturas el PDF saldría vacío.
-            disabled={!summary || !customer || summary.invoices.length === 0}
-            title={summary?.invoices.length === 0 ? "Aún no hay facturas: el estado de cuenta está vacío" : undefined}
-            className="no-print"
-          >
-            <DownloadIcon className="h-4 w-4 mr-2" /> Descargar PDF
-          </Button>
+          <div className="flex flex-col items-start gap-1 no-print">
+            <Button
+              variant="outline"
+              onClick={handleDownload}
+              disabled={!summary || !customer || withoutInvoices}
+              aria-describedby={withoutInvoices ? disabledPdfHintId : undefined}
+            >
+              <DownloadIcon className="h-4 w-4 mr-2" /> Descargar PDF
+            </Button>
+            {withoutInvoices && <p id={disabledPdfHintId} className="text-xs text-muted-foreground">El PDF estará disponible cuando tengas facturas.</p>}
+          </div>
         }
       />
 

@@ -55,7 +55,7 @@ export function InvoiceDetailDialogs({
       {canWrite && (
         <>
           <RecordPaymentDialog open={paymentOpen} onOpenChange={setPaymentOpen} invoiceId={invoiceId} balance={balance} invoiceCurrency={invoiceCurrency} invoiceExchangeRate={invoiceExchangeRate} invoiceIssuedAt={invoiceIssuedAt} ppdStamped={ppdStamped} />
-          <CancelCfdiDialog open={cancelOpen} onOpenChange={setCancelOpen} invoiceId={invoiceId} invoiceTotal={invoiceTotal} onSuccess={onCancelSuccess} />
+          <CancelCfdiDialog open={cancelOpen} onOpenChange={setCancelOpen} invoiceId={invoiceId} invoiceNumber={invoiceNumber} invoiceTotal={invoiceTotal} onSuccess={onCancelSuccess} />
           <ConfirmDialog
             open={deleteOpen}
             onOpenChange={setDeleteOpen}

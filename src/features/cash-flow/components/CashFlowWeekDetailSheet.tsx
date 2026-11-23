@@ -7,11 +7,13 @@ import { formatDateMty } from "@/lib/format/dateFormats";
 import { formatCurrency } from "@/lib/format/formatCurrency";
 import { cn } from "@/lib/utils";
 import type { CashFlowBucket, CashFlowItem } from "../lib/cashFlowUtils";
+import type { ComponentProps } from "react";
 
 interface Props {
   bucket: CashFlowBucket | null;
   open: boolean;
   onOpenChange: (o: boolean) => void;
+  onCloseAutoFocus?: ComponentProps<typeof SheetContent>["onCloseAutoFocus"];
 }
 
 function Section({ title, items, kind, onClick }: { title: string; items: CashFlowItem[]; kind: "in" | "out"; onClick: (it: CashFlowItem) => void }) {
@@ -52,7 +54,7 @@ function Section({ title, items, kind, onClick }: { title: string; items: CashFl
   );
 }
 
-export function CashFlowWeekDetailSheet({ bucket, open, onOpenChange }: Props) {
+export function CashFlowWeekDetailSheet({ bucket, open, onOpenChange, onCloseAutoFocus }: Props) {
   const navigate = useNavigateTransition();
   const inflows = bucket?.items.filter((i) => i.kind === "in") ?? [];
   const outflows = bucket?.items.filter((i) => i.kind === "out") ?? [];
@@ -63,7 +65,7 @@ export function CashFlowWeekDetailSheet({ bucket, open, onOpenChange }: Props) {
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent className="sm:max-w-lg overflow-y-auto">
+      <SheetContent className="sm:max-w-lg overflow-y-auto" onCloseAutoFocus={onCloseAutoFocus}>
         <SheetHeader>
           <SheetTitle>
             {bucket?.label} <span className="text-muted-foreground font-normal text-sm">— {bucket?.rangeLabel}</span>

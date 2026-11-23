@@ -1,3 +1,4 @@
+import { useId } from "react";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { formatCurrencyWithCode } from "@/lib/format/formatCurrency";
@@ -15,11 +16,13 @@ interface Props {
 export function PaymentsExportSummary({
   notes, onNotesChange, selectedCount, totalsByCurrency, hasInvalid,
 }: Props) {
+  const notesId = useId();
   return (
     <div className="grid sm:grid-cols-2 gap-3 pt-2">
       <div className="space-y-1.5">
-        <Label>Notas del lote (opcional)</Label>
+        <Label htmlFor={notesId}>Notas del lote (opcional)</Label>
         <Textarea
+          id={notesId}
           rows={2}
           value={notes}
           onChange={(e) => onNotesChange(e.target.value)}
@@ -45,7 +48,7 @@ export function PaymentsExportSummary({
         </div>
         {hasInvalid && (
           <p className="text-xs text-destructive mt-1">
-            Hay renglones inválidos: proveedor sin CLABE válida o monto mayor al saldo pendiente.
+            Revisa los renglones con CLABE inválida o con un monto fuera del saldo pendiente.
           </p>
         )}
       </div>

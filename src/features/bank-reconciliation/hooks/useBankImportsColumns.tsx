@@ -10,7 +10,7 @@ export type ImportRow = NonNullable<ReturnType<typeof useBankStatementImports>["
 
 export function useBankImportsColumns(
   canDelete: boolean,
-  onDeleteRequest: (id: string) => void,
+  onDeleteRequest: (row: ImportRow) => void,
 ): ColumnDef<ImportRow>[] {
   return useMemo(() => {
     const base: ColumnDef<ImportRow>[] = [
@@ -83,14 +83,15 @@ export function useBankImportsColumns(
           i.total_count > 0 ? (i.matched_count / i.total_count) * 100 : 0,
         cell: ({ row }) => {
           const i = row.original;
-          const pct =
-            i.total_count > 0 ? Math.round((i.matched_count / i.total_count) * 100) : 0;
+          const complete = i.total_count > 0 && i.matched_count >= i.total_count;
+          const pct = i.total_count > 0 ? Math.round((i.matched_count / i.total_count) * 100) : 0;
+          const label = complete ? "100 %" : pct === 100 ? ">99 %" : `${pct} %`;
           return (
             <Badge
-              variant={pct === 100 ? "default" : pct >= 50 ? "secondary" : "outline"}
+              variant={complete ? "default" : pct >= 50 ? "secondary" : "outline"}
               className="text-3xs"
             >
-              {pct}%
+              {label}
             </Badge>
           );
         },
@@ -109,9 +110,9 @@ export function useBankImportsColumns(
             className="h-7 w-7 p-0 text-destructive"
             onClick={(e) => {
               e.stopPropagation();
-              onDeleteRequest(row.original.id);
+              onDeleteRequest(row.original);
             }}
-            aria-label="Eliminar import"
+            aria-label={`Eliminar importación de ${row.original.file_name}`}
           >
             <DeleteIcon className="h-3.5 w-3.5" />
           </Button>

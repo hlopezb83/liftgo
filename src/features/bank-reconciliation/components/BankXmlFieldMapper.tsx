@@ -1,3 +1,4 @@
+import { useId } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -24,6 +25,7 @@ interface Props {
 }
 
 export function BankXmlFieldMapper({ availableFields, mapping, onChange, disabled = false }: Props) {
+  const fieldsId = useId();
   const setField = (key: XmlFieldKey, value: string) => {
     const next = { ...mapping };
     if (value === NONE) delete next[key];
@@ -43,13 +45,13 @@ export function BankXmlFieldMapper({ availableFields, mapping, onChange, disable
         <div className="grid sm:grid-cols-3 gap-3">
           {FIELD_ORDER.map((key) => (
             <div key={key} className="grid gap-1.5">
-              <Label className="text-xs">{FIELD_LABELS[key]}</Label>
+              <Label htmlFor={`${fieldsId}-${key}`} className="text-xs">{FIELD_LABELS[key]}</Label>
               <Select
                 value={mapping[key] ?? NONE}
                 onValueChange={(v) => setField(key, v)}
                 disabled={disabled}
               >
-                <SelectTrigger><SelectValue placeholder="Sin asignar" /></SelectTrigger>
+                <SelectTrigger id={`${fieldsId}-${key}`}><SelectValue placeholder="Sin asignar" /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value={NONE}>Sin asignar</SelectItem>
                   {availableFields.map((f) => (

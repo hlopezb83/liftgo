@@ -84,6 +84,7 @@ export function UploadSupplierRepDialog({
                   <Input
                     type="file"
                     accept=".xml,application/xml,text/xml"
+                    disabled={upload.isPending}
                     onChange={(e) => field.onChange(e.target.files?.[0] ?? null)}
                   />
                 </FormControl>
@@ -101,6 +102,7 @@ export function UploadSupplierRepDialog({
                   <Input
                     type="file"
                     accept="application/pdf"
+                    disabled={upload.isPending}
                     onChange={(e) => field.onChange(e.target.files?.[0] ?? null)}
                   />
                 </FormControl>

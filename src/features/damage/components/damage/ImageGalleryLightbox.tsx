@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, type TouchEvent as ReactTouchEvent } from "react";
 import { ChevronLeftIcon, ChevronRightIcon, X, ZoomIn, ZoomOut } from "@/components/icons";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
 
 interface ImageGalleryLightboxProps {
@@ -50,11 +50,12 @@ export function ImageGalleryLightbox({ images, initialIndex = 0, open, onOpenCha
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-[95vw] max-h-[95vh] w-full h-full p-0 bg-background/95 backdrop-blur-sm border-none [&>button]:hidden">
+      <DialogContent aria-describedby={undefined} className="max-w-[95vw] max-h-[95vh] w-full h-full p-0 bg-background/95 backdrop-blur-sm border-none [&>button:last-child]:hidden">
+        <DialogTitle className="sr-only">Fotos del daño</DialogTitle>
         {/* Top bar */}
         <div className="absolute top-0 left-0 right-0 z-10 flex items-center justify-between px-4 py-3 bg-gradient-to-b from-background/80 to-transparent">
-          <span className="text-sm text-muted-foreground font-mono">
-            {current + 1} / {images.length}
+          <span role="status" className="text-sm text-muted-foreground font-mono">
+            Foto {current + 1} de {images.length}
           </span>
           <span className="text-sm text-foreground truncate max-w-[50%]">{images[current]?.name}</span>
           <div className="flex gap-1">

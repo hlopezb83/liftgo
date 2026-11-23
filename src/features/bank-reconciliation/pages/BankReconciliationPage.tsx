@@ -131,6 +131,9 @@ export default function BankReconciliationPage() {
                     onStatusChange={(next) => { setStatus(next); setPage(1); }}
                     onSearchChange={(next) => { setSearch(next); setPage(1); }}
                   />
+                  {totalPages > 1 && (
+                    <p className="text-xs text-muted-foreground">El orden de la tabla se aplica a esta página.</p>
+                  )}
                   <TablePagination page={page} totalPages={totalPages} onPageChange={setPage} />
                   </>
                   )}

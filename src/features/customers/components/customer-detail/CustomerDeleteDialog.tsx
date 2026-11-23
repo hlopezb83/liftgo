@@ -44,11 +44,8 @@ export function CustomerDeleteDialog({
           </li>
         )}
       </ul>
-      <p className="text-xs text-muted-foreground pt-2">
-        {hasOutstanding
-          ? outstandingBlock.nextStep
-          : "Cierra las reservas activas antes de archivar."}
-      </p>
+      {hasOutstanding && <p className="text-xs text-muted-foreground">{outstandingBlock.nextStep}</p>}
+      {hasActiveBookings && <p className="text-xs text-muted-foreground">Cierra las reservas activas antes de archivar.</p>}
     </div>
   ) : (
     <div className="space-y-2">

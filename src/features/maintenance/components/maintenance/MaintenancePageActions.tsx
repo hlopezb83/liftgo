@@ -1,3 +1,4 @@
+import { useId } from "react";
 import { AddIcon, DownloadIcon, List, LayoutGrid, RefreshIcon } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
@@ -7,6 +8,7 @@ type Props = {
   viewMode: "list" | "board";
   onViewModeChange: (mode: "list" | "board") => void;
   onExport: () => void;
+  exportDisabledReason?: string;
   onGenerateRecurring: () => void;
   isGenerating: boolean;
   onCreate: () => void;
@@ -17,11 +19,13 @@ export function MaintenancePageActions({
   viewMode,
   onViewModeChange,
   onExport,
+  exportDisabledReason,
   onGenerateRecurring,
   isGenerating,
   onCreate,
   canCreate,
 }: Props) {
+  const exportReasonId = useId();
   return (
     <div className="flex flex-wrap gap-2 items-center">
       <ToggleGroup
@@ -37,10 +41,19 @@ export function MaintenancePageActions({
           <LayoutGrid className="h-4 w-4" />
         </ToggleGroupItem>
       </ToggleGroup>
-      <Button variant="outline" size="sm" onClick={onExport} aria-label="Exportar CSV" className="touch:min-w-11">
+      <Button
+        variant="outline"
+        size="sm"
+        onClick={onExport}
+        disabled={!!exportDisabledReason}
+        aria-label="Exportar CSV"
+        aria-describedby={exportDisabledReason ? exportReasonId : undefined}
+        className="touch:min-w-11"
+      >
         <DownloadIcon className="h-4 w-4 sm:mr-1" />
         <span className="hidden sm:inline">Exportar CSV</span>
       </Button>
+      {exportDisabledReason && <p id={exportReasonId} className="text-xs text-muted-foreground">{exportDisabledReason}</p>}
       <RoleGuard module="Mantenimiento" minAccess="full" fallback={null}>
         <Button
           variant="outline"

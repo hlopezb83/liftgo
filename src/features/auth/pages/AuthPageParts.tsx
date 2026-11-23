@@ -26,7 +26,7 @@ function RecoveryNotice({
 }) {
   if (status === "pending") {
     return (
-      <p className="text-sm text-center text-muted-foreground">
+      <p role="status" className="text-sm text-center text-muted-foreground">
         Validando tu enlace de recuperación…
       </p>
     );
@@ -60,7 +60,7 @@ function AuthCardHeader({
         <BrandLockup size="lg" />
         <span className="sr-only">{GLOBAL_BRAND_NAME}</span>
       </div>
-      <CardTitle className="auth-display text-xl font-extrabold">
+      <CardTitle as="h1" className="auth-display text-xl font-extrabold">
         {platform && mode === "sign-in" ? "Centro de Plataforma" : TITLES[mode].title}
       </CardTitle>
       <CardDescription>{platform && mode === "sign-in" ? "Acceso exclusivo para operadores de LiftGo" : TITLES[mode].desc}</CardDescription>

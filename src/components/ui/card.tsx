@@ -15,9 +15,9 @@ const CardHeader = ({ className, ref, ...props }: HTMLAttributes<HTMLDivElement>
 };
 CardHeader.displayName = "CardHeader";
 
-const CardTitle = ({ className, ref, ...props }: HTMLAttributes<HTMLHeadingElement> & { ref?: Ref<HTMLParagraphElement> }) => {
+const CardTitle = ({ as: Heading = "h3", className, ref, ...props }: HTMLAttributes<HTMLHeadingElement> & { as?: "h1" | "h2" | "h3"; ref?: Ref<HTMLHeadingElement> }) => {
   return (
-    <h3 ref={ref} className={cn("text-base font-semibold leading-none tracking-tight", className)} {...props} />
+    <Heading ref={ref} className={cn("text-base font-semibold leading-none tracking-tight", className)} {...props} />
   );
 };
 CardTitle.displayName = "CardTitle";

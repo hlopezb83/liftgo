@@ -145,10 +145,14 @@ describe("AUTH-REC-01 — recuperación de contraseña", () => {
   it("evento con la página ya montada confirma la recuperación", async () => {
     initRecoveryFromLocation("http://localhost/auth#type=recovery");
     renderApp();
-    expect(await screen.findByText("Validando tu enlace de recuperación…")).toBeTruthy();
+    expect(await screen.findByRole("status")).toHaveTextContent("Validando tu enlace de recuperación…");
 
     emit("PASSWORD_RECOVERY", SESSION);
-    expect(await screen.findByLabelText("Nueva contraseña")).toBeTruthy();
+    const field = await screen.findByLabelText("Nueva contraseña");
+    expect(field).toHaveAccessibleDescription("Usa al menos 6 caracteres.");
+    expect(field).toHaveAttribute("minlength", "6");
+    expect(screen.getByRole("heading", { name: "Nueva contraseña", level: 1 })).toBeVisible();
+    expect(screen.queryByRole("status")).not.toBeInTheDocument();
     expect(getRecoveryStatus()).toBe("active");
   });
 

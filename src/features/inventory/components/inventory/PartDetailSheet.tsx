@@ -63,7 +63,9 @@ function PartDetailContent({ part, open, onOpenChange, onEdit }: Omit<Props, "pa
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [adjustOpen, setAdjustOpen] = useState(false);
 
-  const isLow = part.stock_quantity <= part.min_stock_level;
+  const isOutOfStock = part.stock_quantity === 0;
+  const isLow = part.stock_quantity > 0 && part.stock_quantity <= part.min_stock_level;
+  const needsStock = isOutOfStock || isLow;
 
   const handleDelete = () => {
     deletePart.mutate(part.id, {
@@ -80,9 +82,9 @@ function PartDetailContent({ part, open, onOpenChange, onEdit }: Omit<Props, "pa
         <div className="mt-4 space-y-4">
           <div className="flex items-center gap-2 flex-wrap">
             <Badge variant="outline">{partCategoryLabel(part.category)}</Badge>
-            {isLow && (
+            {needsStock && (
               <Badge variant="destructive" className="gap-1">
-                <WarnIcon className="h-3 w-3" /> Stock bajo
+                <WarnIcon className="h-3 w-3" /> {isOutOfStock ? "Agotado" : "Stock bajo"}
               </Badge>
             )}
           </div>
@@ -100,7 +102,7 @@ function PartDetailContent({ part, open, onOpenChange, onEdit }: Omit<Props, "pa
               icon={Layers}
               label="Stock Actual"
               value={
-                <Badge variant={isLow ? "destructive" : "secondary"}>
+                <Badge variant={needsStock ? "destructive" : "secondary"}>
                   {part.stock_quantity} unidades
                 </Badge>
               }

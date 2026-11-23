@@ -59,7 +59,7 @@ function renderInvoice(inv: DrilldownInvoice) {
 describe("monthly revenue FX detail and real CSV", () => {
   it.each([null, 0, 1])("keeps USD FX %s unknown in the UI and export", async (fx) => {
     renderInvoice(invoice(fx));
-    expect(screen.getByText("Sin T.C.")).toBeInTheDocument();
+    expect(screen.getByText("Sin tipo de cambio · no incluido en el total MXN")).toBeInTheDocument();
     const { rows } = await exportRows();
     expect(rows[0]["Total bruto MXN"]).toBe("");
     expect(rows[0]["Facturado neto MXN"]).toBe("");
@@ -68,7 +68,7 @@ describe("monthly revenue FX detail and real CSV", () => {
 
   it("converts valid USD FX and preserves MXN credit deduction", async () => {
     renderInvoice(invoice(17.5));
-    expect(screen.queryByText("Sin T.C.")).not.toBeInTheDocument();
+    expect(screen.queryByText("Sin tipo de cambio · no incluido en el total MXN")).not.toBeInTheDocument();
     const { rows } = await exportRows();
     expect(rows[0]["Total bruto MXN"]).toBe("1750");
     expect(rows[0]["Facturado neto MXN"]).toBe("1730");

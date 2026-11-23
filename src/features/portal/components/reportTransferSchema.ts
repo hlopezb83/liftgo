@@ -4,12 +4,13 @@ import { formatCurrency } from "@/lib/format/formatCurrency";
 import { positiveAmount } from "@/lib/schemas";
 import { nowMty } from "@/lib/utils";
 
-const TRANSFER_DATE_MAX_AGE_DAYS = 60;
+export const TRANSFER_DATE_MAX_AGE_DAYS = 60;
+export const TRANSFER_PROOF_MAX_MB = 5;
 
-function transferDateError(date: Date): string | null {
+export function transferDateError(date: Date): string | null {
   const dayOffset = differenceInCalendarDays(startOfDay(date), startOfDay(nowMty()));
   if (dayOffset > 0) return "La fecha de la transferencia no puede ser futura.";
-  if (dayOffset < -TRANSFER_DATE_MAX_AGE_DAYS) return "La fecha de la transferencia no puede tener más de 60 días de antigüedad.";
+  if (dayOffset < -TRANSFER_DATE_MAX_AGE_DAYS) return `La fecha de la transferencia no puede tener más de ${TRANSFER_DATE_MAX_AGE_DAYS} días de antigüedad.`;
   return null;
 }
 
@@ -46,7 +47,7 @@ export const makeSchema = (reportableBalance: number, pendingInReview = 0) => z.
   trackingKey: z.string().max(30, "Máximo 30 caracteres").default(""),
   proofFile: z
     .custom<File | null>((v) => v === null || v instanceof File, { message: "Archivo inválido" })
-    .refine((f) => f === null || f.size <= 5 * 1024 * 1024, "El comprobante no puede exceder 5 MB")
+    .refine((f) => f === null || f.size <= TRANSFER_PROOF_MAX_MB * 1024 * 1024, `El comprobante no puede exceder ${TRANSFER_PROOF_MAX_MB} MB`)
     .refine(
       (f) => f === null || ["application/pdf", "image/png", "image/jpeg", "image/webp"].includes(f.type),
       "Formato no permitido (PDF, PNG, JPG o WebP)",

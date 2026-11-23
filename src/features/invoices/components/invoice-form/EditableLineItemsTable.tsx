@@ -2,7 +2,7 @@ import { useFormContext, useWatch } from "react-hook-form";
 import { AddIcon, DeleteIcon } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
@@ -60,15 +60,17 @@ function LineItemRow({ index, onRemove }: RowProps) {
   const { control, setValue, getValues } = useFormContext<InvoiceFormValues>();
   const currency = useWatch({ control, name: "cfdi.moneda" });
   const origin = useWatch({ control, name: `lineItems.${index}.source_quote_line_id` });
-  const [quantity, unitPrice, discount, discountType] = useWatch({
+  const [quantity, unitPrice, discount, discountType, description] = useWatch({
     control,
     name: [`lineItems.${index}.quantity`, `lineItems.${index}.unit_price`,
-      `lineItems.${index}.discount`, `lineItems.${index}.discount_type`],
+      `lineItems.${index}.discount`, `lineItems.${index}.discount_type`, `lineItems.${index}.description`],
   });
   const gross = lineItemTotal(Number(quantity ?? 0), Number(unitPrice ?? 0));
   const net = applyDiscountToBase(gross, discount, discountType);
   const discountLabel = discount && discount > 0
     ? (discountType === "$" ? `-${formatCurrencyWithCode(discount, currency)}` : `-${discount}%`) : "Sin descuento";
+
+  const removeLabel = `Eliminar partida ${index + 1}${description?.trim() ? ` · ${description.trim()}` : ""}`;
 
   const syncTotal = (q: number, p: number) => {
     const next = lineItemTotal(q, p);
@@ -107,12 +109,13 @@ function LineItemRow({ index, onRemove }: RowProps) {
           <FormItem className="min-w-0">
             <FormLabel>Precio unitario</FormLabel>
             <FormControl>
-              <Input type="number" step="0.01" min={0} disabled={!!origin} title={origin ? "Precio pactado en la cotización" : undefined} aria-label={`Precio unitario partida ${index + 1}`} value={field.value} onChange={(e) => {
+              <Input type="number" step="0.01" min={0} disabled={!!origin} aria-label={`Precio unitario partida ${index + 1}`} value={field.value} onChange={(e) => {
                 const v = Number(e.target.value);
                 field.onChange(v);
                 syncTotal(Number(quantity ?? 0), v);
               }} />
             </FormControl>
+            {origin && <FormDescription>Precio pactado en la cotización</FormDescription>}
             <FormMessage />
           </FormItem>
         )} />
@@ -131,7 +134,7 @@ function LineItemRow({ index, onRemove }: RowProps) {
         )} />
       </div>
       <div className="flex justify-end">
-        <Button type="button" variant="ghost" size="sm" className="text-destructive" aria-label="Eliminar partida" title={`Eliminar partida ${index + 1}`} onClick={() => onRemove(index)}>
+        <Button type="button" variant="ghost" size="sm" className="text-destructive" aria-label={removeLabel} onClick={() => onRemove(index)}>
           <DeleteIcon className="mr-1 h-3.5 w-3.5" />Eliminar
         </Button>
       </div>

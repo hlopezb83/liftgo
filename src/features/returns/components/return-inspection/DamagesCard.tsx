@@ -3,10 +3,12 @@ import { WarnIcon } from "@/components/icons";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatCurrency } from "@/lib/format/formatCurrency";
 import type { ReturnInspectionWithJoins } from "@/types/rental";
+import { DAMAGE_CONDITIONS } from "../../lib/returnInspectionSchema";
 
 export function DamagesCard({ ins }: { ins: ReturnInspectionWithJoins }) {
-  const hasDamage = ins.damage_notes || (ins.damage_cost && ins.damage_cost > 0);
-  if (!hasDamage) return null;
+  const damageCost = ins.damage_cost;
+  const showCost = damageCost !== null && (damageCost > 0 || (damageCost === 0 && DAMAGE_CONDITIONS.includes(ins.condition)));
+  if (!ins.damage_notes && !showCost) return null;
 
   return (
     <Card className="md:col-span-2">
@@ -22,8 +24,8 @@ export function DamagesCard({ ins }: { ins: ReturnInspectionWithJoins }) {
             <p className="text-sm mt-1 whitespace-pre-wrap">{ins.damage_notes}</p>
           </div>
         )}
-        {ins.damage_cost != null && ins.damage_cost > 0 && (
-          <InfoRow label="Costo por daños" value={formatCurrency(ins.damage_cost)} />
+        {showCost && (
+          <InfoRow label="Costo por daños" value={damageCost === 0 ? "Sin cargo registrado" : formatCurrency(damageCost)} />
         )}
       </CardContent>
     </Card>

@@ -2,6 +2,7 @@ import { fireEvent, render, screen } from "@testing-library/react";
 import { expect, it, vi } from "vitest";
 import { TestRouter } from "@/test/router";
 import { DashboardAlertsSection } from "../DashboardAlertsSection";
+import { ExpiringContractsAlert } from "../ExpiringContractsAlert";
 
 const props = {
   overdueInvoices: [], maintenanceAlerts: [], agingBuckets: [], overdueBookings: [], expiringContracts: [],
@@ -56,4 +57,20 @@ it("muestra carga y error por alerta, y sólo monta previsiones con datos listos
   );
   expect(await screen.findByText("Próximos 7 días")).toBeInTheDocument();
   expect(screen.queryByText("No se pudo cargar las alertas de seguros")).not.toBeInTheDocument();
+});
+
+it("ofrece un enlace por contrato visible e informa cuando hay más de cinco", async () => {
+  const contracts = Array.from({ length: 7 }, (_, i) => ({
+    id: String(i), contract_number: "CTR-" + i, customer_name: "Empresa",
+    forklift_name: null, days_remaining: 4, end_date: "2026-11-28",
+  }));
+  const view = render(<TestRouter><ExpiringContractsAlert contracts={contracts} /></TestRouter>);
+  expect(await screen.findAllByRole("link")).toHaveLength(5);
+  expect(screen.getByRole("link", { name: /CTR-0/ })).toHaveAttribute("href", "/contracts/0");
+  expect(screen.queryByRole("button")).not.toBeInTheDocument();
+  expect(screen.getByText("Mostrando 5 de 7")).toBeVisible();
+  view.unmount();
+  render(<TestRouter><ExpiringContractsAlert contracts={contracts.slice(0, 5)} /></TestRouter>);
+  await screen.findByRole("heading", { name: "Contratos por Vencer (5)" });
+  expect(screen.queryByText(/Mostrando/)).not.toBeInTheDocument();
 });

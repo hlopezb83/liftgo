@@ -84,7 +84,10 @@ export function BankStatementPreview({ result, currency, isPending, onConfirm, o
 
         <div className="flex justify-end gap-2">
           <Button type="button" variant="ghost" onClick={onCancel} disabled={isPending}>Cancelar</Button>
-          <Button type="button" onClick={onConfirm} disabled={isPending}>Confirmar importación</Button>
+          <Button type="button" onClick={onConfirm} disabled={isPending} aria-busy={isPending}>
+            {isPending ? "Importando…" : "Confirmar importación"}
+          </Button>
+          <span role="status" className="sr-only">{isPending && "Importando estado de cuenta…"}</span>
         </div>
       </CardContent>
     </Card>

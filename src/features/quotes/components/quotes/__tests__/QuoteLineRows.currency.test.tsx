@@ -107,7 +107,7 @@ describe("Quote line fields keep accessible identity and update handlers", () =>
     fireEvent.change(screen.getByRole("spinbutton", { name: "Precio Unit. (USD)" }), { target: { value: "99.99" } });
     fireEvent.change(screen.getByRole("spinbutton", { name: "Descuento" }), { target: { value: "12.5" } });
     fireEvent.click(screen.getByRole("radio", { name: "Descuento en USD" }));
-    fireEvent.click(screen.getByRole("button", { name: "Eliminar línea" }));
+    fireEvent.click(screen.getByRole("button", { name: "Quitar partida 3, " + fullModelName }));
     expect(props.onUpdate.mock.calls).toEqual([
       [2, "quantity", 3], [2, "unitPrice", 99.99], [2, "discount", 12.5], [2, "discountType", "$"],
     ]);
@@ -132,5 +132,7 @@ describe("Quote line fields keep accessible identity and update handlers", () =>
       [1, "quantity", 4], [1, "dailyRate", 101.25], [1, "weeklyRate", 505.5],
       [1, "monthlyRate", 1505.75], [1, "discount", 100], [1, "discountType", "$"],
     ]);
+    fireEvent.click(screen.getByRole("button", { name: "Quitar partida 2, " + fullModelName }));
+    expect(props.onRemove).toHaveBeenCalledWith(1);
   });
 });

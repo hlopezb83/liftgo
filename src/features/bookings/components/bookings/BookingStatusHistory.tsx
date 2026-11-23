@@ -32,6 +32,7 @@ const FIELD_LABELS: Record<string, string> = {
   delivery_address: "Dirección de entrega",
   booking_number: "Folio",
   currency: "Moneda",
+  recurring_billing: "Facturación recurrente",
 };
 
 const ACTION_LABELS: Record<string, string> = {
@@ -73,6 +74,7 @@ function formatValue(field: string, value: unknown, currency: string): string {
   if (field === "forklift_id" || field === "customer_id") {
     return shortId(String(value));
   }
+  if (field === "recurring_billing" && typeof value === "boolean") return value ? "Activada" : "Desactivada";
   if (typeof value === "object") return JSON.stringify(value);
   return String(value);
 }
@@ -85,10 +87,11 @@ interface ChangeRowProps {
   field: string;
   oldVal: unknown;
   newVal: unknown;
-  currency: string;
+  oldCurrency: string;
+  newCurrency: string;
 }
 
-function ChangeRow({ field, oldVal, newVal, currency }: ChangeRowProps) {
+function ChangeRow({ field, oldVal, newVal, oldCurrency, newCurrency }: ChangeRowProps) {
   const label = FIELD_LABELS[field] ?? field;
 
   if (field === "status") {
@@ -114,11 +117,11 @@ function ChangeRow({ field, oldVal, newVal, currency }: ChangeRowProps) {
     <div className="text-sm">
       <span className="text-muted-foreground">{label}:</span>{" "}
       <span className="line-through text-muted-foreground">
-        {formatValue(field, oldVal, currency)}
+        {formatValue(field, oldVal, oldCurrency)}
       </span>{" "}
       <span className="text-muted-foreground">→</span>{" "}
       <span className="font-medium">
-        {formatValue(field, newVal, currency)}
+        {formatValue(field, newVal, newCurrency)}
       </span>
     </div>
   );
@@ -127,10 +130,8 @@ function ChangeRow({ field, oldVal, newVal, currency }: ChangeRowProps) {
 function HistoryEntry({ log }: { log: BookingHistoryLog }) {
   const author = log.user_name ?? "Sistema";
   const actionLabel = ACTION_LABELS[log.action] ?? log.action;
-  const currency =
-    (log.new_data?.currency as string | undefined) ??
-    (log.old_data?.currency as string | undefined) ??
-    "MXN";
+  const oldCurrency = log.old_data?.currency as string | undefined;
+  const newCurrency = log.new_data?.currency as string | undefined;
 
   const fields = (log.changed_fields ?? []).filter(
     (f) => !HIDDEN_FIELDS.has(f),
@@ -165,7 +166,8 @@ function HistoryEntry({ log }: { log: BookingHistoryLog }) {
               field={f}
               oldVal={getField(log.old_data, f)}
               newVal={getField(log.new_data, f)}
-              currency={currency}
+              oldCurrency={oldCurrency ?? newCurrency ?? "MXN"}
+              newCurrency={newCurrency ?? oldCurrency ?? "MXN"}
             />
           ))
         )}

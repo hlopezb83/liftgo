@@ -115,7 +115,9 @@ describe("ActivatePartDialog", () => {
     choosePart();
     fireEvent.change(screen.getByLabelText(label), { target: { value: "1.5" } });
     fireEvent.click(screen.getByRole("button", { name: "Habilitar" }));
-    expect(mocks.validation).toHaveBeenCalledWith({ message: "Las existencias y el mínimo deben ser enteros" });
+    const field = screen.getByLabelText(label);
+    expect(field).toHaveFocus();
+    expect(field).toHaveAccessibleDescription("Ingresa un número entero.");
     expect(mocks.mutation.mutate).not.toHaveBeenCalled();
   });
 
@@ -125,6 +127,9 @@ describe("ActivatePartDialog", () => {
     mocks.query.data = [{ id: "other", sku: "FLT-002", name: "Filtro de aire" }];
     rerender(<ActivatePartDialog open onOpenChange={vi.fn()} />);
     expect(screen.getByRole("button", { name: "Habilitar" })).toBeDisabled();
+    expect(screen.getByText("El SKU seleccionado ya no está disponible para habilitar.")).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Elegir otro SKU" }));
+    expect(screen.getByLabelText("Buscar SKU o nombre")).toHaveFocus();
     expect(mocks.mutation.mutate).not.toHaveBeenCalled();
   });
 

@@ -1,4 +1,5 @@
 import { getDay, isSameDay, startOfWeek } from "date-fns";
+import { useState } from "react";
 import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import type { Tables } from "@/integrations/supabase/types";
@@ -20,9 +21,10 @@ interface Props {
   segments: BarSegment[];
   days: Date[];
   maintenanceSegments?: MaintenanceSegment[];
+  canOpenBookings: boolean;
 }
 
-export function GanttRow({ forklift, segments, days, maintenanceSegments = [] }: Props) {
+export function GanttRow({ forklift, segments, days, maintenanceSegments = [], canOpenBookings }: Props) {
   const navigate = useNavigateTransition();
   const location = useLocation();
   return (
@@ -47,69 +49,78 @@ export function GanttRow({ forklift, segments, days, maintenanceSegments = [] }:
           })}
         </div>
         {/* A5-07: capa de mantenimiento programado debajo de las barras de renta. */}
-        {maintenanceSegments.map((m) => (
-          <Tooltip key={`mtto-${m.id}`}>
-            <TooltipTrigger asChild>
-              <div
-                aria-label={`Mantenimiento ${m.label}`}
-                className="absolute top-0 h-6 rounded-sm bg-[repeating-linear-gradient(45deg,hsl(var(--warning)/0.55)_0px,hsl(var(--warning)/0.55)_3px,transparent_3px,transparent_6px)] border border-warning/60"
-                style={{ left: `${m.leftPercent}%`, width: `${m.widthPercent}%` }}
-              />
-            </TooltipTrigger>
-            <TooltipContent side="top" className="text-xs space-y-1">
-              <p className="font-semibold">Mantenimiento</p>
-              <p>{m.label}</p>
-              <p className="text-muted-foreground">{formatMtyDate(m.date)}</p>
-            </TooltipContent>
-          </Tooltip>
+        {maintenanceSegments.map((segment) => <MaintenanceBar key={segment.id} segment={segment} />)}
+        {segments.map((segment) => (
+          <BookingBar
+            key={segment.booking.id}
+            segment={segment}
+            onOpen={canOpenBookings ? () => {
+              if (location.pathname !== "/calendar") return;
+              navigate("/bookings/" + segment.booking.id, {
+                state: { calendarReturnTo: location.pathname + location.search },
+              });
+            } : undefined}
+          />
         ))}
-        {segments.map((seg) => {
-          const isConfirmed = seg.booking.status === BOOKING_STATUS.confirmed;
-          const showLabel = seg.durationDays > 3;
-          return (
-            <Tooltip key={seg.booking.id}>
-              <TooltipTrigger asChild>
-                {/* Bloque 4.5 (R4): la barra abre el detalle de la reserva.
-                    Se usa <button> para conservar accesibilidad (Enter/Space
-                    + focus ring) sin sacrificar el layout absoluto. */}
-                <button
-                  type="button"
-                  aria-label={`Abrir reserva ${seg.label}`}
-                  onClick={() => {
-                    if (location.pathname !== "/calendar") return;
-                    navigate(`/bookings/${seg.booking.id}`, {
-                      state: { calendarReturnTo: `${location.pathname}${location.search}` },
-                    });
-                  }}
-                  className={`absolute top-0.5 h-5 rounded-sm flex items-center overflow-hidden cursor-pointer focus:outline-none focus:ring-2 focus:ring-ring transition-opacity hover:opacity-90 ${!isConfirmed ? "opacity-30 border border-dashed border-foreground/30" : ""}`}
-                  style={{
-                    left: `${seg.leftPercent}%`,
-                    width: `${seg.widthPercent}%`,
-                    background: seg.color,
-                  }}
-                >
-                  {showLabel && (
-                    <span className="text-3xs text-primary-foreground font-medium px-1 truncate drop-shadow-sm">
-                      {seg.label}
-                    </span>
-                  )}
-                </button>
-              </TooltipTrigger>
-              <TooltipContent side="top" className="text-xs space-y-1">
-                <p className="font-semibold">{seg.label}</p>
-                <p>
-                  {formatMtyDate(seg.booking.start_date, "dd/MM")} →{" "}
-                  {formatMtyDate(seg.booking.end_date)}
-                </p>
-                <p className="text-muted-foreground">
-                  {seg.durationDays} día{seg.durationDays !== 1 ? "s" : ""} ·{" "}
-                  {BOOKING_STATUS_LABELS[seg.booking.status] || seg.booking.status}
-                </p>
-              </TooltipContent>
-            </Tooltip>
-          );
-        })}
       </div>
     </div>
+  );
+}
+
+function MaintenanceBar({ segment }: { segment: MaintenanceSegment }) {
+  const [open, setOpen] = useState(false);
+  const date = formatMtyDate(segment.date);
+  return (
+    <Tooltip open={open} onOpenChange={setOpen}>
+      <TooltipTrigger asChild>
+        <button
+          type="button"
+          aria-label={"Mantenimiento: " + segment.label + ", " + date}
+          className="absolute top-0 h-6 rounded-sm border border-warning/60 bg-[repeating-linear-gradient(45deg,hsl(var(--warning)/0.55)_0px,hsl(var(--warning)/0.55)_3px,transparent_3px,transparent_6px)] focus-visible:ring-2 focus-visible:ring-ring"
+          style={{ left: segment.leftPercent + "%", width: segment.widthPercent + "%" }}
+          onClick={(event) => { event.preventDefault(); setOpen(true); }}
+        />
+      </TooltipTrigger>
+      <TooltipContent side="top" className="space-y-1 text-xs">
+        <p className="font-semibold">Mantenimiento</p>
+        <p>{segment.label}</p>
+        <p className="text-muted-foreground">{date}</p>
+      </TooltipContent>
+    </Tooltip>
+  );
+}
+
+function BookingBar({ segment, onOpen }: { segment: BarSegment; onOpen?: () => void }) {
+  const isConfirmed = segment.booking.status === BOOKING_STATUS.confirmed;
+  const className = "absolute top-0.5 h-5 flex items-center overflow-hidden rounded-sm " +
+    (isConfirmed ? "" : "border border-dashed border-foreground/30 opacity-30");
+  const style = { left: segment.leftPercent + "%", width: segment.widthPercent + "%", background: segment.color };
+  const period = formatMtyDate(segment.booking.start_date, "dd/MM") + " → " + formatMtyDate(segment.booking.end_date);
+  const label = segment.durationDays > 3 && (
+    <span className="truncate px-1 text-3xs font-medium text-primary-foreground drop-shadow-sm">{segment.label}</span>
+  );
+  return (
+    <Tooltip>
+      <TooltipTrigger asChild>
+        {onOpen ? (
+          <button type="button" aria-label={"Abrir reserva " + segment.label} onClick={onOpen}
+            className={className + " cursor-pointer transition-opacity hover:opacity-90 focus-visible:ring-2 focus-visible:ring-ring"} style={style}>
+            {label}
+          </button>
+        ) : (
+          <div role="img" aria-label={"Reserva " + segment.label + ", " + period} className={className} style={style}>
+            {label}
+          </div>
+        )}
+      </TooltipTrigger>
+      <TooltipContent side="top" className="space-y-1 text-xs">
+        <p className="font-semibold">{segment.label}</p>
+        <p>{period}</p>
+        <p className="text-muted-foreground">
+          {segment.durationDays} día{segment.durationDays !== 1 ? "s" : ""} ·{" "}
+          {BOOKING_STATUS_LABELS[segment.booking.status] || segment.booking.status}
+        </p>
+      </TooltipContent>
+    </Tooltip>
   );
 }

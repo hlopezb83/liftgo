@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { Tables } from "@/integrations/supabase/types";
 import { CollectionNotesCard } from "../CollectionNotesCard";
@@ -27,7 +27,6 @@ vi.mock("../../../hooks/invoiceDetail/useReceptorTaxInfo", () => ({
 vi.mock("../EditReceptorFiscalDialog", () => ({ EditReceptorFiscalDialog: () => null }));
 vi.mock("../../invoices/RecordPaymentDialog", () => ({ RecordPaymentDialog: () => <div role="dialog">Registrar pago</div> }));
 vi.mock("../CancelCfdiDialog", () => ({ CancelCfdiDialog: () => <div role="dialog">Cancelar CFDI</div> }));
-vi.mock("@/components/ui/confirm-dialog", () => ({ ConfirmDialog: () => <div role="dialog">Eliminar factura</div> }));
 
 function renderWithClient(children: ReactNode) {
   return render(<QueryClientProvider client={new QueryClient()}>{children}</QueryClientProvider>);
@@ -56,15 +55,18 @@ describe("Facturas — acciones auxiliares para usuarios de consulta", () => {
   it("los intentos conservan comprobante y estado, sin aprobar ni rechazar", () => {
     renderWithClient(<PaymentIntentsSection invoiceId="inv-1" />);
     expect(screen.getByRole("button", { name: "Comprobante" })).toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: "Aprobar" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /^Aprobar reporte/ })).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Rechazar" })).not.toBeInTheDocument();
   });
 
   it("acceso completo permite revisar el intento de pago", () => {
     mocks.canWrite = true;
     renderWithClient(<PaymentIntentsSection invoiceId="inv-1" />);
-    fireEvent.click(screen.getByRole("button", { name: "Aprobar" }));
-    expect(mocks.review).toHaveBeenCalledWith({ intentId: "intent-1", action: "approve" });
+    fireEvent.click(screen.getByRole("button", { name: /^Aprobar reporte/ }));
+    expect(mocks.review).not.toHaveBeenCalled();
+    const dialog = screen.getByRole("alertdialog", { name: "Aprobar reporte de pago" });
+    fireEvent.click(within(dialog).getByRole("button", { name: "Confirmar aprobación" }));
+    expect(mocks.review).toHaveBeenCalledExactlyOnceWith({ intentId: "intent-1", action: "approve" });
     expect(screen.getByRole("button", { name: "Rechazar" })).toBeInTheDocument();
   });
 

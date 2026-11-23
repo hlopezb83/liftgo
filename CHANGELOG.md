@@ -1,3 +1,11 @@
+## [8.53.52] - 2026-11-23
+
+- Finanzas distingue los saldos omitidos de los liquidados, explica los bloqueos y ayuda a identificar cada operación antes de confirmarla.
+- Operación muestra cuándo faltan datos o falló una consulta, ofrece reintentos y aclara las acciones de reservas, equipos y refacciones.
+- Comercial conserva errores visibles, distingue resultados vacíos y muestra mejor el alcance, la moneda y los requisitos de cada acción.
+- El acceso y el portal mejoran el foco, las etiquetas y la captura de transferencias.
+- El tablero identifica los contratos visibles y el manual conserva la sección abierta al buscar.
+
 ## [8.53.51] - 2026-11-23
 
 - Conciliación descarta la vista previa al elegir un estado de cuenta de más de 10 MB.

@@ -4,6 +4,7 @@
  */
 import { useState } from "react";
 import { ROUTES } from "@/app-routes/routes";
+import { QueryErrorState } from "@/components/feedback/QueryErrorState";
 import { TablePagination } from "@/components/feedback/TablePagination";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { PageHeader } from "@/components/layout/PageHeader";
@@ -180,46 +181,61 @@ function SatValidationMetrics({ data, loading }: {
   );
 }
 
-function SatValidationResults({ rows, total, page, onPageChange, isLoading, isError }: {
+function SatResultsContent({ rows, total, page, onPageChange }: {
   rows: SatValidationRow[];
   total: number;
   page: number;
   onPageChange: (page: number) => void;
-  isLoading: boolean;
-  isError: boolean;
 }) {
   const totalPages = Math.max(1, Math.ceil(total / SAT_VALIDATION_PAGE_SIZE));
   const start = (page - 1) * SAT_VALIDATION_PAGE_SIZE + 1;
   const end = start + rows.length - 1;
-  const ready = !isLoading && !isError;
+  return (
+    <>
+      {total === 0 && (
+        <p className="text-sm text-muted-foreground">No hay clientes con RFC registrado.</p>
+      )}
+      {total > 0 && rows.length === 0 && (
+        <div className="space-y-2">
+          <p className="text-sm text-muted-foreground">Esta página ya no tiene clientes.</p>
+          <Button variant="outline" size="sm" onClick={() => onPageChange(1)}>
+            Volver a la primera página
+          </Button>
+        </div>
+      )}
+      {rows.length > 0 && (
+        <>
+          <p className="mb-4 text-sm text-muted-foreground">
+            Mostrando {start.toLocaleString("es-MX")}–{end.toLocaleString("es-MX")} de {total.toLocaleString("es-MX")} clientes
+          </p>
+          <SatValidationMobileResults rows={rows} />
+          <SatValidationDesktopResults rows={rows} />
+        </>
+      )}
+      {total > SAT_VALIDATION_PAGE_SIZE && (
+        <TablePagination page={Math.min(page, totalPages)} totalPages={totalPages} onPageChange={onPageChange} />
+      )}
+    </>
+  );
+}
+
+function SatValidationResults({ overview, page, onPageChange }: {
+  overview: ReturnType<typeof useSatValidationOverview>;
+  page: number;
+  onPageChange: (page: number) => void;
+}) {
+  const { data, isLoading, isError } = overview;
   return (
     <Card>
       <CardHeader><CardTitle className="text-base">Resultado por cliente</CardTitle></CardHeader>
       <CardContent>
-        {isLoading && <p className="text-sm text-muted-foreground">Cargando cartera…</p>}
-        {isError && <p className="text-sm text-destructive">No se pudo cargar la cartera de clientes.</p>}
-        {ready && total === 0 && (
-          <p className="text-sm text-muted-foreground">No hay clientes con RFC registrado.</p>
-        )}
-        {ready && total > 0 && rows.length === 0 && (
-          <div className="space-y-2">
-            <p className="text-sm text-muted-foreground">Esta página ya no tiene clientes.</p>
-            <Button variant="outline" size="sm" onClick={() => onPageChange(1)}>
-              Volver a la primera página
-            </Button>
-          </div>
-        )}
-        {ready && rows.length > 0 && (
-          <>
-            <p className="mb-4 text-sm text-muted-foreground">
-              Mostrando {start.toLocaleString("es-MX")}–{end.toLocaleString("es-MX")} de {total.toLocaleString("es-MX")} clientes
-            </p>
-            <SatValidationMobileResults rows={rows} />
-            <SatValidationDesktopResults rows={rows} />
-          </>
-        )}
-        {ready && total > SAT_VALIDATION_PAGE_SIZE && (
-          <TablePagination page={Math.min(page, totalPages)} totalPages={totalPages} onPageChange={onPageChange} />
+        {isError ? (
+          <QueryErrorState bare entity="la cartera de clientes" error={overview.error}
+            isRetrying={overview.isFetching} onRetry={() => { void overview.refetch(); }} />
+        ) : isLoading ? (
+          <p className="text-sm text-muted-foreground">Cargando cartera…</p>
+        ) : (
+          <SatResultsContent rows={data?.rows ?? []} total={data?.total ?? 0} page={page} onPageChange={onPageChange} />
         )}
       </CardContent>
     </Card>
@@ -229,9 +245,9 @@ function SatValidationResults({ rows, total, page, onPageChange, isLoading, isEr
 function SatValidationContent() {
   const [page, setPage] = useState(1);
   const [onlyPending, setOnlyPending] = useState(true);
-  const { data, isLoading, isError } = useSatValidationOverview(page);
+  const overview = useSatValidationOverview(page);
+  const { data, isLoading, isError } = overview;
   const validate = useValidateCustomersTaxInfo();
-  const rows = data?.rows ?? [];
   const total = data?.total ?? 0;
   const pending = data?.pending ?? 0;
   const batchCount = Math.min(VALIDATION_BATCH_LIMIT, onlyPending ? pending : total);
@@ -265,7 +281,7 @@ function SatValidationContent() {
         />
 
         <SatValidationMetrics data={data} loading={isLoading || isError} />
-        <SatValidationResults rows={rows} total={total} page={page} onPageChange={setPage} isLoading={isLoading} isError={isError} />
+        <SatValidationResults overview={overview} page={page} onPageChange={setPage} />
       </div>
     </PageContainer>
   );

@@ -181,7 +181,7 @@ export default function CalendarPage() {
         <Card>
           <CardHeader>
             <CardTitle className="text-base">Equipos y reservas</CardTitle>
-            <CardDescription>Reservas no canceladas en {rangeLabel.toLowerCase()}.</CardDescription>
+            <CardDescription>Reservas confirmadas y completadas en {rangeLabel.toLowerCase()}.</CardDescription>
           </CardHeader>
           <CardContent>
             {isLoading ? <CalendarRangeLoadingSkeleton /> : !hasQueryError && <EquipmentListView

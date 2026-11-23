@@ -25,6 +25,6 @@ it("retries locally without dropping a collection draft or cached notes and rese
   query.data = []; query.isError = false; query.isFetching = false; query.isSuccess = true;
   view.rerender(<CollectionNotesCard invoiceId="invoice-a" />);
   expect(screen.getByLabelText("Nota de seguimiento")).toHaveValue("Promesa local de pago");
-  fireEvent.click(screen.getByRole("button", { name: "Cancelar" }));
+  fireEvent.click(screen.getByRole("button", { name: "Cerrar borrador" }));
   expect(screen.getByText("Sin gestiones registradas")).toBeInTheDocument();
 });

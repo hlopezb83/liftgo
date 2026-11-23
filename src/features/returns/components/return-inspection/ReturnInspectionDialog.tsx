@@ -53,7 +53,7 @@ export function ReturnInspectionDialog({
   const bookingOptions: SelectOption[] =
     activeBookings?.map((b) => ({
       value: b.id,
-      label: `${forkliftMap.get(b.forklift_id)?.name ?? ""} — ${b.customer_name || "Desconocido"} (${formatDateRange(b.start_date, b.end_date)})`,
+      label: `${b.booking_number || "Reserva sin folio"} · ${forkliftMap.get(b.forklift_id)?.name || "Equipo sin nombre"} · ${b.customer_name || "Sin cliente"} · ${formatDateRange(b.start_date, b.end_date)}`,
     })) ?? [];
 
   const conditionOptions: SelectOption[] = INSPECTION_CONDITIONS.map((c) => ({
@@ -124,6 +124,7 @@ export function ReturnInspectionDialog({
             control={form.control}
             name="damageNotes"
             label="Notas de Daños"
+            required={isDamageCondition}
             placeholder="Describe cualquier daño…"
             rows={3}
             description="Obligatorio si la condición indica daño (daño menor, daño mayor o necesita reparación)."

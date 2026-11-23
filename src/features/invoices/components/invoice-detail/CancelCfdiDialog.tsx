@@ -16,12 +16,13 @@ interface CancelCfdiDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   invoiceId: string;
+  invoiceNumber: string;
   invoiceTotal: number;
   onSuccess: () => void;
 }
 
 export function CancelCfdiDialog({
-  open, onOpenChange, invoiceId, invoiceTotal, onSuccess,
+  open, onOpenChange, invoiceId, invoiceNumber, invoiceTotal, onSuccess,
 }: CancelCfdiDialogProps) {
   const cancelCfdi = useCancelCfdi();
   const form = useForm<FormValues>({
@@ -57,7 +58,7 @@ export function CancelCfdiDialog({
       isPending={cancelCfdi.isPending}
       open={open}
       onOpenChange={onOpenChange}
-      title="Cancelar CFDI"
+      title={`Cancelar CFDI de la factura ${invoiceNumber}`}
       description="Selecciona el motivo de cancelación según el SAT."
     >
       <Form {...form}>

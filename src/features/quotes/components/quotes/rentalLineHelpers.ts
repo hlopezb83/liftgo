@@ -26,6 +26,12 @@ function applyDiscountPerLine(itemTotals: number[], discount: number, discountTy
   return sumMoney(results);
 }
 
+export function getRentalLineEstimate(line: RentalLine, startDate?: Date, endDate?: Date): number | null {
+  const hasRate = [line.dailyRate, line.weeklyRate, line.monthlyRate].some((rate) => rate > 0);
+  const canEstimate = line.modelId ? !!startDate && !!endDate && startDate <= endDate && hasRate : line.legacyTotal != null;
+  return canEstimate ? computeRentalLineTotal(line, startDate, endDate) : null;
+}
+
 export function computeRentalLineTotal(line: RentalLine, startDate?: Date, endDate?: Date): number {
   // R13-FE-01 (P1): partida legacy sin modelo -> mostrar el importe almacenado;
   // recalcular tarifa x periodo altera el precio acordado (COT-0001/0005).

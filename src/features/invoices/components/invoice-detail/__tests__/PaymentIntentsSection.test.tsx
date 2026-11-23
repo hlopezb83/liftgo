@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider, useQuery } from "@tanstack/react-query";
-import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { act, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { AdminPaymentIntentRow } from "../../../lib/paymentIntentsQueryKeys";
 import { PaymentIntentsSection } from "../PaymentIntentsSection";
@@ -47,8 +47,12 @@ describe("reportes de pago: estado de consulta", () => {
     await act(async () => resolveRetry([intent]));
     expect(await screen.findByText("QA-RASTREO-123")).toBeInTheDocument();
     expect(screen.queryByText(errorTitle)).not.toBeInTheDocument();
-    fireEvent.click(screen.getByRole("button", { name: "Aprobar" }));
-    expect(mocks.review).toHaveBeenCalledWith({ intentId: intent.id, action: "approve" });
+    fireEvent.click(screen.getByRole("button", { name: /^Aprobar reporte.*QA-RASTREO-123/ }));
+    expect(mocks.review).not.toHaveBeenCalled();
+    const confirmation = screen.getByRole("alertdialog", { name: "Aprobar reporte de pago" });
+    expect(confirmation).toHaveAccessibleDescription(/Monto:.*500.*Fecha de transferencia:.*Rastreo: QA-RASTREO-123/);
+    fireEvent.click(within(confirmation).getByRole("button", { name: "Confirmar aprobación" }));
+    expect(mocks.review).toHaveBeenCalledExactlyOnceWith({ intentId: intent.id, action: "approve" });
   });
 
   it("oculta la sección sólo tras una respuesta vacía válida", async () => {
@@ -67,7 +71,7 @@ describe("reportes de pago: estado de consulta", () => {
     expect(await screen.findByText(errorTitle)).toBeInTheDocument();
     expect(screen.getByText(title)).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Reintentar" })).toBeEnabled();
-    expect(screen.queryByRole("button", { name: "Aprobar" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /^Aprobar reporte/ })).not.toBeInTheDocument();
     expect(mocks.review).not.toHaveBeenCalled();
   });
 });

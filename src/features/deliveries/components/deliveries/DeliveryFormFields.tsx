@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useWatch } from "react-hook-form";
 import {
   TextField, TextareaField, DateField, SelectField, CheckboxField, type SelectOption,
@@ -32,6 +32,10 @@ interface Props {
   activeDrivers: Driver[] | undefined;
   bookingsLoading?: boolean;
   bookingsError?: boolean;
+  onRetryBookings?: () => void;
+  driversLoading?: boolean;
+  driversError?: boolean;
+  onRetryDrivers?: () => void;
   hasMoreBookings?: boolean;
   onLoadMoreBookings?: () => void;
   contextLocked?: boolean;
@@ -44,13 +48,12 @@ const TYPE_OPTIONS: SelectOption[] = [
 
 export function DeliveryFormFields({
   form, forklifts, bookings, activeDrivers,
-  bookingsLoading, bookingsError, hasMoreBookings, onLoadMoreBookings, contextLocked,
+  bookingsLoading, bookingsError, onRetryBookings, hasMoreBookings, onLoadMoreBookings, contextLocked,
+  driversLoading, driversError, onRetryDrivers,
 }: Props) {
   const bookingId = useWatch({ control: form.control, name: "bookingId" });
   const transportType = useWatch({ control: form.control, name: "type" });
-  const lastBookingId = useRef("");
-  const lastTransportType = useRef(transportType);
-  const lastSuggestedDate = useRef<string | null>(null);
+  const [clearedBooking, setClearedBooking] = useState(false);
   // Bug 3: histórico sin operador → pedir justificación de evidencia.
   const alreadyCompleted = useWatch({ control: form.control, name: "alreadyCompleted" });
 
@@ -69,26 +72,133 @@ export function DeliveryFormFields({
 
   const selectBooking = (id: string) => {
     const booking = bookings?.find((b) => b.id === id);
-    if (booking) form.setValue("forkliftId", booking.forklift_id, { shouldDirty: true });
+    if (booking) {
+      form.setValue("forkliftId", booking.forklift_id, { shouldDirty: true });
+      setClearedBooking(false);
+    }
   };
   const selectForklift = (id: string) => {
     const booking = bookings?.find((b) => b.id === form.getValues("bookingId"));
     if (booking && booking.forklift_id !== id) {
       form.setValue("bookingId", "", { shouldDirty: true, shouldValidate: true });
+      setClearedBooking(true);
     }
   };
+
+  useTransportDateSuggestion(form, bookings, bookingId, transportType);
+
+  return (
+    <Form {...form}>
+      <FormSection title="Detalles" first>
+        <SelectField
+          control={form.control}
+          name="bookingId"
+          label="Reserva Vinculada"
+          disabled={contextLocked}
+          options={bookingOptions}
+          onValueChange={selectBooking}
+          // GUI-FE-11a (G-DIS-03): la regla exige reserva; el placeholder
+          // "Opcional" contradecía la validación.
+          required
+          placeholder="Seleccionar reserva"
+        />
+        <DeliveryBookingStatus
+          cleared={clearedBooking && !bookingId}
+          bookingsLoading={bookingsLoading}
+          bookingsError={bookingsError}
+          onRetryBookings={onRetryBookings}
+          hasMoreBookings={hasMoreBookings}
+          onLoadMoreBookings={onLoadMoreBookings}
+        />
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <SelectField control={form.control} name="type" label="Tipo" required options={TYPE_OPTIONS} disabled={contextLocked} />
+          <SelectField
+            control={form.control}
+            name="forkliftId"
+            label="Montacargas"
+            disabled={contextLocked}
+            description="Se completa al elegir la reserva."
+            required
+            options={forkliftOptions}
+            onValueChange={selectForklift}
+            placeholder="Seleccionar"
+          />
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <DateField control={form.control} name="scheduledDate" label={transportType === "pickup" ? "Fecha de recolección" : "Fecha de entrega"} required />
+          <TextField control={form.control} name="scheduledTime" label="Hora" type="time" />
+        </div>
+
+        <CheckboxField
+          control={form.control}
+          name="alreadyCompleted"
+          label="Ya se realizó (registrar histórico)"
+          description="Permite fecha pasada; el transporte se registra directamente como completado."
+        />
+
+        <TextField
+          control={form.control}
+          name="address"
+          label={transportType === "pickup" ? "Dirección de recolección" : "Dirección de entrega"}
+          placeholder="Calle, número, colonia y ciudad"
+        />
+
+        <DeliveryOperatorFields
+          form={form}
+          activeDrivers={activeDrivers}
+          driversLoading={driversLoading}
+          driversError={driversError}
+          onRetryDrivers={onRetryDrivers}
+        />
+
+        {/* Bug 3: histórico sin operador ni firma → justificación obligatoria. */}
+        {alreadyCompleted && !driverName?.trim() && (
+          <TextareaField
+            control={form.control}
+            name="noEvidenceReason"
+            label="Justificación (sin conductor ni firma)"
+            required
+            rows={2}
+            placeholder="Ej: Autorizó el supervisor Juan Pérez por teléfono"
+            description="El transporte quedará completado sin evidencia operativa; registra quién lo autorizó."
+          />
+        )}
+
+        <TextareaField
+          control={form.control}
+          name="notes"
+          label="Notas"
+          rows={2}
+          placeholder="Instrucciones especiales…"
+        />
+      </FormSection>
+    </Form>
+  );
+}
+
+function useTransportDateSuggestion(
+  form: UseFormReturn<DeliveryFormValues>,
+  bookings: Booking[] | undefined,
+  bookingId: string,
+  transportType: string,
+) {
+  const previousBookingId = useRef("");
+  const lastTransportType = useRef(transportType);
+  const lastSuggestedDate = useRef<string | null>(null);
 
   // Al elegir otra reserva, proponer una fecha válida sin pisar una fecha ya válida.
   useEffect(() => {
     if (!bookingId) {
-      lastBookingId.current = "";
+      previousBookingId.current = "";
       lastSuggestedDate.current = null;
       return;
     }
-    if (lastBookingId.current === bookingId) return;
+    if (previousBookingId.current === bookingId) return;
     const booking = bookings?.find((b) => b.id === bookingId);
     if (!booking) return;
-    lastBookingId.current = bookingId;
+    previousBookingId.current = bookingId;
 
     const suggestedDate = suggestedScheduledTransportDate(
       form.getValues("type"),
@@ -132,90 +242,37 @@ export function DeliveryFormFields({
     }
   }, [transportType, bookingId, bookings, form]);
 
-  return (
-    <Form {...form}>
-      <FormSection title="Detalles" first>
-        <SelectField
-          control={form.control}
-          name="bookingId"
-          label="Reserva Vinculada"
-          disabled={contextLocked}
-          options={bookingOptions}
-          onValueChange={selectBooking}
-          // GUI-FE-11a (G-DIS-03): la regla exige reserva; el placeholder
-          // "Opcional" contradecía la validación.
-          required
-          placeholder="Seleccionar reserva"
-        />
-        {bookingsLoading && <p role="status" className="text-xs text-muted-foreground">Cargando reservas confirmadas…</p>}
-        {bookingsError && <p role="alert" className="text-xs text-destructive">No se pudieron cargar las reservas. Cierra y vuelve a abrir el formulario.</p>}
-        {hasMoreBookings && (
-          <Button type="button" variant="outline" size="sm" onClick={onLoadMoreBookings} disabled={bookingsLoading}>
-            Cargar más reservas
-          </Button>
-        )}
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <SelectField control={form.control} name="type" label="Tipo" required options={TYPE_OPTIONS} disabled={contextLocked} />
-          <SelectField
-            control={form.control}
-            name="forkliftId"
-            label="Montacargas"
-            disabled={contextLocked}
-            description="Se completa al elegir la reserva."
-            required
-            options={forkliftOptions}
-            onValueChange={selectForklift}
-            placeholder="Seleccionar"
-          />
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <DateField control={form.control} name="scheduledDate" label={transportType === "pickup" ? "Fecha de recolección" : "Fecha de entrega"} required />
-          <TextField control={form.control} name="scheduledTime" label="Hora" type="time" />
-        </div>
-
-        <CheckboxField
-          control={form.control}
-          name="alreadyCompleted"
-          label="Ya se realizó (registrar histórico)"
-          description="Permite fecha pasada; el transporte se registra directamente como completado."
-        />
-
-        <TextField
-          control={form.control}
-          name="address"
-          label={transportType === "pickup" ? "Dirección de recolección" : "Dirección de entrega"}
-          placeholder="Calle, número, colonia y ciudad"
-        />
-
-        <DeliveryOperatorFields form={form} activeDrivers={activeDrivers} />
-
-        {/* Bug 3: histórico sin operador ni firma → justificación obligatoria. */}
-        {alreadyCompleted && !driverName?.trim() && (
-          <TextareaField
-            control={form.control}
-            name="noEvidenceReason"
-            label="Justificación (sin conductor ni firma)"
-            rows={2}
-            placeholder="Ej: Autorizó el supervisor Juan Pérez por teléfono"
-            description="El transporte quedará completado sin evidencia operativa; registra quién lo autorizó."
-          />
-        )}
-
-        <TextareaField
-          control={form.control}
-          name="notes"
-          label="Notas"
-          rows={2}
-          placeholder="Instrucciones especiales…"
-        />
-      </FormSection>
-    </Form>
-  );
 }
 
-function DeliveryOperatorFields({ form, activeDrivers }: Pick<Props, "form" | "activeDrivers">) {
+function DeliveryBookingStatus({ cleared, bookingsLoading, bookingsError, onRetryBookings, hasMoreBookings, onLoadMoreBookings }: Pick<
+  Props, "bookingsLoading" | "bookingsError" | "onRetryBookings" | "hasMoreBookings" | "onLoadMoreBookings"
+> & { cleared: boolean }) {
+  return <>
+    {cleared && (
+      <p role="status" className="text-xs text-muted-foreground">
+        El cambio de equipo desvinculó la reserva. Elige una reserva del equipo que quieres transportar.
+      </p>
+    )}
+    {bookingsLoading && <p role="status" className="text-xs text-muted-foreground">Cargando reservas confirmadas…</p>}
+    {bookingsError && (
+      <div className="flex flex-wrap items-center gap-2">
+        <p role="alert" className="text-xs text-destructive">No se pudieron cargar las reservas.</p>
+        <Button type="button" variant="outline" size="sm" onClick={onRetryBookings} disabled={bookingsLoading}>
+          Reintentar reservas
+        </Button>
+      </div>
+    )}
+    {hasMoreBookings && (
+      <Button type="button" variant="outline" size="sm" onClick={onLoadMoreBookings} disabled={bookingsLoading}>
+        Cargar más reservas
+      </Button>
+    )}
+  </>;
+}
+
+function DeliveryOperatorFields({ form, activeDrivers, driversLoading, driversError, onRetryDrivers }: Pick<
+  Props, "form" | "activeDrivers" | "driversLoading" | "driversError" | "onRetryDrivers"
+>) {
   const noDrivers = activeDrivers?.length === 0;
   const driverOptions = activeDrivers?.map((d) => ({ value: d.name, label: d.name })) ?? [];
   const selectDriver = (name: string) => {
@@ -231,9 +288,9 @@ function DeliveryOperatorFields({ form, activeDrivers }: Pick<Props, "form" | "a
         label="Conductor"
         options={driverOptions}
         onValueChange={selectDriver}
-        disabled={noDrivers}
+        disabled={noDrivers || driversLoading || driversError}
         placeholder={noDrivers ? "Sin conductores activos" : "Seleccionar conductor"}
-        description={noDrivers ? "No hay conductores activos registrados." : undefined}
+        description={noDrivers && !driversLoading && !driversError ? "No hay conductores activos registrados." : undefined}
       />
       <TextField
         control={form.control}
@@ -242,6 +299,15 @@ function DeliveryOperatorFields({ form, activeDrivers }: Pick<Props, "form" | "a
         type="tel"
         placeholder="+52 55 1234 5678"
       />
+      {driversLoading && <p role="status" className="text-xs text-muted-foreground sm:col-span-2">Cargando conductores activos…</p>}
+      {driversError && (
+        <div className="flex flex-wrap items-center gap-2 sm:col-span-2">
+          <p role="alert" className="text-xs text-destructive">No se pudieron cargar los conductores.</p>
+          <Button type="button" variant="outline" size="sm" onClick={onRetryDrivers} disabled={driversLoading}>
+            Reintentar conductores
+          </Button>
+        </div>
+      )}
     </div>
   );
 }

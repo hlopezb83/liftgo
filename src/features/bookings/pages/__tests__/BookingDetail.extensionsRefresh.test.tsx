@@ -64,13 +64,13 @@ describe("extension action while the production query refreshes cached rows", ()
   it("keeps cached data blocked after an error, then enables only after successful retry", async () => {
     state.read.mockResolvedValue({ data: null, error: { message: "synthetic offline response" } });
     renderCachedPage();
-    await screen.findByText("No se pudo verificar la facturación de las extensiones.");
+    await screen.findByText("No se pudo cargar las extensiones de la reserva");
     const button = screen.getByRole("button", { name: /facturar extensión/i });
     expect(button).toBeDisabled();
     fireEvent.click(button);
     expect(state.navigate).not.toHaveBeenCalled();
     state.read.mockResolvedValue({ data: [extension], error: null });
-    fireEvent.click(screen.getByRole("button", { name: /reintentar verificación/i }));
+    fireEvent.click(screen.getByRole("button", { name: /^Reintentar$/ }));
     await waitFor(() => expect(button).toBeEnabled());
     fireEvent.click(button);
     expect(state.navigate).toHaveBeenCalledWith("/invoices/new?extension_id=extension-1");

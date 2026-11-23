@@ -20,6 +20,8 @@ function renderActions(status: string, canDelete: boolean) {
   render(
     <DeliveryActions
       status={status}
+      type="delivery"
+      number="ENT-001"
       canDelete={canDelete}
       onEdit={vi.fn()}
       onComplete={vi.fn()}
@@ -59,10 +61,10 @@ describe("DeliveryActions - botón Eliminar (DB3-15)", () => {
     roleGuardAccessMock.mockReturnValue(true);
     const onDelete = vi.fn();
     render(
-      <DeliveryActions status="cancelled" canDelete onEdit={vi.fn()} onComplete={vi.fn()} onDelete={onDelete} />,
+      <DeliveryActions status="cancelled" type="pickup" number="REC-001" canDelete onEdit={vi.fn()} onComplete={vi.fn()} onDelete={onDelete} />,
     );
     fireEvent.click(screen.getByRole("button", { name: /eliminar/i }));
-    const dialog = screen.getByRole("alertdialog");
+    const dialog = screen.getByRole("alertdialog", { name: "¿Eliminar la recolección REC-001?" });
     fireEvent.click(within(dialog).getByRole("button", { name: "Eliminar" }));
     expect(onDelete).toHaveBeenCalled();
   });
@@ -71,7 +73,7 @@ describe("DeliveryActions - botón Eliminar (DB3-15)", () => {
     roleGuardAccessMock.mockReturnValue(true);
     const onEdit = vi.fn();
     render(
-      <DeliveryActions status="scheduled" canDelete={false} onEdit={onEdit} onComplete={vi.fn()} onDelete={vi.fn()} />,
+      <DeliveryActions status="scheduled" type="delivery" number="ENT-001" canDelete={false} onEdit={onEdit} onComplete={vi.fn()} onDelete={vi.fn()} />,
     );
     fireEvent.click(screen.getByRole("button", { name: /reprogramar/i }));
     expect(onEdit).toHaveBeenCalledOnce();

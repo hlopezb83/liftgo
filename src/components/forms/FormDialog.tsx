@@ -45,6 +45,7 @@ interface FormDialogProps {
   /** Oleada 2 (B-2): si `true`, cerrar (Esc/click fuera/botón X) pide
    *  confirmación al usuario antes de descartar cambios. */
   isDirty?: boolean;
+  discardConfirmation?: Pick<ComponentProps<typeof ConfirmDialog>, "title" | "description" | "confirmLabel" | "cancelLabel" | "destructive">;
   /** Restauración opcional para diálogos controlados sin DialogTrigger. */
   onCloseAutoFocus?: ComponentProps<typeof DialogContent>["onCloseAutoFocus"];
 }
@@ -60,6 +61,7 @@ export function FormDialog({
   className,
   isPending = false,
   isDirty = false,
+  discardConfirmation,
   onCloseAutoFocus,
 }: FormDialogProps) {
   const [confirmDiscard, setConfirmDiscard] = useState(false);
@@ -115,6 +117,7 @@ export function FormDialog({
         confirmLabel="Descartar"
         cancelLabel="Seguir editando"
         destructive
+        {...discardConfirmation}
         onConfirm={() => { setConfirmDiscard(false); onOpenChange(false); }}
       />
     </>

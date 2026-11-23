@@ -65,6 +65,7 @@ interface Props {
 }
 
 export function BankStatementUploader({ bankAccountId, currency }: Props) {
+  const profileId = useId();
   const up = useStatementUpload(bankAccountId);
   const showMapper = up.xmlFields.length > 0;
   const busy = up.isAnalyzing || up.isPending;
@@ -79,13 +80,13 @@ export function BankStatementUploader({ bankAccountId, currency }: Props) {
         </CardHeader>
         <CardContent className="grid sm:grid-cols-3 gap-3">
           <div className="grid gap-1.5">
-            <Label>Perfil del banco</Label>
+            <Label htmlFor={profileId}>Perfil del banco</Label>
             <Select
               value={up.profile}
               onValueChange={(v) => up.setProfile(v as StatementProfile)}
               disabled={busy}
             >
-              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectTrigger id={profileId}><SelectValue /></SelectTrigger>
               <SelectContent>
                 {CSV_PROFILES.map((p) => (
                   <SelectItem key={p} value={p}>{CSV_PROFILE_LABELS[p]}</SelectItem>
@@ -100,7 +101,7 @@ export function BankStatementUploader({ bankAccountId, currency }: Props) {
           </div>
           <div className="flex items-end">
             <Button onClick={() => void up.analyze()} disabled={!up.file || up.isPending || up.isAnalyzing} className="w-full">
-              {up.isPending || up.isAnalyzing ? <SpinnerIcon className="h-4 w-4 animate-spin mr-2" /> : <UploadIcon className="h-4 w-4 mr-2" />}
+              {up.isAnalyzing ? <SpinnerIcon className="h-4 w-4 animate-spin mr-2" /> : <UploadIcon className="h-4 w-4 mr-2" />}
               {up.isAnalyzing ? "Analizando…" : "Analizar archivo"}
             </Button>
           </div>

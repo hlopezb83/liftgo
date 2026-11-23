@@ -159,8 +159,8 @@ export default function CustomersPage() {
         onRefresh={refetch}
         title="Clientes"
         subtitle={customerPages.hasNextPage ? `${customers.length}+ clientes cargados` : `${customers.length} clientes`}
-        actions={<CustomersActions filtered={filtered} onCreate={openCreate} exportDisabled={customerPages.hasNextPage} />}
-        mobileActions={<CustomersSecondaryActions filtered={filtered} exportDisabled={customerPages.hasNextPage} />}
+        actions={<CustomersActions filtered={isLoading || isError ? undefined : filtered} onCreate={openCreate} exportDisabled={customerPages.hasNextPage} />}
+        mobileActions={<CustomersSecondaryActions filtered={isLoading || isError ? undefined : filtered} exportDisabled={customerPages.hasNextPage} />}
         mobilePrimaryAction={
           <RoleGuard module="Clientes" minAccess="full" fallback={null}>
             <Button

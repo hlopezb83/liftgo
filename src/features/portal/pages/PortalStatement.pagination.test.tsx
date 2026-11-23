@@ -64,3 +64,11 @@ describe("estado de cuenta: páginas aún sin respuesta", () => {
     expect(screen.getByRole("button", { name: "Página 1" })).toHaveAttribute("aria-current", "page");
   });
 });
+
+it("explica el PDF deshabilitado cuando el resumen no tiene facturas", async () => {
+  request.mockResolvedValue({ rows: [], totalCount: 0 });
+  renderStatement();
+  const download = await screen.findByRole("button", { name: "Descargar PDF" });
+  expect(download).toBeDisabled();
+  expect(download).toHaveAccessibleDescription("El PDF estará disponible cuando tengas facturas.");
+});

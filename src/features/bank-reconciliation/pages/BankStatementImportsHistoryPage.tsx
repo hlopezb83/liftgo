@@ -10,19 +10,28 @@ import { Card, CardContent } from "@/components/ui/card";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { useUserRole } from "@/features/users";
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";
+import { formatDateMty } from "@/lib/format/dateFormats";
 import { visibleListRows } from "@/lib/supabase/constants";
 import { useBankImportsColumns, type ImportRow } from "../hooks/useBankImportsColumns";
 import { useBankStatementImports, useDeleteBankImport } from "../hooks/useBankStatementImports";
+
+function describeImportDeletion(entry: ImportRow) {
+  const account = [entry.bank_account_name, entry.bank_account_last4 && `····${entry.bank_account_last4}`].filter(Boolean).join(" ");
+  const period = entry.period_start && entry.period_end
+    ? `${formatDateMty(entry.period_start)} a ${formatDateMty(entry.period_end)}`
+    : "Sin periodo registrado";
+  return `Archivo: ${entry.file_name}. Cuenta: ${account || "Sin cuenta"}. Periodo: ${period}. Se eliminarán las líneas asociadas y sus conciliaciones. Esta acción no se puede deshacer.`;
+}
 
 export default function BankStatementImportsHistoryPage() {
   const navigate = useNavigateTransition();
   const { data: imports, isLoading, isError, refetch } = useBankStatementImports();
   const { data: role } = useUserRole();
   const del = useDeleteBankImport();
-  const [confirmId, setConfirmId] = useState<string | null>(null);
+  const [selectedImport, setSelectedImport] = useState<ImportRow | null>(null);
   const canDelete = role === "admin";
 
-  const onDeleteRequest = useCallback((id: string) => setConfirmId(id), []);
+  const onDeleteRequest = useCallback((row: ImportRow) => setSelectedImport(row), []);
   const columns = useBankImportsColumns(canDelete, onDeleteRequest);
 
   const table = useLiftgoTable<ImportRow>({
@@ -64,16 +73,16 @@ export default function BankStatementImportsHistoryPage() {
       )}
 
       <ConfirmDialog
-        open={!!confirmId}
-        onOpenChange={(o) => { if (!o) setConfirmId(null); }}
+        open={canDelete && !!selectedImport}
+        onOpenChange={(o) => { if (!o) setSelectedImport(null); }}
         title="¿Eliminar esta importación bancaria?"
-        description="Se eliminarán las líneas asociadas y sus conciliaciones. Esta acción no se puede deshacer."
+        description={selectedImport ? describeImportDeletion(selectedImport) : undefined}
         confirmLabel="Eliminar"
         destructive
         loading={del.isPending}
         onConfirm={() => {
-          if (!confirmId) return;
-          del.mutate(confirmId, { onSettled: () => setConfirmId(null) });
+          if (!canDelete || !selectedImport || del.isPending) return;
+          del.mutate(selectedImport.id, { onSettled: () => setSelectedImport(null) });
         }}
       />
 

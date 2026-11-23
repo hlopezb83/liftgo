@@ -103,6 +103,13 @@ function SupplierFormSession({ onOpenChange, supplier }: Omit<SupplierFormDialog
     <FormDialog
       isPending={isPending}
       isDirty={hasUnsavedChanges}
+      discardConfirmation={pendingCsf ? {
+        title: "¿Cerrar con la CSF pendiente?",
+        description: "La ficha del proveedor ya está guardada. Podrás adjuntar la CSF más tarde desde su ficha.",
+        confirmLabel: "Cerrar por ahora",
+        cancelLabel: "Volver a la subida",
+        destructive: false,
+      } : undefined}
       open
       onOpenChange={onOpenChange}
       title={supplier ? "Editar proveedor" : "Nuevo proveedor"}

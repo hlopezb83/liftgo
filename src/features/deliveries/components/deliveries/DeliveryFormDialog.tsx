@@ -35,6 +35,24 @@ function getInitialForm(context?: DeliveryBookingContext): DeliveryFormValues {
   };
 }
 
+function useDeliveryFieldOptions(open: boolean, bookingId: string, context?: DeliveryBookingContext) {
+  const { bookingQuery, bookings, forkliftOptions } = useDeliveryFormOptions(open, bookingId, context);
+  const driversQuery = useActiveDrivers();
+  return {
+    forklifts: forkliftOptions,
+    bookings,
+    activeDrivers: driversQuery.data,
+    driversLoading: driversQuery.isLoading || (driversQuery.isError && driversQuery.isFetching),
+    driversError: driversQuery.isError,
+    onRetryDrivers: () => { void driversQuery.refetch(); },
+    bookingsLoading: !context && (bookingQuery.isLoading || (bookingQuery.isError && bookingQuery.isFetching) || bookingQuery.isFetchingNextPage),
+    bookingsError: !context && bookingQuery.isError,
+    onRetryBookings: () => { void bookingQuery.refetch(); },
+    hasMoreBookings: !context && bookingQuery.hasNextPage,
+    onLoadMoreBookings: () => { void bookingQuery.fetchNextPage(); },
+  };
+}
+
 function useDeliveryFormOptions(open: boolean, bookingId: string, context?: DeliveryBookingContext) {
   const { forklifts } = useForkliftMap(open && !context);
   const bookingQuery = useConfirmedBookingsForDelivery(open && !context);
@@ -112,8 +130,7 @@ export function DeliveryFormDialog({ open: openProp, onOpenChange, context, hide
   });
   const selectedBookingId = useWatch({ control: form.control, name: "bookingId" });
   const alreadyCompleted = useWatch({ control: form.control, name: "alreadyCompleted" });
-  const { bookingQuery, bookings, forkliftOptions } = useDeliveryFormOptions(open, selectedBookingId, context);
-  const { data: activeDrivers } = useActiveDrivers();
+  const fields = useDeliveryFieldOptions(open, selectedBookingId, context);
   const createDelivery = useCreateDelivery();
 
   const submitting = useRef(false);
@@ -123,7 +140,7 @@ export function DeliveryFormDialog({ open: openProp, onOpenChange, context, hide
     submitting.current = true;
     form.clearErrors("root");
     try {
-      const error = await submissionError(values, bookings, context);
+      const error = await submissionError(values, fields.bookings, context);
       if (error) {
         form.setError(error.field, { type: "manual", message: error.message });
         submitting.current = false;
@@ -162,14 +179,7 @@ export function DeliveryFormDialog({ open: openProp, onOpenChange, context, hide
         open={open} onOpenChange={setOpen} title={alreadyCompleted ? "Registrar transporte realizado" : "Programar transporte"}>
 
         <form onSubmit={(event) => { void form.handleSubmit(onSubmit)(event); }} className="space-y-4">
-          <DeliveryFormFields
-            contextLocked={!!context}
-            form={form} forklifts={forkliftOptions} bookings={bookings} activeDrivers={activeDrivers}
-            bookingsLoading={!context && (bookingQuery.isLoading || bookingQuery.isFetchingNextPage)}
-            bookingsError={!context && bookingQuery.isError}
-            hasMoreBookings={!context && bookingQuery.hasNextPage}
-            onLoadMoreBookings={() => { void bookingQuery.fetchNextPage(); }}
-          />
+          <DeliveryFormFields {...fields} contextLocked={!!context} form={form} />
           {form.formState.errors.root?.message && <p role="alert" className="text-sm text-destructive">{form.formState.errors.root.message}</p>}
           <FormDialogFooter>
             <FormActions submitLabel={alreadyCompleted ? "Registrar como completado" : "Programar"} isPending={isPending} onCancel={() => setOpen(false)} />

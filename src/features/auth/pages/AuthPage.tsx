@@ -1,4 +1,4 @@
-import { useState, type FormEvent as ReactFormEvent } from "react";
+import { useRef, useState, type FormEvent as ReactFormEvent } from "react";
 import { AuthBrandPanel } from "@/components/branding/AuthBrandPanel";
 import { UsersIcon } from "@/components/icons";
 import { Button } from "@/components/ui/button";
@@ -36,6 +36,7 @@ export default function AuthPage({ platform = false, destination = "/platform" }
     recovery === "idle" ? "sign-in" : "reset",
   );
   const [email, setEmail] = useState("");
+  const emailRef = useRef<HTMLInputElement>(null);
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -154,14 +155,13 @@ export default function AuthPage({ platform = false, destination = "/platform" }
             {noticeStatus ? (
               <RecoveryNotice
                 status={noticeStatus}
-                onRequestNew={() => {
-                  finishRecovery("forgot");
-                }}
+                onRequestNew={() => finishRecovery("forgot")}
               />
             ) : (
               <AuthForm
                 mode={mode}
                 email={email}
+                emailRef={emailRef}
                 password={password}
                 showPassword={showPassword}
                 loading={loading}
@@ -174,10 +174,11 @@ export default function AuthPage({ platform = false, destination = "/platform" }
             <AuthModeLinks
               mode={mode}
               recovery={recovery}
-              onMode={setMode}
-              onCancelRecovery={() => {
-                void cancelRecovery();
+              onMode={(nextMode) => {
+                setMode(nextMode);
+                emailRef.current?.focus();
               }}
+              onCancelRecovery={() => void cancelRecovery()}
             />
 
             <div className="relative my-4">

@@ -3,16 +3,19 @@ import { SuccessIcon, DeleteIcon, EditIcon } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { RoleGuard } from "@/layouts/RoleGuard";
+import { deliveryTypeLabel } from "../../lib/deliveryDetailHelpers";
 
 interface DeliveryActionsProps {
   status: string;
+  type: string;
+  number: string;
   canDelete: boolean;
   onEdit: () => void;
   onComplete: () => void;
   onDelete: () => void;
 }
 
-export function DeliveryActions({ status, canDelete, onEdit, onComplete, onDelete }: DeliveryActionsProps) {
+export function DeliveryActions({ status, type, number, canDelete, onEdit, onComplete, onDelete }: DeliveryActionsProps) {
   const [open, setOpen] = useState(false);
   return (
     <div className="flex gap-2">
@@ -40,7 +43,7 @@ export function DeliveryActions({ status, canDelete, onEdit, onComplete, onDelet
           <ConfirmDialog
             open={open}
             onOpenChange={setOpen}
-            title="¿Eliminar esta entrega?"
+            title={`¿Eliminar la ${deliveryTypeLabel(type).toLocaleLowerCase("es-MX")} ${number}?`}
             description="Esta acción no se puede deshacer."
             confirmLabel="Eliminar"
             destructive

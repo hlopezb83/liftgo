@@ -1,5 +1,5 @@
 import { subMonths, startOfMonth, endOfMonth } from "date-fns";
-import { useState } from "react";
+import { useId, useState } from "react";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { PageTransition } from "@/components/layout/PageTransition";
@@ -26,6 +26,7 @@ function generateMonthOptions(count: number) {
 
 export default function IncomeStatementPage() {
   const monthOptions = generateMonthOptions(24);
+  const rangeId = useId();
 
   const [startMonth, setStartMonth] = useState(() => toYMD(subMonths(nowMty(), 3)).slice(0, 7));
   const [endMonth, setEndMonth] = useState(() => toYMD(nowMty()).slice(0, 7));
@@ -69,9 +70,9 @@ export default function IncomeStatementPage() {
           <CardContent className="pt-6">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-1.5">
-                <Label>Desde</Label>
+                <Label htmlFor={`${rangeId}-start`}>Desde</Label>
                 <Select value={startMonth} onValueChange={setStartMonth}>
-                  <SelectTrigger>
+                  <SelectTrigger id={`${rangeId}-start`}>
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -82,9 +83,9 @@ export default function IncomeStatementPage() {
                 </Select>
               </div>
               <div className="space-y-1.5">
-                <Label>Hasta</Label>
+                <Label htmlFor={`${rangeId}-end`}>Hasta</Label>
                 <Select value={endMonth} onValueChange={setEndMonth}>
-                  <SelectTrigger>
+                  <SelectTrigger id={`${rangeId}-end`}>
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>

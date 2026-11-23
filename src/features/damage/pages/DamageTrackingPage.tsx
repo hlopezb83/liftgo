@@ -5,6 +5,7 @@ import { FiltersToolbar } from "@/components/filters/FiltersToolbar";
 import { Camera } from "@/components/icons";
 import { ListPageLayout } from "@/components/layout/ListPageLayout";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
@@ -32,13 +33,12 @@ export default function DamageTrackingPage() {
   // R5-A6: vista de archivados para poder restaurarlos.
   const [showArchived, setShowArchived] = useState(false);
   const { data: records, isLoading, isError, refetch } = useDamageRecords(showArchived);
-  const { data: photoCounts } = useDamagePhotoCounts();
+  const photoQuery = useDamagePhotoCounts();
+  const photoCounts = photoQuery.isError ? undefined : photoQuery.data;
   const detail = useDialogState<DamageRecordWithJoins>();
   // Control externo del diálogo de reporte para poder abrirlo también desde
   // el CTA del EmptyState (mismo patrón que InventoryPage/PartFormDialog).
   const reportDialog = useToggleDialog();
-
-  const getPhotoCount = (id: string) => photoCounts?.[id] || 0;
 
   const { values, set, reset, hasActive, filtered } = useTableFilters<DamageRow, {
     q: { type: "text"; fields: (keyof DamageRow)[]; accessors: ((r: DamageRow) => string | null | undefined)[] };
@@ -83,7 +83,7 @@ export default function DamageTrackingPage() {
               options={DAMAGE_STATUS_OPTIONS}
             />
             <Select value={showArchived ? "archived" : "active"} onValueChange={(v) => setShowArchived(v === "archived")}>
-              <SelectTrigger className="w-full sm:w-[160px] h-9">
+              <SelectTrigger aria-label="Mostrar registros activos o archivados" className="w-full sm:w-[160px] h-9">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -95,6 +95,12 @@ export default function DamageTrackingPage() {
           </FiltersToolbar>
         }
 
+        notice={<PhotoCountNotice
+          isLoading={photoQuery.isLoading}
+          isError={photoQuery.isError}
+          isRetrying={photoQuery.isFetching}
+          onRetry={() => { void photoQuery.refetch(); }}
+        />}
         isLoading={isLoading}
         isError={isError}
         onRetry={() => { void refetch(); }}
@@ -107,23 +113,31 @@ export default function DamageTrackingPage() {
         emptyActionLabel={canWrite ? "Reportar daño" : undefined}
         onEmptyAction={canWrite ? reportDialog.openDialog : undefined}
         mobileCardRender={(r) => (
-          <Card className="cursor-pointer" onClick={() => detail.open(r as DamageRecordWithJoins)}>
+          <Card className="relative focus-within:ring-2 focus-within:ring-ring">
             <CardContent className="p-4 space-y-2">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <span className="font-mono text-sm">{formatDateMty(r.created_at)}</span>
-                  {getPhotoCount(r.id) > 0 && (
-                    <Badge variant="secondary" className="gap-1 text-xs px-1.5 py-0">
-                      <Camera className="h-3 w-3" /> {getPhotoCount(r.id)}
-                    </Badge>
-                  )}
+                  {photoCounts && <PhotoCountBadge count={photoCounts[r.id] ?? 0} />}
                 </div>
                 <StatusBadge status={r.status} />
               </div>
               <p className="text-sm font-medium">{r.forklifts?.name || "—"}</p>
               <p className="text-sm text-muted-foreground">{r.customers?.name || "—"}</p>
               <p className="text-sm text-muted-foreground truncate">{r.description}</p>
-              <span className="font-mono text-sm">{formatCurrency(r.estimated_cost ?? 0)}</span>
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <span className="font-mono text-sm">{r.estimated_cost == null ? "Sin estimación" : formatCurrency(r.estimated_cost)}</span>
+                <Button
+                  type="button"
+                  variant="link"
+                  size="sm"
+                  className="after:absolute after:inset-0"
+                  aria-label={`Ver daño de ${r.forklifts?.name || "equipo"} del ${formatDateMty(r.created_at)}`}
+                  onClick={() => detail.open(r)}
+                >
+                  Ver detalle
+                </Button>
+              </div>
             </CardContent>
           </Card>
         )}
@@ -138,6 +152,33 @@ export default function DamageTrackingPage() {
         onOpenChange={detail.onOpenChange}
       />
     </>
+  );
+}
+
+function PhotoCountNotice({ isLoading, isError, isRetrying, onRetry }: {
+  isLoading: boolean;
+  isError: boolean;
+  isRetrying: boolean;
+  onRetry: () => void;
+}) {
+  if (isError) return (
+    <div className="flex flex-wrap items-center gap-2">
+      <p role="alert" className="text-sm text-destructive">No se pudo consultar el número de fotos.</p>
+      <Button type="button" size="sm" variant="outline" onClick={onRetry} disabled={isRetrying}>
+        Reintentar fotos
+      </Button>
+    </div>
+  );
+  if (isLoading) return <p role="status" className="text-sm text-muted-foreground">Consultando fotos…</p>;
+  return null;
+}
+
+function PhotoCountBadge({ count }: { count: number }) {
+  if (count === 0) return <span className="text-xs text-muted-foreground">Sin fotos</span>;
+  return (
+    <Badge variant="secondary" className="gap-1 text-xs px-1.5 py-0">
+      <Camera className="h-3 w-3" aria-hidden="true" /> {count}<span className="sr-only"> fotos</span>
+    </Badge>
   );
 }
 
@@ -185,23 +226,16 @@ function buildDamageColumns(photoCounts: Record<string, number> | undefined): Co
       header: "Fotos",
       enableSorting: false,
       meta: { align: "center", cellClassName: "w-16" },
-      cell: ({ row }) => {
-        const count = photoCounts?.[row.original.id] || 0;
-        return count > 0 ? (
-          <Badge variant="secondary" className="gap-1 text-xs px-1.5 py-0">
-            <Camera className="h-3 w-3" /> {count}
-          </Badge>
-        ) : (
-          <span className="text-muted-foreground text-xs">—</span>
-        );
-      },
+      cell: ({ row }) => photoCounts
+        ? <PhotoCountBadge count={photoCounts[row.original.id] ?? 0} />
+        : <span className="text-muted-foreground text-xs">Sin confirmar</span>,
     },
     {
       id: "estimated_cost",
       header: "Costo Est.",
       accessorFn: (r) => r.estimated_cost || 0,
       meta: { kind: "money" },
-      cell: ({ row }) => <span>{formatCurrency(row.original.estimated_cost ?? 0)}</span>,
+      cell: ({ row }) => <span>{row.original.estimated_cost == null ? "Sin estimación" : formatCurrency(row.original.estimated_cost)}</span>,
     },
     {
       id: "status",

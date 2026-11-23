@@ -1,3 +1,4 @@
+import { useId } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -18,6 +19,10 @@ export function AccountantExportReport({ startDate, endDate }: { startDate: Date
     validRange, canExport, busy, packageStatus, error, progress, download, cancel,
   } = useAccountantExport(startDate, endDate);
 
+  const selectionHelpId = useId();
+  const allowedSections = (Object.keys(LABELS) as (keyof Sections)[]).filter((key) => permissions[key]);
+  const noneSelected = allowedSections.length > 0 && allowedSections.every((key) => !selected[key]);
+
   if (!canAccess) return <p role="alert">No tienes permiso para exportar reportes financieros.</p>;
   return <Card>
     <CardHeader><CardTitle>Exportar para contador</CardTitle></CardHeader>
@@ -36,8 +41,9 @@ export function AccountantExportReport({ startDate, endDate }: { startDate: Date
       </fieldset>
       <p className="text-xs text-muted-foreground">Cancelados se conservan separados por estado. Ambientes desconocidos no se consideran producción. Es una extracción paginada, no un cierre bloqueado. Gastos sin empresa verificable no se incluyen; revisa el alcance y los conteos en Control. El ZIP sólo consulta archivos existentes con tus permisos actuales; no los recupera del PAC. Máximo 500 archivos candidatos XML/PDF, 10 MiB por archivo y 100 MiB de soportes. Faltantes o archivos no verificables se indican en un paquete INCOMPLETO.</p>
       <ExportFeedback validRange={validRange} packageStatus={packageStatus} error={error} />
+      {noneSelected && <p id={selectionHelpId} className="text-sm text-muted-foreground">Selecciona al menos una sección.</p>}
       <div className="flex flex-wrap gap-2">
-        <Button onClick={download} disabled={!canExport || busy}>{busy ? "Preparando exportación…" : includeDocuments ? "Descargar paquete para contador" : "Descargar Excel para contador"}</Button>
+        <Button onClick={download} disabled={!canExport || busy} aria-describedby={noneSelected ? selectionHelpId : undefined}>{busy ? "Preparando exportación…" : includeDocuments ? "Descargar paquete para contador" : "Descargar Excel para contador"}</Button>
         {busy && <Button variant="outline" onClick={cancel}>Cancelar exportación</Button>}
       </div>
       {busy && <p role="status" aria-live="polite" className="text-sm">{progress ?? "Consultando todas las páginas autorizadas."} Cambiar empresa, permisos o fechas cancela la descarga.</p>}

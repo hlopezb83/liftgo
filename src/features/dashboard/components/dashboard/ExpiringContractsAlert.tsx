@@ -1,8 +1,10 @@
-import { DocumentIcon, RefreshIcon } from "@/components/icons";
-import { Button } from "@/components/ui/button";
+import { ROUTES } from "@/app-routes/routes";
+import { ChevronRightIcon, DocumentIcon } from "@/components/icons";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import { formatDateMty } from "@/lib/format/dateFormats";
+import { Link } from "@/lib/router-compat-ui";
+
+const VISIBLE_CONTRACT_LIMIT = 5;
 
 interface ExpiringContract {
   id: string;
@@ -18,9 +20,8 @@ interface ExpiringContractsAlertProps {
 }
 
 export function ExpiringContractsAlert({ contracts }: ExpiringContractsAlertProps) {
-  const navigate = useNavigateTransition();
-
   if (contracts.length === 0) return null;
+  const visibleContracts = contracts.slice(0, VISIBLE_CONTRACT_LIMIT);
 
   return (
     <Card className="border-warning/30 bg-warning/5">
@@ -30,14 +31,11 @@ export function ExpiringContractsAlert({ contracts }: ExpiringContractsAlertProp
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-2">
-        {contracts.slice(0, 5).map((c) => (
-          <div
+        {visibleContracts.map((c) => (
+          <Link
             key={c.id}
-            role="button"
-            tabIndex={0}
-            className="flex items-center justify-between p-2 rounded-lg bg-background/80 text-sm cursor-pointer hover:bg-background"
-            onClick={() => navigate(`/contracts/${c.id}`)}
-            onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); navigate(`/contracts/${c.id}`); } }}
+            to={ROUTES.contracts.detail(c.id)}
+            className="flex items-center justify-between gap-2 rounded-lg bg-background/80 p-2 text-sm hover:bg-background focus-visible:ring-2 focus-visible:ring-ring"
           >
             <div>
               <span className="font-medium">{c.contract_number}</span>
@@ -53,19 +51,13 @@ export function ExpiringContractsAlert({ contracts }: ExpiringContractsAlertProp
                 </span>
                 <p className="text-xs text-muted-foreground">Vence: {formatDateMty(c.end_date)}</p>
               </div>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-7 w-7 shrink-0"
-                aria-label="Ver contrato"
-                title="Ver contrato"
-                onClick={(e) => { e.stopPropagation(); navigate(`/contracts/${c.id}`); }}
-              >
-                <RefreshIcon className="h-4 w-4 text-warning" />
-              </Button>
+              <ChevronRightIcon aria-hidden="true" className="h-4 w-4 shrink-0 text-warning" />
             </div>
-          </div>
+          </Link>
         ))}
+        {visibleContracts.length < contracts.length && (
+          <p className="text-xs text-muted-foreground">Mostrando {visibleContracts.length} de {contracts.length}</p>
+        )}
       </CardContent>
     </Card>
   );

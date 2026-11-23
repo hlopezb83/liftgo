@@ -50,3 +50,15 @@ it("treats an attachment alone as a draft even when the balance changes immediat
   view.rerender(<ReportTransferDialog {...props} invoiceId="invoice-b" balance={500} />);
   expect((screen.getByLabelText("Comprobante (PDF o imagen, opcional)") as HTMLInputElement).files?.length).toBe(0);
 });
+
+it("expone límites antes de capturar y conserva el cero inicial de la cuenta", async () => {
+  render(<ReportTransferDialog {...props} />);
+  expect(screen.getByRole("textbox", { name: /^Fecha/ })).toHaveAccessibleDescription(/últimos 60 días/);
+  expect(screen.getByLabelText("Comprobante (PDF o imagen, opcional)")).toHaveAccessibleDescription("Máximo 5 MB por archivo.");
+  const lastFour = screen.getByLabelText(/Últimos 4 dígitos/);
+  expect(lastFour).toHaveAttribute("inputmode", "numeric");
+  expect(lastFour).toHaveAttribute("maxlength", "4");
+  fireEvent.change(lastFour, { target: { value: "0123" } });
+  fireEvent.click(screen.getByRole("button", { name: "Enviar reporte" }));
+  await waitFor(() => expect(mutate).toHaveBeenCalledWith(expect.objectContaining({ sender_last4: "0123" }), expect.any(Object)));
+});

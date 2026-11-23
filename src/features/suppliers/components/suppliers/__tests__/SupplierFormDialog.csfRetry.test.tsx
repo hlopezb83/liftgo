@@ -128,9 +128,9 @@ describe("Supplier CSF partial success recovery", () => {
     submit("Agregar proveedor");
     await screen.findByRole("alert");
     fireEvent.click(screen.getByRole("button", { name: "Cancelar" }));
-    expect(await screen.findByRole("alertdialog")).toHaveTextContent("¿Descartar cambios?");
+    expect(await screen.findByRole("alertdialog")).toHaveTextContent("¿Cerrar con la CSF pendiente?");
     expect(onOpenChange).not.toHaveBeenCalled();
-    fireEvent.click(screen.getByRole("button", { name: "Descartar" }));
+    fireEvent.click(screen.getByRole("button", { name: "Cerrar por ahora" }));
     await waitFor(() => expect(onOpenChange).toHaveBeenCalledWith(false));
 
     view.rerender(<SupplierFormDialog open={false} supplier={null} onOpenChange={onOpenChange} />);

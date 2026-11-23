@@ -30,14 +30,14 @@ export function CustomerMobileCard({ customer, onOpen }: Props) {
     >
       <Card className="active:scale-[0.98] transition-transform">
         <CardContent className="p-4">
-          <div className="flex items-center justify-between mb-1">
-            <Untranslated className="font-semibold text-sm min-w-0 truncate">{customer.name}</Untranslated>
+          <div className="mb-1 flex items-start justify-between gap-2">
+            <Untranslated className="min-w-0 break-words text-sm font-semibold [overflow-wrap:anywhere]">{customer.name}</Untranslated>
             <ChevronRightIcon className="h-4 w-4 shrink-0 text-muted-foreground" />
           </div>
           {customer.rfc && <p className="text-xs font-mono text-muted-foreground">{customer.rfc}</p>}
-          <div className="flex items-center gap-4 mt-2 text-xs text-muted-foreground">
-            {customer.phone && <span className="min-w-0 truncate">{customer.phone}</span>}
-            {customer.email && <span className="min-w-0 truncate">{customer.email}</span>}
+          <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
+            {customer.phone && <span className="min-w-0 [overflow-wrap:anywhere]">{customer.phone}</span>}
+            {customer.email && <span className="min-w-0 [overflow-wrap:anywhere]">{customer.email}</span>}
           </div>
         </CardContent>
       </Card>

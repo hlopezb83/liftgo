@@ -90,7 +90,7 @@ describe("invoice customer selection through real queries and offline HTTP", () 
     const { client, Wrapper } = wrapper();
     render(<Harness />, { wrapper: Wrapper });
     const select = await screen.findByRole("combobox", { name: /Cliente/ });
-    expect(screen.getByText(/Hay más clientes en la cartera/)).toBeInTheDocument();
+    expect(await screen.findByText(/Hay más clientes en la cartera/)).toBeInTheDocument();
     expect(requests[0].searchParams.get("limit")).toBe("501");
     expect(requests[0].searchParams.get("status")).toBe("eq.active");
     expect(requests[0].searchParams.get("customers.deleted_at")).toBe("is.null");
@@ -115,7 +115,7 @@ describe("invoice customer selection through real queries and offline HTTP", () 
     const { client, Wrapper } = wrapper();
     render(<Harness />, { wrapper: Wrapper });
     const select = await screen.findByRole("combobox", { name: /Cliente/ });
-    expect(client.getQueryData(customerQueries.list().queryKey)).toHaveLength(501);
+    await waitFor(() => expect(client.getQueryData(customerQueries.list().queryKey)).toHaveLength(501));
     // Capacity/rendering is asserted independently above. This case still uses
     // all 501 HTTP rows and the real selector, but measures the selection flow
     // separately from the expensive enumeration of all accessible options.

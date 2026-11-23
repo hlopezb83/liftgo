@@ -127,10 +127,12 @@ export function CustomerSelector({
           />
   );
 
+  const showCombobox = hideManualName || search.initialItems.length > 0 || !!selected;
+
   if (bare) {
     return (
       <div className="space-y-2">
-        {(search.initialItems.length > 0 || selected) && combobox}
+        {showCombobox && combobox}
         {error && <p className="text-sm text-destructive">{error}</p>}
       </div>
     );
@@ -140,7 +142,7 @@ export function CustomerSelector({
     <Card>
       {!compact && <CardHeader><CardTitle className="text-base">Cliente</CardTitle></CardHeader>}
       <CardContent className={cn("space-y-4", compact && "p-4")}>
-        {(search.initialItems.length > 0 || selected) && combobox}
+        {showCombobox && combobox}
         {!hideManualName && (
           <ManualCustomerFields
             customerName={customerName}

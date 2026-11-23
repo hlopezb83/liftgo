@@ -140,7 +140,8 @@ function SelectedPartStatus({ selectedId, query, ready }: { selectedId: string |
   if (!selectedId) return null;
   if (query.isError) return <QueryErrorState bare entity="la refacción seleccionada" error={query.error}
     isRetrying={query.isFetching} onRetry={() => { void query.refetch(); }} />;
-  if (query.isSuccess && !query.isFetching && !ready) return <p className="text-sm text-destructive">La refacción ya no tiene existencias o no está disponible. Selecciona otra.</p>;
+  if (query.isFetching) return <p role="status" className="text-sm text-muted-foreground">Verificando existencias de la refacción…</p>;
+  if (query.isSuccess && !ready) return <p className="text-sm text-destructive">La refacción ya no tiene existencias o no está disponible. Selecciona otra.</p>;
   return null;
 }
 function UsedPartsHistory({ query: usedQuery }: { query: ReturnType<typeof useMaintenanceParts> }) {

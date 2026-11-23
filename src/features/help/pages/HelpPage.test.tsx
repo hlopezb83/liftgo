@@ -46,3 +46,23 @@ describe("HelpPage version feedback", () => {
   });
 });
 
+
+it("conserva la sección abierta cuando cambia de posición o queda fuera de la búsqueda", () => {
+  useUserManualMock.mockReturnValue({
+    manual: {
+      id: "manual-1", version: "2.0", generated_at: "2026-11-01",
+      content: [{ title: "Entregas", content: "Registrar una entrega" }, { title: "Cobranza", content: "Registrar un pago" }],
+    },
+    isLoading: false, isError: false, isGenerating: false, versions: [],
+  });
+  render(<HelpPage />);
+  const search = screen.getByRole("textbox", { name: "Buscar en el manual" });
+  fireEvent.click(screen.getByRole("button", { name: "Cobranza" }));
+  fireEvent.change(search, { target: { value: "pago" } });
+  expect(screen.getByRole("button", { name: "Cobranza" })).toHaveAttribute("aria-expanded", "true");
+  fireEvent.change(search, { target: { value: "sin resultados" } });
+  expect(screen.queryByRole("button", { name: "Cobranza" })).not.toBeInTheDocument();
+  fireEvent.change(search, { target: { value: "" } });
+  expect(screen.getByRole("button", { name: "Cobranza" })).toHaveAttribute("aria-expanded", "true");
+  expect(screen.getByRole("button", { name: "Entregas" })).toHaveAttribute("aria-expanded", "false");
+});

@@ -24,7 +24,9 @@ export function useFleetColumns(
               {activePolicyForkliftIds.has(f.id) && (
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <SecurityIcon className="h-3.5 w-3.5 text-success shrink-0" />
+                    <span role="img" aria-label="Póliza de mantenimiento activa" className="shrink-0">
+                      <SecurityIcon aria-hidden="true" className="h-3.5 w-3.5 text-success" />
+                    </span>
                   </TooltipTrigger>
                   <TooltipContent>Póliza de mantenimiento activa</TooltipContent>
                 </Tooltip>

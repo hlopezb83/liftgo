@@ -112,7 +112,7 @@ describe("EditableLineItemsTable — explicit sale SAT selection", () => {
   it("keeps sale context after removing the final row and adding a replacement", () => {
     render(<Harness lines={[{ description: "Equipo vendido", quantity: 1, unit_price: 1000, total: 1000,
       line_kind: "sale", clave_prod_serv: "24101603", clave_unidad: "H87" }]} />);
-    fireEvent.click(screen.getByRole("button", { name: "Eliminar partida" }));
+    fireEvent.click(screen.getByRole("button", { name: "Eliminar partida 1 · Equipo vendido" }));
     expect(screen.getByText("Sin partidas aún")).toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "Agregar Fila" }));
     expect(JSON.parse(screen.getByLabelText("Partidas conservadas").textContent ?? "[]")[0])
@@ -145,6 +145,7 @@ describe("EditableLineItemsTable — persistent quote origins", () => {
       source_quote_line_id: "22222222-2222-4222-8222-222222222222" };
     render(<Harness lines={[line]} />);
     expect(screen.getByLabelText("Precio unitario partida 1")).toBeDisabled();
+    expect(screen.getByLabelText("Precio unitario partida 1")).toHaveAccessibleDescription("Precio pactado en la cotización");
     fireEvent.change(screen.getByLabelText("Cantidad partida 1"), { target: { value: "0.5" } });
     expect(JSON.parse(screen.getByLabelText("Partidas conservadas").textContent ?? "[]")[0])
       .toMatchObject({ ...line, quantity: 0.5, total: 50 });
@@ -154,7 +155,7 @@ describe("EditableLineItemsTable — persistent quote origins", () => {
     render(<Harness lines={[{ description: "Entrega", quantity: 1, unit_price: 100, total: 100,
       line_kind: "charge", source_quote_id: "11111111-1111-4111-8111-111111111111",
       source_quote_line_id: "22222222-2222-4222-8222-222222222222" }]} />);
-    fireEvent.click(screen.getByRole("button", { name: "Eliminar partida" }));
+    fireEvent.click(screen.getByRole("button", { name: "Eliminar partida 1 · Entrega" }));
     fireEvent.click(screen.getByRole("button", { name: "Agregar Fila" }));
     const lines = JSON.parse(screen.getByLabelText("Partidas conservadas").textContent ?? "[]");
     expect(lines).toHaveLength(1);
