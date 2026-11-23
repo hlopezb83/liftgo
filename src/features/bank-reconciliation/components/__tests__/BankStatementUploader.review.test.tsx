@@ -28,6 +28,24 @@ beforeEach(() => {
 afterEach(cleanup);
 
 describe("Revisión del estado de cuenta antes de importar", () => {
+  it("descarta el archivo anterior si su reemplazo excede 10 MB y permite volver a elegir", () => {
+    const { container } = render(<BankStatementUploader bankAccountId="account-1" currency="MXN" />);
+    const fileInput = container.querySelector('input[type="file"]')!;
+    const oversized = new File([], "grande.csv");
+    Object.defineProperty(oversized, "size", { value: 10 * 1024 * 1024 + 1 });
+
+    expect(screen.getByRole("button", { name: "Confirmar importación" })).toBeVisible();
+    fireEvent.change(fileInput, { target: { files: [oversized] } });
+    expect(upload.setFile).toHaveBeenLastCalledWith(null);
+    expect(screen.getByRole("alert")).toHaveTextContent("El archivo supera 10 MB");
+    expect(upload.confirm).not.toHaveBeenCalled();
+
+    const replacement = new File(["fecha,importe"], "reemplazo.csv");
+    fireEvent.change(fileInput, { target: { files: [replacement] } });
+    expect(upload.setFile).toHaveBeenLastCalledWith(replacement);
+    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+  });
+
   it.each(["MXN", "USD"])("la vista previa conserva importes e identifica %s", (currency) => {
     render(<BankStatementUploader bankAccountId="account-1" currency={currency} />);
     const amounts = screen.getAllByText((text) => text.includes("100.00") && text.includes(currency));

@@ -1,10 +1,9 @@
-import { useRef } from "react";
+import { useId, useRef, useState } from "react";
 import { UploadIcon, SpinnerIcon } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { notifyError } from "@/lib/ui/appFeedback";
 import { MAX_FILE_SIZE_BYTES, useStatementUpload } from "../hooks/useStatementUpload";
 import { CSV_PROFILES, CSV_PROFILE_LABELS, type StatementProfile } from "../lib/bankReconciliationConstants";
 import { BankStatementErrors } from "./BankStatementErrors";
@@ -22,6 +21,8 @@ function BankFilePicker({
   disabled?: boolean;
 }) {
   const ref = useRef<HTMLInputElement>(null);
+  const errorId = useId();
+  const [tooLarge, setTooLarge] = useState(false);
   return (
     <>
       <input
@@ -33,19 +34,9 @@ function BankFilePicker({
         onChange={(e) => {
           const picked = e.target.files?.[0] ?? null;
           e.target.value = "";
-          // Fix 6.3: defensa doble — validar tamaño también en el picker, antes
-          // de que `analyze()` intente leer el archivo completo en memoria.
-          if (picked && picked.size > MAX_FILE_SIZE_BYTES) {
-            notifyError({
-              title: "Archivo demasiado grande",
-              description: "El estado de cuenta excede 10 MB; divídelo por período.",
-              phase: "parseBankStatement",
-              severity: "warning",
-              context: { fileName: picked.name, fileSize: picked.size },
-            });
-            return;
-          }
-          onChange(picked);
+          const exceedsLimit = picked !== null && picked.size > MAX_FILE_SIZE_BYTES;
+          setTooLarge(exceedsLimit);
+          onChange(exceedsLimit ? null : picked);
         }}
       />
       <Button
@@ -54,10 +45,16 @@ function BankFilePicker({
         onClick={() => ref.current?.click()}
         className="justify-start"
         disabled={disabled}
+        aria-describedby={tooLarge ? errorId : undefined}
       >
         <UploadIcon className="h-4 w-4 mr-2" />
         <span className="truncate">{file?.name ?? "Elegir archivo…"}</span>
       </Button>
+      {tooLarge && (
+        <p id={errorId} role="alert" className="text-xs text-destructive">
+          El archivo supera 10 MB. Divídelo por período y elige otro archivo.
+        </p>
+      )}
     </>
   );
 }
