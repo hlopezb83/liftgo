@@ -11,7 +11,7 @@ import {
   useRouter,
   useBlocker as tsUseBlocker,
 } from "@tanstack/react-router";
-import { useMemo, useCallback, useEffect, useRef, useState } from "react";
+import { useMemo, useCallback, useEffect, useState } from "react";
 import { normalizeSearchStr, parseTo } from "./router-compat-url";
 
 export { normalizeSearchStr } from "./router-compat-url";
@@ -159,15 +159,10 @@ export function useBlocker(shouldBlock: boolean | ((args: BlockerFnArgs) => bool
     withResolver: true,
     enableBeforeUnload: false,
   });
-  // TS-03: identidad estable. Antes se devolvía un objeto nuevo en cada
-  // render y el efecto consumidor volvía a pedir confirmación, cancelando el
-  // intento de navegación original.
-  const latest = useRef(blocker);
-  useEffect(() => {
-    latest.current = blocker;
-  });
-  const proceed = useCallback(() => latest.current.proceed?.(), []);
-  const reset = useCallback(() => latest.current.reset?.(), []);
+  // Keep identity stable for the same attempt, not for every blocked state.
+  // A retry can replace its resolver before React observes an idle render.
+  // Capture these methods so an older prompt cannot settle a newer attempt.
   const state: "blocked" | "unblocked" = blocker.status === "blocked" ? "blocked" : "unblocked";
+  const { proceed, reset } = blocker;
   return useMemo(() => ({ state, proceed, reset }), [state, proceed, reset]);
 }
