@@ -95,7 +95,7 @@ export function RecurringInvoicesResultDialog({ open, onOpenChange, result, onRe
                       <p className="text-sm text-foreground whitespace-pre-wrap break-words">{message}</p>
                       <div className="flex flex-wrap items-center justify-between gap-2">
                         <span className="text-xs text-muted-foreground font-mono truncate">
-                          Reserva(s): {f.bookingIds.map((id) => id.slice(0, 8)).join(", ")}
+                          {f.bookingIds.length === 1 ? "Reserva" : "Reservas"}: {f.bookingIds.map((id) => id.slice(0, 8)).join(", ")}
                         </span>
                         <div className="flex flex-wrap gap-2">
                           <Button

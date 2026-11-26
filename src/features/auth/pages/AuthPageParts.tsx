@@ -8,7 +8,7 @@ import {
 import type { AuthMode } from "../components/AuthForm";
 
 const TITLES: Record<AuthMode, { title: string; desc: string }> = {
-  "sign-in": { title: "Iniciar Sesión", desc: "Ingresa a Lift Go" },
+  "sign-in": { title: "Iniciar Sesión", desc: "Ingresa a LiftGo" },
   forgot: {
     title: "Restablecer Contraseña",
     desc: "Ingresa tu correo para recibir un enlace",

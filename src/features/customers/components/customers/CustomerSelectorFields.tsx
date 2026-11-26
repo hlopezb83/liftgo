@@ -69,13 +69,16 @@ function ClearCustomerControl({
   return (
     <span
       role="button"
-      tabIndex={-1}
+      tabIndex={0}
       aria-label="Limpiar cliente"
       onClick={onClear}
       onKeyDown={(e) => {
-        if (e.key === "Enter" || e.key === " ") onClear(e as unknown as React.MouseEvent);
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          onClear(e as unknown as React.MouseEvent);
+        }
       }}
-      className="rounded-sm p-0.5 opacity-60 hover:bg-muted hover:opacity-100 cursor-pointer"
+      className="rounded-sm p-0.5 opacity-70 hover:bg-muted hover:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring cursor-pointer"
     >
       <XIcon className="h-3.5 w-3.5" />
     </span>

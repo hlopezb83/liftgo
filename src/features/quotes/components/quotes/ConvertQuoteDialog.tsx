@@ -11,6 +11,7 @@ import { Switch } from "@/components/ui/switch";
 import { allowsRecurringBilling } from "@/features/bookings";
 import { CustomerSelector, type Customer } from "@/features/customers";
 import type { Tables } from "@/integrations/supabase/types";
+import { countLabel } from "@/lib/format/countLabel";
 import { ConvertQuoteSummary } from "./ConvertQuoteSummary";
 
 interface ConvertQuoteConfirmPayload {
@@ -141,7 +142,7 @@ export function ConvertQuoteDialog({
               ? "Creando reservas…"
               : needsAssignment
                 ? "Continuar: asignar equipos"
-                : `Crear ${unitCount} reserva(s)`}
+                : `Crear ${countLabel(unitCount, "reserva", "reservas")}`}
           </Button>
         </FormDialogFooter>
       </div>

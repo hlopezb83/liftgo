@@ -116,6 +116,7 @@ export const SidebarRail = ({ className, ref, ...props }: ComponentProps<"button
     return (
       <button
         ref={ref}
+        type="button"
         data-sidebar="rail"
         aria-label="Alternar barra lateral"
         tabIndex={-1}

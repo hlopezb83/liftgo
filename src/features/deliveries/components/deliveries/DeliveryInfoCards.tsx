@@ -82,7 +82,7 @@ export function DeliveryLogisticsCard({ address, driverName, driverPhone, transp
         {chargedToCustomer && (
           <div className="flex items-center justify-between">
             <span className="text-sm text-muted-foreground">Cobrado al cliente</span>
-            <span className="text-sm font-medium text-status-available">Sí</span>
+            <span className="text-sm font-medium text-success">Sí</span>
           </div>
         )}
       </CardContent>

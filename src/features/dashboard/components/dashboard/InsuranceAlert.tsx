@@ -29,7 +29,7 @@ export function InsuranceAlert({ data }: InsuranceAlertProps) {
             key={f.id}
             role="button"
             tabIndex={0}
-            className="flex items-center justify-between p-2 rounded-lg bg-background/80 text-sm cursor-pointer hover:bg-background"
+            className="flex items-center justify-between p-2 rounded-lg bg-background/80 text-sm cursor-pointer hover:bg-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             onClick={() => navigate(`/fleet/${f.id}`)}
             onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); navigate(`/fleet/${f.id}`); } }}
           >

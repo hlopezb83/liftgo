@@ -37,7 +37,7 @@ export function ProspectCard({ prospect, quoteNumber, density, onClick, canWrite
     <button type="button" ref={setActivatorNodeRef} {...attributes} {...listeners}
       aria-label={`Mover prospecto ${prospect.companyName}`}
       title="Mover prospecto: espacio para tomar, flechas para mover y espacio para soltar"
-      className="ml-auto inline-flex h-8 w-8 shrink-0 touch-none items-center justify-center rounded-sm text-muted-foreground cursor-grab active:cursor-grabbing hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+      className="ml-auto inline-flex h-8 w-8 touch:h-11 touch:w-11 shrink-0 touch-none items-center justify-center rounded-sm text-muted-foreground cursor-grab active:cursor-grabbing hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
       onClick={(event) => event.stopPropagation()}>
       <GripVertical className="h-4 w-4" />
     </button>

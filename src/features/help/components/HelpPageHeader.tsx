@@ -42,7 +42,7 @@ export function HelpPageHeader({
               value={selectedVersion ?? "latest"}
               onValueChange={(val) => onSelectVersion(val === "latest" ? null : val)}
             >
-              <SelectTrigger className="w-[180px]">
+              <SelectTrigger className="w-full sm:w-[180px]">
                 <SelectValue placeholder="Versión" />
               </SelectTrigger>
               <SelectContent>
