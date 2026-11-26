@@ -76,7 +76,7 @@ export function PlatformLayout() {
               aria-current={active ? "page" : undefined}
               onClick={() => setMenuOpen(false)}
               className={cn(
-                "flex min-h-11 items-center gap-3 rounded-lg px-3 text-sm transition-colors",
+                "flex min-h-11 items-center gap-3 rounded-lg px-3 text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sidebar-ring",
                 active
                   ? "bg-sidebar-accent text-sidebar-accent-foreground font-medium"
                   : "text-sidebar-foreground/80 hover:bg-sidebar-accent/60",
@@ -95,7 +95,7 @@ export function PlatformLayout() {
     <div className="min-h-[100dvh] bg-background">
       <a
         href="#platform-content"
-        className="sr-only focus:not-sr-only focus:absolute focus:z-50 focus:bg-background focus:p-3"
+        className="sr-only focus:not-sr-only focus:absolute focus:z-50 focus:top-2 focus:left-2 focus:px-4 focus:py-2 focus:rounded-md focus:bg-primary focus:text-primary-foreground focus:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
       >
         Saltar al contenido
       </a>
@@ -117,15 +117,16 @@ export function PlatformLayout() {
             {user?.email}
           </p>
           <Button
+            type="button"
             variant="ghost"
-            className="w-full justify-start text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+            className="w-full justify-start text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground ring-offset-sidebar"
             onClick={() => void signOut()}
           >
             <LogOut className="mr-2 h-4 w-4" />
             Cerrar sesión
           </Button>
           {version && (
-            <p className="text-xs text-sidebar-foreground/50">v{version}</p>
+            <p className="font-mono text-xs text-sidebar-foreground/70">v{version}</p>
           )}
         </div>
       </aside>
@@ -135,6 +136,7 @@ export function PlatformLayout() {
             <Sheet open={menuOpen} onOpenChange={setMenuOpen}>
               <SheetTrigger asChild>
                 <Button
+                  type="button"
                   variant="ghost"
                   size="icon"
                   className="md:hidden"
@@ -157,8 +159,9 @@ export function PlatformLayout() {
                 </SheetHeader>
                 {navigation()}
                 <Button
+                  type="button"
                   variant="ghost"
-                  className="m-3 text-sidebar-foreground"
+                  className="m-3 text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
                   onClick={() => void signOut()}
                 >
                   Cerrar sesión
@@ -177,6 +180,7 @@ export function PlatformLayout() {
         </header>
         <main
           id="platform-content"
+          tabIndex={-1}
           className="mx-auto w-full max-w-[1600px] space-y-6 p-4 sm:p-6 lg:p-8"
         >
           <Outlet />

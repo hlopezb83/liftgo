@@ -121,8 +121,8 @@ describe("QR01: supplier secondary query availability", () => {
     ];
     renderPage();
     expect(await screen.findByText("$1,120.00")).toBeInTheDocument();
-    expect(screen.getByText("2 registro(s)")).toBeInTheDocument();
-    expect(screen.getByText("1 registro(s)")).toBeInTheDocument();
+    expect(screen.getByText("2 registros")).toBeInTheDocument();
+    expect(screen.getByText("1 registro")).toBeInTheDocument();
     expect(screen.getAllByText("$50.00")).toHaveLength(2);
     expect(screen.queryByText("$999.00")).not.toBeInTheDocument();
   });

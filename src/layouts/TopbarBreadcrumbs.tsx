@@ -94,9 +94,9 @@ export function TopbarBreadcrumbs() {
   const lastIndex = crumbs.length - 1;
   const hasIntermediate = crumbs.length > 1;
   return (
-    <nav aria-label="Ruta" className="flex items-center gap-1 text-sm text-muted-foreground min-w-0 overflow-hidden">
+    <nav aria-label="Ruta" className="flex items-center gap-1 text-sm text-muted-foreground min-w-0 overflow-x-clip">
       {/* R6-FE-09: target táctil ≥44px (antes 38px con touch:p-3). */}
-      <Link to="/" className="hover:text-foreground transition-colors flex items-center justify-center shrink-0 touch:min-h-11 touch:min-w-11 touch:-m-3" aria-label="Inicio">
+      <Link to="/" className="rounded-sm hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring transition-colors flex items-center justify-center shrink-0 touch:min-h-11 touch:min-w-11 touch:-m-3" aria-label="Inicio">
         <HomeIcon className="h-3.5 w-3.5" />
       </Link>
       {hasIntermediate && (
@@ -114,7 +114,7 @@ export function TopbarBreadcrumbs() {
             {isLast ? (
               <span className="font-medium text-foreground truncate">{c.label}</span>
             ) : (
-              <Link to={c.path} className="hover:text-foreground transition-colors truncate touch:min-h-11 touch:inline-flex touch:items-center">
+              <Link to={c.path} className="rounded-sm hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring transition-colors truncate touch:min-h-11 touch:inline-flex touch:items-center">
                 {c.label}
               </Link>
             )}

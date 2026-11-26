@@ -46,6 +46,7 @@ export function BlockedActionNotice({ block, details, link, className }: Blocked
         <p className="text-muted-foreground">{block.nextStep}</p>
         {link && (
           <Button
+            type="button"
             size="sm"
             variant="outline"
             className="mt-2"

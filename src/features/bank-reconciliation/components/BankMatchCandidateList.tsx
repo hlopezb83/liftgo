@@ -38,7 +38,7 @@ interface Props {
 
 function scoreTone(score: number): string {
   if (score >= 90) return "bg-success/15 text-success border-success/30";
-  if (score >= 70) return "bg-warning/15 text-warning border-warning/30";
+  if (score >= 70) return "bg-warning/15 text-warning-text border-warning/40";
   return "bg-muted text-muted-foreground";
 }
 

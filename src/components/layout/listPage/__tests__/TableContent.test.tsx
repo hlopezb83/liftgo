@@ -56,12 +56,14 @@ describe("TableContent — estados vacíos", () => {
     expect(screen.queryByRole("button", { name: "Limpiar filtros" })).not.toBeInTheDocument();
   });
 
-  it("prioriza el estado de error sobre el vacío", () => {
+  it("prioriza el estado de error sobre el vacío y propaga el error original", () => {
     const onRetry = vi.fn();
-    render(<TableContent<Item> {...base} isError onRetry={onRetry} />);
+    render(<TableContent<Item> {...base} isError error={new Error("JWT expired")} onRetry={onRetry} />);
     expect(screen.queryByText("Sin clientes")).not.toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: /reintentar/i }));
     expect(onRetry).toHaveBeenCalledTimes(1);
+    fireEvent.click(screen.getByRole("button", { name: "Ver detalles" }));
+    expect(screen.getByText(/JWT expired/)).toBeInTheDocument();
   });
 
   it("muestra el esqueleto mientras carga", () => {

@@ -17,17 +17,18 @@ interface SidebarBrandingProps {
 
 export function SidebarBranding({ razonSocial }: SidebarBrandingProps) {
   const { isMobile, setOpenMobile } = useSidebar();
-  const name = razonSocial || "Lift Go";
+  const name = razonSocial || "LiftGo";
   return (
     <SidebarHeader className="relative p-4 border-b border-sidebar-border group-data-[collapsible=icon]:p-2">
       {isMobile && (
         <Button
+          type="button"
           variant="ghost"
           size="icon"
           aria-label="Cerrar menú"
           title="Cerrar menú"
           onClick={() => setOpenMobile(false)}
-          className="absolute right-2 top-2 h-8 w-8 text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent"
+          className="absolute right-2 top-2 h-11 w-11 text-sidebar-foreground/75 hover:text-sidebar-foreground hover:bg-sidebar-accent ring-offset-sidebar"
         >
           <CloseIcon className="h-4 w-4" />
         </Button>

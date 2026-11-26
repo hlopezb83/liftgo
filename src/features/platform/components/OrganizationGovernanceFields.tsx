@@ -1,5 +1,6 @@
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { NativeSelect } from "@/components/ui/native-select";
 import { Textarea } from "@/components/ui/textarea";
 import {
   ORGANIZATION_CLASSIFICATION_LABELS, type OrganizationGovernanceFields as GovernanceFieldsValues,
@@ -20,10 +21,10 @@ export function OrganizationGovernanceFields({
     <div className="grid gap-4 sm:grid-cols-2">
       <div className="space-y-2">
         <Label htmlFor="governance-classification">Clasificación</Label>
-        <select id="governance-classification" className="h-11 w-full rounded-md border bg-background px-3 text-sm"
+        <NativeSelect id="governance-classification" className="h-11"
           value={values.classification} onChange={(e) => onChange({ ...values, classification: e.target.value as GovernanceFieldsValues["classification"] })}>
           {Object.entries(ORGANIZATION_CLASSIFICATION_LABELS).map(([value, label]) => <option key={value} value={value}>{label}</option>)}
-        </select>
+        </NativeSelect>
       </div>
       {fields.map(([key, label, maxLength, type]) => <div key={key} className="space-y-2">
         <Label htmlFor={"governance-" + key}>{label}</Label>

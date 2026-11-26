@@ -23,10 +23,10 @@ import { ROLE_LABELS } from "@/lib/constants";
 export function TopbarUserMenu() {
   const { user, signOut } = useAuth();
   const { data: role } = useUserRole();
-  const { theme, setTheme } = useTheme();
+  const { theme, resolvedTheme, setTheme } = useTheme();
   const [pwDialogOpen, setPwDialogOpen] = useState(false);
 
-  const isDark = theme === "dark";
+  const isDark = (resolvedTheme ?? theme) === "dark";
   const email = user?.email ?? "";
   const roleLabel = role ? ROLE_LABELS[role] ?? role : null;
 

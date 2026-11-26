@@ -2,6 +2,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useRef } from "react";
 import { bookingKeys } from "@/features/bookings";
 import { forkliftKeys } from "@/features/fleet";
+import { countLabel } from "@/lib/format/countLabel";
 import { notifyError, notifySuccess, notifyValidation } from "@/lib/ui/appFeedback";
 import { quoteKeys } from "../quotes/useQuotes";
 import {
@@ -43,7 +44,7 @@ export function useQuoteBookingCreator(data: DataResult, state: StateResult) {
         queryClient.invalidateQueries({ queryKey: quoteKeys.all }),
       ]);
 
-      notifySuccess(`${rows.length} reserva(s) creada(s) desde cotización`);
+      notifySuccess(`${countLabel(rows.length, "reserva creada", "reservas creadas")} desde cotización`);
       state.setShowConvertDialog(false);
       state.setShowAssignmentDialog(false);
       state.setPendingConversion(null);

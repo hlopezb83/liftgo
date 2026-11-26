@@ -23,7 +23,7 @@ export function CustomerProfitabilityCard({ revenue, maintenance_cost, gross_mar
         </div>
         <div className="flex justify-between text-sm border-t pt-2">
           <span className="font-medium">Margen Bruto</span>
-          <span className={`tabular-nums font-bold ${gross_margin >= 0 ? "text-status-available" : "text-destructive"}`}>
+          <span className={`tabular-nums font-bold ${gross_margin >= 0 ? "text-success" : "text-destructive"}`}>
             {formatCurrency(gross_margin)} ({margin_percent}%)
           </span>
         </div>

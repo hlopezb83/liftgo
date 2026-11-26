@@ -57,6 +57,8 @@
 
     --info: 217 91% 60%;
     --info-foreground: 0 0% 100%;
+    /* Text on light info surfaces; the brighter info token is an accent. */
+    --info-text: 217 85% 38%;
 
     --border: 30 14% 89%;
     --input: 30 14% 89%;
@@ -144,6 +146,7 @@
      * 50% da ≈5.0:1 sobre bg-success/10 en dark. */
     --success: 142 65% 50%;
     --warning-text: 38 92% 65%;
+    --info-text: 217 91% 72%;
 
     --border: 220 20% 18%;
     --input: 220 20% 18%;
@@ -200,6 +203,7 @@
   --color-warning-text: hsl(var(--warning-text));
   --color-info: hsl(var(--info));
   --color-info-foreground: hsl(var(--info-foreground));
+  --color-info-text: hsl(var(--info-text));
 
   --color-accent-gold: hsl(var(--accent-gold));
 
@@ -525,7 +529,7 @@
 .toaster [data-sonner-toast][data-type="warning"] [data-icon] { color: hsl(var(--warning-text)); }
 .toaster [data-sonner-toast][data-type="error"] [data-icon] { color: hsl(var(--destructive)); }
 .toaster [data-sonner-toast][data-type="info"] { border-left: 4px solid hsl(var(--info)); }
-.toaster [data-sonner-toast][data-type="info"] [data-icon] { color: hsl(var(--info)); }
+.toaster [data-sonner-toast][data-type="info"] [data-icon] { color: hsl(var(--info-text)); }
 @media print { .toaster { display: none !important; } }
 @media (max-width: 600px) {
   .toaster[data-sonner-toaster] { width: auto; }

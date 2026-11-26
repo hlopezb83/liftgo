@@ -48,7 +48,7 @@ export function InvoiceDetailsCard({
               <span className="text-sm text-muted-foreground">Folio próximo</span>
               <span className="text-2xs text-muted-foreground/80">Tentativo · se asigna al guardar</span>
             </div>
-            <span className="font-semibold text-foreground">
+            <span className="font-mono font-semibold text-foreground">
               {loadingNext ? "Calculando…" : (nextNumber ?? "—")}
             </span>
           </div>
@@ -56,7 +56,7 @@ export function InvoiceDetailsCard({
         {!isEdit && (
           <FormField control={form.control} name="bookingIds" render={({ field }) => (
             <FormItem>
-              <Label>Generar desde Reserva(s)</Label>
+              <Label>Generar desde reservas</Label>
               <FormControl>
                 <MultiBookingSelector
                   bookings={(availableBookings ?? []) as Parameters<typeof MultiBookingSelector>[0]["bookings"]}

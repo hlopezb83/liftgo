@@ -7,7 +7,7 @@ interface Props {
   kpis: AccountsPayableKpis | undefined;
 }
 
-type Tone = "text-foreground" | "text-destructive" | "text-warning" | "text-success";
+type Tone = "text-foreground" | "text-destructive" | "text-warning-text" | "text-success";
 
 interface KpiItem {
   key: keyof AccountsPayableKpis;
@@ -20,9 +20,9 @@ interface KpiItem {
 const ITEMS: readonly KpiItem[] = [
   { key: "totalPendiente", label: "Pendiente total", icon: ClockIcon, tone: "text-foreground" },
   { key: "totalVencido", label: "Vencido", icon: WarnIcon, tone: "text-destructive" },
-  { key: "totalPorVencer", label: "Por vencer 7d", icon: CalendarClock, tone: "text-warning" },
-  { key: "totalPorAprobar", label: "Por aprobar", icon: ShieldAlert, tone: "text-warning" },
-  { key: "repPendientes", label: "REP pendientes", icon: FileWarning, tone: "text-warning", asCount: true },
+  { key: "totalPorVencer", label: "Por vencer 7d", icon: CalendarClock, tone: "text-warning-text" },
+  { key: "totalPorAprobar", label: "Por aprobar", icon: ShieldAlert, tone: "text-warning-text" },
+  { key: "repPendientes", label: "REP pendientes", icon: FileWarning, tone: "text-warning-text", asCount: true },
   { key: "pagadoMesActual", label: "Pagado este mes", icon: SuccessIcon, tone: "text-success" },
 ] as const;
 

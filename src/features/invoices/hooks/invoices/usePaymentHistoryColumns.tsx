@@ -141,7 +141,7 @@ export function usePaymentHistoryColumns(ppdStamped: boolean, allowRepMutations:
                   )}
                   {repCancelPending && (
                     <>
-                      <Badge variant="outline" className="border-warning/30 text-warning text-[10px]">
+                      <Badge variant="outline" className="border-warning/40 text-warning-text text-3xs">
                         Cancelación REP en proceso
                       </Badge>
                       {canWrite && <Button

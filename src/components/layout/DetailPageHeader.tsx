@@ -40,11 +40,12 @@ export function DetailPageHeader({ title, subtitle, badges, backTo, backState, a
   return (
     <div className="space-y-1">
       <Button
+        type="button"
         variant="ghost"
         size="sm"
         onClick={handleBack}
         aria-label="Volver"
-        className="-ml-2 h-7 px-2 text-muted-foreground hover:text-foreground touch:h-9"
+        className="-ml-2 h-7 max-md:h-11 px-2 text-muted-foreground hover:text-foreground"
       >
         <BackIcon className="h-3.5 w-3.5 mr-1" />
         Volver

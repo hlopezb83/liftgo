@@ -32,7 +32,7 @@ export default function DamageTrackingPage() {
   const canWrite = useHasModuleAccess("Daños", "full");
   // R5-A6: vista de archivados para poder restaurarlos.
   const [showArchived, setShowArchived] = useState(false);
-  const { data: records, isLoading, isError, refetch } = useDamageRecords(showArchived);
+  const { data: records, isLoading, isError, error, refetch } = useDamageRecords(showArchived);
   const photoQuery = useDamagePhotoCounts();
   const photoCounts = photoQuery.isError ? undefined : photoQuery.data;
   const detail = useDialogState<DamageRecordWithJoins>();
@@ -103,6 +103,7 @@ export default function DamageTrackingPage() {
         />}
         isLoading={isLoading}
         isError={isError}
+        error={error}
         onRetry={() => { void refetch(); }}
         table={table}
         rowAction={{ columnId: "forklift_name", label: (r) => `Ver daño de ${r.forklifts?.name || "equipo"}` }}

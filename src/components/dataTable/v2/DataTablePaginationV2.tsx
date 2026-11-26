@@ -33,7 +33,7 @@ export function DataTablePaginationV2<T extends RowData>({ table, hasMoreRows = 
     // V26-01: a 320/390px el pie no cabía en una sola fila (scrollWidth 541 >
     // clientWidth 380) y "Siguiente" quedaba fuera de pantalla. En móvil se
     // apila selector+rango sobre la navegación; desde `sm` vuelve a una fila.
-    <div className="flex flex-col gap-2 px-2 no-print sm:flex-row sm:items-center sm:justify-between">
+    <div className="flex flex-col gap-2 border-t px-3 py-2 no-print sm:flex-row sm:items-center sm:justify-between">
       <div className="flex min-w-0 flex-wrap items-center gap-2 text-xs text-muted-foreground">
         <span className="whitespace-nowrap">Filas por página</span>
         <Select
@@ -41,16 +41,16 @@ export function DataTablePaginationV2<T extends RowData>({ table, hasMoreRows = 
           onValueChange={(v) => table.setPageSize(Number(v))}
         >
           {/* R6-FE-09: h-8 = 32px; en táctil sube a 44px. */}
-          <SelectTrigger className="h-8 w-[70px] touch:h-11">
+          <SelectTrigger aria-label="Filas por página" className="h-8 w-[70px] touch:h-11 tabular-nums">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
             {PAGE_SIZE_OPTIONS.map((n) => (
-              <SelectItem key={n} value={String(n)}>{n}</SelectItem>
+              <SelectItem key={n} value={String(n)} className="tabular-nums">{n}</SelectItem>
             ))}
           </SelectContent>
         </Select>
-        <span className="whitespace-nowrap">
+        <span className="whitespace-nowrap tabular-nums">
           {rangeStart}–{rangeEnd} de {hasMoreRows ? "al menos " : ""}{displayedTotal}
         </span>
       </div>

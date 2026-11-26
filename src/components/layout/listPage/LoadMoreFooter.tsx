@@ -12,7 +12,7 @@ export interface LoadMoreProps {
 export function LoadMoreButton({ hasMore, isLoading, onClick }: LoadMoreProps) {
   if (!hasMore) return null;
   return (
-    <Button variant="outline" size="sm" onClick={onClick} disabled={isLoading}>
+    <Button type="button" variant="outline" size="sm" onClick={onClick} disabled={isLoading}>
       {isLoading ? (
         <><SpinnerIcon className="mr-2 h-4 w-4 animate-spin" />Cargando…</>
       ) : "Cargar más"}

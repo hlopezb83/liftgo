@@ -32,6 +32,10 @@ import {
 import type { AccountsPayableKpis } from "../hooks/useAccountsPayableKpis";
 import type { AccountsPayableBillRow } from "../lib/accountsPayableRpc";
 
+function resolvePayablesError(primary: unknown, fallback: unknown) {
+  return primary ?? fallback;
+}
+
 export default function CuentasPorPagarPage() {
   const summary = useAccountsPayableSummary();
   const { data: suppliers } = useSuppliers();
@@ -123,6 +127,7 @@ export default function CuentasPorPagarPage() {
         }
         isLoading={isLoading}
         isError={isError}
+        error={resolvePayablesError(pageQuery.error, summary.error)}
         onRetry={() => { void refetch(); }}
         table={table}
         rowAction={{ columnId: "bill_number", label: (b) => `Ver factura de proveedor ${b.bill_number}` }}

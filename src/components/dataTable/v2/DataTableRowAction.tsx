@@ -22,7 +22,7 @@ export function DataTableRowAction<T>({ item, columnId, action, onActivate, chil
     {children}
     <button type="button" data-table-row-action aria-label={label} title={label}
       onClick={() => onActivate(item)}
-      className={`${focusClass} inline-flex h-9 w-9 shrink-0 items-center justify-center text-muted-foreground hover:bg-muted hover:text-foreground`}>
+      className={`${focusClass} inline-flex h-9 w-9 touch:h-11 touch:w-11 shrink-0 items-center justify-center text-muted-foreground hover:bg-muted hover:text-foreground transition-colors`}>
       <ViewIcon className="h-4 w-4" aria-hidden="true" />
     </button>
   </div>;

@@ -7,6 +7,7 @@ import { EmptyRow } from "@/components/feedback/EmptyRow";
 import { Checkbox } from "@/components/ui/checkbox";
 import { TableBody, TableCell, TableRow } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
+import { resolveColumnKind } from "./columnKind";
 import { DataTableRowAction } from "./DataTableRowAction";
 import { canActivateTableRow } from "./rowInteraction";
 import { alignClass } from "./sorting";
@@ -103,7 +104,12 @@ export function VirtualBody<T extends RowData>({
             data-index={vi.index}
             data-state={isSelected ? "selected" : undefined}
             ref={virtualizer.measureElement}
-            className={cn("table w-full table-fixed", onRowClick && "cursor-pointer", rowClassName?.(item))}
+            className={cn(
+              "table w-full table-fixed",
+              vi.index % 2 === 1 && "bg-muted/40",
+              onRowClick && "cursor-pointer",
+              rowClassName?.(item),
+            )}
             style={{ display: "table", width: "100%" }}
             onClick={onRowClick ? (event) => { if (canActivateTableRow(event)) onRowClick(item); } : undefined}
             onMouseEnter={onRowPrefetch ? () => armPrefetch(item) : undefined}
@@ -123,11 +129,13 @@ export function VirtualBody<T extends RowData>({
             )}
             {row.getVisibleCells().map((cell) => {
               const meta = cell.column.columnDef.meta;
+              const { align, kindClassName } = resolveColumnKind(meta);
               return (
                 <TableCell
                   key={cell.id}
                   className={cn(
-                    alignClass[meta?.align ?? "left"],
+                    alignClass[align],
+                    kindClassName,
                     meta?.hideOnMobile && "hidden md:table-cell",
                     meta?.cellClassName,
                   )}

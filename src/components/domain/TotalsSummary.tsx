@@ -27,7 +27,7 @@ export function TotalsSummary({ subtotal, taxRate, taxAmount, total, onTaxRateCh
             <div className="flex flex-wrap items-center gap-2 sm:gap-4">
               <span className="text-muted-foreground">IVA</span>
               <Select value={String(taxRate)} onValueChange={(v) => onTaxRateChange(Number(v))}>
-                <SelectTrigger className="w-36 max-w-full h-8">
+                <SelectTrigger aria-label="Tasa de IVA" className="w-36 max-w-full h-8 touch:min-h-11">
                   <SelectValue>{taxRate === 11 ? "11% (Obsoleto)" : taxRate === 8 ? "8% (Configurado)" : undefined}</SelectValue>
                 </SelectTrigger>
                 <SelectContent>

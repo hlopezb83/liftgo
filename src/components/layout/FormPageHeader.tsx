@@ -23,6 +23,7 @@ export function FormPageHeader({ title, subtitle, onBack }: FormPageHeaderProps)
   return (
     <div className="space-y-1">
       <Button
+        type="button"
         variant="ghost"
         size="sm"
         onClick={handleBack}

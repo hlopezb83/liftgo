@@ -104,7 +104,7 @@ describe("useGenerateRecurringInvoices", () => {
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
     expect(notifyWarningMock).toHaveBeenCalledWith(
       expect.objectContaining({
-        title: "2 reserva(s) no se facturaron",
+        title: "2 reservas no se facturaron",
         description: "Cliente sin RFC configurado",
       }),
     );
@@ -129,7 +129,7 @@ describe("useGenerateRecurringInvoices", () => {
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
     expect(notifyWarningMock).toHaveBeenCalledWith(
       expect.objectContaining({
-        title: "1 periodo(s) no facturados por cambio de tarifa",
+        title: "1 periodo no facturado por cambio de tarifa",
       }),
     );
   });

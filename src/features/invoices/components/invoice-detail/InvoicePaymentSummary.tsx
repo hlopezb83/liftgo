@@ -1,4 +1,5 @@
 import { DataTableV2, useLiftgoTable } from "@/components/dataTable/v2";
+import { WarnIcon } from "@/components/icons";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import type { Tables } from "@/integrations/supabase/types";
 import { formatDateMty } from "@/lib/format/dateFormats";
@@ -51,7 +52,7 @@ function PaymentSummaryCard({
           {creditedAmount > 0 ? (
             <div>
               <p className="text-sm text-muted-foreground">Notas de Crédito</p>
-              <p className="text-lg font-bold tabular-nums text-info">−{formatCurrencyWithCode(creditedAmount, currency)}</p>
+              <p className="text-lg font-bold tabular-nums text-info-text">−{formatCurrencyWithCode(creditedAmount, currency)}</p>
             </div>
           ) : null}
           <div className="sm:text-right">
@@ -60,8 +61,9 @@ function PaymentSummaryCard({
           </div>
         </div>
         {pendingReps > 0 ? (
-          <div className="mt-3 rounded-md bg-warning/10 border border-warning/30 p-2 text-xs text-warning">
-            ⚠️ {pendingReps} {pendingReps === 1 ? "pago" : "pagos"} sin Complemento de Pago (REP) timbrado.
+          <div className="mt-3 flex items-center gap-1.5 rounded-md bg-warning/10 border border-warning/40 p-2 text-xs text-warning-text">
+            <WarnIcon className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+            <span>{pendingReps} {pendingReps === 1 ? "pago" : "pagos"} sin Complemento de pago (REP) timbrado.</span>
           </div>
         ) : null}
       </CardContent>

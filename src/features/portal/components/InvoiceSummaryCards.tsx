@@ -21,7 +21,7 @@ export function InvoiceSummaryCards({ total, totalPaid, balance, currency }: Inv
       <Card>
         <CardContent className="pt-4">
           <p className="text-xs text-muted-foreground">Pagado</p>
-          <p className="text-xl font-bold tabular-nums text-status-available">{formatCurrencyWithCode(totalPaid, currency)}</p>
+          <p className="text-xl font-bold tabular-nums text-success">{formatCurrencyWithCode(totalPaid, currency)}</p>
         </CardContent>
       </Card>
       <Card>

@@ -88,14 +88,14 @@ export function FormDialog({
     <>
       <Dialog open={open} onOpenChange={(v) => { if (v) { onOpenChange(true); return; } requestClose(); }}>
         <DialogContent
-          className={cn(WIDTH_CLASS[width], "max-h-[85vh] overflow-y-auto pt-0 pb-0", className)}
+          className={cn(WIDTH_CLASS[width], "max-h-[85dvh] overflow-y-auto pt-0 pb-0", className)}
           data-testid={testId}
           onCloseAutoFocus={onCloseAutoFocus}
           onEscapeKeyDown={(e) => { if (isPending || isDirty) e.preventDefault(); if (isDirty && !isPending) requestClose(); }}
           onInteractOutside={(e) => { if (isPending || isDirty) e.preventDefault(); if (isDirty && !isPending) requestClose(); }}
         >
           {/* El padding superior pertenece al header para cubrir todo el borde al hacer scroll. */}
-          <DialogHeader className="sticky top-0 bg-background z-10 -mx-6 px-6 pt-6 pb-3 border-b">
+          <DialogHeader className="sticky top-0 bg-background z-10 -mx-6 pl-6 pr-12 pt-6 pb-3 border-b">
             <DialogTitle>{title}</DialogTitle>
             {description ? <DialogDescription>{description}</DialogDescription> : null}
           </DialogHeader>
@@ -143,7 +143,7 @@ export function FormDialogFooter({ children, className }: { children: ReactNode;
   return (
     <DialogFooter
       className={cn(
-        "sticky bottom-0 -mx-6 -mb-6 px-6 pt-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] bg-card border-t",
+        "sticky bottom-0 -mx-6 -mb-6 px-6 pt-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] bg-background border-t",
         className,
       )}
     >

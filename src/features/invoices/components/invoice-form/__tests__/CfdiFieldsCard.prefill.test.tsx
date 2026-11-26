@@ -108,6 +108,7 @@ describe("CfdiFieldsCard existing USD invoice prefill", () => {
     }
     await waitFor(() => expect(screen.getByLabelText("Tipo de Cambio")).toHaveValue(17.5));
     fireEvent.click(screen.getByRole("button", { name: "Editar" }));
+    expect(screen.getByRole("combobox", { name: "Régimen Fiscal Receptor" })).toHaveTextContent("601 - General de Ley Personas Morales");
     fireEvent.change(screen.getByLabelText("Razón Social"), { target: { value: "SYNTHETIC CUSTOMER EDITED" } });
     fireEvent.submit(screen.getByRole("form", { name: "Synthetic invoice form" }));
     await waitFor(() => expect(onSubmit).toHaveBeenCalledOnce());

@@ -16,9 +16,9 @@ export function NotesCard({ value, onChange, placeholder = "Notas adicionales…
       <CardHeader><CardTitle className="text-base">{title}</CardTitle></CardHeader>
       <CardContent>
         {readOnly ? (
-          <p className="text-sm whitespace-pre-wrap text-muted-foreground">{value}</p>
+          <p className="text-sm whitespace-pre-wrap break-words text-muted-foreground">{value}</p>
         ) : (
-          <Textarea value={value} onChange={(e) => onChange?.(e.target.value)} placeholder={placeholder} rows={rows} />
+          <Textarea aria-label={title} value={value} onChange={(e) => onChange?.(e.target.value)} placeholder={placeholder} rows={rows} />
         )}
       </CardContent>
     </Card>

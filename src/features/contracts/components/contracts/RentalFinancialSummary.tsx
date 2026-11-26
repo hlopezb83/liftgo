@@ -22,7 +22,7 @@ function ExpectedRevenue({ revenue, value, currency }: {
   revenue: ContractRevenueVerification; value: number; currency: string;
 }) {
   if (revenue.status === "verified") {
-    return <p className="text-lg font-bold">{formatCurrencyWithCode(value, currency)}</p>;
+    return <p className="text-lg font-bold tabular-nums">{formatCurrencyWithCode(value, currency)}</p>;
   }
   return <>
     <p className="text-sm font-semibold">{revenue.status === "loading" ? "Verificando importe pactado" : "Revisar importe pactado"}</p>
@@ -43,7 +43,7 @@ function RemainingBalance({ canCompare, isForeignRate, rateCurrency, remaining, 
     </>;
   }
   return <>
-    <p className={`text-lg font-bold ${remaining <= 0 ? "text-success" : "text-warning"}`}>{formatCurrency(remaining)}</p>
+    <p className={`text-lg font-bold tabular-nums ${remaining <= 0 ? "text-success" : "text-warning-text"}`}>{formatCurrency(remaining)}</p>
     <p className="text-xs text-muted-foreground">{remaining <= 0 ? "Al día" : "Pendiente"}</p>
   </>;
 }
@@ -102,15 +102,15 @@ export function RentalFinancialSummary({
               Ingreso Esperado
             </div>
             <ExpectedRevenue revenue={revenue} value={expectedRevenue} currency={rateCurrency} />
-            <p className="text-xs text-muted-foreground">{days} días</p>
+            <p className="text-xs text-muted-foreground tabular-nums">{days} {days === 1 ? "día" : "días"}</p>
           </div>
           <div className="space-y-1">
             <div className="flex items-center gap-1.5 text-muted-foreground text-xs">
               <DocumentIcon className="h-3.5 w-3.5" />
               Facturado
             </div>
-            <p className="text-lg font-bold">{invoicesVerified ? formatCurrency(invoicedAmount) : "—"}</p>
-            <p className="text-xs text-muted-foreground">
+            <p className="text-lg font-bold tabular-nums">{invoicesVerified ? formatCurrency(invoicedAmount) : "—"}</p>
+            <p className="text-xs text-muted-foreground tabular-nums">
               {invoicesVerified ? `${invoiceCount} factura${invoiceCount !== 1 ? "s" : ""}` : invoiceNotice}
             </p>
           </div>

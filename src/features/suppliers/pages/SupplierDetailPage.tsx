@@ -12,6 +12,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { DocumentAttachments } from "@/features/fleet";
 import { RoleGuard } from "@/layouts/RoleGuard";
 import { serviceTypeLabel } from "@/lib/constants";
+import { countLabel } from "@/lib/format/countLabel";
 import { formatDateMty } from "@/lib/format/dateFormats";
 import { formatCurrency } from "@/lib/format/formatCurrency";
 import { isFxMissing, sumMoney, toMxn } from "@/lib/money";
@@ -34,9 +35,9 @@ function LinkedTotal({ loading, error, total, count, entity, excluded = 0 }: {
   if (loading) return <p role="status">Cargando {entity}…</p>;
   return <>
     <p className="text-xl font-bold tabular-nums">{formatCurrency(total)}</p>
-    <p className="text-xs text-muted-foreground">{count} registro(s)</p>
+    <p className="text-xs text-muted-foreground tabular-nums">{countLabel(count, "registro", "registros")}</p>
     {excluded > 0 && <p role="status" className="text-sm text-warning-text">
-      Total parcial en MXN: {excluded} registro(s) sin tipo de cambio válido excluidos.
+      Total parcial en MXN: {countLabel(excluded, "registro", "registros")} sin tipo de cambio válido {excluded === 1 ? "excluido" : "excluidos"}.
     </p>}
   </>;
 }

@@ -35,7 +35,7 @@ export default function FleetPage() {
   const forklifts = useMemo(() => forkliftPages.data?.pages.flatMap((page) => page.slice(0, LIST_PAGE_LIMIT)) ?? [], [forkliftPages.data]);
   // Ocupación operativa compartida con Panel y Calendario: una reserva
   // confirmada vigente ocupa una unidad available; una completada no lo hace.
-  const { data: rentedIds, isLoading: occupiedLoading, isError: occupiedError, refetch: refetchOccupied } = useOccupiedForkliftIdsToday();
+  const { data: rentedIds, isLoading: occupiedLoading, isError: occupiedError, error: occupiedErrorValue, refetch: refetchOccupied } = useOccupiedForkliftIdsToday();
   // La RPC cuenta como comprometida una unidad con reserva confirmada vigente
   // hoy, con el mismo criterio del tablero y sin límite de filas.
 
@@ -147,6 +147,7 @@ export default function FleetPage() {
       filters={filters}
       isLoading={isLoading || occupiedLoading}
       isError={isError || occupiedError}
+      error={forkliftPages.error ?? occupiedErrorValue}
       hasMoreRows={forkliftPages.hasNextPage}
       loadMore={{ hasMore: forkliftPages.hasNextPage, isLoading: forkliftPages.isFetchingNextPage,
         onClick: () => { void forkliftPages.fetchNextPage(); }, loaded: forklifts.length }}

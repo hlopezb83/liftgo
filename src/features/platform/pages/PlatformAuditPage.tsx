@@ -4,6 +4,7 @@ import { RefreshIcon } from "@/components/icons";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
+import { NativeSelect } from "@/components/ui/native-select";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   PLATFORM_AUDIT_TARGETS,
@@ -17,8 +18,6 @@ import { PlatformAuditEventList } from "../components/PlatformAuditEventList";
 import { usePlatformOrganizations } from "../hooks/usePlatformOperator";
 import { usePlatformAudit } from "../hooks/usePlatformReadModels";
 import { PLATFORM_AUDIT_LABELS } from "../lib/platformAuditLabels";
-
-const SELECT_CLASS = "h-10 w-full rounded-md border bg-background px-3 text-sm";
 
 function eventCountLabel(count: number) {
   return `${count} ${count === 1 ? "evento" : "eventos"}`;
@@ -133,9 +132,8 @@ function AuditContent({
       <div className="grid gap-4 sm:grid-cols-2">
         <div className="space-y-2">
           <Label htmlFor="audit-organization">Empresa</Label>
-          <select
+          <NativeSelect
             id="audit-organization"
-            className={SELECT_CLASS}
             value={organization ?? ""}
             disabled={organizations.isPending || organizations.isError}
             onChange={(event) => onFilter("organization", event.target.value)}
@@ -146,13 +144,12 @@ function AuditContent({
                 {org.razon_social || org.name}
               </option>
             ))}
-          </select>
+          </NativeSelect>
         </div>
         <div className="space-y-2">
           <Label htmlFor="audit-target">Ámbito</Label>
-          <select
+          <NativeSelect
             id="audit-target"
-            className={SELECT_CLASS}
             value={target ?? ""}
             onChange={(event) => onFilter("target", event.target.value)}
           >
@@ -162,7 +159,7 @@ function AuditContent({
                 {PLATFORM_AUDIT_LABELS[value]}
               </option>
             ))}
-          </select>
+          </NativeSelect>
         </div>
       </div>
       {organizations.isError && (

@@ -27,9 +27,9 @@ function SearchPartialErrors({ errors, isFetching, onRetry }: { errors?: Record<
   const failed = Object.keys(errors ?? {}).map((k) => SECTION_LABELS[k] ?? k);
   if (failed.length === 0) return null;
   return (
-    <div className="px-3 py-2 text-xs text-warning" role="status">
+    <div className="px-3 py-2 text-xs text-warning-text" role="status">
       No se pudo buscar en: {failed.join(", ")}. Intenta de nuevo.
-      <Button variant="ghost" size="sm" onClick={onRetry} disabled={isFetching}>Reintentar búsqueda</Button>
+      <Button type="button" variant="ghost" size="sm" onClick={onRetry} disabled={isFetching}>Reintentar búsqueda</Button>
     </div>
   );
 }
@@ -249,14 +249,14 @@ export function GlobalSearch() {
             </CommandGroup>
           ))}
         </CommandList>
-        <div className="flex items-center justify-between border-t px-3 py-2 text-3xs text-muted-foreground">
-          <div className="flex items-center gap-3">
+        <div className="flex items-center justify-between border-t px-3 py-2 text-3xs text-muted-foreground min-h-8">
+          <div className="hidden sm:flex items-center gap-3">
             <span><kbd className="rounded border bg-muted px-1 font-mono">↑</kbd> <kbd className="rounded border bg-muted px-1 font-mono">↓</kbd> navegar</span>
             <span><kbd className="rounded border bg-muted px-1 font-mono">Enter</kbd> abrir</span>
             <span><kbd className="rounded border bg-muted px-1 font-mono">Esc</kbd> cerrar</span>
           </div>
           {isPending || isSearchLoading ? (
-            <span className="flex items-center gap-1 text-primary">
+            <span className="flex items-center gap-1 text-primary sm:ml-auto">
               <SpinnerIcon className="h-3 w-3 animate-spin" />
               {isSearchLoading ? "Buscando…" : "Cargando…"}
             </span>

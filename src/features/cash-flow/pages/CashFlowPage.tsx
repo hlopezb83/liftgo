@@ -21,9 +21,9 @@ function ExcludedNotice({ noDueDate, outOfHorizon, recurringCoverage }: { noDueD
   if (noDueDate === 0 && outOfHorizon === 0 && recurringCoverage === 0) return null;
   return (
     <p className="text-xs text-muted-foreground" data-testid="cash-flow-excluded-notice">
-      {noDueDate > 0 && `${noDueDate} documento(s) sin fecha de vencimiento excluidos de la proyección. `}
-      {outOfHorizon > 0 && `${outOfHorizon} documento(s) vencen fuera del horizonte seleccionado.`}
-      {recurringCoverage > 0 && ` ${recurringCoverage} reserva(s) tienen períodos omitidos de la proyección porque su cobertura facturada no se pudo verificar. Revisa su historial de facturas.`}
+      {noDueDate > 0 && `${noDueDate === 1 ? "1 documento sin fecha de vencimiento excluido" : `${noDueDate} documentos sin fecha de vencimiento excluidos`} de la proyección. `}
+      {outOfHorizon > 0 && `${outOfHorizon === 1 ? "1 documento vence" : `${outOfHorizon} documentos vencen`} fuera del horizonte seleccionado.`}
+      {recurringCoverage > 0 && ` ${recurringCoverage === 1 ? "1 reserva tiene" : `${recurringCoverage} reservas tienen`} períodos omitidos de la proyección porque su cobertura facturada no se pudo verificar. Revisa su historial de facturas.`}
     </p>
   );
 }

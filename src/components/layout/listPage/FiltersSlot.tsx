@@ -1,6 +1,6 @@
 import { FilterIcon } from "@/components/icons";
 import { Button } from "@/components/ui/button";
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import type { ReactNode } from "react";
 
 interface Props {
@@ -17,7 +17,7 @@ export function FiltersSlot({ filters, inSheet, hasActive = false, open, onOpenC
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetTrigger asChild>
-        <Button data-list-filters-trigger variant="outline" size="sm" className="touch:h-11 w-auto justify-start gap-2">
+        <Button type="button" data-list-filters-trigger variant="outline" size="sm" className="touch:h-11 w-auto justify-start gap-2">
           <FilterIcon className="h-4 w-4" />
           {hasActive ? "Filtros activos" : "Filtros"}
         </Button>
@@ -25,6 +25,7 @@ export function FiltersSlot({ filters, inSheet, hasActive = false, open, onOpenC
       <SheetContent side="bottom" className="max-h-[85dvh] overflow-y-auto pb-[max(1rem,env(safe-area-inset-bottom))]">
         <SheetHeader className="text-left">
           <SheetTitle>Filtros</SheetTitle>
+          <SheetDescription className="sr-only">Filtra los resultados de la lista actual.</SheetDescription>
         </SheetHeader>
         <div className="mt-4 space-y-3">{filters}</div>
       </SheetContent>

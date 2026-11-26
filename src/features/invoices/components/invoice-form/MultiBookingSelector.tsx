@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { SuccessIcon, ChevronsUpDown, X, CalendarIcon } from "@/components/icons";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -138,13 +139,17 @@ export function MultiBookingSelector({ bookings, selectedIds, onChange, issueDat
     }
   };
 
+  const [open, setOpen] = useState(false);
+
   return (
     <div className="space-y-2">
-      <Popover>
+      <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger asChild>
           <Button
+            type="button"
             variant="outline"
             role="combobox"
+            aria-expanded={open}
             className="w-full justify-between font-normal"
           >
             {selectedIds.length === 0

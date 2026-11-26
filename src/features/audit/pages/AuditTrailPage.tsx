@@ -55,7 +55,7 @@ export default function AuditTrailPage() {
       ? (values.origin as AuditOrigin)
       : "default";
 
-  const { data: logs, isLoading, isError, refetch } = useAuditLogs({
+  const { data: logs, isLoading, isError, error, refetch } = useAuditLogs({
     ...(values.table_name !== "all" ? { table_name: values.table_name } : {}),
     origin,
   });
@@ -126,6 +126,7 @@ export default function AuditTrailPage() {
 
         isLoading={isLoading}
         isError={isError}
+        error={error}
         onRetry={() => { void refetch(); }}
         table={table}
         rowAction={{ columnId: "record", label: (log) => `Ver cambio de ${getRecordLabel(log)}` }}

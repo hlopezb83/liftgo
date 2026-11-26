@@ -95,11 +95,12 @@ export default function InvoicesReconciliation() {
       </div>
 
       {summary && summary.countStampedMissingFx > 0 && (
-        <Alert>
+        <Alert variant="warning">
           <WarnIcon className="h-4 w-4" />
           <AlertDescription>
-            {summary.countStampedMissingFx} factura(s) timbrada(s) sin tipo de cambio fueron
-            excluidas del total timbrado (MXN). Captura el tipo de cambio para incluirlas.
+            {summary.countStampedMissingFx === 1
+              ? "1 factura timbrada sin tipo de cambio fue excluida del total timbrado (MXN). Captura el tipo de cambio para incluirla."
+              : `${summary.countStampedMissingFx} facturas timbradas sin tipo de cambio fueron excluidas del total timbrado (MXN). Captura el tipo de cambio para incluirlas.`}
           </AlertDescription>
         </Alert>
       )}

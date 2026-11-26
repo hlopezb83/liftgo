@@ -99,8 +99,8 @@ export function SearchBar({
   }, []);
 
   const prClass = captureCtrlK
-    ? local ? "pr-24" : "pr-16"
-    : local ? "pr-9" : "pr-3";
+    ? local ? "pr-24 touch:pr-28" : "pr-16"
+    : local ? "pr-9 touch:pr-11" : "pr-3";
 
   return (
     <div className={`relative flex-1 ${className}`}>
@@ -112,7 +112,7 @@ export function SearchBar({
         aria-label={ariaLabel ?? placeholder}
         value={local}
         onChange={(e) => setLocal(e.target.value)}
-        className={cn("pl-9", prClass)}
+        className={cn("pl-9 [&::-webkit-search-cancel-button]:appearance-none", prClass)}
         data-testid={testId}
       />
       {local ? (
@@ -122,8 +122,8 @@ export function SearchBar({
           size="icon"
           onClick={handleClear}
           className={cn(
-            "absolute top-1/2 -translate-y-1/2 h-6 w-6 text-muted-foreground hover:text-foreground rounded-full",
-            captureCtrlK ? "right-14" : "right-1.5",
+            "absolute top-1/2 -translate-y-1/2 h-6 w-6 touch:h-10 touch:w-11 text-muted-foreground hover:text-foreground rounded-full",
+            captureCtrlK ? "right-14" : "right-1.5 touch:right-0",
           )}
           aria-label="Limpiar búsqueda"
           title="Limpiar búsqueda"

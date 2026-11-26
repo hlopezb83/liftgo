@@ -56,7 +56,7 @@ export function CreditNoteRepLimitNotice({
             <span className="font-mono">{p.rep_number ?? p.rep_folio ?? "REP"}</span>
             <span className="text-muted-foreground">{formatDateMty(p.payment_date)}</span>
             <span className="font-mono tabular-nums">{formatCurrencyWithCode(Number(p.amount) || 0, p.currency ?? "MXN")}</span>
-            <Badge variant="outline" className="border-warning/30 text-warning">Timbrado</Badge>
+            <Badge variant="outline" className="border-warning/40 text-warning-text">Timbrado</Badge>
           </li>
         ))}
       </ul>

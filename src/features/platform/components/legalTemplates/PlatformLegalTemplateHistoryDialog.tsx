@@ -4,6 +4,7 @@ import { FormDialog, FormDialogFooter } from "@/components/forms/FormDialog";
 import { FormDialogCancelButton } from "@/components/forms/FormDialogCancelButton";
 import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
+import { NativeSelect } from "@/components/ui/native-select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import type { PlatformLegalTemplateRow } from "@/lib/platformLegalTemplates.types";
 import { healthDate } from "../../hooks/usePlatformHealth";
@@ -25,9 +26,9 @@ export function PlatformLegalTemplateHistoryDialog({ template, onClose }: {
       {query.isError ? <QueryErrorState error={query.error} entity="el historial legal" onRetry={() => void query.refetch()} /> : query.isPending ?
         <p role="status">Cargando versiones…</p> : current ? <>
           <div className="space-y-2"><Label htmlFor={id}>Versión a consultar</Label>
-            <select id={id} className="h-11 w-full rounded-md border bg-background px-3 text-sm" value={current.id} onChange={(event) => setSelected(event.target.value)}>
+            <NativeSelect id={id} className="h-11" value={current.id} onChange={(event) => setSelected(event.target.value)}>
               {versions.map((version) => <option key={version.id} value={version.id}>Versión {version.version} · {healthDate(version.created_at)}</option>)}
-            </select></div>
+            </NativeSelect></div>
           <div className="space-y-3 rounded-lg border bg-muted/30 p-4">
             <div className="flex flex-wrap gap-2"><Badge variant="secondary">Versión {current.version}</Badge>
               {current.id === template.current_version_id && <Badge>Vigente</Badge>}</div>

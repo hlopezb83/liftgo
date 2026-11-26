@@ -1,3 +1,4 @@
+import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { creditNoteDiscountForSelection } from "@/features/invoices/lib/creditNoteDiscount";
@@ -34,7 +35,7 @@ export function CreditNoteLinesTable({ lines, onUpdate, lineMax, currency = "MXN
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead className="w-10"></TableHead>
+            <TableHead className="w-10"><span className="sr-only">Seleccionar</span></TableHead>
             <TableHead>Concepto</TableHead>
             <TableHead className="w-24 text-right">Cantidad</TableHead>
             <TableHead className="w-32 text-right">Precio Unit.</TableHead>
@@ -45,10 +46,10 @@ export function CreditNoteLinesTable({ lines, onUpdate, lineMax, currency = "MXN
           {lines.map((l, i) => (
             <TableRow key={i} className={!l._selected ? "opacity-40" : ""}>
               <TableCell>
-                <input
-                  type="checkbox"
+                <Checkbox
                   checked={l._selected}
-                  onChange={(e) => onUpdate(i, { _selected: e.target.checked })}
+                  onCheckedChange={(checked) => onUpdate(i, { _selected: checked === true })}
+                  aria-label={`Seleccionar partida ${l.description}`}
                 />
               </TableCell>
               <TableCell className="text-sm">{l.description}</TableCell>

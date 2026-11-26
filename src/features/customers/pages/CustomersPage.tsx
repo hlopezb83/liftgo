@@ -181,7 +181,7 @@ export default function CustomersPage() {
           </div>
         }
         isLoading={isLoading}
-        isError={isError}
+        isError={isError} error={customerPages.error}
         hasMoreRows={customerPages.hasNextPage}
         loadMore={{ hasMore: customerPages.hasNextPage, isLoading: customerPages.isFetchingNextPage,
           onClick: () => { void customerPages.fetchNextPage(); }, loaded: customers.length }}

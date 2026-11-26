@@ -36,7 +36,7 @@ export function ContractMobileCard({ contract }: { contract: ContractCardItem })
               {expiryLabel && (
                 <Badge
                   variant={expiry === "expired" ? "destructive" : "outline"}
-                  className={expiry === "expiring_soon" ? "border-warning/30 text-warning" : ""}
+                  className={expiry === "expiring_soon" ? "border-warning/40 text-warning-text" : ""}
                 >
                   {expiryLabel}
                 </Badge>

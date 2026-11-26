@@ -51,7 +51,7 @@ export default function QuotesPage() {
 
   const tableViewState = useTableViewState();
   const { controlledPagination: pagination, controlledSorting: sorting, onControlledPaginationChange } = tableViewState;
-  const { data, isLoading, isError, refetch } = useQuotesPage({
+  const { data, isLoading, isError, error, refetch } = useQuotesPage({
     search: values.q, status: values.status, ...pagination, sorting,
   });
   useEffect(() => {
@@ -109,6 +109,7 @@ export default function QuotesPage() {
 
       isLoading={isLoading}
       isError={isError}
+      error={error}
       onRetry={() => { void refetch(); }}
       table={table}
       rowAction={{ columnId: "quote_number", label: (q) => `Ver cotización ${q.quote_number}`, to: (q) => `/quotes/${q.id}` }}

@@ -97,7 +97,7 @@ export default function BookingForm() {
                   helperText="La fecha final cuenta como día de renta. La siguiente reserva puede iniciar a partir del día siguiente."
                 />
                 {startInPast && !dateRangeError && (
-                  <p className="text-xs text-warning" role="alert">
+                  <p className="text-xs text-warning-text" role="alert">
                     La fecha de inicio está en el pasado. Verifica que sea correcta antes de confirmar la reserva.
                   </p>
                 )}

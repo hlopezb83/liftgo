@@ -1,9 +1,8 @@
 import { DatePickerField } from "@/components/forms/DatePickerField";
 import { DateRangePickerField } from "@/components/forms/DateRangePickerField";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form";
+import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { APP_CONFIG } from "@/lib/config";
 import { useFormErrorTarget } from "@/lib/forms/formErrorTargets";
@@ -65,7 +64,7 @@ export function QuoteDetailsCard({ form, isRental }: Props) {
             name="currency"
             render={({ field }) => (
               <FormItem className="space-y-1.5">
-                <Label>Moneda</Label>
+                <FormLabel>Moneda</FormLabel>
                 <Select value={field.value} onValueChange={field.onChange}>
                   <FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl>
                   <SelectContent>
@@ -83,7 +82,7 @@ export function QuoteDetailsCard({ form, isRental }: Props) {
             name="taxRate"
             render={({ field }) => (
               <FormItem className="space-y-1.5">
-                <Label>IVA</Label>
+                <FormLabel>IVA</FormLabel>
                 <Select value={field.value} onValueChange={field.onChange}>
                   <FormControl><SelectTrigger><SelectValue>{field.value === "11" ? "11% (Obsoleto)" : undefined}</SelectValue></SelectTrigger></FormControl>
                   <SelectContent>
@@ -120,13 +119,14 @@ export function QuoteDetailsCard({ form, isRental }: Props) {
             name="tipoCambio"
             render={({ field }) => (
               <FormItem className="space-y-1.5 max-w-xs">
-                <Label>Tipo de Cambio (MXN por {currency})</Label>
+                <FormLabel>Tipo de Cambio (MXN por {currency})</FormLabel>
                 <FormControl>
                   <Input
                     type="number"
                     min={0}
                     step="0.0001"
                     placeholder="0.0000"
+                    className="tabular-nums"
                     value={field.value || ""}
                     onChange={(e) => field.onChange(Number(e.target.value) || 0)}
                   />

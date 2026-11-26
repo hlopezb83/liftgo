@@ -50,7 +50,9 @@ describe("Tokens locales de contraste — V01", () => {
     for (const bg of backgrounds) expect(ratio(ring, rgb(bg))).toBeGreaterThanOrEqual(3);
   });
 
-  it.each([":root", ".dark"])("warning-text alcanza 4.5:1 sobre el fondo %s", (selector) => {
-    expect(ratio(rgb(token(selector, "warning-text")), rgb(token(selector, "background")))).toBeGreaterThanOrEqual(4.5);
+  it.each([":root", ".dark"])("warning-text e info-text alcanzan 4.5:1 sobre el fondo %s", (selector) => {
+    const bg = rgb(token(selector, "background"));
+    expect(ratio(rgb(token(selector, "warning-text")), bg)).toBeGreaterThanOrEqual(4.5);
+    expect(ratio(rgb(token(selector, "info-text")), bg)).toBeGreaterThanOrEqual(4.5);
   });
 });

@@ -54,11 +54,11 @@ function Calendar({ className, classNames, showOutsideDays = true, ...props }: C
         nav: "absolute inset-x-1 top-1 flex justify-between items-center pointer-events-none z-10",
         button_previous: cn(
           buttonVariants({ variant: "outline" }),
-          "h-7 w-7 max-md:h-11 max-md:w-11 bg-transparent p-0 opacity-60 hover:opacity-100 pointer-events-auto",
+          "h-7 w-7 max-md:h-11 max-md:w-11 touch:w-11 bg-transparent p-0 opacity-60 hover:opacity-100 pointer-events-auto",
         ),
         button_next: cn(
           buttonVariants({ variant: "outline" }),
-          "h-7 w-7 max-md:h-11 max-md:w-11 bg-transparent p-0 opacity-60 hover:opacity-100 pointer-events-auto",
+          "h-7 w-7 max-md:h-11 max-md:w-11 touch:w-11 bg-transparent p-0 opacity-60 hover:opacity-100 pointer-events-auto",
         ),
         month_grid: "w-full border-collapse space-y-1",
         weekdays: "flex",
@@ -67,7 +67,7 @@ function Calendar({ className, classNames, showOutsideDays = true, ...props }: C
         day: "h-9 w-9 text-center text-sm p-0 relative focus-within:relative focus-within:z-20",
         day_button: cn(
           buttonVariants({ variant: "ghost" }),
-          "h-9 w-9 p-0 font-normal aria-selected:opacity-100",
+          "h-9 w-9 touch:min-h-9 p-0 font-normal tabular-nums aria-selected:opacity-100",
         ),
         range_start: "day-range-start rounded-l-md bg-primary text-primary-foreground",
         range_end: "day-range-end rounded-r-md bg-primary text-primary-foreground",

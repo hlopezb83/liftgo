@@ -70,7 +70,7 @@ test("factura desde cotización consulta por ID al cliente fuera de los primeros
   await page.getByRole("button", { name: "Editar", exact: true }).click();
   await expect(page.getByRole("textbox", { name: "RFC Receptor", exact: true })).toHaveValue(fiscal.rfc);
   await expect(page.getByRole("textbox", { name: "Razón Social", exact: true })).toHaveValue(fiscal.razon_social);
-  await expect(page.getByRole("textbox", { name: "Régimen Fiscal Receptor", exact: true })).toHaveValue(fiscal.regimen_fiscal);
+  await expect(page.getByRole("combobox", { name: "Régimen Fiscal Receptor", exact: true })).toContainText(fiscal.regimen_fiscal);
   await expect(page.getByRole("textbox", { name: "C.P. Fiscal Receptor", exact: true })).toHaveValue(fiscal.domicilio_fiscal_cp);
   await expect(page.getByRole("combobox", { name: "Uso CFDI", exact: true })).toContainText("Adquisición de mercancías");
   await expect(page.getByRole("button", { name: "Crear factura", exact: true })).toBeEnabled();

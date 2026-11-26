@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { useUploadDocument } from "@/hooks/useDocuments";
+import { countLabel } from "@/lib/format/countLabel";
 import { zodResolver } from "@/lib/forms/zodResolver";
 import { notifySuccess } from "@/lib/ui/appFeedback";
 import { useSaveManualDamageReport } from "./useDamageRecords";
@@ -110,8 +111,8 @@ export function useReportDamageForm(onClose: () => void) {
 
       notifySuccess("Daño reportado", {
         description: previews.length > 0
-          ? `Registro creado con ${previews.length} foto(s).`
-          : "El registro de daño se creó correctamente.",
+          ? `Registro creado con ${countLabel(previews.length, "foto", "fotos")}.`
+          : "Registro de daño creado.",
       });
       reset();
       onClose();

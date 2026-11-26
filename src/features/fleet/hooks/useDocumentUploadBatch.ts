@@ -1,6 +1,7 @@
 import { useLayoutEffect, useRef, useState } from "react";
 import { useUploadDocument } from "@/hooks/useDocuments";
 import { getErrorMessage } from "@/lib/errors";
+import { countLabel } from "@/lib/format/countLabel";
 import { notifySuccess } from "@/lib/ui/appFeedback";
 
 type FailedUpload = { file: File; message: string };
@@ -33,7 +34,7 @@ export function useDocumentUploadBatch(entityType: string, entityId: string, ena
     setFailed(failures);
     setPending(false);
     const completed = files.length - failures.length;
-    if (completed > 0) notifySuccess(`${completed} archivo(s) subido(s)`);
+    if (completed > 0) notifySuccess(countLabel(completed, "archivo subido", "archivos subidos"));
   };
 
   return {

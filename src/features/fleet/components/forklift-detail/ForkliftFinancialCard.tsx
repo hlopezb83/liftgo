@@ -18,17 +18,17 @@ interface ForkliftFinancialCardProps {
 function FinancialMetrics({ financials }: { financials: ForkliftFinancials }) {
   const metrics = [
     { label: "Ingresos Totales", value: formatCurrency(financials.revenue), color: "text-success" },
-    { label: "Costos de Mantenimiento", value: formatCurrency(financials.maintenance_cost), color: "text-warning" },
+    { label: "Costos de Mantenimiento", value: formatCurrency(financials.maintenance_cost), color: "text-warning-text" },
     { label: "Margen Bruto", value: formatCurrency(financials.gross_margin), color: financials.gross_margin >= 0 ? "text-success" : "text-destructive" },
-    { label: "ROI", value: `${financials.roi_percent}%`, color: financials.roi_percent >= 0 ? "text-info" : "text-destructive" },
+    { label: "ROI", value: `${financials.roi_percent}%`, color: financials.roi_percent >= 0 ? "text-foreground" : "text-destructive" },
     { label: "Días fuera", value: `${financials.days_rented}`, color: "text-foreground" },
-    { label: "Ocupación física", value: `${financials.utilization_percent}%`, color: "text-info" },
+    { label: "Ocupación física", value: `${financials.utilization_percent}%`, color: "text-foreground" },
   ];
 
   return <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
     {metrics.map((m) => <div key={m.label}>
       <p className="text-xs text-muted-foreground">{m.label}</p>
-      <p className={`text-sm font-bold ${m.color}`}>{m.value}</p>
+      <p className={`text-sm font-bold tabular-nums ${m.color}`}>{m.value}</p>
     </div>)}
   </div>;
 }

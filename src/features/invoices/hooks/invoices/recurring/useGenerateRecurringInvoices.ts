@@ -48,7 +48,7 @@ function notifyRecurringOutcome(result: GenerateRecurringResponse, onShowDetails
       if (failed.length > 0) {
         const firstReason = formatRecurringFailure(failed[0]?.error).slice(0, 140);
         notifyWarning({
-          title: `${failed.length} reserva(s) no se facturaron`,
+          title: failed.length === 1 ? "1 reserva no se facturó" : `${failed.length} reservas no se facturaron`,
           description: firstReason,
           error: failed[0]?.error,
           context: { failed },
@@ -62,7 +62,9 @@ function notifyRecurringOutcome(result: GenerateRecurringResponse, onShowDetails
       const skipped = result?.skippedStaleRate ?? [];
       if (skipped.length > 0) {
         notifyWarning({
-          title: `${skipped.length} periodo(s) no facturados por cambio de tarifa`,
+          title: skipped.length === 1
+            ? "1 periodo no facturado por cambio de tarifa"
+            : `${skipped.length} periodos no facturados por cambio de tarifa`,
           description:
             "La reserva se actualizó después del periodo. Revisa la tarifa y confirma para facturarlos.",
           context: { skippedStaleRate: skipped },

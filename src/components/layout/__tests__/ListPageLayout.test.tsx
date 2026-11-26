@@ -140,11 +140,13 @@ describe("ListPageLayout — tablero y paginación remota", () => {
     expect(onClear).toHaveBeenCalledOnce();
   });
 
-  it("muestra error y reintento antes del tablero", async () => {
+  it("muestra error, diagnóstico original y reintento antes del tablero", async () => {
     const onRetry = vi.fn();
-    renderLayout({ customContent: <div>Tablero</div>, isError: true, onRetry });
+    renderLayout({ customContent: <div>Tablero</div>, isError: true, error: new Error("RLS denied"), onRetry });
     fireEvent.click(await screen.findByRole("button", { name: /reintentar/i }));
     expect(screen.queryByText("Tablero")).toBeNull();
+    fireEvent.click(screen.getByRole("button", { name: "Ver detalles" }));
+    expect(screen.getByText(/RLS denied/)).toBeInTheDocument();
     expect(onRetry).toHaveBeenCalledOnce();
   });
 

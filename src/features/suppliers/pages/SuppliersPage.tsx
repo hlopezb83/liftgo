@@ -150,7 +150,7 @@ export default function SuppliersPage() {
           </FiltersToolbar>
         }
         isLoading={isLoading}
-        isError={isError}
+        isError={isError} error={supplierPages.error}
         hasMoreRows={supplierPages.hasNextPage}
         loadMore={{ hasMore: supplierPages.hasNextPage, isLoading: supplierPages.isFetchingNextPage,
           onClick: () => { void supplierPages.fetchNextPage(); }, loaded: suppliers.length }}

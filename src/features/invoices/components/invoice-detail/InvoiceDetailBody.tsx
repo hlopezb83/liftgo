@@ -114,7 +114,9 @@ export function InvoiceDetailBody({
         <Alert variant="destructive">
           <WarnIcon className="h-4 w-4" />
           <AlertDescription>
-            {unconvertiblePayments} pago(s) están registrados en otra moneda sin tipo de cambio,
+            {unconvertiblePayments === 1
+              ? "1 pago está registrado"
+              : `${unconvertiblePayments} pagos están registrados`} en otra moneda sin tipo de cambio,
             por lo que no se incluyen en el saldo. Captura el tipo de cambio para que el saldo cuadre.
           </AlertDescription>
         </Alert>

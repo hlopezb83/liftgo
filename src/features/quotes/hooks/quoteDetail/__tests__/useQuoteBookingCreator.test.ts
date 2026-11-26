@@ -101,7 +101,7 @@ describe("useQuoteBookingCreator (BL-32, v7.94.1)", () => {
       p_replacement_customer_id: "c-2",
     });
     expect(invalidateSpy).toHaveBeenCalledTimes(3);
-    expect(notifySuccess).toHaveBeenCalledWith("2 reserva(s) creada(s) desde cotización");
+    expect(notifySuccess).toHaveBeenCalledWith("2 reservas creadas desde cotización");
     expect(state.setPendingDeliveries).toHaveBeenCalledWith([
       expect.objectContaining({ bookingId: "b-1", customerAddress: "Calle 2" }),
       expect.objectContaining({ bookingId: "b-2", customerAddress: "Calle 2" }),

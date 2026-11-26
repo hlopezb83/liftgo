@@ -53,7 +53,7 @@ export function OverdueDeliveriesPage() {
   });
   const view = useTableViewState(undefined, [{ id: "scheduled_date", desc: false }]);
   const { controlledPagination: pagination, controlledSorting: sorting, onControlledPaginationChange } = view;
-  const { data, isLoading, isError, refetch } = useOverdueDeliveriesPage({
+  const { data, isLoading, isError, error, refetch } = useOverdueDeliveriesPage({
     search: values.q, status: values.status, type: values.type, ...pagination, sorting,
   });
   useEffect(() => {
@@ -90,6 +90,7 @@ export function OverdueDeliveriesPage() {
       </FiltersToolbar>}
       isLoading={isLoading}
       isError={isError}
+      error={error}
       onRetry={() => { void refetch(); }}
       table={table}
       rowAction={{ columnId: "delivery_number", label: (row) => `Ver transporte ${row.delivery_number}`, to: (row) => `/deliveries/${row.id}` }}

@@ -39,7 +39,7 @@ export function TablePagination({ page, totalPages, onPageChange }: TablePaginat
   if (totalPages <= 1) return null;
 
   return (
-    <Pagination className="py-4 sm:mx-0 sm:w-auto sm:justify-end">
+    <Pagination className="py-1 sm:mx-0 sm:w-auto sm:justify-end">
       <PaginationContent className="flex-nowrap">
         <PaginationItem>
           <PaginationPrevious

@@ -29,8 +29,10 @@ export function ActivityByMember({ members, onSelect, selectedActorId }: Props) 
           return (
             <button
               key={m.actorId ?? "system"}
+              type="button"
+              aria-pressed={isActive}
               onClick={() => onSelect?.(m.actorId)}
-              className={`w-full text-left rounded-md p-2 transition-colors ${isActive ? "bg-accent" : "hover:bg-muted/50"}`}
+              className={`w-full text-left rounded-md p-2 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${isActive ? "bg-accent" : "hover:bg-muted/50"}`}
             >
               <div className="flex items-center justify-between gap-3 mb-1">
                 <ActorAvatar

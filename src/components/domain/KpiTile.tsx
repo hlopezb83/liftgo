@@ -40,7 +40,9 @@ const BG_BY_COLOR: Record<string, string> = {
   "text-status-sold": "bg-status-sold/10",
   "text-success": "bg-success/10",
   "text-info": "bg-info/10",
+  "text-info-text": "bg-info/10",
   "text-warning": "bg-warning/10",
+  "text-warning-text": "bg-warning/10",
   "text-destructive": "bg-destructive/10",
   "text-chart-5": "bg-chart-5/10",
   "text-muted-foreground": "bg-muted",
@@ -81,8 +83,9 @@ function KpiInteractiveWrapper({
 }) {
   // V26-06: `h-full` en el enlace/botón para que la tarjeta ocupe toda la
   // celda del grid y todas las tarjetas de una fila midan lo mismo.
-  if (href) return <Link to={href} className="group block h-full">{children}</Link>;
-  if (onClick) return <button type="button" onClick={onClick} className="group text-left w-full h-full">{children}</button>;
+  const focusCls = "rounded-lg ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2";
+  if (href) return <Link to={href} className={cn("group block h-full", focusCls)}>{children}</Link>;
+  if (onClick) return <button type="button" onClick={onClick} className={cn("group text-left w-full h-full", focusCls)}>{children}</button>;
   return <>{children}</>;
 }
 
@@ -108,7 +111,7 @@ export function KpiTile({
       <Card
         className={cn(
           "h-full",
-          isInteractive && "cursor-pointer transition-all duration-200 hover:shadow-lg hover:-translate-y-0.5 group-hover:ring-2 group-hover:ring-primary/20",
+          isInteractive && "cursor-pointer transition-all duration-200 hover:shadow-lg hover:-translate-y-0.5 active:translate-y-0 group-hover:ring-2 group-hover:ring-primary/20",
           className,
         )}
       >
@@ -138,7 +141,7 @@ export function KpiTile({
             {hint ? <div className="mt-0.5">{hint}</div> : null}
           </div>
           {isInteractive ? (
-            <ArrowRight className="h-4 w-4 text-primary shrink-0" aria-hidden="true" />
+            <ArrowRight className="h-4 w-4 text-primary shrink-0 transition-transform duration-200 group-hover:translate-x-0.5 group-focus-visible:translate-x-0.5" aria-hidden="true" />
           ) : null}
         </CardContent>
       </Card>

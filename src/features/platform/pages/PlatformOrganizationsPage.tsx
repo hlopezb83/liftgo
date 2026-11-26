@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { NativeSelect } from "@/components/ui/native-select";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { CreateOrganizationResult } from "@/lib/platformAdmin.types";
 import { ORGANIZATION_CLASSIFICATION_LABELS, type OrganizationClassification } from "@/lib/platformOrganizationGovernance.types";
@@ -75,9 +76,9 @@ export default function PlatformOrganizationsPage() {
         </div>
         <div className="space-y-2">
           <Label htmlFor="platform-company-status">Acceso empresarial</Label>
-          <select
+          <NativeSelect
             id="platform-company-status"
-            className="h-11 w-full rounded-md border bg-background px-3 text-sm"
+            className="h-11"
             value={status}
             onChange={(event) => {
               setStatus(event.target.value);
@@ -87,16 +88,16 @@ export default function PlatformOrganizationsPage() {
             <option value="">Todas las empresas</option>
             <option value="active">Activas</option>
             <option value="inactive">Sin acceso</option>
-          </select>
+          </NativeSelect>
         </div>
         <div className="space-y-2">
           <Label htmlFor="platform-company-classification">Clasificación</Label>
-          <select id="platform-company-classification" className="h-11 w-full rounded-md border bg-background px-3 text-sm"
+          <NativeSelect id="platform-company-classification" className="h-11"
             value={classification} disabled={!governance.data || governance.isError}
             onChange={(event) => { setClassification(event.target.value as OrganizationClassification | ""); setPage(0); }}>
             <option value="">Todas las clasificaciones</option>
             {Object.entries(ORGANIZATION_CLASSIFICATION_LABELS).map(([key, label]) => <option key={key} value={key}>{label}</option>)}
-          </select>
+          </NativeSelect>
         </div>
       </div>
       {governance.isError && <QueryErrorState error={governance.error} entity="la clasificación y el territorio"

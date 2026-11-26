@@ -48,7 +48,7 @@ export function useUpdateMaintenanceBuffer() {
       }
       if (!Number.isInteger(days) || days < 0 || days > 30) {
         throw new Error(
-          "El buffer debe ser un número entero entre 0 y 30 días.",
+          "El margen de mantenimiento debe ser un número entero entre 0 y 30 días.",
         );
       }
       const { error } = await supabase
@@ -58,7 +58,7 @@ export function useUpdateMaintenanceBuffer() {
       if (error) throw error;
     },
     invalidateKeys: COMPANY_SETTINGS_INVALIDATION_KEYS,
-    successMsg: "Buffer de mantenimiento actualizado",
-    errorTitle: "No se pudo actualizar el buffer",
+    successMsg: "Margen de mantenimiento actualizado",
+    errorTitle: "No se pudo actualizar el margen de mantenimiento",
   });
 }
