@@ -32,9 +32,9 @@ export function getUtilColor(pct: number) {
  * evita `style={{ color }}` y respeta tema claro/oscuro.
  */
 export function getUtilTextClass(pct: number) {
-  if (pct > 75) return "text-status-available";
-  if (pct >= 40) return "text-status-warning";
-  return "text-status-overdue";
+  if (pct > 75) return "text-success";
+  if (pct >= 40) return "text-warning-text";
+  return "text-destructive";
 }
 
 

@@ -179,7 +179,7 @@ export function useExtensionPrefill({
     if (items.length === 0) {
       notifyWarning({
         title: "El equipo no tiene tarifas configuradas",
-        description: `Captura la partida a mano: ${range.days} día(s) del ${range.start} al ${range.end}.`,
+        description: `Captura la partida a mano: ${range.days} ${range.days === 1 ? "día" : "días"} del ${range.start} al ${range.end}.`,
       });
       return;
     }

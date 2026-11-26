@@ -197,7 +197,7 @@ export default function AuthPage({ platform = false, destination = "/platform" }
               <UsersIcon className="mr-2 h-4 w-4" /> {platform ? "Acceso al ERP" : "Portal de Clientes"}
             </Button>
             {currentVersion && (
-              <p className="mt-4 text-center text-3xs text-muted-foreground/60 font-mono">
+              <p className="mt-4 text-center text-3xs text-muted-foreground font-mono">
                 v{currentVersion}
               </p>
             )}

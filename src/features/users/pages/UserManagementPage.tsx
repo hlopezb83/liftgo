@@ -97,7 +97,7 @@ export default function UserManagementPage() {
           <div className="flex flex-col sm:flex-row gap-3">
             <SearchBar key={searchReset} value={search} onChange={setSearch} placeholder="Buscar por nombre o correo…" className="flex-1 max-w-md" />
             <Select value={filterRole} onValueChange={setFilterRole}>
-              <SelectTrigger className="w-[180px]"><SelectValue placeholder="Filtrar por rol" /></SelectTrigger>
+              <SelectTrigger className="w-full sm:w-[180px]"><SelectValue placeholder="Filtrar por rol" /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Todos los roles</SelectItem>
                 {STAFF_ROLES.map((r) => (

@@ -51,7 +51,7 @@ function computeTrend(data: MonthlyUtilizationItem[]): { points: TrendPoint[]; d
 export function UtilizationCharts({ monthlyUtilization }: UtilizationChartsProps) {
   const { points, delta } = computeTrend(monthlyUtilization);
   const trendLabel = delta > 1
-    ? { icon: TrendingUpIcon, text: `Subiendo ${Math.abs(delta)} p.p.`, cls: "text-status-available" }
+    ? { icon: TrendingUpIcon, text: `Subiendo ${Math.abs(delta)} p.p.`, cls: "text-success" }
     : delta < -1
     ? { icon: TrendingDownIcon, text: `Bajando ${Math.abs(delta)} p.p.`, cls: "text-destructive" }
     : { icon: RemoveIcon, text: "Estable", cls: "text-muted-foreground" };
