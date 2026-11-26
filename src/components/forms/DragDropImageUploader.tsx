@@ -3,6 +3,7 @@ import { useDropzone } from "react-dropzone";
 import { UploadIcon, X, SpinnerIcon, ImageIcon } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import { useUploadDocument } from "@/hooks/useDocuments";
+import { countLabel } from "@/lib/format/countLabel";
 import { notifyError, notifySuccess } from "@/lib/ui/appFeedback";
 import { cn } from "@/lib/utils";
 
@@ -98,7 +99,7 @@ export function DragDropImageUploader({ entityType, entityId, maxFiles = 10, cla
       );
 
       if (failedCount === 0) {
-        notifySuccess(`${targets.length} foto(s) subida(s)`);
+        notifySuccess(countLabel(targets.length, "foto subida", "fotos subidas"));
       } else {
         // GUI-FE-11e (G-MEC-04): mensaje genérico en español (sin el texto
         // técnico crudo del storage/edge function) + severidad warning.
@@ -106,7 +107,7 @@ export function DragDropImageUploader({ entityType, entityId, maxFiles = 10, cla
         notifyError({
           error: firstError && firstError.status === "rejected" ? firstError.reason : new Error("upload_failed"),
           title: "No se pudieron subir las fotos",
-          description: `${failedCount} foto(s) fallaron y se conservan abajo para reintentar. Revisa tu conexión; si el problema continúa, intenta con fotos más ligeras.`,
+          description: `${failedCount === 1 ? "1 foto falló y se conserva" : `${failedCount} fotos fallaron y se conservan`} abajo para reintentar. Revisa tu conexión; si el problema continúa, intenta con fotos más ligeras.`,
           severity: "warning",
         });
       }
@@ -120,7 +121,7 @@ export function DragDropImageUploader({ entityType, entityId, maxFiles = 10, cla
       <div
         {...getRootProps()}
         className={cn(
-          "border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition-colors",
+          "border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition-colors ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
           isDragReject
             ? "border-destructive bg-destructive/5"
             : isDragActive
@@ -163,7 +164,7 @@ export function DragDropImageUploader({ entityType, entityId, maxFiles = 10, cla
                   size="iconSm"
                   onClick={() => removePreview(i)}
                   aria-label={`Quitar foto ${i + 1}`}
-                  className="absolute top-1 right-1 rounded-full bg-background/80 hover:bg-background opacity-0 group-hover:opacity-100 focus-visible:opacity-100 transition-opacity"
+                  className="absolute top-1 right-1 rounded-full bg-background/85 hover:bg-background opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 focus-visible:opacity-100 touch:opacity-100 transition-opacity"
                 >
                   <X className="text-destructive" />
                 </Button>
@@ -177,7 +178,7 @@ export function DragDropImageUploader({ entityType, entityId, maxFiles = 10, cla
             className="w-full"
           >
             {uploading ? <SpinnerIcon className="animate-spin" /> : <UploadIcon />}
-            {uploading ? "Subiendo…" : `Subir ${previews.length} foto(s)`}
+            {uploading ? "Subiendo…" : `Subir ${countLabel(previews.length, "foto", "fotos")}`}
           </Button>
         </>
       )}

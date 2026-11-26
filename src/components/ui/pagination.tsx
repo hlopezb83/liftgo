@@ -47,7 +47,7 @@ const PaginationLink = ({ className, isActive, size = "icon", ref, ...props }: P
           variant: isActive ? "outline" : "ghost",
           size,
         }),
-        "disabled:pointer-events-none disabled:opacity-50",
+        "tabular-nums disabled:pointer-events-none disabled:opacity-50",
         className,
       )}
       {...props}

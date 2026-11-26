@@ -2,6 +2,7 @@ import { useRef, useState, type FormEvent } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { NativeSelect } from "@/components/ui/native-select";
 import { Textarea } from "@/components/ui/textarea";
 import { legacyClassifications, originalLineField, type LegacyChargeReview, type LegacyClassification, type LegacyReviewSelection } from "../../lib/quoteChargeLegacyReview";
 import type { LegacyReviewInput, LegacyReverseInput } from "../../hooks/invoices/useQuoteChargeLegacyReview";
@@ -75,19 +76,19 @@ export function LegacyReviewForm({ data, selection, pending, error, onCancel, on
         <>
           <div className="space-y-2">
             <Label htmlFor="legacy-classification">Clasificación revisada</Label>
-            <select id="legacy-classification" required disabled={pending} value={classification} className="w-full rounded-md border bg-background p-2 text-sm" onChange={(event) => setClassification(event.target.value as LegacyClassification | "")}>
+            <NativeSelect id="legacy-classification" required disabled={pending} value={classification} onChange={(event) => setClassification(event.target.value as LegacyClassification | "")}>
               <option value="">Selecciona según la evidencia</option>
               {Object.entries(legacyClassifications).map(([value, label]) => <option key={value} value={value}>{label}</option>)}
-            </select>
+            </NativeSelect>
           </div>
           {isCharge && (
             <>
               <div className="space-y-2">
                 <Label htmlFor="legacy-quote-charge">Cargo de {data.quote_number}</Label>
-                <select id="legacy-quote-charge" required disabled={pending} value={quoteLineId} className="w-full rounded-md border bg-background p-2 text-sm" onChange={(event) => setQuoteLineId(event.target.value)}>
+                <NativeSelect id="legacy-quote-charge" required disabled={pending} value={quoteLineId} onChange={(event) => setQuoteLineId(event.target.value)}>
                   <option value="">Selecciona el cargo verificado</option>
                   {data.charges.map((charge) => <option key={charge.quote_line_id} value={charge.quote_line_id}>{String(charge.line.description ?? "Cargo")} · disponible {charge.remaining_quantity} de {charge.quoted_quantity}</option>)}
-                </select>
+                </NativeSelect>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="legacy-quantity">Cantidad histórica a vincular</Label>

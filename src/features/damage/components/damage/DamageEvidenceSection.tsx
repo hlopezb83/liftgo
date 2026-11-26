@@ -1,5 +1,6 @@
 import { useDropzone } from "react-dropzone";
 import { UploadIcon, X, ImageIcon } from "@/components/icons";
+import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 import type { DamagePreview } from "../../hooks/useReportDamageForm";
@@ -24,7 +25,7 @@ export function DamageEvidenceSection({ previews, onDrop, onRemove }: Props) {
       <div
         {...getRootProps()}
         className={cn(
-          "border-2 border-dashed rounded-lg p-4 text-center cursor-pointer transition-colors",
+          "border-2 border-dashed rounded-lg p-4 text-center cursor-pointer transition-colors ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
           isDragReject
             ? "border-destructive bg-destructive/5"
             : isDragActive
@@ -47,14 +48,17 @@ export function DamageEvidenceSection({ previews, onDrop, onRemove }: Props) {
         <div className="grid grid-cols-4 gap-1.5">
           {previews.map((p, i) => (
             <div key={i} className="relative group aspect-square rounded-lg overflow-hidden border border-border">
-              <img src={p.url} alt={`Preview ${i + 1}`} className="w-full h-full object-cover" />
-              <button
+              <img src={p.url} alt={`Vista previa ${i + 1}`} className="w-full h-full object-cover" />
+              <Button
                 type="button"
+                variant="secondary"
+                size="iconSm"
+                aria-label={`Quitar foto ${i + 1}`}
                 onClick={() => onRemove(i)}
-                className="absolute top-0.5 right-0.5 rounded-full bg-background/80 p-0.5 opacity-0 group-hover:opacity-100 transition-opacity"
+                className="absolute top-1 right-1 h-6 w-6 rounded-full bg-background/85 hover:bg-background opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 focus-visible:opacity-100 touch:opacity-100 transition-opacity"
               >
                 <X className="h-3 w-3 text-destructive" />
-              </button>
+              </Button>
             </div>
           ))}
         </div>

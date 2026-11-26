@@ -18,7 +18,7 @@ export function CustomerFinancialSummary({ totalInvoiced, totalPaid, outstanding
         </div>
         <div className="flex justify-between text-sm">
           <span className="text-muted-foreground">Total Pagado</span>
-          <span className="tabular-nums font-semibold text-status-available">{formatCurrency(totalPaid)}</span>
+          <span className="tabular-nums font-semibold text-success">{formatCurrency(totalPaid)}</span>
         </div>
         <div className="flex justify-between text-sm border-t pt-2">
           <span className="font-medium">Saldo Pendiente</span>

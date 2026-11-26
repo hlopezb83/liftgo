@@ -97,7 +97,7 @@ export default function ContractsPage() {
               {label && (
                 <Badge
                   variant={expiry === "expired" ? "destructive" : "outline"}
-                  className={expiry === "expiring_soon" ? "border-warning/30 text-warning" : ""}
+                  className={expiry === "expiring_soon" ? "border-warning/40 text-warning-text" : ""}
                 >
                   {label}
                 </Badge>
@@ -157,6 +157,7 @@ export default function ContractsPage() {
 
       isLoading={isLoading}
       isError={isError}
+      error={contractPages.error}
       hasMoreRows={contractPages.hasNextPage}
       loadMore={{ hasMore: contractPages.hasNextPage, isLoading: contractPages.isFetchingNextPage,
         onClick: () => { void contractPages.fetchNextPage(); }, loaded: contracts.length }}

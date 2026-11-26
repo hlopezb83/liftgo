@@ -25,7 +25,7 @@ export default function ReturnInspectionPage() {
   const navigate = useNavigateTransition();
   const [searchParams] = useSearchParams();
   const { forkliftMap } = useForkliftMap();
-  const { data: inspectionsRaw, isLoading, isError, refetch } = useReturnInspections();
+  const { data: inspectionsRaw, isLoading, isError, error, refetch } = useReturnInspections();
   const inspections = visibleListRows(inspectionsRaw);
 
   const [filterDate, setFilterDate] = useState<Date | undefined>();
@@ -130,6 +130,7 @@ export default function ReturnInspectionPage() {
         ) : undefined}
         isLoading={isLoading}
         isError={isError}
+        error={error}
         onRetry={() => { void refetch(); }}
         hasActiveFilters={!!filterDate}
         onClearFilters={() => setFilterDate(undefined)}

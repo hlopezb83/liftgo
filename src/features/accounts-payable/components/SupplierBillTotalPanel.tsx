@@ -22,7 +22,7 @@ export function SupplierBillTotalPanel({ total, currency, totalMxn, threshold }:
         <span className="tabular-nums text-lg font-bold">{formatCurrencyWithCode(total, currency)}</span>
       </div>
       {needsApproval && (
-        <p className="flex items-start gap-2 text-xs text-warning">
+        <p className="flex items-start gap-2 text-xs text-warning-text">
           <WarnIcon className="mt-0.5 h-3.5 w-3.5 shrink-0" />
           Supera el umbral de {formatCurrencyWithCode(threshold, "MXN")}: la factura quedará
           pendiente de aprobación antes de poder pagarse.

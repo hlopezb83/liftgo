@@ -3,23 +3,26 @@ import { describe, expect, it } from "vitest";
 import { Alert, AlertDescription, AlertTitle } from "../alert";
 
 describe("Alert — V01", () => {
-  it("usa warning-text para texto e icono sin cambiar el borde ni el rol", () => {
+  it.each([
+    ["warning", "text-warning-text", "[&>svg]:text-warning-text"],
+    ["info", "text-info-text", "[&>svg]:text-info-text"],
+  ] as const)("usa %s-text para texto e icono sin cambiar el borde ni el rol", (variant, textClass, iconClass) => {
     const { container } = render(
-      <Alert variant="warning">
+      <Alert variant={variant}>
         <svg aria-hidden="true" />
         <AlertTitle>Aviso</AlertTitle>
         <AlertDescription>Detalle</AlertDescription>
       </Alert>,
     );
     const alert = screen.getByRole("alert");
-    expect(alert).toHaveClass("text-warning-text", "[&>svg]:text-warning-text");
-    expect(alert).not.toHaveClass("text-warning", "[&>svg]:text-warning");
-    expect(alert).toHaveClass("border-warning/50", "dark:border-warning");
+    expect(alert).toHaveClass(textClass, iconClass);
+    expect(alert).not.toHaveClass(`text-${variant}`, `[&>svg]:text-${variant}`);
+    expect(alert).toHaveClass(`border-${variant}/50`, `dark:border-${variant}`);
     expect(container.querySelector("svg")?.parentElement).toBe(alert);
     expect(screen.getByRole("heading").parentElement).toBe(alert);
   });
 
-  it.each(["destructive", "success", "info"] as const)("conserva la variante %s", (variant) => {
+  it.each(["destructive", "success"] as const)("conserva la variante %s", (variant) => {
     render(<Alert variant={variant} />);
     expect(screen.getByRole("alert")).toHaveClass(`text-${variant}`, `[&>svg]:text-${variant}`, `border-${variant}/50`, `dark:border-${variant}`);
   });

@@ -19,7 +19,7 @@ export function InvoiceCreditBalanceCard({ balance }: { balance: InvoiceCreditBa
         <CardTitle className="text-base">Excedente de esta factura</CardTitle>
       </CardHeader>
       <CardContent className="space-y-3">
-        {balance.issue ? <p role="status" className="text-sm text-warning">{issueText[balance.issue]}</p> : (
+        {balance.issue ? <p role="status" className="text-sm text-warning-text">{issueText[balance.issue]}</p> : (
           <>
             <p className="text-xl font-semibold tabular-nums" data-testid="invoice-excess">
               {formatCurrencyWithCode(balance.excess ?? 0, balance.currency)}
@@ -36,7 +36,7 @@ export function InvoiceCreditBalanceCard({ balance }: { balance: InvoiceCreditBa
           Esta consulta no registra nuevos cobros, aplicaciones ni devoluciones.
         </p>
         <details>
-          <summary className="cursor-pointer text-sm font-medium">Ver documentos y tipos de cambio de origen</summary>
+          <summary className="cursor-pointer rounded-sm text-sm font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">Ver documentos y tipos de cambio de origen</summary>
           <div className="mt-3 space-y-3 text-sm [overflow-wrap:anywhere]">
             <p>Factura {balance.invoiceNumber} · {balance.currency} · TC capturado a MXN: {rateText(balance.exchangeRate)}.</p>
             <ul className="space-y-2" aria-label="Pagos de origen">

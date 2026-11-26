@@ -5,6 +5,7 @@ import { FormDialogCancelButton } from "@/components/forms/FormDialogCancelButto
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { NativeSelect } from "@/components/ui/native-select";
 import { Textarea } from "@/components/ui/textarea";
 import { PLATFORM_PROFILE_LABELS } from "@/lib/platformAccess.types";
 import { setPlatformOperatorProfileFn } from "@/lib/platformOperators.functions";
@@ -64,7 +65,7 @@ export function PlatformOperatorDialog({ account, onClose, onSaved }: {
         <p className="text-sm text-muted-foreground">El cambio se aplica al Centro de Plataforma. El rol y los datos de su empresa se conservan.</p>
         <div className="space-y-2">
           <Label htmlFor="operator-profile">Perfil de plataforma</Label>
-          <select id="operator-profile" className="h-10 w-full rounded-md border bg-background px-3 text-sm"
+          <NativeSelect id="operator-profile"
             value={revoke ? "revoke" : profile} disabled={saving}
             onChange={(event) => {
               setRevoke(event.target.value === "revoke");
@@ -73,7 +74,7 @@ export function PlatformOperatorDialog({ account, onClose, onSaved }: {
             }}>
             {account.eligible && platformProfileSchema.options.map((value) => <option key={value} value={value}>{PLATFORM_PROFILE_LABELS[value]}</option>)}
             {account.profile && <option value="revoke">Retirar acceso de plataforma</option>}
-          </select>
+          </NativeSelect>
           <p className="rounded-lg bg-muted p-3 text-sm">
             {revoke ? "La cuenta conserva el acceso que tenga al ERP de su empresa." : PLATFORM_PROFILE_SUMMARIES[profile]}
           </p>

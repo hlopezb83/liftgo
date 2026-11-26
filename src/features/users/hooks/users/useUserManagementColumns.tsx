@@ -51,9 +51,9 @@ export function useUserManagementColumns({
       },
       {
         id: "email",
-        header: "Email",
+        header: "Correo electrónico",
         accessorFn: (u) => u.email ?? "",
-        cell: ({ row }) => <span className="text-muted-foreground text-sm">{row.original.email ?? "—"}</span>,
+        cell: ({ row }) => <span className="text-muted-foreground text-sm break-all">{row.original.email ?? "—"}</span>,
       },
       {
         id: "created_at",

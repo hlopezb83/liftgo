@@ -41,7 +41,7 @@ export function FinancialKpiCards({
       // A2-7: nunca se convierte 1:1; las rentas sin tipo de cambio se excluyen y se avisan.
       hint: mrrFxMissingCount > 0
         ? (
-          <span className="text-xs text-warning">
+          <span className="text-xs text-warning-text">
             {mrrFxMissingCount} {mrrFxMissingCount === 1 ? "renta en divisa sin tipo de cambio no se incluye" : "rentas en divisa sin tipo de cambio no se incluyen"}
           </span>
         )
@@ -60,7 +60,7 @@ export function FinancialKpiCards({
       label: "DSO (Días de Cobro)",
       value: `${dso} días`,
       icon: CalendarClock,
-      color: "text-warning",
+      color: "text-warning-text",
       bgColor: "bg-warning/10",
       href: "/reports?type=aging",
     },
@@ -74,7 +74,7 @@ export function FinancialKpiCards({
       // N-15: aviso cuando hay facturas en divisa sin tipo de cambio fuera del total.
       hint: overdueFxMissingCount > 0
         ? (
-          <span className="text-xs text-warning">
+          <span className="text-xs text-warning-text">
             {overdueFxMissingCount} {overdueFxMissingCount === 1 ? "factura" : "facturas"} en divisa sin tipo de cambio no se incluyen
           </span>
         )

@@ -30,12 +30,13 @@ function IconAction({
 }) {
   const btn = (
     <Button
+      type="button"
       variant="ghost"
-      size="sm"
+      size="iconSm"
       aria-label={label}
       title={label}
       onClick={onClick}
-      className="text-sidebar-foreground/60 hover:text-sidebar-foreground"
+      className="text-sidebar-foreground/75 hover:bg-sidebar-accent hover:text-sidebar-foreground ring-offset-sidebar"
     >
       {children}
     </Button>
@@ -64,16 +65,16 @@ export function SidebarUserFooter({ email, role, currentVersion, onSignOut }: Si
         </span>
         {/* En modo icono el rail mide 3rem: correo, rol y versión se desbordaban. */}
         <div className="min-w-0 group-data-[collapsible=icon]:hidden">
-        <p className="text-xs text-sidebar-foreground/80 truncate" title={email ?? ""}>{email}</p>
+        <p className="text-xs text-sidebar-foreground/85 truncate" title={email ?? ""}>{email}</p>
         {role && (
-          <p className="text-3xs text-sidebar-foreground/50 uppercase tracking-wide font-medium">
+          <p className="text-3xs text-sidebar-foreground/70 uppercase tracking-wide font-medium">
             {ROLE_LABELS[role] ?? role}
           </p>
         )}
         </div>
       </div>
-      <div className="flex items-center justify-between gap-1 group-data-[collapsible=icon]:flex-col group-data-[collapsible=icon]:gap-0">
-        <div className="flex items-center gap-0.5 group-data-[collapsible=icon]:flex-col group-data-[collapsible=icon]:gap-0">
+      <div className="flex items-center justify-between gap-1 group-data-[collapsible=icon]:flex-col group-data-[collapsible=icon]:gap-0.5">
+        <div className="flex items-center gap-0.5 group-data-[collapsible=icon]:flex-col group-data-[collapsible=icon]:gap-0.5">
           <ThemeToggle />
           <IconAction label="Cambiar contraseña" onClick={() => setPwDialogOpen(true)} isMobile={isMobile}>
             <KeyIcon className="h-4 w-4" />
@@ -83,7 +84,7 @@ export function SidebarUserFooter({ email, role, currentVersion, onSignOut }: Si
           </IconAction>
         </div>
         {currentVersion && (
-          <NavLink to="/changelog" className="text-3xs text-sidebar-foreground/50 hover:text-sidebar-foreground transition-colors font-mono shrink-0 group-data-[collapsible=icon]:hidden">
+          <NavLink to="/changelog" className="text-3xs text-sidebar-foreground/70 hover:text-sidebar-foreground transition-colors font-mono shrink-0 group-data-[collapsible=icon]:hidden">
             v{currentVersion}
           </NavLink>
         )}

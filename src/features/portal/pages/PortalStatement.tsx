@@ -117,7 +117,7 @@ export default function PortalStatement() {
         </CardContent></Card>
         <Card><CardContent className="pt-4">
           <p className="text-xs text-muted-foreground">Pagado total</p>
-          <p className="text-xl font-bold tabular-nums text-status-available">{formatCurrency(totals.paid)}</p>
+          <p className="text-xl font-bold tabular-nums text-success">{formatCurrency(totals.paid)}</p>
         </CardContent></Card>
         <Card><CardContent className="pt-4">
           <p className="text-xs text-muted-foreground">Saldo pendiente</p>

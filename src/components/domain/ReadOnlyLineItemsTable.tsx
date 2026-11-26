@@ -25,12 +25,12 @@ export function ReadOnlyLineItemsTable({ lineItems, currency = "MXN" }: ReadOnly
           {lineItems.map((item, idx) => (
             <div key={idx} className="space-y-2 p-4 text-sm">
               <p className="font-medium break-words">{item.description}</p>
-              <div className="flex justify-between gap-3 text-muted-foreground">
+              <div className="flex justify-between gap-3 text-muted-foreground tabular-nums">
                 <span>Cant. {item.quantity ?? (item as unknown as Record<string, unknown>).qty as number ?? 1}</span>
                 <span>Unit. {formatCurrencyWithCode(Number(item.unit_price), currency)}</span>
               </div>
               {hasDiscount && item.discount && item.discount > 0 ? (
-                <p className="text-right text-destructive">Descuento {formatLineDiscount(item, currency)}</p>
+                <p className="text-right text-destructive tabular-nums">Descuento {formatLineDiscount(item, currency)}</p>
               ) : null}
               <div className="flex justify-between gap-3 border-t pt-2 font-semibold">
                 <span>{hasDiscount ? "Importe neto" : "Total"}</span>
@@ -55,7 +55,7 @@ export function ReadOnlyLineItemsTable({ lineItems, currency = "MXN" }: ReadOnly
               <TableRow key={idx}>
                 <TableCell>{item.description}</TableCell>
                 {/* R12-FE-04 (P2 r11): partidas legacy usan `qty`. */}
-                <TableCell className="text-right">
+                <TableCell className="text-right tabular-nums">
                   {item.quantity ?? (item as unknown as Record<string, unknown>).qty as number ?? 1}
                 </TableCell>
                 <TableCell className="text-right font-mono whitespace-nowrap">{formatCurrencyWithCode(Number(item.unit_price), currency)}</TableCell>

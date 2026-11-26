@@ -62,7 +62,7 @@ export function organizationReadiness(
     },
     {
       id: "templates",
-      label: "Machote de contrato asignado",
+      label: "Plantilla legal de contrato asignada",
       required: true,
       ready: rentalTemplates.length === 1,
       description:

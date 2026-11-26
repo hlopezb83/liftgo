@@ -41,6 +41,8 @@ interface ListPageLayoutProps<T extends { id?: string }> {
   isLoading: boolean;
   /** UX-A1: si la query falla, renderizamos ErrorState en vez de EmptyState. */
   isError?: boolean;
+  /** Error original de la query para diagnóstico en ErrorState. */
+  error?: unknown;
   /** UX-A1: callback para el botón Reintentar del ErrorState. */
   onRetry?: () => void;
   emptyMessage?: string;
@@ -90,6 +92,7 @@ export function ListPageLayout<T extends { id?: string }>({
   notice,
   isLoading,
   isError = false,
+  error,
   onRetry,
   // V1-F5: copy unificado con DataTableV2/EmptyRow/búsqueda global ("Sin resultados").
   emptyMessage = "Sin resultados",
@@ -159,6 +162,7 @@ export function ListPageLayout<T extends { id?: string }>({
           customContent={customContent}
           isLoading={isLoading}
           isError={isError}
+          error={error}
           onRetry={onRetry}
           showEmpty={showEmpty}
           showMobileCards={showMobileCards}

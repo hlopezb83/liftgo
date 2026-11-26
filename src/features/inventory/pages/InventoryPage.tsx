@@ -59,7 +59,7 @@ function useInventoryListState() {
   } });
   const viewState = useTableViewState();
   const { controlledPagination: pagination, controlledSorting: sorting, onControlledPaginationChange } = viewState;
-  const { data, isLoading, isError, refetch } = useInventoryPage({
+  const { data, isLoading, isError, error, refetch } = useInventoryPage({
     search: values.q, category: values.category, lowStockOnly: values.stock === "low", ...pagination, sorting,
   });
   useEffect(() => {
@@ -72,12 +72,12 @@ function useInventoryListState() {
   const totalCount = data?.totalCount;
   const items = data?.items;
   const pageCount = Math.ceil((totalCount ?? 0) / pagination.pageSize);
-  return { values, set, reset, hasActive, viewState, items, pageCount, totalCount, isLoading, isError, refetch, lowStockCount };
+  return { values, set, reset, hasActive, viewState, items, pageCount, totalCount, isLoading, isError, error, refetch, lowStockCount };
 }
 
 export default function InventoryPage() {
   const canWrite = useHasModuleAccess("Refacciones", "full");
-  const { values, set, reset, hasActive, viewState, items, pageCount, totalCount, isLoading, isError, refetch, lowStockCount } = useInventoryListState();
+  const { values, set, reset, hasActive, viewState, items, pageCount, totalCount, isLoading, isError, error, refetch, lowStockCount } = useInventoryListState();
 
   const formDialog = useToggleDialog();
   const activateDialog = useToggleDialog();
@@ -146,6 +146,7 @@ export default function InventoryPage() {
         }
         isLoading={isLoading}
         isError={isError}
+        error={error}
         onRetry={() => { void refetch(); }}
         hasActiveFilters={hasActive}
         onClearFilters={reset}

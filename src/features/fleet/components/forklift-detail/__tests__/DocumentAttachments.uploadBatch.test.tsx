@@ -52,7 +52,7 @@ describe("lote de adjuntos", () => {
     await act(async () => slow.resolve({ id: "success-1" }));
     expect(await screen.findByText("fallido.pdf: Storage no disponible")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Subir" })).toBeDisabled();
-    expect(state.success).toHaveBeenCalledWith("1 archivo(s) subido(s)");
+    expect(state.success).toHaveBeenCalledWith("1 archivo subido");
     const retryButton = screen.getByRole("button", { name: "Reintentar fallidos (1)" });
     fireEvent.click(retryButton);
     fireEvent.click(retryButton);

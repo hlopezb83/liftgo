@@ -5,19 +5,20 @@ import { useSidebar } from "@/components/ui/sidebar";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 
 export function ThemeToggle() {
-  const { theme, setTheme } = useTheme();
+  const { theme, resolvedTheme, setTheme } = useTheme();
   const { isMobile } = useSidebar();
-  const isDark = theme === "dark";
+  const isDark = (resolvedTheme ?? theme) === "dark";
   const label = isDark ? "Cambiar a tema claro" : "Cambiar a tema oscuro";
 
   const button = (
     <Button
+      type="button"
       variant="ghost"
-      size="sm"
+      size="iconSm"
       aria-label={label}
       title={label}
       onClick={() => setTheme(isDark ? "light" : "dark")}
-      className="text-sidebar-foreground/60 hover:text-sidebar-foreground"
+      className="text-sidebar-foreground/75 hover:bg-sidebar-accent hover:text-sidebar-foreground ring-offset-sidebar"
     >
       {isDark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
     </Button>

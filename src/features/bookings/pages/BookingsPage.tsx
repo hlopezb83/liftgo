@@ -147,6 +147,7 @@ export default function BookingsPage() {
       }
       isLoading={isLoading}
       isError={isError}
+      error={query.error}
       onRetry={() => { void refetch(); }}
       table={table}
       rowAction={{ columnId: "booking_number", label: (b) => `Ver reserva ${b.booking_number}`, to: (b) => `/bookings/${b.id}` }}

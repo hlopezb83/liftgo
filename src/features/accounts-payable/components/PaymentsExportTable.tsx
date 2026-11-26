@@ -158,7 +158,7 @@ export function PaymentsExportTable({
           {isFxMissing(row.original.currency, row.original.exchange_rate) && (
             <Badge
               variant="outline"
-              className="ml-1 text-3xs border-warning/40 text-warning"
+              className="ml-1 text-3xs border-warning/40 text-warning-text"
               title="Factura en divisa sin tipo de cambio capturado"
             >
               Sin TC

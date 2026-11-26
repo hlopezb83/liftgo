@@ -4,6 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
+import { NativeSelect } from "@/components/ui/native-select";
 import type { CatalogImportKind, CatalogImportSummary } from "@/lib/platformCatalogImport.types";
 import { usePlatformCapabilities } from "../../hooks/usePlatformAccess";
 import { useCatalogImportCandidates } from "../../hooks/usePlatformCatalogImport";
@@ -49,10 +50,9 @@ export function PlatformCatalogImportCard() {
       <CardDescription>Revisa nuevas fichas, coincidencias y contenido antes de compartirlos con el ecosistema LiftGo.</CardDescription></CardHeader>
     <CardContent className="space-y-5">
       <div className="max-w-xs space-y-2"><Label htmlFor="catalog-import-kind">Tipo de registro</Label>
-        <select id="catalog-import-kind" value={kind} onChange={(event) => setKind(event.target.value as CatalogImportKind)}
-          className="h-10 w-full rounded-md border bg-background px-3 text-sm">
+        <NativeSelect id="catalog-import-kind" value={kind} onChange={(event) => setKind(event.target.value as CatalogImportKind)}>
           {can("catalogs.import") && <><option value="model">Modelos de equipos</option><option value="part">SKUs de refacciones</option></>}{can("templates.import") && <option value="template">Plantillas de contrato y pagaré</option>}
-        </select>
+        </NativeSelect>
       </div>
       <CatalogImportCandidates key={kind} kind={kind} />
     </CardContent>

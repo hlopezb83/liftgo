@@ -145,9 +145,10 @@ function StatusSelect<V extends string>({
   ariaLabel,
   label,
 }: StatusSelectProps<V>) {
+  const effectiveAriaLabel = ariaLabel ?? (label ? `Filtrar por ${label.toLowerCase()}` : "Filtrar por estado");
   return (
     <Select value={value} onValueChange={(v) => onChange(v as V | "all")}>
-      <SelectTrigger aria-label={ariaLabel} className={cn("w-full sm:w-48", className)}>
+      <SelectTrigger aria-label={effectiveAriaLabel} className={cn("w-full sm:w-48", className)}>
         <SelectValue placeholder={placeholder ?? "Todos"}>
           {label ? `${label}: ${options.find((opt) => opt.value === value)?.label ?? placeholder ?? "Todos"}` : undefined}
         </SelectValue>
@@ -173,6 +174,7 @@ function ClearAll({ onClick, visible, label }: ClearAllProps) {
   if (!visible) return null;
   return (
     <Button
+      type="button"
       variant="ghost"
       size="sm"
       onClick={onClick}

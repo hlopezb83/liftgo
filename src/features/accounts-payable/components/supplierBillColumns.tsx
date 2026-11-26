@@ -33,7 +33,7 @@ export function useSupplierBillColumns<T extends SupplierBillTableRow = Supplier
       // al corriente; ahora se marca para que se capture.
       cell: ({ row }) => row.original.due_date
         ? formatDateMty(row.original.due_date)
-        : <span className="text-warning">Sin vencimiento</span>,
+        : <span className="text-warning-text">Sin vencimiento</span>,
     },
     {
       id: "total", header: "Total", accessorKey: "total", meta: { kind: "money" },

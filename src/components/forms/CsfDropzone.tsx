@@ -1,6 +1,7 @@
 import { useCallback, useState } from "react";
 import { ErrorCode, useDropzone, type FileRejection } from "react-dropzone";
 import { UploadIcon, DocumentIcon, SpinnerIcon, SuccessIcon } from "@/components/icons";
+import { Button } from "@/components/ui/button";
 import { useParseCsf, type ParsedCsfData } from "@/lib/fiscal/useParseCsf";
 import { notifyError, notifySuccess, notifyValidation } from "@/lib/ui/appFeedback";
 import { cn } from "@/lib/utils";
@@ -78,13 +79,16 @@ export function CsfDropzone<T>({ onParsed, mapData }: Props<T>) {
 
   if (parsed) {
     return (
-      <div className="flex items-center gap-3 rounded-lg border border-primary/30 bg-primary/5 p-4">
+      <div className="flex flex-wrap items-center gap-3 rounded-lg border border-primary/30 bg-primary/5 p-4">
         <SuccessIcon className="h-5 w-5 text-primary shrink-0" />
         <div className="flex-1 min-w-0">
           <p className="text-sm font-medium">Datos extraídos</p>
           <p className="text-xs text-muted-foreground">Revisa y completa los campos faltantes antes de guardar.</p>
         </div>
-        <DocumentIcon className="h-5 w-5 text-muted-foreground shrink-0" />
+        <Button type="button" variant="ghost" size="sm" onClick={() => setParsed(false)} className="shrink-0">
+          Cambiar archivo
+        </Button>
+        <DocumentIcon className="h-5 w-5 text-muted-foreground shrink-0 hidden sm:block" />
       </div>
     );
   }
@@ -93,12 +97,12 @@ export function CsfDropzone<T>({ onParsed, mapData }: Props<T>) {
     <div
       {...getRootProps()}
       className={cn(
-        "border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors",
+        "border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
         isDragReject
           ? "border-destructive bg-destructive/5"
           : isDragActive
             ? "border-primary bg-primary/5"
-            : "border-muted-foreground/25 hover:border-primary/50",
+            : "border-muted-foreground/25 hover:border-primary/50 hover:bg-muted/30",
         parsing && "pointer-events-none opacity-60",
       )}
       aria-label="Zona para subir Constancia de Situación Fiscal (PDF)"

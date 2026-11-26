@@ -24,7 +24,7 @@ export function EmptyState({
       <h3 className="text-lg font-semibold text-foreground mb-1">{title}</h3>
       <p className="text-sm text-muted-foreground max-w-xs">{subtitle}</p>
       {actionLabel && onAction && (
-        <Button size="sm" className="mt-5" onClick={onAction}>
+        <Button type="button" size="sm" className="mt-5" onClick={onAction}>
           {actionLabel}
         </Button>
       )}

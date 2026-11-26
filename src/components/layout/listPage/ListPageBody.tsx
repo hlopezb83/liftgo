@@ -11,6 +11,7 @@ interface Props<T extends { id?: string }> {
   customContent?: ReactNode;
   isLoading: boolean;
   isError: boolean;
+  error?: unknown;
   onRetry?: () => void;
   showEmpty: boolean;
   showMobileCards: boolean;
@@ -53,6 +54,7 @@ export function ListPageBody<T extends { id?: string }>({
   customContent,
   isLoading,
   isError,
+  error,
   onRetry,
   showEmpty,
   showMobileCards,
@@ -87,6 +89,7 @@ export function ListPageBody<T extends { id?: string }>({
       <TableContent
         isLoading={isLoading}
         isError={isError}
+        error={error}
         onRetry={onRetry}
         showEmpty={showEmpty}
         showMobileCards={showMobileCards}

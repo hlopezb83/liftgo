@@ -92,7 +92,7 @@ function DeliveriesList() {
 
   const view = useTableViewState(undefined, [{ id: "scheduled_date", desc: false }]);
   const { controlledPagination: pagination, controlledSorting: sorting, onControlledPaginationChange } = view;
-  const { data, isLoading, isError, refetch } = useDeliveriesPage({
+  const { data, isLoading, isError, error, refetch } = useDeliveriesPage({
     search: values.q, status: values.status, type: values.type, history: values.history, ...pagination, sorting,
   });
   useEffect(() => {
@@ -148,6 +148,7 @@ function DeliveriesList() {
       }
       isLoading={isLoading}
       isError={isError}
+      error={error}
       onRetry={() => { void refetch(); }}
       table={table}
       rowAction={{ columnId: "delivery_number", label: (d) => `Ver transporte ${d.delivery_number}`, to: (d) => `/deliveries/${d.id}` }}

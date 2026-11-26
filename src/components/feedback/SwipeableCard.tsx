@@ -124,19 +124,19 @@ export function SwipeableCard({ children, rightActions = [], threshold = 60, dis
       <div
         role="button"
         tabIndex={0}
-        className="relative transition-transform duration-200 ease-out touch-pan-y"
+        className="relative rounded-lg transition-transform duration-200 ease-out touch-pan-y focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
         style={{ transform: `translateX(${translateX}px)` }}
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
         onClick={handleClick}
         onKeyDown={(e) => {
-          if (isInteractive && (e.key === "ArrowLeft" || e.key === "ArrowRight")) {
+          if (isInteractive && e.target === e.currentTarget && (e.key === "ArrowLeft" || e.key === "ArrowRight")) {
             e.preventDefault();
             toggleReveal();
             return;
           }
-          if (e.key === "Enter" || e.key === " ") {
+          if (e.target === e.currentTarget && (e.key === "Enter" || e.key === " ")) {
             e.preventDefault();
             onClick?.();
           }
@@ -158,8 +158,7 @@ export function SwipeableCard({ children, rightActions = [], threshold = 60, dis
           }}
           aria-label={revealed ? "Ocultar acciones" : "Mostrar acciones"}
           aria-expanded={revealed}
-          className="absolute top-1/2 right-2 -translate-y-1/2 h-8 w-8 rounded-full bg-background/90 border shadow-sm items-center justify-center text-muted-foreground hover:text-foreground opacity-0 group-focus-within:opacity-100 focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring hidden md:flex"
-          tabIndex={-1}
+          className="absolute top-1/2 right-2 -translate-y-1/2 h-8 w-8 rounded-full bg-background/90 border shadow-sm items-center justify-center text-muted-foreground hover:text-foreground opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring transition-opacity hidden md:flex"
         >
           <span aria-hidden="true">⋯</span>
         </button>

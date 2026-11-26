@@ -25,8 +25,10 @@ export function ActivityByModule({ modules, onSelect, selected }: Props) {
           return (
             <button
               key={m.entityType}
+              type="button"
+              aria-pressed={isActive}
               onClick={() => onSelect?.(m.entityType)}
-              className={`w-full text-left rounded-md p-2 transition-colors ${isActive ? "bg-accent" : "hover:bg-muted/50"}`}
+              className={`w-full text-left rounded-md p-2 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${isActive ? "bg-accent" : "hover:bg-muted/50"}`}
             >
               <div className="flex items-center justify-between mb-1">
                 <span className="text-xs font-medium">{ENTITY_LABELS[m.entityType] ?? m.entityType}</span>

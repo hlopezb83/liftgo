@@ -23,7 +23,7 @@ export default function PendingReturnsPage() {
   // PostgREST, orden end_date ASC): el listado genérico de useBookings está
   // truncado (LIMIT) y ordenado por start_date DESC, lo que hacía desaparecer
   // de esta página los retornos más vencidos.
-  const { data: pendingReturns, isLoading, isError, refetch } = usePendingReturns();
+  const { data: pendingReturns, isLoading, isError, error, refetch } = usePendingReturns();
 
   // Alineado con get_dashboard_stats(): fin < hoy (America/Monterrey).
   const today = nowMty();
@@ -102,11 +102,12 @@ export default function PendingReturnsPage() {
 
   return (
     <ListPageLayout
-      title="Retornos Pendientes"
+      title="Devoluciones pendientes"
       subtitle="Equipos entregados cuya reserva venció y esperan devolución"
       totalCount={pendingReturns?.length}
       isLoading={isLoading}
       isError={isError}
+      error={error}
       onRetry={() => { void refetch(); }}
       table={table}
       rowAction={{ columnId: "booking_number", label: (b) => `Ver reserva ${b.booking_number}`, to: (b) => `/bookings/${b.id}` }}

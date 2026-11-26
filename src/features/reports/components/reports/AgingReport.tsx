@@ -73,7 +73,7 @@ export function AgingReport({ startDate: _startDate, endDate: _endDate }: AgingR
     { id: "customer_name", header: "Cliente", accessorKey: "customer_name", cell: ({ row }) => row.original.customer_name || "—" },
     { id: "total", header: "Saldo (MXN)", accessorFn: (i) => i.balance_mxn ?? -1, meta: { kind: "money" }, cell: ({ row }) => (
       row.original.balance_mxn == null
-        ? <span className="text-warning" title="Factura en divisa sin tipo de cambio capturado">Sin T.C.</span>
+        ? <span className="text-warning-text" title="Factura en divisa sin tipo de cambio capturado">Sin T.C.</span>
         : formatCurrency(row.original.balance_mxn)
     ) },
     { id: "due_date", header: "Vencimiento", accessorKey: "due_date", cell: ({ row }) => formatDateMty(row.original.due_date) },

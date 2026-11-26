@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import { ErrorDiagnostic } from "@/components/feedback/ErrorDiagnostic";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
+import { NativeSelect } from "@/components/ui/native-select";
 import { Textarea } from "@/components/ui/textarea";
 import { SUPPORT_SEVERITIES, SUPPORT_STATUSES, type SupportCase } from "@/lib/platformSupport.types";
 import { usePlatformSupportEditor } from "../hooks/usePlatformSupportEditor";
@@ -19,20 +20,20 @@ export function PlatformSupportEditor({ record, assignees, onRefresh, onEditStat
       <Button variant="outline" type="button" disabled={pending || needsRefresh} onClick={loadCurrent}>Cargar estado actual</Button></div>}
     <div className="grid gap-4 sm:grid-cols-2">
       <div className="space-y-2"><Label htmlFor="support-status">Estado</Label>
-        <select id="support-status" disabled={pending} className="h-10 w-full rounded-md border bg-background px-3 text-sm" value={draft.status}
+        <NativeSelect id="support-status" disabled={pending} value={draft.status}
           onChange={(e) => setDraft({ ...draft, status: e.target.value as SupportCase["status"] })}>
-          {Object.entries(SUPPORT_STATUSES).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></div>
+          {Object.entries(SUPPORT_STATUSES).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</NativeSelect></div>
       <div className="space-y-2"><Label htmlFor="support-severity">Severidad</Label>
-        <select id="support-severity" disabled={pending} className="h-10 w-full rounded-md border bg-background px-3 text-sm" value={draft.severity}
+        <NativeSelect id="support-severity" disabled={pending} value={draft.severity}
           onChange={(e) => setDraft({ ...draft, severity: e.target.value as SupportCase["severity"] })}>
-          {Object.entries(SUPPORT_SEVERITIES).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></div>
+          {Object.entries(SUPPORT_SEVERITIES).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</NativeSelect></div>
     </div>
     <div className="space-y-2"><Label htmlFor="support-assignee">Responsable</Label>
-      <select id="support-assignee" disabled={pending} className="h-10 w-full rounded-md border bg-background px-3 text-sm" value={draft.assigneeId ?? ""}
+      <NativeSelect id="support-assignee" disabled={pending} value={draft.assigneeId ?? ""}
         onChange={(e) => setDraft({ ...draft, assigneeId: e.target.value || null })}>
         <option value="">Sin asignar</option>
         {draft.assigneeId && !assignees.some((a) => a.id === draft.assigneeId) && <option value={draft.assigneeId}>Responsable ya no disponible</option>}
-        {assignees.map((a) => <option key={a.id} value={a.id}>{a.name || "Operador"}</option>)}</select></div>
+        {assignees.map((a) => <option key={a.id} value={a.id}>{a.name || "Operador"}</option>)}</NativeSelect></div>
     <div className="space-y-2"><Label htmlFor="support-comment">Nota de seguimiento para soporte</Label>
       <Textarea id="support-comment" disabled={pending} value={comment} maxLength={2000} rows={3} onChange={(e) => setComment(e.target.value)} />
       <p className="text-xs text-muted-foreground">Comparte sólo información necesaria para resolver el caso, sin contraseñas ni llaves.</p></div>

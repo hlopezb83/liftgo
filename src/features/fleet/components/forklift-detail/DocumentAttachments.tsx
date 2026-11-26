@@ -93,15 +93,19 @@ function DocumentAttachmentsContent({ entityType, entityId, canManage }: Omit<Pr
       <CardContent>
         {batch.pending && <p role="status" className="mb-3 text-sm text-muted-foreground">Subiendo archivos. Espera a que termine el lote.</p>}
         {batch.failed.length > 0 && <div className="mb-4 space-y-2" role="alert">
-          <p className="text-sm font-medium">No se pudieron subir {batch.failed.length} archivo(s).</p>
+          <p className="text-sm font-medium">
+            {batch.failed.length === 1
+              ? "No se pudo subir 1 archivo."
+              : `No se pudieron subir ${batch.failed.length} archivos.`}
+          </p>
           <ul className="space-y-1 text-sm">
             {batch.failed.map(({ file, message }, i) => <li key={i} className="break-words">{file.name}: {message}</li>)}
           </ul>
           <div className="flex flex-wrap gap-2">
-            <Button variant="outline" size="sm" disabled={batch.pending} onClick={() => { void batch.retryFailed(); }}>
+            <Button type="button" variant="outline" size="sm" disabled={batch.pending} onClick={() => { void batch.retryFailed(); }}>
               Reintentar fallidos ({batch.failed.length})
             </Button>
-            <Button variant="ghost" size="sm" disabled={batch.pending} onClick={batch.discardFailed}>Descartar fallidos</Button>
+            <Button type="button" variant="ghost" size="sm" disabled={batch.pending} onClick={batch.discardFailed}>Descartar fallidos</Button>
           </div>
         </div>}
         {isLoading ? (

@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { APP_LOCALE } from "@/lib/format/dateFormats";
-import { notifyError, notifySuccess } from "@/lib/ui/appFeedback";
+import { copyWithFeedback } from "@/lib/ui/copyWithFeedback";
 import { formatMtyDate } from "@/lib/utils";
 import { useChangelogEntry } from "../../hooks/useChangelog";
 import { TYPE_LABELS, TYPE_COLORS, DOT_COLORS, CATEGORY_LABELS } from "../../lib/changelogConstants";
@@ -24,10 +24,7 @@ export function ChangelogEntryCard({ entry, expanded, onToggle, highlighted }: P
   const copyLink = (e: ReactMouseEvent) => {
     e.stopPropagation();
     const url = `${window.location.origin}/changelog#v${entry.version}`;
-    navigator.clipboard.writeText(url).then(
-      () => notifySuccess("Enlace copiado"),
-      (err) => notifyError({ error: err, message: "No se pudo copiar el enlace" }),
-    );
+    void copyWithFeedback(url, "el enlace", "Enlace copiado");
   };
 
   return (
@@ -42,7 +39,7 @@ export function ChangelogEntryCard({ entry, expanded, onToggle, highlighted }: P
             <button
               type="button"
               onClick={onToggle}
-              className="w-full flex items-start gap-2 text-left pr-10"
+              className="w-full flex items-start gap-2 rounded-sm text-left pr-10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
               aria-expanded={expanded}
               aria-controls={`detail-${entry.version}`}
             >
@@ -53,7 +50,7 @@ export function ChangelogEntryCard({ entry, expanded, onToggle, highlighted }: P
               )}
               <div className="flex-1 space-y-2">
                 <div className="flex items-center gap-2 flex-wrap">
-                  <Badge className={TYPE_COLORS[entry.type]}>v{entry.version}</Badge>
+                  <Badge className={`${TYPE_COLORS[entry.type]} font-mono`}>v{entry.version}</Badge>
                   <Badge variant="outline">{TYPE_LABELS[entry.type]}</Badge>
                   {entry.category && <Badge variant="secondary">{CATEGORY_LABELS[entry.category]}</Badge>}
                   <span className="text-xs text-muted-foreground">
@@ -65,13 +62,15 @@ export function ChangelogEntryCard({ entry, expanded, onToggle, highlighted }: P
             </button>
             {/* R7 Bloque 21.14: botón de copiar fuera del toggle para evitar nested <button>. */}
             <Button
+              type="button"
               variant="ghost"
-              size="sm"
+              size="iconSm"
               onClick={copyLink}
-              className="absolute top-0 right-0 h-6 px-2 text-muted-foreground hover:text-foreground"
+              className="absolute top-0 right-0 h-7 w-7 text-muted-foreground hover:text-foreground"
               aria-label={`Copiar enlace a v${entry.version}`}
+              title={`Copiar enlace a v${entry.version}`}
             >
-              <LinkIcon className="h-3 w-3" />
+              <LinkIcon className="h-3.5 w-3.5" />
             </Button>
           </div>
 

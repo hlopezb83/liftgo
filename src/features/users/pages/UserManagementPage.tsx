@@ -30,7 +30,7 @@ type UserItem = UserRow & { id?: string };
 export default function UserManagementPage() {
   const navigate = useNavigateTransition();
   const { user: currentUser } = useAuth();
-  const { data: users, isLoading, isError, refetch } = useUsersWithRoles();
+  const { data: users, isLoading, isError, error, refetch } = useUsersWithRoles();
   const toggleStatus = useToggleStatus();
   // R-M13: gestión completa (crear usuarios, cambiar rol, activar/desactivar,
   // resetear contraseña, borrar) sólo con acceso "full" al módulo. Auditor
@@ -109,6 +109,7 @@ export default function UserManagementPage() {
         }
         isLoading={isLoading}
         isError={isError}
+        error={error}
         onRetry={() => { void refetch(); }}
         table={table}
         hasActiveFilters={Boolean(search) || filterRole !== "all"}

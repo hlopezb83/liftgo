@@ -54,6 +54,7 @@ export function NumberField<TFieldValues extends FieldValues>({
               <Input
                 type="number"
                 inputMode="decimal"
+                className="tabular-nums"
                 value={displayValue}
                 onChange={(e) => {
                   const raw = e.target.value;

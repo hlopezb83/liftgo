@@ -13,6 +13,7 @@ import { usePortalInvoicePayments } from "@/features/customers";
 import { getPaymentMethodLabel } from "@/features/invoices";
 import { formatDateMty } from "@/lib/format/dateFormats";
 import { formatCurrencyWithCode } from "@/lib/format/formatCurrency";
+import { Link } from "@/lib/router-compat-ui";
 
 interface PortalPayment {
   id: string;
@@ -84,19 +85,22 @@ function InvoiceRow({ row, isOpen, onToggle }: { row: PortalInvoiceRow; isOpen: 
     <>
       <TableRow>
         <TableCell className="px-2 no-print">
-          <button
+          <Button
             type="button"
+            variant="ghost"
+            size="iconSm"
             onClick={onToggle}
-            aria-label={isOpen ? "Ocultar pagos" : "Ver pagos"}
+            aria-expanded={isOpen}
+            aria-label={isOpen ? `Ocultar pagos de ${r.inv.invoice_number}` : `Ver pagos de ${r.inv.invoice_number}`}
           >
             {isOpen ? <ChevronDownIcon className="h-4 w-4" /> : <ChevronRightIcon className="h-4 w-4" />}
-          </button>
+          </Button>
         </TableCell>
-        <TableCell className="font-medium">
+        <TableCell className="font-mono font-medium">
           <span className="inline-flex items-center gap-2">
             {r.inv.invoice_number}
             {r.moneda && r.moneda !== "MXN" && (
-              <span className="rounded border px-1.5 py-0.5 text-[10px] font-mono text-muted-foreground">
+              <span className="rounded border px-1.5 py-0.5 text-3xs font-mono text-muted-foreground">
                 {r.moneda}
               </span>
             )}
@@ -105,7 +109,7 @@ function InvoiceRow({ row, isOpen, onToggle }: { row: PortalInvoiceRow; isOpen: 
         <TableCell className="hidden md:table-cell">{formatDateMty(r.inv.issued_at)}</TableCell>
         <TableCell>{r.inv.due_date ? formatDateMty(r.inv.due_date) : "—"}</TableCell>
         <TableCell className="text-right font-mono tabular-nums">{formatCurrencyWithCode(Number(r.inv.total), currency)}</TableCell>
-        <TableCell className="hidden md:table-cell text-right font-mono tabular-nums text-status-available">{formatCurrencyWithCode(r.paid, currency)}</TableCell>
+        <TableCell className="hidden md:table-cell text-right font-mono tabular-nums text-success">{formatCurrencyWithCode(r.paid, currency)}</TableCell>
         <TableCell
           className={`text-right font-mono tabular-nums ${r.balance > 0 ? "text-destructive" : ""}`}
         >
@@ -115,7 +119,7 @@ function InvoiceRow({ row, isOpen, onToggle }: { row: PortalInvoiceRow; isOpen: 
         <TableCell className="text-right no-print">
           {r.balance > 0 && (
             <Button size="sm" variant="outline" asChild>
-              <a href={`/portal/invoices/${r.inv.id}/pago`}>Pagar</a>
+              <Link to={`/portal/invoices/${r.inv.id}/pago`}>Pagar</Link>
             </Button>
           )}
         </TableCell>
@@ -128,7 +132,7 @@ function InvoiceRow({ row, isOpen, onToggle }: { row: PortalInvoiceRow; isOpen: 
             ) : paymentsQuery.isError ? (
               <div className="flex items-center gap-2 text-xs text-destructive">
                 <span>No se pudieron cargar los pagos.</span>
-                <Button size="sm" variant="outline" onClick={() => { void paymentsQuery.refetch(); }}>
+                <Button type="button" size="sm" variant="outline" onClick={() => { void paymentsQuery.refetch(); }}>
                   Reintentar
                 </Button>
               </div>

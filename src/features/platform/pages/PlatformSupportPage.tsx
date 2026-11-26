@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { NativeSelect } from "@/components/ui/native-select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { countLabel } from "@/lib/format/countLabel";
 import { listPlatformSupportFn } from "@/lib/platformSupport.functions";
@@ -34,17 +35,17 @@ export default function PlatformSupportPage() {
       <div className="space-y-2 sm:col-span-2 lg:col-span-1"><Label htmlFor="support-search">Buscar empresa, folio, módulo o título</Label>
         <div className="flex gap-2"><Input id="support-search" value={search} maxLength={100} onChange={(e) => setSearch(e.target.value)} /><Button type="submit" variant="outline">Buscar</Button></div></div>
       <div className="space-y-2"><Label htmlFor="support-filter-status">Estado</Label>
-        <select id="support-filter-status" className="h-10 w-full rounded-md border bg-background px-3 text-sm" value={filters.status ?? ""}
+        <NativeSelect id="support-filter-status" value={filters.status ?? ""}
           onChange={(e) => setFilters({ ...filters, status: e.target.value as SupportListInput["status"] || null, offset: 0 })}>
-          <option value="">Todos los estados</option><option value="open">Abiertos: nuevos, en atención o en espera</option>{Object.entries(SUPPORT_STATUSES).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></div>
+          <option value="">Todos los estados</option><option value="open">Abiertos: nuevos, en atención o en espera</option>{Object.entries(SUPPORT_STATUSES).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</NativeSelect></div>
       <div className="space-y-2"><Label htmlFor="support-filter-severity">Severidad</Label>
-        <select id="support-filter-severity" className="h-10 w-full rounded-md border bg-background px-3 text-sm" value={filters.severity ?? ""}
+        <NativeSelect id="support-filter-severity" value={filters.severity ?? ""}
           onChange={(e) => setFilters({ ...filters, severity: e.target.value as SupportListInput["severity"] || null, offset: 0 })}>
-          <option value="">Todas las severidades</option>{Object.entries(SUPPORT_SEVERITIES).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></div>
+          <option value="">Todas las severidades</option>{Object.entries(SUPPORT_SEVERITIES).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</NativeSelect></div>
       <div className="space-y-2 sm:col-span-2 lg:col-span-1"><Label htmlFor="support-filter-company">Empresa</Label>
-        <select id="support-filter-company" className="h-10 w-full rounded-md border bg-background px-3 text-sm" value={filters.organizationId ?? ""} disabled={companies.isPending || companies.isError}
+        <NativeSelect id="support-filter-company" value={filters.organizationId ?? ""} disabled={companies.isPending || companies.isError}
           onChange={(e) => setFilters({ ...filters, organizationId: e.target.value || null, offset: 0 })}>
-          <option value="">Todas las empresas</option>{companies.data?.map((company) => <option key={company.id} value={company.id}>{company.razon_social || company.name}</option>)}</select>
+          <option value="">Todas las empresas</option>{companies.data?.map((company) => <option key={company.id} value={company.id}>{company.razon_social || company.name}</option>)}</NativeSelect>
         {companies.isError && <Button type="button" variant="outline" size="sm" onClick={() => void companies.refetch()}>Reintentar filtro de empresas</Button>}</div>
     </form>
     {query.isError ? <QueryErrorState error={query.error} entity="los casos de soporte" onRetry={() => void query.refetch()} /> : query.isPending ? <Skeleton className="h-64" /> : <>

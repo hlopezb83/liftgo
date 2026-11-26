@@ -7,6 +7,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { NativeSelect } from "@/components/ui/native-select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Textarea } from "@/components/ui/textarea";
 import { SUPPORT_SEVERITIES, SUPPORT_STATUSES, type SupportCase } from "@/lib/platformSupport.types";
@@ -70,10 +71,11 @@ function SharingForm({ report, sharing, onClose }: { report: FeedbackReport; sha
     <div className="space-y-2"><Label htmlFor="share-description">Diagnóstico que recibirá soporte</Label>
       <Textarea id="share-description" maxLength={5000} minLength={10} required rows={4} value={description} onChange={(e) => setDraft({ ...draft, description: e.target.value })} /></div>
     <div className="grid gap-4 sm:grid-cols-2"><div className="space-y-2"><Label htmlFor="share-severity">Severidad</Label>
-      <select id="share-severity" className="h-10 w-full rounded-md border bg-background px-3 text-sm" value={severity} onChange={(e) => setDraft({ ...draft, severity: e.target.value })}>
-        {Object.entries(SUPPORT_SEVERITIES).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></div>
-      <div className="space-y-2"><Label htmlFor="share-request">ID del error (opcional)</Label><Input id="share-request" maxLength={36} value={requestId} onChange={(e) => setDraft({ ...draft, requestId: e.target.value })} aria-invalid={!requestValid} /></div></div>
-    {!requestValid && <p role="alert" className="text-sm text-destructive">El ID del error debe tener el formato del reporte original. Cópialo desde sus detalles.</p>}
+      <NativeSelect id="share-severity" value={severity} onChange={(e) => setDraft({ ...draft, severity: e.target.value })}>
+        {Object.entries(SUPPORT_SEVERITIES).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</NativeSelect></div>
+      <div className="space-y-2"><Label htmlFor="share-request">ID del error (opcional)</Label><Input id="share-request" maxLength={36} className="font-mono" value={requestId} onChange={(e) => setDraft({ ...draft, requestId: e.target.value })} aria-invalid={!requestValid} aria-describedby={!requestValid ? "share-request-error" : undefined} />
+        {!requestValid && <p id="share-request-error" role="alert" className="text-xs text-destructive">El ID del error debe tener el formato del reporte original. Cópialo desde sus detalles.</p>}
+      </div></div>
     {report.screenshot_url && <SharingCapture path={report.screenshot_url} checked={screenshot} onChange={(checked) => setDraft({ ...draft, screenshot: checked })} />}
     <p className="text-xs text-muted-foreground">Se compartirán estos textos, el módulo, la versión y el ID del error indicado durante 90 días. Puedes retirar el diagnóstico. El reporte original y su estado permanecen en tu empresa.</p>
     <div className="flex items-start gap-3"><Checkbox id="share-reviewed" checked={reviewed} onCheckedChange={(value) => setReviewed(value === true)} />

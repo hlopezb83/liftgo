@@ -33,8 +33,9 @@ export function DamagePhotosSection({ entityType, entityId, title = "Fotos de Da
             {imageDocuments.map((doc, i) => (
               <button
                 key={doc.id}
+                type="button"
                 onClick={() => { setLightboxIndex(i); setLightboxOpen(true); }}
-                className="aspect-square rounded-lg overflow-hidden border border-border hover:ring-2 hover:ring-primary/40 transition-all cursor-pointer"
+                className="aspect-square rounded-lg overflow-hidden border border-border hover:ring-2 hover:ring-primary/40 ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 transition-all cursor-pointer"
               >
                 <img src={doc.file_url} alt={doc.file_name} className="w-full h-full object-cover" loading="lazy" />
               </button>

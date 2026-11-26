@@ -39,7 +39,7 @@ export function GlobalInvoiceFields() {
 
     <div className="rounded-md border border-warning/40 bg-warning/10 p-4 space-y-3">
       <div className="flex flex-col">
-        <span className="text-xs font-semibold uppercase text-warning-foreground/90 tracking-wider">
+        <span className="text-xs font-semibold uppercase text-warning-text tracking-wider">
           Factura Global · Público en General
         </span>
         <span className="text-xs text-muted-foreground">

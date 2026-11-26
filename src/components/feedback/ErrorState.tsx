@@ -32,7 +32,7 @@ export function ErrorState({
       <h3 className="text-lg font-semibold text-foreground mb-1">{title}</h3>
       <p className="text-sm text-muted-foreground max-w-xs">{subtitle}</p>
       {onRetry && (
-        <Button size="sm" variant="outline" className="mt-5 gap-2" onClick={onRetry}>
+        <Button type="button" size="sm" variant="outline" className="mt-5 min-h-11 gap-2" onClick={onRetry}>
           <RefreshIcon className="h-4 w-4" />
           {retryLabel}
         </Button>

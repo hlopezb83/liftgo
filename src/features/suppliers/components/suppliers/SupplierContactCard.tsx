@@ -30,46 +30,46 @@ export function SupplierContactCard({ supplier }: { supplier: SupplierContactInf
       <CardContent className="space-y-3">
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           {supplier.contact_person && (
-            <div className="flex items-center gap-2 text-sm">
-              <span className="text-muted-foreground">Contacto:</span>
-              <span className="font-medium">{supplier.contact_person}</span>
+            <div className="flex items-center gap-2 text-sm min-w-0">
+              <span className="text-muted-foreground shrink-0">Contacto:</span>
+              <span className="font-medium truncate">{supplier.contact_person}</span>
             </div>
           )}
           {supplier.email && (
-            <div className="flex items-center gap-2 text-sm">
-              <EmailIcon className="h-4 w-4 text-muted-foreground" />
-              <a href={`mailto:${supplier.email}`} className="text-primary hover:underline">
+            <div className="flex items-center gap-2 text-sm min-w-0">
+              <EmailIcon className="h-4 w-4 text-muted-foreground shrink-0" />
+              <a href={`mailto:${supplier.email}`} className="text-primary hover:underline break-all">
                 {supplier.email}
               </a>
             </div>
           )}
           {supplier.phone && (
-            <div className="flex items-center gap-2 text-sm">
-              <PhoneIcon className="h-4 w-4 text-muted-foreground" />
+            <div className="flex items-center gap-2 text-sm min-w-0">
+              <PhoneIcon className="h-4 w-4 text-muted-foreground shrink-0" />
               <a className="break-words hover:underline focus-visible:underline" href={`tel:${supplier.phone.replace(/[^\d+]/g, "")}`}>{supplier.phone}</a>
             </div>
           )}
           {supplier.website && (
-            <div className="flex items-center gap-2 text-sm">
-              <Globe className="h-4 w-4 text-muted-foreground" />
+            <div className="flex items-center gap-2 text-sm min-w-0">
+              <Globe className="h-4 w-4 text-muted-foreground shrink-0" />
               {websiteHref(supplier.website) ? (
                 <a
                   href={websiteHref(supplier.website) as string}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-primary hover:underline"
+                  className="text-primary hover:underline break-all"
                 >
                   {supplier.website}
                 </a>
               ) : (
-                <span>{supplier.website}</span>
+                <span className="break-all">{supplier.website}</span>
               )}
             </div>
           )}
           {supplier.address && (
-            <div className="flex items-center gap-2 text-sm sm:col-span-2">
-              <LocationIcon className="h-4 w-4 text-muted-foreground" />
-              <span>{supplier.address}</span>
+            <div className="flex items-start gap-2 text-sm sm:col-span-2 min-w-0">
+              <LocationIcon className="h-4 w-4 mt-0.5 text-muted-foreground shrink-0" />
+              <span className="break-words">{supplier.address}</span>
             </div>
           )}
         </div>

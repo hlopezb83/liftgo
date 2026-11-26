@@ -20,7 +20,7 @@ import type { Payment } from "../../hooks/usePayments";
 function CnBadge({ cn }: { cn: CreditNote }) {
   if (cn.cfdi_status === "stamped") {
     if (cn.cancellation_status === "pending") {
-      return <Badge variant="outline" className="border-warning/30 text-warning">Cancel. pendiente</Badge>;
+      return <Badge variant="outline" className="border-warning/40 text-warning-text">Cancel. pendiente</Badge>;
     }
     return <Badge className="bg-success text-success-foreground hover:bg-success/90">Timbrada</Badge>;
   }
@@ -55,7 +55,7 @@ export function CreditNoteNotices({
         <div className="mx-6 mb-4 rounded-md border border-destructive/30 bg-destructive/10 p-3 text-sm">
           <p className="font-medium">No se puede emitir una nota de crédito</p>
           <p className="mt-1 text-xs text-muted-foreground">
-            Esta factura tiene {fxMissingReps} complemento(s) de pago timbrado(s) en una moneda distinta a la
+            Esta factura tiene {fxMissingReps === 1 ? "1 complemento de pago timbrado" : `${fxMissingReps} complementos de pago timbrados`} en una moneda distinta a la
             de la factura, sin tipo de cambio capturado. Sin ese dato no se puede calcular el máximo
             acreditable. Captura el tipo de cambio del pago y vuelve a intentarlo.
           </p>
@@ -74,7 +74,7 @@ export function CreditNoteNotices({
       )}
       {fxMissingOtherPayments > 0 && (
         <p className="mx-6 mb-4 text-xs text-muted-foreground">
-          Hay {fxMissingOtherPayments} pago(s) sin complemento de pago vigente que no se pueden convertir a {currency}.
+          Hay {fxMissingOtherPayments === 1 ? "1 pago" : `${fxMissingOtherPayments} pagos`} sin complemento de pago vigente que no se pueden convertir a {currency}.
           Captura su tipo de cambio para calcular el importe cobrado y el posible saldo a favor.
         </p>
       )}

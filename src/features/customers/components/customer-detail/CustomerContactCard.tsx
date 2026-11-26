@@ -39,7 +39,7 @@ export function CustomerContactCard({ customer }: CustomerContactCardProps) {
           <section aria-label="Datos fiscales" className="space-y-3 border-t pt-4">
             <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Datos fiscales</h4>
             <dl className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4">
-              {rfc && <div className="min-w-0"><dt className="text-xs text-muted-foreground">RFC</dt><dd className="break-words font-medium">{rfc}</dd></div>}
+              {rfc && <div className="min-w-0"><dt className="text-xs text-muted-foreground">RFC</dt><dd className="break-words font-mono font-medium">{rfc}</dd></div>}
               {customer.representante_legal && <div className="min-w-0"><dt className="text-xs text-muted-foreground">Representante Legal</dt><dd className="break-words font-medium [overflow-wrap:anywhere]">{customer.representante_legal}</dd></div>}
             </dl>
           </section>

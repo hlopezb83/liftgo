@@ -41,7 +41,7 @@ function CancellationBlock({ flags, invoiceId }: { flags: Flags; invoiceId: stri
   return (
     <>
       {flags.isPendingCancel && (
-        <Badge variant="outline" className="border-warning/30 text-warning">
+        <Badge variant="outline" className="border-warning/40 text-warning-text">
           Cancelación solicitada · esperando SAT
         </Badge>
       )}

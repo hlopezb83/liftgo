@@ -1,5 +1,6 @@
 import { InfoRow } from "@/components/forms/InfoRow";
 import type { Tables } from "@/integrations/supabase/types";
+import { countLabel } from "@/lib/format/countLabel";
 import { formatDateMty } from "@/lib/format/dateFormats";
 import { formatCurrencyWithCode } from "@/lib/format/formatCurrency";
 
@@ -12,7 +13,7 @@ interface Props {
 }
 
 /**
- * Resumen previo a convertir una cotización en reserva(s).
+ * Resumen previo a convertir una cotización en reservas.
  * Contesta las cuatro preguntas que el usuario tenía que adivinar antes:
  * a qué cliente, en qué periodo, cuántas reservas y por cuánto.
  */
@@ -24,7 +25,7 @@ export function ConvertQuoteSummary({ quote, durationDays, unitCount }: Props) {
       : "Sin fechas definidas";
   const duracion =
     durationDays > 0
-      ? `${durationDays} día(s)${months >= 1 ? ` · ~${months} mes(es)` : ""}`
+      ? `${countLabel(durationDays, "día", "días")}${months >= 1 ? ` · ~${countLabel(months, "mes", "meses")}` : ""}`
       : "—";
 
   return (
@@ -39,7 +40,7 @@ export function ConvertQuoteSummary({ quote, durationDays, unitCount }: Props) {
         <InfoRow label="Duración" value={duracion} />
       </div>
       <div className="px-3 py-2">
-        <InfoRow label="Reservas a crear" value={`${unitCount} unidad(es)`} />
+        <InfoRow label="Reservas a crear" value={countLabel(unitCount, "unidad", "unidades")} />
       </div>
       <div className="px-3 py-2">
         <InfoRow label="Total cotizado" value={formatCurrencyWithCode(quote.total ?? 0, quote.currency ?? "MXN")} />

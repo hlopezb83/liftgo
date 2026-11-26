@@ -46,7 +46,7 @@ const FIELD_LABELS: Record<string, string> = {
   name: "Nombre", model: "Modelo", manufacturer: "Fabricante", serial_number: "Número de Serie",
   fuel_type: "Tipo de Combustible", capacity_kg: "Capacidad (kg)", mast_height_m: "Altura de Mástil (m)",
   year: "Año", address: "Dirección", phone: "Teléfono", email: "Correo Electrónico", company: "Empresa",
-  rfc: "RFC", driver_name: "Nombre del Operador", driver_phone: "Teléfono del Operador",
+  rfc: "RFC", driver_name: "Nombre del conductor", driver_phone: "Teléfono del conductor",
   service_type: "Tipo de Servicio", performed_by: "Realizado por", cost: "Costo",
   estimated_cost: "Costo Estimado", actual_cost: "Costo Real", condition: "Condición",
   fuel_level: "Nivel de Combustible", hours_used: "Horas Usadas", damage_notes: "Notas de Daño",
@@ -55,7 +55,7 @@ const FIELD_LABELS: Record<string, string> = {
   payment_method: "Método de Pago", payment_date: "Fecha de Pago", reference_number: "Número de Referencia",
   type: "Tipo", completed_at: "Fecha de Completado", image_url: "Imagen", return_status: "Estado de Devolución",
   last_billed_date: "Última Fecha de Facturación", line_items: "Partidas", valid_until: "Válido Hasta",
-  company_name: "Empresa", contact_person: "Contacto", deal_value: "Valor del Deal", stage: "Etapa",
+  company_name: "Empresa", contact_person: "Contacto", deal_value: "Valor del prospecto", stage: "Etapa",
   quote_id: "Cotización", closed_at: "Fecha de Cierre", lost_reason: "Razón de Pérdida",
   final_amount: "Monto Final", stage_order: "Orden en Etapa",
   // Oleada 1 (A-2): campos que se veían crudos

@@ -57,7 +57,7 @@ export function TextareaField<TFieldValues extends FieldValues, TContext = unkno
               <div className="flex justify-between">
                 {description ? <FormDescription>{description}</FormDescription> : <span />}
                 {showCount && maxLength && (
-                  <span className="text-xs text-muted-foreground">
+                  <span className="text-xs text-muted-foreground tabular-nums">
                     {value.length} / {maxLength}
                   </span>
                 )}

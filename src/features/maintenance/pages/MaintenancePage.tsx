@@ -30,7 +30,7 @@ export default function MaintenancePage() {
   const { forkliftMap, forklifts } = useForkliftMap();
   // R5-A6: vista de archivados para restaurar OTs archivadas por error.
   const [showArchived, setShowArchived] = useState(false);
-  const { data: logsRaw, isLoading, isError, refetch } = useMaintenanceLogs(undefined, showArchived);
+  const { data: logsRaw, isLoading, isError, error, refetch } = useMaintenanceLogs(undefined, showArchived);
   const logs = visibleListRows(logsRaw);
   const { data: activeMechanics } = useActiveMechanics();
   const [generationResult, setGenerationResult] = useState<GenerateMaintenanceResponse | null>(null);
@@ -130,6 +130,7 @@ export default function MaintenancePage() {
 
         isLoading={isLoading}
         isError={isError}
+        error={error}
         onRetry={() => { void refetch(); }}
         onRefresh={refetch}
         table={table}

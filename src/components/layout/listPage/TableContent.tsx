@@ -11,6 +11,7 @@ import type { ReactNode } from "react";
 export interface TableContentProps<T extends { id?: string }> {
   isLoading: boolean;
   isError: boolean;
+  error?: unknown;
   onRetry?: () => void;
   showEmpty: boolean;
   showMobileCards: boolean;
@@ -31,12 +32,12 @@ export interface TableContentProps<T extends { id?: string }> {
 }
 
 export function TableContent<T extends { id?: string }>({
-  isLoading, isError, onRetry, showEmpty, showMobileCards, items, table,
+  isLoading, isError, error, onRetry, showEmpty, showMobileCards, items, table,
   emptyMessage, emptyIcon, emptyActionLabel, onEmptyAction,
   hasActiveFilters, onClearFilters,
   onRowClick, rowAction, onRowPrefetch, mobileCardRender, mobileKeyExtractor, skeletonColumns,
 }: TableContentProps<T>) {
-  if (isError) return <ErrorState onRetry={onRetry} />;
+  if (isError) return <ErrorState error={error} onRetry={onRetry} />;
   if (isLoading) return <TableSkeleton columnCount={skeletonColumns} />;
   if (showEmpty) {
     // UX-M6: EmptyState honesto — si hay filtros aplicados no fingimos que no
