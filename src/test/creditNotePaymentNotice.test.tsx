@@ -33,14 +33,19 @@ describe("BF02: rendered non-REP notice", () => {
     expect(screen.queryByText(/\$50\.00/)).not.toBeInTheDocument();
   });
 
-  it("does not label a known partial sum as total when another payment has no usable FX rate", () => {
+  it.each([
+    [1, /1 pago sin complemento de pago vigente que no se puede convertir a MXN/],
+    [2, /2 pagos sin complemento de pago vigente que no se pueden convertir a MXN/],
+  ] as const)("does not present a partial sum as the total with %i unconvertible payment(s)", (count, warning) => {
     const payments = [
-      paymentFixture({ id: "qa-unknown-fx", amount: 50, currency: "USD", exchange_rate: 0 }),
+      ...Array.from({ length: count }, (_, i) =>
+        paymentFixture({ id: `qa-unknown-fx-${i}`, amount: 50, currency: "USD", exchange_rate: 0 }),
+      ),
       paymentFixture({ id: "qa-known-mxn", amount: 100, currency: "MXN" }),
     ];
     const limits = computeCreditNoteLimits(1160, [], payments, { moneda: "MXN" });
     render(<CreditNoteNotices {...limits} invoiceTotal={1160} priorCredits={0} currency="MXN" />);
-    expect(screen.getByText(/no se pueden convertir a MXN/)).toHaveTextContent("1 pago(s)");
+    expect(screen.getByText(warning)).toBeInTheDocument();
     expect(screen.queryByText(/cobrados sin complemento/)).not.toBeInTheDocument();
     expect(screen.queryByText("No se puede emitir una nota de crédito")).not.toBeInTheDocument();
   });

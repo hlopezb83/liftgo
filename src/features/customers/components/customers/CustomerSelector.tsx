@@ -121,8 +121,7 @@ export function CustomerSelector({
     search.setSearchTerm("");
   };
 
-  const handleClear = (e: React.MouseEvent) => {
-    e.stopPropagation();
+  const handleClear = () => {
     setLastSelection(undefined);
     onCustomerIdChange("");
     onCustomerNameChange("");

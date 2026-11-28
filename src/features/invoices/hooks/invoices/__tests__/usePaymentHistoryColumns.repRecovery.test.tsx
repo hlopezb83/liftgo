@@ -172,7 +172,7 @@ describe("REP recovery action", () => {
       payment(), payment({ id: "none", rep_cfdi_status: "none" }),
       payment({ id: "uncertain", rep_cfdi_status: "stamping" }),
     ]} />, { wrapper: Wrapper });
-    expect(screen.getByText(/2 pagos sin Complemento de Pago/)).toBeInTheDocument();
+    expect(screen.getByText(/2 pagos sin Complemento de pago/)).toBeInTheDocument();
     expect(screen.getAllByRole("button", { name: "Timbrar REP" })).toHaveLength(2);
   });
 

@@ -74,7 +74,7 @@ export function CreditNoteNotices({
       )}
       {fxMissingOtherPayments > 0 && (
         <p className="mx-6 mb-4 text-xs text-muted-foreground">
-          Hay {fxMissingOtherPayments === 1 ? "1 pago" : `${fxMissingOtherPayments} pagos`} sin complemento de pago vigente que no se pueden convertir a {currency}.
+          Hay {fxMissingOtherPayments === 1 ? "1 pago" : `${fxMissingOtherPayments} pagos`} sin complemento de pago vigente que no se {fxMissingOtherPayments === 1 ? "puede" : "pueden"} convertir a {currency}.
           Captura su tipo de cambio para calcular el importe cobrado y el posible saldo a favor.
         </p>
       )}
