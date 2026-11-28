@@ -30,6 +30,7 @@
     "test:multitenant-ab": "playwright test --config playwright.multitenant.config.ts",
     "test:functions": "bash scripts/deno-tests-offline.sh",
     "test:ci-tools": "node --test scripts/tests/ci-drizzle-*.test.mjs",
+    "ci:vitest-profile": "node scripts/ci/update-vitest-profile.mjs",
     "changelog:check": "bun scripts/validate-changelog.ts",
     "migrations:check": "bun scripts/check-drizzle-journal.ts",
     "restore:verify": "bun scripts/restore-rehearsal/verify.ts",

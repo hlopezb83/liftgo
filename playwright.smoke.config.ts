@@ -12,8 +12,8 @@ export default defineConfig({
   testDir: "./tests/smoke",
   timeout: 60_000,
   expect: { timeout: 10_000 },
-  fullyParallel: false,
-  workers: 1,
+  fullyParallel: true,
+  workers: process.env.CI ? 2 : 1,
   retries: process.env.CI ? 1 : 0,
   reporter: process.env.CI ? [["list"], ["github"]] : [["list"]],
   use: {

@@ -11,7 +11,7 @@ permissions:
   contents: read
 concurrency:
   group: ci-${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
 jobs:
   quality:
     name: Calidad
@@ -40,6 +40,8 @@ jobs:
         with:
           path: ~/.bun/install/cache
           key: ${{ runner.os }}-${{ runner.arch }}-bun-v2-${{ hashFiles('bun.lock', 'package.json', '.bun-version', '.node-version') }}
+          restore-keys: |
+            ${{ runner.os }}-${{ runner.arch }}-bun-v2-
       - name: Instalación congelada
         run: |
           node scripts/verify-ci-runtime.mjs
@@ -52,9 +54,16 @@ jobs:
           GITHUB_TOKEN: ${{ github.token }}
           GITLEAKS_ENABLE_SUMMARY: "true"
           GITLEAKS_ENABLE_COMMENTS: "false"
+      - name: Caché de ESLint
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
+        with:
+          path: .eslintcache
+          key: ${{ runner.os }}-${{ runner.arch }}-eslint-v1-${{ hashFiles('eslint.config.js', 'eslint.group-c-design.config.mjs', 'bun.lock', 'package.json') }}-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-${{ runner.arch }}-eslint-v1-${{ hashFiles('eslint.config.js', 'eslint.group-c-design.config.mjs', 'bun.lock', 'package.json') }}-
       - name: ESLint
         run: |
-          bun run lint --max-warnings=0
+          node node_modules/eslint/bin/eslint.js . --concurrency auto --cache --cache-strategy content --cache-location .eslintcache --max-warnings=0
           node node_modules/eslint/bin/eslint.js --config eslint.group-c-design.config.mjs --max-warnings=0 tests/design-group-c tests/offlineTeardown.ts tests/offlineTeardown.test.mjs playwright.group-c-design.config.ts playwright.group-c-component.config.ts vite.group-c-fixture.config.ts
       - name: Revisión de dependencias
         if: github.event_name == 'pull_request'
@@ -63,14 +72,30 @@ jobs:
           fail-on-severity: high
           comment-summary-in-pr: never
           allow-licenses: MIT, Apache-2.0, BSD-2-Clause, BSD-3-Clause, ISC, 0BSD, CC0-1.0, Unlicense, Python-2.0, MPL-2.0, CC-BY-4.0, BlueOak-1.0.0
+      - name: Caché de TypeScript
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
+        with:
+          path: .tsbuildinfo
+          key: ${{ runner.os }}-${{ runner.arch }}-tsc-v1-${{ hashFiles('tsconfig.json', 'tsconfig.browser-tests.json', 'bun.lock', 'package.json') }}-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-${{ runner.arch }}-tsc-v1-${{ hashFiles('tsconfig.json', 'tsconfig.browser-tests.json', 'bun.lock', 'package.json') }}-
       - name: TypeScript
         run: |
-          bun run typecheck
-          bun run typecheck:browser-tests
+          mkdir -p .tsbuildinfo
+          node node_modules/typescript/bin/tsc --noEmit --incremental --tsbuildinfofile .tsbuildinfo/app.tsbuildinfo &
+          pid_app=$!
+          node node_modules/typescript/bin/tsc --noEmit -p tsconfig.browser-tests.json --incremental --tsbuildinfofile .tsbuildinfo/browser-tests.tsbuildinfo &
+          pid_browser=$!
+          status=0
+          wait "$pid_app" || status=$?
+          wait "$pid_browser" || status=$?
+          exit "$status"
       - name: Arquitectura y dependencias
         run: |
           bash scripts/arch-check.sh
           bun run test:dependencies
+          bun run knip
+          bun run changelog:check
       - name: Contratos de calidad
         run: |
           node --test scripts/tests/release-identity.test.mjs scripts/tests/eslint-guardrails.test.mjs scripts/tests/feature-imports.test.mjs scripts/tests/browser-typecheck.test.mjs scripts/tests/lint-migrations.test.mjs scripts/tests/quality-workflow.test.mjs
@@ -158,6 +183,14 @@ jobs:
         uses: denoland/setup-deno@22d081ff2d3a40755e97629de92e3bcbfa7cf2ed # v2.0.5
         with:
           deno-version: v2.9.8
+      - name: Caché de Deno
+        if: steps.changes.outputs.functions == 'true' || github.event_name == 'workflow_dispatch'
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
+        with:
+          path: ~/.cache/deno
+          key: ${{ runner.os }}-${{ runner.arch }}-deno-v1-${{ hashFiles('supabase/functions/deno.json', 'supabase/functions/deno.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-${{ runner.arch }}-deno-v1-
       - name: Funciones offline
         if: steps.changes.outputs.functions == 'true' || github.event_name == 'workflow_dispatch'
         run: |
@@ -167,9 +200,9 @@ jobs:
           cd ../..
           bash scripts/deno-tests-offline.sh
   tests:
-    name: Unitarias ${{ matrix.shard }}/4
+    name: Unitarias ${{ matrix.shard }}/8
     runs-on: ubuntu-24.04
-    timeout-minutes: 6
+    timeout-minutes: 8
     strategy:
       fail-fast: false
       matrix:
@@ -178,6 +211,10 @@ jobs:
           - 2
           - 3
           - 4
+          - 5
+          - 6
+          - 7
+          - 8
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
@@ -197,6 +234,8 @@ jobs:
         with:
           path: ~/.bun/install/cache
           key: ${{ runner.os }}-${{ runner.arch }}-bun-v2-${{ hashFiles('bun.lock', 'package.json', '.bun-version', '.node-version') }}
+          restore-keys: |
+            ${{ runner.os }}-${{ runner.arch }}-bun-v2-
       - name: Instalación congelada
         run: |
           node scripts/verify-ci-runtime.mjs
@@ -206,7 +245,7 @@ jobs:
       - name: Vitest completo sin cobertura
         env:
           SHARD: ${{ matrix.shard }}
-          SHARDS: "4"
+          SHARDS: "8"
           VITEST_CI_BALANCED: "1"
           NODE_OPTIONS: --max-old-space-size=6144
         run: node node_modules/vitest/vitest.mjs run --shard="$SHARD/$SHARDS"
@@ -243,6 +282,8 @@ jobs:
         with:
           path: ~/.bun/install/cache
           key: ${{ runner.os }}-${{ runner.arch }}-bun-v2-${{ hashFiles('bun.lock', 'package.json', '.bun-version', '.node-version') }}
+          restore-keys: |
+            ${{ runner.os }}-${{ runner.arch }}-bun-v2-
       - name: Instalación congelada
         run: |
           node scripts/verify-ci-runtime.mjs
@@ -251,12 +292,17 @@ jobs:
           test "$lock_before" = "$(sha256sum bun.lock)"
       - name: Build real con backend ficticio
         run: node scripts/browser-test-server.mjs --build-only
+      - name: Versión de Playwright
+        id: playwright-ver
+        run: printf 'version=%s\n' "$(node -p "require('./node_modules/@playwright/test/package.json').version")" >> "$GITHUB_OUTPUT"
       - name: Caché de Chromium
+        id: chromium-cache
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
         with:
           path: ~/.cache/ms-playwright
-          key: ${{ runner.os }}-${{ runner.arch }}-chromium-v2-${{ hashFiles('bun.lock') }}
+          key: ${{ runner.os }}-${{ runner.arch }}-chromium-v3-${{ steps.playwright-ver.outputs.version }}
       - name: Preparar Chromium
+        if: steps.chromium-cache.outputs.cache-hit != 'true'
         # ubuntu-24.04 already supplies the browser's system libraries.
         run: node node_modules/@playwright/test/cli.js install chromium
       - name: Contrato de aislamiento de navegador y Worker

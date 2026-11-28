@@ -33,8 +33,6 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           persist-credentials: false
-      - name: Excluir archivos de entorno locales
-        run: rm -f -- .env .env.*
       - name: Excluir entorno local
         run: rm -f -- .env .env.* .dev.vars .dev.vars.*
       - name: Node del proyecto
@@ -50,6 +48,8 @@ jobs:
         with:
           path: ~/.bun/install/cache
           key: ${{ runner.os }}-${{ runner.arch }}-bun-v2-${{ hashFiles('bun.lock', 'package.json', '.bun-version', '.node-version') }}
+          restore-keys: |
+            ${{ runner.os }}-${{ runner.arch }}-bun-v2-
       - name: Instalación congelada
         run: |
           node scripts/verify-ci-runtime.mjs
@@ -58,12 +58,17 @@ jobs:
           test "$lock_before" = "$(sha256sum bun.lock)"
       - name: Compilar build ficticio independiente
         run: node scripts/browser-test-server.mjs --build-only
+      - name: Versión de Playwright
+        id: playwright-ver
+        run: printf 'version=%s\n' "$(node -p "require('./node_modules/@playwright/test/package.json').version")" >> "$GITHUB_OUTPUT"
       - name: Caché de Chromium
+        id: chromium-cache
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
         with:
           path: ~/.cache/ms-playwright
-          key: ${{ runner.os }}-${{ runner.arch }}-chromium-v2-${{ hashFiles('bun.lock') }}
+          key: ${{ runner.os }}-${{ runner.arch }}-chromium-v3-${{ steps.playwright-ver.outputs.version }}
       - name: Preparar Chromium
+        if: steps.chromium-cache.outputs.cache-hit != 'true'
         # ubuntu-24.04 ya incluye las bibliotecas del navegador.
         run: node node_modules/@playwright/test/cli.js install chromium
       - name: Verificar aislamiento de navegador y Worker con destinos locales
@@ -96,8 +101,6 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           persist-credentials: false
-      - name: Excluir archivos de entorno locales
-        run: rm -f -- .env .env.*
       - name: Excluir entorno local
         run: rm -f -- .env .env.* .dev.vars .dev.vars.*
       - name: Node del proyecto
@@ -113,6 +116,8 @@ jobs:
         with:
           path: ~/.bun/install/cache
           key: ${{ runner.os }}-${{ runner.arch }}-bun-v2-${{ hashFiles('bun.lock', 'package.json', '.bun-version', '.node-version') }}
+          restore-keys: |
+            ${{ runner.os }}-${{ runner.arch }}-bun-v2-
       - name: Instalación congelada
         run: |
           node scripts/verify-ci-runtime.mjs
@@ -121,12 +126,17 @@ jobs:
           test "$lock_before" = "$(sha256sum bun.lock)"
       - name: Compilar build ficticio independiente
         run: node scripts/browser-test-server.mjs --build-only
+      - name: Versión de Playwright
+        id: playwright-ver
+        run: printf 'version=%s\n' "$(node -p "require('./node_modules/@playwright/test/package.json').version")" >> "$GITHUB_OUTPUT"
       - name: Caché de Chromium
+        id: chromium-cache
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
         with:
           path: ~/.cache/ms-playwright
-          key: ${{ runner.os }}-${{ runner.arch }}-chromium-v2-${{ hashFiles('bun.lock') }}
+          key: ${{ runner.os }}-${{ runner.arch }}-chromium-v3-${{ steps.playwright-ver.outputs.version }}
       - name: Preparar Chromium
+        if: steps.chromium-cache.outputs.cache-hit != 'true'
         # ubuntu-24.04 ya incluye las bibliotecas del navegador.
         run: node node_modules/@playwright/test/cli.js install chromium
       - name: Verificar aislamiento de navegador y Worker con destinos locales
@@ -177,6 +187,8 @@ jobs:
         with:
           path: ~/.bun/install/cache
           key: ${{ runner.os }}-${{ runner.arch }}-bun-v2-${{ hashFiles('bun.lock', 'package.json', '.bun-version', '.node-version') }}
+          restore-keys: |
+            ${{ runner.os }}-${{ runner.arch }}-bun-v2-
       - name: Instalación congelada
         run: |
           node scripts/verify-ci-runtime.mjs
@@ -191,6 +203,7 @@ jobs:
       - name: Vitest (shard ${{ matrix.shard }}/6)
         env:
           NODE_OPTIONS: --max-old-space-size=6144
+          VITEST_CI_BALANCED: "1"
           VITEST_SHARD_BLOB: "1"
         run: node node_modules/vitest/vitest.mjs run --shard=${{ matrix.shard }}/6 --coverage
       - name: Sellar procedencia del shard
@@ -230,6 +243,8 @@ jobs:
         with:
           path: ~/.bun/install/cache
           key: ${{ runner.os }}-${{ runner.arch }}-bun-v2-${{ hashFiles('bun.lock', 'package.json', '.bun-version', '.node-version') }}
+          restore-keys: |
+            ${{ runner.os }}-${{ runner.arch }}-bun-v2-
       - name: Instalación congelada
         run: |
           node scripts/verify-ci-runtime.mjs
@@ -377,6 +392,8 @@ jobs:
         with:
           path: ~/.bun/install/cache
           key: ${{ runner.os }}-${{ runner.arch }}-bun-v2-${{ hashFiles('bun.lock', 'package.json', '.bun-version', '.node-version') }}
+          restore-keys: |
+            ${{ runner.os }}-${{ runner.arch }}-bun-v2-
       - name: Instalación congelada
         run: |
           node scripts/verify-ci-runtime.mjs
@@ -417,10 +434,15 @@ jobs:
         run: node scripts/ci-drizzle-function-report.mjs
       - name: Prepare reports directory
         run: mkdir -p reports
+      - name: Preparar PostgreSQL 17
+        id: postgres17
+        timeout-minutes: 2
+        run: bash scripts/ci/setup-postgres-17.sh
       - name: Recurring invoice locking regression (18 isolated scenarios)
         env:
           RUN_LOCAL_RECURRING_TESTS: "1"
-          PG_BIN: /usr/lib/postgresql/16/bin
+          PG_BIN: ${{ steps.postgres17.outputs.bin }}
+          LD_LIBRARY_PATH: ${{ steps.postgres17.outputs.lib }}
         run: |
           set -euo pipefail
           for binary in initdb pg_ctl postgres; do
@@ -436,7 +458,8 @@ jobs:
         timeout-minutes: 5
         env:
           RUN_LOCAL_QUOTE_CHARGE_TESTS: "1"
-          PG_BIN: /usr/lib/postgresql/16/bin
+          PG_BIN: ${{ steps.postgres17.outputs.bin }}
+          LD_LIBRARY_PATH: ${{ steps.postgres17.outputs.lib }}
         run: |
           set -euo pipefail
           for binary in initdb pg_ctl postgres; do
@@ -459,20 +482,23 @@ jobs:
       - name: REP recovery persistence (real isolated PostgreSQL, synthetic PAC)
         env:
           RUN_LOCAL_FISCAL_TESTS: "1"
-          PG_BIN: /usr/lib/postgresql/16/bin
+          PG_BIN: ${{ steps.postgres17.outputs.bin }}
+          LD_LIBRARY_PATH: ${{ steps.postgres17.outputs.lib }}
         run: |
           set -euo pipefail
           node node_modules/typescript/bin/tsc --noEmit -p scripts/tests/fiscal/tsconfig.json
           node scripts/tests/fiscal/run-rep-postgres.mjs 2>&1 | tee reports/rep-postgres-integration.log
       - name: Statement documents and inherited ACL regression (isolated PostgreSQL)
         env:
-          PG_BIN: /usr/lib/postgresql/16/bin
+          PG_BIN: ${{ steps.postgres17.outputs.bin }}
+          LD_LIBRARY_PATH: ${{ steps.postgres17.outputs.lib }}
         run: |
           set -euo pipefail
           node scripts/tests/reports/income-statement-documents.cjs 2>&1 | tee reports/statement-documents.log
       - name: Statement calculation and detail regression (isolated PostgreSQL)
         env:
-          PG_BIN: /usr/lib/postgresql/16/bin
+          PG_BIN: ${{ steps.postgres17.outputs.bin }}
+          LD_LIBRARY_PATH: ${{ steps.postgres17.outputs.lib }}
         run: |
           set -euo pipefail
           node scripts/tests/reports/income-statement-calculations.cjs 2>&1 | tee reports/statement-calculations.log
@@ -568,20 +594,23 @@ jobs:
         with:
           path: ~/.bun/install/cache
           key: ${{ runner.os }}-${{ runner.arch }}-bun-v2-${{ hashFiles('bun.lock', 'package.json', '.bun-version', '.node-version') }}
+          restore-keys: |
+            ${{ runner.os }}-${{ runner.arch }}-bun-v2-
       - name: Instalación congelada
         run: |
           node scripts/verify-ci-runtime.mjs
           lock_before=$(sha256sum bun.lock)
           bun install --frozen-lockfile
           test "$lock_before" = "$(sha256sum bun.lock)"
-      - name: Prepare disposable PostgreSQL runtime
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y postgresql-16
+      - name: Preparar PostgreSQL 17
+        id: postgres17
+        timeout-minutes: 2
+        run: bash scripts/ci/setup-postgres-17.sh
       - name: Verify synthetic inventory isolation and pagination
         env:
           RUN_LOCAL_INVENTORY_TESTS: "1"
-          PG_BIN: /usr/lib/postgresql/16/bin
+          PG_BIN: ${{ steps.postgres17.outputs.bin }}
+          LD_LIBRARY_PATH: ${{ steps.postgres17.outputs.lib }}
         run: node scripts/tests/inventory/run-local-postgres.mjs
     if: github.event_name == 'workflow_dispatch' && (inputs.suite == 'rls' || inputs.suite == 'all')
   multiempresa:
@@ -619,6 +648,8 @@ jobs:
         with:
           path: ~/.bun/install/cache
           key: ${{ runner.os }}-${{ runner.arch }}-bun-v2-${{ hashFiles('bun.lock', 'package.json', '.bun-version', '.node-version') }}
+          restore-keys: |
+            ${{ runner.os }}-${{ runner.arch }}-bun-v2-
       - name: Instalación congelada
         run: |
           node scripts/verify-ci-runtime.mjs
@@ -725,12 +756,17 @@ jobs:
             echo "::error::.dev.vars contiene el ref productivo"; exit 1
           fi
           echo ".dev.vars OK: 4 bindings presentes, URL loopback, sin ref productivo"
+      - name: Versión de Playwright
+        id: playwright-ver
+        run: printf 'version=%s\n' "$(node -p "require('./node_modules/@playwright/test/package.json').version")" >> "$GITHUB_OUTPUT"
       - name: Caché de Chromium
+        id: chromium-cache
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
         with:
           path: ~/.cache/ms-playwright
-          key: ${{ runner.os }}-${{ runner.arch }}-chromium-v2-${{ hashFiles('bun.lock') }}
+          key: ${{ runner.os }}-${{ runner.arch }}-chromium-v3-${{ steps.playwright-ver.outputs.version }}
       - name: Preparar Chromium
+        if: steps.chromium-cache.outputs.cache-hit != 'true'
         # ubuntu-24.04 ya incluye las bibliotecas del navegador.
         run: node node_modules/@playwright/test/cli.js install chromium
       - name: Historical quote charge review browser (6 cases)

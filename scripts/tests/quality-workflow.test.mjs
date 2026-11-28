@@ -33,3 +33,19 @@ test('CI uses no production secrets and keeps its real isolated Worker smoke', (
     for (const use of source.matchAll(/uses: (\S+)/g)) assert.match(use[1], /@[0-9a-f]{40}$/);
   }
 });
+test('CI preserves main runs, enforces knip/changelog, uses resilient caches, and balances manual coverage', () => {
+  assert.match(ci, /cancel-in-progress:\s*\$\{\{\s*github\.ref != 'refs\/heads\/main'\s*\}\}/);
+  assert.match(ci, /--concurrency auto/);
+  assert.match(ci, /bun run knip/);
+  assert.match(ci, /bun run changelog:check/);
+  assert.match(ci, /Caché de Deno/);
+  assert.match(manual, /VITEST_CI_BALANCED:\s*"1"/);
+  assert.doesNotMatch(manual, /Excluir archivos de entorno locales/);
+  assert.doesNotMatch(manual, /apt-get install -y postgresql-16/);
+  for (const source of [ci, manual]) {
+    assert.doesNotMatch(source, /chromium-v2-\$\{\{\s*hashFiles\('bun\.lock'\)\s*\}\}/);
+    const bunCaches = source.match(/path: ~\/\.bun\/install\/cache/g) ?? [];
+    const bunRestores = source.match(/\$\{\{ runner\.os \}\}-\$\{\{ runner\.arch \}\}-bun-v2-\n/g) ?? [];
+    assert.equal(bunRestores.length, bunCaches.length, 'every Bun package cache must declare restore-keys');
+  }
+});
