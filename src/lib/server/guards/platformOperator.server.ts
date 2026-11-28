@@ -1,20 +1,40 @@
 /**
  * Operador de plataforma (tramo 9 multiempresa, server-only).
  */
+import type { Database } from "@/integrations/supabase/types";
+import type { PlatformCapability } from "@/lib/auth/platformAccess.types";
 import { setVerifiedServerIdentity } from "@/lib/observability/serverSentry.server";
-import type { PlatformCapability } from "@/lib/platformAccess.types";
 import { type AdminClient, type CallerClient, HttpError } from "./httpError";
 
+type PublicFunctions = Database["public"]["Functions"];
+
+export type NullableRpcArgs<T> = { [K in keyof T]: T[K] | null | undefined };
+
+/** PostgREST acepta cursores bigint como string decimal para preservar precisión > 2^53-1. */
+type PlatformBigintCursorOverrides = {
+  platform_get_support: { p_before?: number | string };
+  platform_list_audit_events: { p_before_id?: number | string };
+};
+
+type ZeroArgRpcName = {
+  [Fn in keyof PublicFunctions]: [PublicFunctions[Fn]["Args"]] extends [never] ? Fn : never;
+}[keyof PublicFunctions];
+
+export type PlatformRpcArgs<Fn extends keyof PublicFunctions> = Fn extends keyof PlatformBigintCursorOverrides
+  ? Omit<PublicFunctions[Fn]["Args"], keyof PlatformBigintCursorOverrides[Fn]> & PlatformBigintCursorOverrides[Fn]
+  : PublicFunctions[Fn]["Args"];
+
 /**
- * RPC sin tipado generado: los objetos de la migración 0030
- * (`platform_operators`, `is_platform_operator`, `platform_*`) todavía no
- * están en `src/integrations/supabase/types.ts` (se regenera al aplicar la
- * migración). El contrato se fija aquí, no en el navegador.
+ * Fachada tipada sobre `Database["public"]["Functions"]` que conserva el nombre
+ * `asUntypedRpc` por compatibilidad con tests y guards existentes.
  */
 export interface UntypedRpcClient {
-  rpc(
-    fn: string,
-    args?: Record<string, unknown>,
+  rpc<Fn extends ZeroArgRpcName>(
+    fn: Fn,
+  ): PromiseLike<{ data: unknown; error: { message: string; code?: string } | null }>;
+  rpc<Fn extends keyof PublicFunctions>(
+    fn: Fn,
+    args: NullableRpcArgs<PlatformRpcArgs<Fn>>,
   ): PromiseLike<{ data: unknown; error: { message: string; code?: string } | null }>;
 }
 

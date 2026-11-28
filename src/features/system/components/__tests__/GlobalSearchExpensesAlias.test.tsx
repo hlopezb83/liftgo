@@ -32,7 +32,7 @@ vi.mock("@/features/users", async (importOriginal) => {
 vi.mock("@/app-routes/routes-config", () => ({ routeLoaders: {} }));
 vi.mock("@/hooks/useNavigateTransition", () => ({ useNavigateTransition: () => state.navigate }));
 vi.mock("@/hooks/useDebouncedValue", () => ({ useDebouncedValue: (value: string) => value }));
-vi.mock("@/features/system/hooks/useEntitySearch", () => ({
+vi.mock("../../hooks/useEntitySearch", () => ({
   useEntitySearch: (_query: string, _enabled: boolean, activeQuery: string) => ({ activeQuery,
     data: undefined, isFetching: false, isPending: false, isError: false,
     canSearchEntities: false, isResolvingAccess: false,

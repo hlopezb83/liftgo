@@ -5,12 +5,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { FUEL_TYPES, FUEL_TYPE_LABELS } from "@/lib/constants";
-import { listPlatformEquipmentModelsFn, type PlatformEquipmentModelRow } from "@/lib/platformCatalog.functions";
+import { FUEL_TYPE_LABELS, FUEL_TYPES } from "@/lib/constants";
 import { notifyValidation } from "@/lib/ui/appFeedback";
-import { useSavePlatformEquipmentModel } from "../hooks/usePlatformEquipmentCatalog";
+import { useGetPlatformEquipmentModel, useSavePlatformEquipmentModel } from "../hooks/usePlatformEquipmentCatalog";
 import { isPlatformEditConflict } from "../lib/platformEditConflict";
 import { PlatformCurrentFields, PlatformEditConflict } from "./PlatformEditConflict";
+import type { PlatformEquipmentModelRow } from "../lib/platformCatalog.types";
 
 type FormState = {
   manufacturer: string;
@@ -42,6 +42,7 @@ export function PlatformEquipmentModelDialog({
   model: PlatformEquipmentModelRow | null;
 }) {
   const save = useSavePlatformEquipmentModel();
+  const getModel = useGetPlatformEquipmentModel();
   const fuelId = useId();
   const [expectedUpdatedAt, setExpectedUpdatedAt] = useState(model?.updated_at);
   const [specifications, setSpecifications] = useState(model?.specifications ?? {});
@@ -96,7 +97,7 @@ export function PlatformEquipmentModelDialog({
     >
       <div className="grid gap-4 py-2">
         {conflict && <PlatformEditConflict loadCurrent={async () => {
-          const current = (await listPlatformEquipmentModelsFn()).find((row) => row.id === model?.id);
+          const current = model?.id ? await getModel(model.id) : null;
           if (!current) throw new Error("El modelo ya no está disponible.");
           setSpecifications(current.specifications);
           return { token: current.updated_at, preview: <PlatformCurrentFields values={{

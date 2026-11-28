@@ -6,13 +6,13 @@ import { Button } from "@/components/ui/button";
 import {
   CommandDialog, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList,
 } from "@/components/ui/command";
-import { useEntitySearch, type EntityResults } from "@/features/system/hooks/useEntitySearch";
 import { getNavigationAccessLevel, useHasFinancialAccess, useHasModuleAccess, useRolePermissions, useUserRole } from "@/features/users";
 import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import { SEARCH_NAVIGATION_ITEMS, type SearchNavigationItem } from "@/lib/navigation/navigationCatalog";
 import { notifyError } from "@/lib/ui/appFeedback";
 import { restoreModalFocus } from "@/lib/ui/restoreModalFocus";
+import { useEntitySearch, type EntityResults } from "../hooks/useEntitySearch";
 import { normalizeQuoteNumber } from "../lib/quoteSearchTerm";
 
 const SECTION_LABELS: Record<string, string> = {

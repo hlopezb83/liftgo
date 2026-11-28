@@ -1,6 +1,6 @@
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import type { PlatformOnboardingInput } from "@/lib/platformOnboarding.types";
+import type { PlatformOnboardingInput } from "../lib/platformOnboarding.types";
 
 type Draft = Omit<PlatformOnboardingInput, "request_id">;
 export function PlatformOrganizationFormFields({

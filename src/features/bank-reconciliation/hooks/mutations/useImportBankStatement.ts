@@ -39,11 +39,6 @@ export interface ImportResult {
   };
 }
 
-type UntypedRpc = (
-  name: string,
-  args: Record<string, unknown>,
-) => PromiseLike<{ data: unknown; error: { message: string } | null }>;
-
 export const BANK_IMPORT_CHUNK_SIZE = 500;
 
 function normalizeImportResult(row: ImportRpcRow | Record<string, unknown> | null): ImportResult {
@@ -68,13 +63,14 @@ function rpcRow<T>(data: unknown): T | null {
  * canónicas y lo hace dentro de una única transacción de base de datos.
  */
 export async function importBankStatement(args: ImportArgs): Promise<ImportResult> {
-  const rpc = supabase.rpc.bind(supabase) as unknown as UntypedRpc;
-  const { data: beginData, error: beginError } = await rpc("begin_bank_statement_upload", {
+  const periodStart = args.periodStart ?? args.lines[0]?.posted_date ?? "";
+  const periodEnd = args.periodEnd ?? args.lines.at(-1)?.posted_date ?? periodStart;
+  const { data: beginData, error: beginError } = await supabase.rpc("begin_bank_statement_upload", {
     p_upload_id: args.uploadId,
     p_bank_account_id: args.bankAccountId,
     p_file_name: args.fileName,
-    p_period_start: args.periodStart,
-    p_period_end: args.periodEnd,
+    p_period_start: periodStart,
+    p_period_end: periodEnd,
     p_expected_count: args.lines.length,
   });
   if (beginError) throw beginError;
@@ -94,7 +90,7 @@ export async function importBankStatement(args: ImportArgs): Promise<ImportResul
   }));
 
   for (let offset = 0; offset < serializedLines.length; offset += BANK_IMPORT_CHUNK_SIZE) {
-    const { error: stageError } = await rpc("stage_bank_statement_chunk", {
+    const { error: stageError } = await supabase.rpc("stage_bank_statement_chunk", {
       p_upload_id: args.uploadId,
       p_chunk_index: Math.floor(offset / BANK_IMPORT_CHUNK_SIZE),
       p_lines: serializedLines.slice(offset, offset + BANK_IMPORT_CHUNK_SIZE),
@@ -102,7 +98,7 @@ export async function importBankStatement(args: ImportArgs): Promise<ImportResul
     if (stageError) throw stageError;
   }
 
-  const { data: finalizeData, error: finalizeError } = await rpc(
+  const { data: finalizeData, error: finalizeError } = await supabase.rpc(
     "finalize_bank_statement_upload",
     { p_upload_id: args.uploadId },
   );

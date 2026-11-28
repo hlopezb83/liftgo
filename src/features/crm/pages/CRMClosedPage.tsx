@@ -1,3 +1,4 @@
+import { useCallback } from "react";
 import { QueryErrorState } from "@/components/feedback/QueryErrorState";
 import { SearchIcon } from "@/components/icons";
 import { PageContainer } from "@/components/layout/PageContainer";
@@ -18,7 +19,7 @@ function closedTabLabel(label: string, filtered: number, total: number, searchin
 export default function CRMClosedPage() {
   const s = useClosedProspects();
   const navigate = useNavigateTransition();
-  const handleViewCustomer = (id: string) => navigate(`/customers/${id}`);
+  const handleViewCustomer = useCallback((id: string) => navigate(`/customers/${id}`), [navigate]);
   // R18-C1: sólo roles con acceso full a Clientes ven "Convertir".
   const canConvert = useHasModuleAccess("Clientes", "full");
   const searching = !!s.search.trim();

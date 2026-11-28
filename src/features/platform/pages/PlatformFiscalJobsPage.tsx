@@ -1,17 +1,16 @@
-import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { QueryErrorState } from "@/components/feedback/QueryErrorState";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { countLabel } from "@/lib/format/countLabel";
-import { listPlatformFiscalJobsFn } from "@/lib/platformFiscalJobs.functions";
-import { fiscalJobsInputSchema, type FiscalJobsInput } from "@/lib/platformFiscalJobs.types";
 import { useLocation } from "@/lib/router-compat";
 import { PlatformFiscalJobCard } from "../components/PlatformFiscalJobCard";
 import { PlatformFiscalJobDetail } from "../components/PlatformFiscalJobDetail";
 import { PlatformFiscalJobFilters } from "../components/PlatformFiscalJobFilters";
+import { usePlatformFiscalJobs } from "../hooks/usePlatformFiscalJobs";
 import { healthDate } from "../hooks/usePlatformHealth";
+import { fiscalJobsInputSchema, type FiscalJobsInput } from "../lib/platformFiscalJobs.types";
 
 export default function PlatformFiscalJobsPage() {
   const location = useLocation();
@@ -21,8 +20,7 @@ export default function PlatformFiscalJobsPage() {
   });
   const [search, setSearch] = useState("");
   const [selected, setSelected] = useState<string | null>(null);
-  const query = useQuery({ queryKey: ["platform", "fiscal-jobs", "list", filters], staleTime: 30_000, retry: false,
-    queryFn: ({ signal }) => listPlatformFiscalJobsFn({ data: filters, signal }) });
+  const query = usePlatformFiscalJobs(filters);
   return <>
     <PageHeader title="Trabajos fiscales" subtitle="Cola de Facturapi por empresa, documento y operación."
       actions={<Button variant="outline" className="min-h-11" disabled={query.isFetching} onClick={() => void query.refetch()}>Actualizar trabajos</Button>} />

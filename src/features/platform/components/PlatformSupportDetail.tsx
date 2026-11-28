@@ -1,4 +1,3 @@
-import { useInfiniteQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { QueryErrorState } from "@/components/feedback/QueryErrorState";
 import { Badge } from "@/components/ui/badge";
@@ -6,10 +5,9 @@ import { Button } from "@/components/ui/button";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Skeleton } from "@/components/ui/skeleton";
-import { getPlatformSupportFn } from "@/lib/platformSupport.functions";
-import { SUPPORT_SEVERITIES, SUPPORT_STATUSES, type SupportCase } from "@/lib/platformSupport.types";
-import { withSupportRequest } from "@/lib/supportRequest";
+import { SUPPORT_SEVERITIES, SUPPORT_STATUSES, type SupportCase } from "@/lib/support/platformSupport.types";
 import { usePlatformCapabilities } from "../hooks/usePlatformAccess";
+import { usePlatformSupportDetail } from "../hooks/usePlatformSupport";
 import { PlatformSupportDiagnostic } from "./PlatformSupportDiagnostic";
 import { PlatformSupportEditor } from "./PlatformSupportEditor";
 import { PlatformSupportHistory } from "./PlatformSupportHistory";
@@ -25,9 +23,7 @@ export function PlatformSupportDetail({ caseId, onClose }: { caseId: string; onC
     if (editState.pending) return;
     if (editState.dirty) setDiscard(true); else onClose();
   }
-  const query = useInfiniteQuery({ queryKey: ["platform", "support", "detail", caseId], initialPageParam: null as string | null,
-    queryFn: ({ pageParam, signal }) => withSupportRequest((requestSignal) => getPlatformSupportFn({ data: { caseId, before: pageParam }, signal: requestSignal }), signal),
-    getNextPageParam: (page) => page.nextCursor, staleTime: 0, retry: false, refetchInterval: 30_000 });
+  const query = usePlatformSupportDetail(caseId);
   const data = query.data?.pages[0];
   const record = data?.case;
   const heading = supportHeading(record);

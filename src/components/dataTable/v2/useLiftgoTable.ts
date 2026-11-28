@@ -59,7 +59,7 @@ function resolveSelectable<T extends RowData>(
   return (row) => setting(row.original);
 }
 
-function buildTableState<T extends RowData>(args: {
+function buildTableState(args: {
   sorting: SortingState;
   rowSelection: RowSelectionState;
   pagination: PaginationState;

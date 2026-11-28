@@ -5,7 +5,7 @@ import {
   buildInitialMaintenanceForm,
   maintenanceFormSchema,
 } from "../maintenanceFormHelpers";
-import type { MaintenanceLog } from "../../hooks/maintenance/useMaintenanceLogs";
+import type { MaintenanceLog } from "../../hooks/useMaintenanceLogs";
 
 describe("buildInitialMaintenanceForm", () => {
   it("entrega valores nuevos sin compartir objetos Date entre aperturas", () => {

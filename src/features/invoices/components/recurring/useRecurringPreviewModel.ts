@@ -11,7 +11,7 @@ import {
   type RecurringSelectionState,
 } from "../../lib/recurringSelection";
 import { buildCustomerGroups, rentalTotalsLabel } from "./recurringPreviewPresentation";
-import type { RecurringPreviewLine, RecurringPreviewResponse, RecurringPreviewScope } from "../../hooks/invoices/recurring/usePreviewRecurringInvoices";
+import type { RecurringPreviewLine, RecurringPreviewResponse, RecurringPreviewScope } from "../../hooks/recurring/usePreviewRecurringInvoices";
 
 interface ModelProps {
   open: boolean;

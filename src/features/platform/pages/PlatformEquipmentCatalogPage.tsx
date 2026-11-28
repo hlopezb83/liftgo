@@ -1,4 +1,3 @@
-import { Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { QueryErrorState } from "@/components/feedback/QueryErrorState";
 import { AddIcon, EditIcon, FleetIcon } from "@/components/icons";
@@ -8,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { FUEL_TYPE_LABELS } from "@/lib/constants";
-import type { PlatformEquipmentModelRow } from "@/lib/platformCatalog.functions";
+import { Link } from "@/lib/router-compat-ui";
 import { PlatformEquipmentModelDialog } from "../components/PlatformEquipmentModelDialog";
 import { PlatformLegalTemplatesCard } from "../components/PlatformLegalTemplatesCard";
 import { PlatformPartsCatalogCard } from "../components/PlatformPartsCatalogCard";
@@ -17,6 +16,7 @@ import {
   usePlatformEquipmentCatalog,
   useSetPlatformEquipmentModelActive,
 } from "../hooks/usePlatformEquipmentCatalog";
+import type { PlatformEquipmentModelRow } from "../lib/platformCatalog.types";
 
 export default function PlatformEquipmentCatalogPage() {
   const { can } = usePlatformCapabilities();

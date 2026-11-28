@@ -1,10 +1,12 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import type { SupportCase, SupportDetail } from "@/lib/platformSupport.types";
-const update = vi.hoisted(() => vi.fn());
-vi.mock("@/lib/platformSupport.functions", () => ({ updatePlatformSupportFn: update }));
+import type { SupportCase, SupportDetail } from "@/lib/support/platformSupport.types";
 import { PlatformSupportEditor } from "../components/PlatformSupportEditor";
+import { platformKeys } from "../lib/queryKeys";
+
+const update = vi.hoisted(() => vi.fn());
+vi.mock("../lib/platformSupport.functions", () => ({ updatePlatformSupportFn: update }));
 const record: SupportCase = { id: "94000000-0000-4000-8000-000000000001", organizationId: "94000000-0000-4000-8000-000000000002",
   organizationName: "Empresa CI", folio: "FB-0001", revision: "1", status: "new", severity: "medium", assigneeId: null, assigneeName: null,
   createdAt: "now", updatedAt: "now", shared: true, sharedUntil: "later", title: "Reporte", description: "Diagnóstico", module: "Flota", appVersion: "8.43.0", requestId: null, hasScreenshot: false };
@@ -34,7 +36,7 @@ describe("seguimiento concurrente: borrador y revisión", () => {
   });
   it("publica la respuesta confirmada en caché sin presentar su propio guardado como conflicto", async () => {
     const cache = new QueryClient({ defaultOptions: { mutations: { retry: false } } });
-    const key = ["platform", "support", "detail", record.id];
+    const key = platformKeys.support.detail(record.id);
     const page: SupportDetail = { case: record, events: [], nextCursor: null, assignees: [] };
     cache.setQueryData(key, { pages: [page], pageParams: [null] });
     update.mockResolvedValue({ ...record, revision: "2", status: "resolved" });

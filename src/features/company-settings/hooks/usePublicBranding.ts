@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { publicBrandingQueries } from "../lib/queryKeys";
+import { publicBrandingQueries } from "../lib/companySettingsQueries";
 
 /**
  * Obtiene la **identidad legal mínima** de la organización (razón social) SIN

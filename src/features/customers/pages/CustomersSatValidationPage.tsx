@@ -28,7 +28,7 @@ import {
   SAT_VALIDATION_PAGE_SIZE,
   type SatValidationRow,
   type SatValidationStatus,
-} from "../hooks/customers/useSatValidation";
+} from "../hooks/useSatValidation";
 import { SAT_VALIDATION_ROLES } from "../lib/satAccess";
 
 const STATUS_LABEL: Record<SatValidationStatus, string> = {

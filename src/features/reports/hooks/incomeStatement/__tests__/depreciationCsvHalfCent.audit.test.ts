@@ -1,6 +1,6 @@
 import { renderHook } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
-import { formatCell } from "../../../components/reports/incomeStatement/incomeStatementHelpers";
+import { formatCell } from "../../../components/incomeStatement/incomeStatementHelpers";
 import { buildComparisonCsvRows, buildCsvRows, buildStatementRows } from "../statementRowFactories";
 import { computeDerivedTotals, emptyExpenses, type MonthData, type StatementRow, type ComparisonRow } from "../types";
 import { useComparisonRows } from "../useStatementRows";

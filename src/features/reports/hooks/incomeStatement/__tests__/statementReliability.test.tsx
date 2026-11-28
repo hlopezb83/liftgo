@@ -7,22 +7,22 @@ import {
   screen,
 } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { useStatementTotals } from "@/features/reports/hooks/incomeStatement/useStatementTotals";
+import { useStatementTotals } from "../useStatementTotals";
 import {
   buildDepreciationBreakdownRows,
   buildComparisonCsvRows,
-} from "@/features/reports/hooks/incomeStatement/statementRowFactories";
+} from "../statementRowFactories";
 import {
   computeDerivedTotals,
   emptyExpenses,
   type MonthData,
-} from "@/features/reports/hooks/incomeStatement/types";
+} from "../types";
 import {
   IncomeStatementDocument,
   type IncomeStatementDocumentProps,
 } from "@/lib/pdf/documents/IncomeStatementDocument";
-import { useStatementRows } from "@/features/reports/hooks/incomeStatement/useStatementRows";
-import { getBreakdownFor } from "@/features/reports/components/reports/incomeStatement/incomeStatementHelpers";
+import { useStatementRows } from "../useStatementRows";
+import { getBreakdownFor } from "../../../components/incomeStatement/incomeStatementHelpers";
 
 vi.mock("@react-pdf/renderer", () => {
   const tag =

@@ -6,7 +6,7 @@ import BookingForm from "../BookingForm";
 const submit = vi.hoisted(() => vi.fn());
 vi.mock("@/features/customers", () => ({ CustomerSelector: () => null }));
 vi.mock("@/features/fleet", async () => ({
-  ...await import("@/features/fleet/components/fleet/ForkliftSelector"),
+  ...await import("@/features/fleet/components/ForkliftSelector"),
   ForkliftAvailabilityHelp: () => null,
   useAvailableForklifts: (range?: { from?: Date; to?: Date }) => {
     const inverted = !!range?.from && !!range?.to && range.from > range.to;
@@ -17,8 +17,8 @@ vi.mock("@/features/fleet", async () => ({
       isLoading: false, isError: false, isFetching: false, refetch: vi.fn() };
   },
 }));
-vi.mock("../../components/bookings/BookingDraftNotice", () => ({ BookingDraftNotice: () => null }));
-vi.mock("../../components/bookings/BookingPostDialogs", () => ({ BookingPostDialogs: () => null }));
+vi.mock("../../components/BookingDraftNotice", () => ({ BookingDraftNotice: () => null }));
+vi.mock("../../components/BookingPostDialogs", () => ({ BookingPostDialogs: () => null }));
 vi.mock("../../hooks/bookingForm/useBookingFormLogic", async () => {
   const { useBookingFormState } = await import("../../hooks/bookingForm/useBookingFormState");
   return { useBookingFormLogic: () => {

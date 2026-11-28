@@ -10,7 +10,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useTableFilters } from "@/hooks/filters/useTableFilters";
 import { useListPage } from "@/hooks/useListPage";
-import { ChangelogEntryCard } from "../components/changelog/ChangelogEntryCard";
+import { ChangelogEntryCard } from "../components/ChangelogEntryCard";
 import { useChangelog, useChangelogArchive } from "../hooks/useChangelog";
 import { useChangelogDeepLink } from "../hooks/useChangelogDeepLink";
 import { getCurrentVersion } from "../lib/changelog";

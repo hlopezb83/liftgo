@@ -4,12 +4,12 @@ import { useConfirm } from "@/components/feedback/useConfirm";
 import { Paperclip, DeleteIcon, UploadIcon, DocumentIcon, Image, File } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { DOC_ACCEPT, DOC_MAX_BYTES, partitionFiles } from "@/features/fleet/lib/documentAttachmentRules";
 import { useHasModuleAccess } from "@/features/users";
 import { useDocuments, useDeleteDocument } from "@/hooks/useDocuments";
 import { useVerifiedIdentityScope } from "@/lib/query/useVerifiedIdentityScope";
 import { notifySuccess, notifyValidation } from "@/lib/ui/appFeedback";
 import { useDocumentUploadBatch } from "../../hooks/useDocumentUploadBatch";
+import { DOC_ACCEPT, DOC_MAX_BYTES, partitionFiles } from "../../lib/documentAttachmentRules";
 
 
 function FileIcon({ mime }: { mime?: string | null }) {

@@ -4,10 +4,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { CREDIT_NOTE_MOTIVES as MOTIVES } from "@/features/invoices/lib/creditNoteMotives";
 import type { Tables } from "@/integrations/supabase/types";
 import { formatCurrencyWithCode } from "@/lib/format/formatCurrency";
 import { useCreditNoteForm } from "../../hooks/creditNotes/useCreditNoteForm";
+import { CREDIT_NOTE_MOTIVES as MOTIVES } from "../../lib/creditNoteMotives";
 import { CreditNoteLinesTable } from "./CreditNoteLinesTable";
 
 interface Props {

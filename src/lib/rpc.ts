@@ -1,19 +1,7 @@
 import { supabase } from "@/integrations/supabase/client";
 import type { Database } from "@/integrations/supabase/types";
 
-type RpcName =
-  | keyof Database["public"]["Functions"]
-  | "save_invoice_with_sources"
-  | "complete_delivery"
-  | "get_cash_flow_recurring_bookings"
-  | "get_feedback_reports_by_status"
-  | "get_income_statement_documents"
-  | "get_sale_available_forklifts"
-  | "get_dashboard_fleet_counts"
-  | "get_my_support_case"
-  | "share_my_support_report"
-  | "update_supplier_bill_details"
-  | "withdraw_my_support_report";
+type RpcName = keyof Database["public"]["Functions"];
 
 /**
  * Typed wrapper around supabase.rpc that lets callers declare the expected

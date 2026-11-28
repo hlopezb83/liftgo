@@ -7,14 +7,18 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
-import { listPlatformLegalTemplatesFn, type LegalTemplateContent, type PlatformLegalTemplateRow } from "@/lib/platformLegalTemplates.functions";
 import { notifyValidation } from "@/lib/ui/appFeedback";
 import { usePlatformCapabilities } from "../../hooks/usePlatformAccess";
-import { usePlatformLegalTemplateAssignments, usePublishPlatformLegalTemplateVersion } from "../../hooks/usePlatformLegalTemplates";
+import {
+  useGetPlatformLegalTemplate,
+  usePlatformLegalTemplateAssignments,
+  usePublishPlatformLegalTemplateVersion,
+} from "../../hooks/usePlatformLegalTemplates";
 import { isPlatformEditConflict } from "../../lib/platformEditConflict";
 import { PlatformEditConflict } from "../PlatformEditConflict";
 import { LegalTemplateContentEditor } from "./LegalTemplateContentEditor";
 import { LegalTemplateComparison, LegalTemplatePreview } from "./LegalTemplatePreview";
+import type { LegalTemplateContent, PlatformLegalTemplateRow } from "../../lib/platformLegalTemplates.types";
 
 export function PlatformLegalTemplatePublishDialog({
   template,
@@ -32,6 +36,7 @@ export function PlatformLegalTemplatePublishDialog({
   const [baseContent, setBaseContent] = useState(template.content);
   const [baseVersion, setBaseVersion] = useState(Number(template.current_version ?? 0));
   const { can } = usePlatformCapabilities();
+  const getTemplate = useGetPlatformLegalTemplate();
   const assignments = usePlatformLegalTemplateAssignments(template.id, open && assignAll && can("templates.assign"));
   const publish = usePublishPlatformLegalTemplateVersion();
   const conflict = isPlatformEditConflict(publish.error);
@@ -64,7 +69,7 @@ export function PlatformLegalTemplatePublishDialog({
     >
       <div className="space-y-6 py-2">
         {conflict && <PlatformEditConflict loadCurrent={async () => {
-          const current = (await listPlatformLegalTemplatesFn()).find((row) => row.id === template.id);
+          const current = await getTemplate(template.id);
           if (!current) throw new Error("La plantilla ya no está disponible.");
           setBaseContent(current.content); setBaseVersion(Number(current.current_version ?? 0));
           return { token: current.current_version_id, preview: <LegalTemplatePreview content={current.content} /> };

@@ -20,7 +20,7 @@ import { RoleGuard } from "@/layouts/RoleGuard";
 import { useParams } from "@/lib/router-compat";
 import { notifyError, notifySuccess } from "@/lib/ui/appFeedback";
 import { cn } from "@/lib/utils";
-import { EquipmentAvailabilityLookup } from "../components/fleet/EquipmentAvailabilityLookup";
+import { EquipmentAvailabilityLookup } from "../components/EquipmentAvailabilityLookup";
 import { DocumentAttachments } from "../components/forklift-detail/DocumentAttachments";
 import { ForkliftBookingsList } from "../components/forklift-detail/ForkliftBookingsList";
 import { ForkliftFinancialCard } from "../components/forklift-detail/ForkliftFinancialCard";

@@ -32,8 +32,8 @@ vi.mock("../../hooks/useInventoryPart", async () => {
   const { usePartsInventory } = await import("../../hooks/usePartsInventory");
   return { useInventoryPart: (id: string | null) => ({ ...usePartsInventory(), data: usePartsInventory().data?.find((p) => p.id === id) ?? null }) };
 });
-vi.mock("../../components/inventory/PartFormDialog", () => ({ PartFormDialog: () => null }));
-vi.mock("../../components/inventory/ActivatePartDialog", () => ({ ActivatePartDialog: () => null }));
+vi.mock("../../components/PartFormDialog", () => ({ PartFormDialog: () => null }));
+vi.mock("../../components/ActivatePartDialog", () => ({ ActivatePartDialog: () => null }));
 vi.mock("@/components/ui/sheet", () => ({
   Sheet: ({ open, children }: { open: boolean; children: ReactNode }) => open ? <div role="dialog" aria-label="Detalle">{children}</div> : null,
   SheetContent: ({ children }: { children: ReactNode }) => <div>{children}</div>,

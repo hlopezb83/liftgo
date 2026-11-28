@@ -6,10 +6,10 @@ import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
 import { NativeSelect } from "@/components/ui/native-select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import type { PlatformLegalTemplateRow } from "@/lib/platformLegalTemplates.types";
 import { healthDate } from "../../hooks/usePlatformHealth";
 import { usePlatformLegalTemplateVersions } from "../../hooks/usePlatformLegalTemplates";
 import { LegalTemplateComparison, LegalTemplatePreview } from "./LegalTemplatePreview";
+import type { PlatformLegalTemplateRow } from "../../lib/platformLegalTemplates.types";
 
 export function PlatformLegalTemplateHistoryDialog({ template, onClose }: {
   template: PlatformLegalTemplateRow; onClose: () => void;

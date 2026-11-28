@@ -14,10 +14,16 @@ describe("obsolete VAT only blocks new operations, never rewrites history", () =
       expect(() => assertNoLegacyVat(document)).toThrow("11%");
     }
   });
-  it.each([null, undefined, 0, 8, 16])("leaves non-legacy rates %s alone without endorsing eligibility", (rate) => {
-    expect(isNotObsoleteVat(rate)).toBe(true);
-    expect(serverHasLegacyVat({ tax_rate: rate })).toBe(false);
-  });
+  it.each([null, undefined, 0, 8, 16, [11], { valueOf: () => 11 }])(
+    "leaves non-legacy or non-primitive rates %o alone identically in both runtimes",
+    (rate) => {
+      expect(isNotObsoleteVat(rate)).toBe(true);
+      expect(hasLegacyVat({ tax_rate: rate })).toBe(false);
+      expect(serverHasLegacyVat({ tax_rate: rate })).toBe(false);
+      expect(hasLegacyVat({ tax_rate: 16, line_items: [{ ...line, tax_rate: rate }] })).toBe(false);
+      expect(serverHasLegacyVat({ tax_rate: 16, line_items: [{ ...line, tax_rate: rate }] })).toBe(false);
+    },
+  );
   it("keeps historical calculations, loaded invoices and quote copies unchanged, but rejects new submission", () => {
     const source = { tax_rate: 11, line_items: [line], customer_id: "qa", customer_name: "QA", issued_at: "2013-01-01" };
     const before = JSON.stringify(source);

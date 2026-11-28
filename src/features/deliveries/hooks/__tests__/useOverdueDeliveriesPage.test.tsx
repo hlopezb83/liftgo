@@ -36,7 +36,7 @@ beforeEach(() => {
 it("uses one bounded RPC with tenant assertion and forwards cancellation", async () => {
   const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   expect(await client.fetchQuery(overdueDeliveriesPageOptions(state.org, state.user, filters, true))).toEqual(page);
-  expect(state.rpc).toHaveBeenCalledExactlyOnceWith("get_overdue_deliveries_page", args);
+  expect(state.rpc).toHaveBeenCalledExactlyOnceWith("get_overdue_deliveries_page", { ...args, p_search: undefined });
   expect(state.signal).toHaveBeenCalledWith(expect.any(AbortSignal));
   client.clear();
 });

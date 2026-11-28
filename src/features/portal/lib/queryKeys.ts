@@ -1,18 +1,11 @@
 /**
- * Query keys y query definitions para la feature `portal`.
+ * Query keys y tipos puros para la feature `portal`.
  *
+ * Las query definitions con I/O viven en `./portalQueries`.
  * Los payment intents viven en `@/features/invoices/lib/paymentIntentsQueryKeys`
  * (donde son consumidos) para evitar el ciclo `invoices → portal`.
  */
-import { supabase } from "@/integrations/supabase/client";
-import { defineEntityQueries } from "@/lib/query/defineEntityQueries";
-import { callRpc } from "@/lib/rpc";
-
-/**
- * Evita que supabase-js parse el string de `.select(...)` a nivel de tipos.
- * Usado junto con `.returns<T>()` según la guía de performance del query builder.
- */
-const sel = (s: string): string => s;
+import { createEntityKeys } from "@/lib/query/createEntityKeys";
 
 export interface PortalQuoteListRow {
   id: string;
@@ -24,7 +17,7 @@ export interface PortalQuoteListRow {
   created_at: string;
 }
 
-interface PortalQuoteDetailRow extends PortalQuoteListRow {
+export interface PortalQuoteDetailRow extends PortalQuoteListRow {
   subtotal: number;
   tax_rate: number;
   tax_amount: number;
@@ -40,66 +33,17 @@ export interface PortalCollectionAccount {
   currency: string | null;
 }
 
-const QUOTE_LIST_COLUMNS = sel(
-  "id, quote_number, status, valid_until, total, currency, created_at",
-);
+export const portalQuoteKeys = createEntityKeys("portal_quotes");
 
-const QUOTE_DETAIL_COLUMNS = sel(
-  "id, quote_number, status, valid_until, total, currency, created_at, subtotal, tax_rate, tax_amount, line_items, accepted_at",
-);
-
-const portalQuotesQueries = defineEntityQueries<
-  "portal_quotes",
-  PortalQuoteListRow[],
-  PortalQuoteDetailRow | null
->("portal_quotes", {
-  staleTime: 60_000,
-  list: () => async () => {
-    const { data, error } = await supabase
-      .from("quotes")
-      .select(QUOTE_LIST_COLUMNS)
-      .order("created_at", { ascending: false })
-      .returns<PortalQuoteListRow[]>();
-    if (error) throw error;
-    return data ?? [];
-  },
-  detail: (id: string) => async () => {
-    const { data, error } = await supabase
-      .from("quotes")
-      .select(QUOTE_DETAIL_COLUMNS)
-      .eq("id", id)
-      .maybeSingle()
-      .returns<PortalQuoteDetailRow>();
-    if (error) throw error;
-    return data;
-  },
-});
-
-const portalCollectionAccountQueries = defineEntityQueries<
-  "portal_collection_account",
-  PortalCollectionAccount | null,
-  never
->("portal_collection_account", {
-  staleTime: 5 * 60_000,
-  list: () => async () => {
-    const data = await callRpc<PortalCollectionAccount[] | null>(
-      "get_portal_collection_account",
-    );
-    return (data ?? [])[0] ?? null;
-  },
-});
-
-/**
- * Agrupa las definiciones de queries de la feature `portal`.
- *
- * Uso:
- *   useQuery(portalQueries.quotes.list());
- *   useQuery(portalQueries.quotes.detail(id));
- *   useQuery(portalQueries.collectionAccount.list());
- *
- * Para payment intents ver `@/features/invoices/lib/paymentIntentsQueryKeys`.
- */
-export const portalQueries = {
-  quotes: portalQuotesQueries,
-  collectionAccount: portalCollectionAccountQueries,
+export const portalKeys = {
+  all: ["portal"] as const,
+  customer: (scope?: string) => [...portalKeys.all, "customer", scope] as const,
+  bookings: (scope?: string) => [...portalKeys.all, "bookings", scope] as const,
+  invoices: (scope?: string) => [...portalKeys.all, "invoices", scope] as const,
+  invoice: (invoiceId?: string, scope?: string) =>
+    [...portalKeys.all, "invoice", scope, invoiceId] as const,
+  contracts: (scope?: string) => [...portalKeys.all, "contracts", scope] as const,
+  payments: (scope?: string) => [...portalKeys.all, "payments", scope] as const,
+  invoicePayments: (invoiceId?: string, scope?: string) =>
+    [...portalKeys.all, "payments", scope, "invoice", invoiceId] as const,
 } as const;

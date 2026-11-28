@@ -2,9 +2,9 @@ import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
+import { telemetry } from "@/lib/observability/telemetry";
 import { createEntityKeys } from "@/lib/query/createEntityKeys";
 import { assertRowsAffected } from "@/lib/supabase/assertRowsAffected";
-import { telemetry } from "@/lib/telemetry";
 import type { AppRole } from "./useUserRole";
 
 export type AccessLevel = "full" | "read" | "none";
@@ -60,7 +60,7 @@ export const MODULES = [
 ] as const;
 
 /** Map sidebar route → module name */
-export const ROUTE_TO_MODULE: Record<string, string> = {
+const ROUTE_TO_MODULE: Record<string, string> = {
   "/": "Dashboard",
   "/fleet": "Flota",
   "/bookings": "Reservas",

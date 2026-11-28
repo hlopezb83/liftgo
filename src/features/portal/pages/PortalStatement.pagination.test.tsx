@@ -7,8 +7,10 @@ import PortalStatement from "./PortalStatement";
 type InvoicePage = { rows: { id: string; invoice_number: string; total: number }[]; totalCount: number };
 const request = vi.hoisted(() => vi.fn<(page: number, onlyBalance: boolean) => Promise<InvoicePage>>());
 vi.mock("@/features/customers", () => ({
-  usePortalCustomer: () => ({ data: { id: "customer-1", name: "Cliente de prueba" }, isLoading: false, refetch: () => undefined }),
   useCustomerSummary: () => ({ data: { invoices: [], totals: { total_invoiced: 50, total_paid: 0, outstanding_revenue: 50 } }, isLoading: false, refetch: () => undefined }),
+}));
+vi.mock("../hooks/useCustomerPortal", () => ({
+  usePortalCustomer: () => ({ data: { id: "customer-1", name: "Cliente de prueba" }, isLoading: false, refetch: () => undefined }),
   usePortalInvoicesPage: (page: number, _size: number, onlyBalance: boolean) => useQuery({
     queryKey: ["portal-invoices-test", page, onlyBalance], queryFn: () => request(page, onlyBalance),
   }),

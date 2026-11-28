@@ -12,7 +12,7 @@ const CANONICAL_ALIASES = [
   "RefreshIcon", "DownloadIcon", "UploadIcon", "ViewIcon", "HideIcon",
   "SearchIcon", "RemoveIcon", "UndoIcon", "ResetIcon",
   // Feedback / estado
-  "SuccessIcon", "WarnIcon", "ErrorIcon", "InfoAlertIcon", "InfoIcon",
+  "CheckIcon", "SuccessIcon", "WarnIcon", "ErrorIcon", "InfoAlertIcon", "InfoIcon",
   "SpinnerIcon",
   // Navegación
   "ChevronRightIcon", "ChevronLeftIcon", "ChevronUpIcon", "ChevronDownIcon",
@@ -36,9 +36,4 @@ describe("icons registry", () => {
     expect(icon, `alias ${name} no está exportado desde @/components/icons`).toBeDefined();
     expect(typeof icon === "function" || typeof icon === "object").toBe(true);
   });
-
-  it("exporta el wrapper Icon (deferred import)", async () => {
-    const mod = await import("@/components/icons/Icon");
-    expect(typeof mod.Icon).toBe("function");
-  }, 30_000);
 });

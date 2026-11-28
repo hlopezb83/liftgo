@@ -1,7 +1,6 @@
 import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
 
-/** Migration 0141 remains local until applied; generated Supabase types stay untouched. */
 export interface OverdueDeliveriesPageRpcArgs {
   p_expected_organization_id: string;
   p_search: string | null;
@@ -11,13 +10,12 @@ export interface OverdueDeliveriesPageRpcArgs {
   p_page_size: number;
   p_sort: { id: string; desc: boolean }[];
 }
-type RpcResult = { data: unknown; error: { message: string; code?: string } | null };
-type RpcQuery = PromiseLike<RpcResult> & { abortSignal(signal: AbortSignal): PromiseLike<RpcResult> };
-type PageRpc = (fn: "get_overdue_deliveries_page", args: OverdueDeliveriesPageRpcArgs) => RpcQuery;
 
 export function callOverdueDeliveriesPageRpc(args: OverdueDeliveriesPageRpcArgs, signal: AbortSignal) {
-  const rpc = supabase.rpc.bind(supabase) as unknown as PageRpc;
-  return rpc("get_overdue_deliveries_page", args).abortSignal(signal);
+  return supabase.rpc("get_overdue_deliveries_page", {
+    ...args,
+    p_search: args.p_search ?? undefined,
+  }).abortSignal(signal);
 }
 
 const itemSchema = z.object({

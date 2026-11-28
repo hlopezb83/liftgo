@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Form } from "@/components/ui/form";
 import { CANCELLATION_REASONS } from "@/lib/domain/satCatalogs";
 import { zodResolver } from "@/lib/forms/zodResolver";
-import { useCancelCfdi } from "../../hooks/invoices/cfdi/useCancelCfdi";
+import { useCancelCfdi } from "../../hooks/cfdi/useCancelCfdi";
 import { cancelCfdiSchema, type CancelCfdiFormValues } from "../../lib/cancelCfdiSchema";
 
 type FormValues = CancelCfdiFormValues;

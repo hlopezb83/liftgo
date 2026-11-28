@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { CustomerSelector, type CustomerListQuery } from "@/features/customers";
 import { useFormErrorTarget } from "@/lib/forms/formErrorTargets";
-import { useNextInvoiceNumber } from "../../hooks/invoices/useNextInvoiceNumber";
+import { useNextInvoiceNumber } from "../../hooks/useNextInvoiceNumber";
 import { formatYmdMx } from "../../lib/formatYmdMx";
 import { MultiBookingSelector, type BookingPickerControls } from "./MultiBookingSelector";
 import type { Customer } from "../../hooks/invoiceForm/invoiceFormBuilders";

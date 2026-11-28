@@ -21,8 +21,8 @@ vi.mock("../../hooks/useInventoryPage", () => ({ useInventoryPage: (filters: unk
   data: { items: mocks.present ? [part] : [], totalCount: mocks.present ? 1 : 0, pageIndex: 0, lowStockCount: 0 },
   isLoading: false, isError: false, refetch: mocks.refresh,
 }; } }));
-vi.mock("../../components/inventory/ActivatePartDialog", () => ({ ActivatePartDialog: () => null }));
-vi.mock("../../components/inventory/PartFormDialog", async () => {
+vi.mock("../../components/ActivatePartDialog", () => ({ ActivatePartDialog: () => null }));
+vi.mock("../../components/PartFormDialog", async () => {
   const { FormDialog } = await import("@/components/forms/FormDialog");
   return { PartFormDialog: ({ open, onOpenChange }: { open: boolean; onOpenChange: (open: boolean) => void }) => (
     <FormDialog open={open} onOpenChange={onOpenChange} title="Editar refacción"><input aria-label="Nombre de refacción" /></FormDialog>

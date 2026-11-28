@@ -1,15 +1,14 @@
-import { useQuery } from "@tanstack/react-query";
 import { useId, useState } from "react";
 import { QueryErrorState } from "@/components/feedback/QueryErrorState";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { listPlatformFiscalActionsFn } from "@/lib/platformFiscalActions.functions";
-import { FISCAL_ACTION_STATUS, type FiscalAction } from "@/lib/platformFiscalActions.types";
-import type { FiscalJob } from "@/lib/platformFiscalJobs.types";
 import { usePlatformCapabilities } from "../hooks/usePlatformAccess";
 import { FISCAL_REASON_MIN_LENGTH, usePlatformFiscalAction } from "../hooks/usePlatformFiscalAction";
+import { usePlatformFiscalJobActions } from "../hooks/usePlatformFiscalJobs";
 import { healthDate } from "../hooks/usePlatformHealth";
+import { FISCAL_ACTION_STATUS, type FiscalAction } from "../lib/platformFiscalActions.types";
+import type { FiscalJob } from "../lib/platformFiscalJobs.types";
 
 function actionAvailable(job: FiscalJob) {
   return job.configurationVerified && !job.removed && job.documentAvailable && job.state.status !== "processing"
@@ -64,9 +63,7 @@ function ActionHistory({ actions }: { actions: FiscalAction[] }) {
 }
 export function PlatformFiscalJobActions({ job }: { job: FiscalJob }) {
   const { can } = usePlatformCapabilities();
-  const query = useQuery<FiscalAction[]>({ queryKey: ["platform", "fiscal-jobs", "actions", job.id], retry: false, staleTime: 0,
-    refetchInterval: (state) => state.state.data?.some((action) => action.status === "pending") ? 5000 : false,
-    queryFn: ({ signal }) => listPlatformFiscalActionsFn({ data: { jobId: job.id }, signal }) });
+  const query = usePlatformFiscalJobActions(job.id);
   return <section className="space-y-4 rounded-lg border p-4" aria-label="Conciliación fiscal controlada">
     <h3 className="font-semibold">Conciliación con Facturapi</h3>
     <p className="text-sm text-muted-foreground">Consulta sólo este documento. Si Facturapi ya lo aceptó, conserva sus identificadores para la conciliación; no lo vuelve a timbrar. Reprogramar conserva intentos, folio y solicitud original.</p>

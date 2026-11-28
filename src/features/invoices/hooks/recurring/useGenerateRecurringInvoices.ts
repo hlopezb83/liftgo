@@ -1,0 +1,103 @@
+import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
+import { createEntityKeys } from "@/lib/query/createEntityKeys";
+import { invokeEdgeFunction } from "@/lib/supabase/invokeEdgeFunction";
+import { notifyWarning } from "@/lib/ui/appFeedback";
+import { formatRecurringFailure } from "../../lib/formatRecurringFailure";
+import { invoiceKeys } from "../../lib/queryKeys";
+
+export interface GenerateRecurringResponse {
+  invoicesCreated?: number;
+  bookingsBilled?: number;
+  created?: Array<{
+    bookingIds: string[];
+    invoiceId: string;
+    invoiceNumber: string | null;
+  }>;
+  alreadyExisting?: Array<{
+    bookingIds: string[];
+    invoiceId: string;
+    invoiceNumber: string | null;
+  }>;
+  failed?: Array<{ bookingIds: string[]; error: string }>;
+  /** R6-F5: periodos NO facturados porque la tarifa pudo cambiar. */
+  skippedStaleRate?: Array<{
+    bookingIds: string[];
+    periodStart: string;
+    periodEnd: string;
+  }>;
+}
+
+export interface GenerateRecurringArgs {
+  includeFuturePeriods?: boolean;
+  futureThroughMonth?: string;
+  bookingIds?: string[];
+  /**
+   * R9-18: combinaciones reserva + periodo seleccionadas. Cuando viene, el
+   * edge factura EXCLUSIVAMENTE esos periodos (no todos los de la reserva).
+   */
+  selections?: Array<{ bookingId: string; periodStart: string; expectedFingerprint?: string }>;
+  /** R6-F5: confirmación explícita para facturar periodos con tarifa dudosa. */
+  allowStaleRate?: boolean;
+}
+
+function notifyRecurringOutcome(result: GenerateRecurringResponse, onShowDetails?: () => void) {
+      // BL-008: exponer el detalle de `failed[]` (200 con failures parciales).
+      // El toast de error del hook solo se dispara en throw; para éxitos
+      // parciales usamos un warning explícito con causa y conteo.
+      const failed = result?.failed ?? [];
+      if (failed.length > 0) {
+        const firstReason = formatRecurringFailure(failed[0]?.error).slice(0, 140);
+        notifyWarning({
+          title: failed.length === 1 ? "1 reserva no se facturó" : `${failed.length} reservas no se facturaron`,
+          description: firstReason,
+          error: failed[0]?.error,
+          context: { failed },
+          ...(onShowDetails
+            ? { action: { label: "Ver reservas", onClick: onShowDetails } }
+            : {}),
+        });
+      }
+      // R6-F5: fail-closed — avisar los periodos que el edge no facturó por
+      // tarifa potencialmente desactualizada.
+      const skipped = result?.skippedStaleRate ?? [];
+      if (skipped.length > 0) {
+        notifyWarning({
+          title: skipped.length === 1
+            ? "1 periodo no facturado por cambio de tarifa"
+            : `${skipped.length} periodos no facturados por cambio de tarifa`,
+          description:
+            "La reserva se actualizó después del periodo. Revisa la tarifa y confirma para facturarlos.",
+          context: { skippedStaleRate: skipped },
+        });
+      }
+}
+
+/**
+ * Ejecuta la generación real de facturas recurrentes.
+ * Si se pasan `bookingIds`, genera SOLO esas; si no, todas las elegibles.
+ */
+export function useGenerateRecurringInvoices(options?: { onShowDetails?: () => void }) {
+  return useEntityMutation({
+    mutationFn: async (
+      args?: GenerateRecurringArgs,
+    ): Promise<GenerateRecurringResponse> => {
+      const result = await invokeEdgeFunction<GenerateRecurringResponse>(
+        "generate-recurring-invoices",
+        {
+          body: {
+            preview: false,
+            includeFuturePeriods: args?.includeFuturePeriods === true,
+            futureThroughMonth: args?.includeFuturePeriods ? args.futureThroughMonth : undefined,
+            bookingIds: args?.bookingIds,
+            selections: args?.selections,
+            allowStaleRate: args?.allowStaleRate === true,
+          },
+        },
+      );
+      notifyRecurringOutcome(result, options?.onShowDetails);
+      return result;
+    },
+    invalidateKeys: [invoiceKeys.all, createEntityKeys("bookings").all, createEntityKeys("cash_flow_projection").all],
+    errorTitle: "Error al generar facturas",
+  });
+}

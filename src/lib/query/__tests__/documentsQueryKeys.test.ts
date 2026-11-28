@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createQueryWrapper } from "@/test/helpers/queryClient";
 import { createSupabaseChainMock } from "@/test/helpers/supabaseChain";
-import { documentsQueries } from "../documentsQueryKeys";
+import { documentsQueries } from "../documentsQueries";
 
 const state = vi.hoisted(() => ({ rows: [] as { id: string; file_url: string }[], sign: vi.fn() }));
 vi.mock("@/integrations/supabase/client", () => ({

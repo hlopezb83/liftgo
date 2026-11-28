@@ -1,4 +1,4 @@
-
+import { useMemo } from "react";
 import { DataTableV2, useLiftgoTable } from "@/components/dataTable/v2";
 import { EmptyState } from "@/components/feedback/EmptyState";
 import { buildClosedColumns, type ClosedKind } from "../../lib/closedColumns";
@@ -19,7 +19,10 @@ interface ClosedTableProps {
  * y callbacks. La columna `lostReason` aparece solo cuando `kind === "lost"`.
  */
 export function ClosedTable({ rows, kind, isLoading, hasActiveSearch, onClearSearch, onConvert, onViewCustomer }: ClosedTableProps) {
-  const columns = buildClosedColumns(kind, onConvert, onViewCustomer);
+  const columns = useMemo(
+    () => buildClosedColumns(kind, onConvert, onViewCustomer),
+    [kind, onConvert, onViewCustomer],
+  );
   const table = useLiftgoTable<Prospect>({
     data: rows,
     columns,

@@ -8,19 +8,8 @@ const convertedBooking = z.object({
 });
 export type ConvertedBooking = z.infer<typeof convertedBooking>;
 
-type ConversionArgs = {
-  p_quote_id: string;
-  p_assignments: { forklift_id: string; daily_rate: number; weekly_rate: number; monthly_rate: number }[];
-  p_recurring: boolean;
-  p_replacement_customer_id: string | null;
-};
-type ConversionRpc = (name: "convert_quote_with_customer_scoped", args: ConversionArgs) => PromiseLike<{
-  data: unknown; error: { message: string } | null;
-}>;
-
 export async function convertQuoteBookings(quoteId: string, assignments: Assignment[], recurring: boolean, replacementCustomerId: string | null) {
-  const rpc = supabase.rpc.bind(supabase) as unknown as ConversionRpc;
-  const { data, error } = await rpc("convert_quote_with_customer_scoped", {
+  const { data, error } = await supabase.rpc("convert_quote_with_customer_scoped", {
     p_quote_id: quoteId,
     p_assignments: assignments.map((assignment) => ({
       forklift_id: assignment.forkliftId,
@@ -29,7 +18,7 @@ export async function convertQuoteBookings(quoteId: string, assignments: Assignm
       monthly_rate: assignment.monthlyRate,
     })),
     p_recurring: recurring,
-    p_replacement_customer_id: replacementCustomerId,
+    p_replacement_customer_id: replacementCustomerId ?? undefined,
   });
   if (error) throw error;
   return z.array(convertedBooking).min(1).parse(data);

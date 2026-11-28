@@ -2,10 +2,10 @@ import { useMemo } from "react";
 import type { ColumnDef } from "@/components/dataTable/v2";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import type { useAdminPaymentIntents } from "@/features/invoices/hooks/paymentIntents";
-import { PAYMENT_INTENT_STATUS as STATUS_LABEL } from "@/features/invoices/lib/paymentIntentStatus";
 import { formatDateMty } from "@/lib/format/dateFormats";
 import { formatCurrency } from "@/lib/format/formatCurrency";
+import { PAYMENT_INTENT_STATUS as STATUS_LABEL } from "../../lib/paymentIntentStatus";
+import type { useAdminPaymentIntents } from "../../hooks/paymentIntents";
 
 export type PaymentIntent = NonNullable<
   ReturnType<typeof useAdminPaymentIntents>["data"]

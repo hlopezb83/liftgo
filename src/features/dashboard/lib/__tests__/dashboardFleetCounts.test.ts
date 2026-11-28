@@ -5,7 +5,7 @@ vi.mock("@/lib/rpc", () => ({
   callRpc: (...args: unknown[]) => callRpcMock(...args),
 }));
 
-import { dashboardStatsQueries } from "../queryKeys";
+import { dashboardStatsQueries } from "../dashboardQueries";
 
 beforeEach(() => callRpcMock.mockReset());
 

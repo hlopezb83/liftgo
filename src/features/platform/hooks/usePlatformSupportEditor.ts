@@ -1,8 +1,9 @@
 import { useMutation, useQueryClient, type InfiniteData } from "@tanstack/react-query";
 import { useState } from "react";
-import { updatePlatformSupportFn } from "@/lib/platformSupport.functions";
-import type { SupportCase, SupportDetail, SupportUpdate } from "@/lib/platformSupport.types";
-import { withSupportRequest } from "@/lib/supportRequest";
+import type { SupportCase, SupportDetail, SupportUpdate } from "@/lib/support/platformSupport.types";
+import { withSupportRequest } from "@/lib/support/supportRequest";
+import { updatePlatformSupportFn } from "../lib/platformSupport.functions";
+import { platformKeys } from "../lib/queryKeys";
 
 export function usePlatformSupportEditor(record: SupportCase, onRefresh: () => Promise<SupportCase>) {
   const cache = useQueryClient();
@@ -10,16 +11,28 @@ export function usePlatformSupportEditor(record: SupportCase, onRefresh: () => P
   const [baseline, setBaseline] = useState(record);
   const [comment, setComment] = useState("");
   const [needsRefresh, setNeedsRefresh] = useState(false);
-  const detailKey = ["platform", "support", "detail", record.id];
-  const save = useMutation({ mutationFn: (input: SupportUpdate) => withSupportRequest((signal) => updatePlatformSupportFn({ data: input, signal })),
-    retry: false, meta: { silent: true }, onMutate: () => cache.cancelQueries({ queryKey: detailKey }),
-    onError: () => setNeedsRefresh(true), onSuccess: (result) => {
-      cache.setQueryData<InfiniteData<SupportDetail>>(detailKey, (old) => old && ({ ...old,
-        pages: old.pages.map((page, index) => index === 0 ? { ...page, case: result } : page) }));
+  const detailKey = platformKeys.support.detail(record.id);
+  const save = useMutation({
+    mutationFn: (input: SupportUpdate) => withSupportRequest((signal) => updatePlatformSupportFn({ data: input, signal })),
+    retry: false,
+    meta: { silent: true },
+    onMutate: () => cache.cancelQueries({ queryKey: detailKey }),
+    onError: () => setNeedsRefresh(true),
+    onSuccess: (result) => {
+      cache.setQueryData<InfiniteData<SupportDetail>>(detailKey, (old) => old && ({
+        ...old,
+        pages: old.pages.map((page, index) => (index === 0 ? { ...page, case: result } : page)),
+      }));
       setDraft(result); setBaseline(result); setComment(""); setNeedsRefresh(false);
-      void cache.invalidateQueries({ queryKey: ["platform", "support"] });
-    } });
-  const refresh = useMutation({ mutationFn: onRefresh, retry: false, meta: { silent: true }, onSuccess: () => { setNeedsRefresh(false); save.reset(); } });
+      void cache.invalidateQueries({ queryKey: platformKeys.support.all });
+    },
+  });
+  const refresh = useMutation({
+    mutationFn: onRefresh,
+    retry: false,
+    meta: { silent: true },
+    onSuccess: () => { setNeedsRefresh(false); save.reset(); },
+  });
   const changed = BigInt(record.revision) > BigInt(draft.revision);
   const pending = save.isPending || refresh.isPending;
   const blocked = pending || changed || needsRefresh;

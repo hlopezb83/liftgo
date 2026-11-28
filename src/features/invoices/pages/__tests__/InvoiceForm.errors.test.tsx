@@ -8,7 +8,7 @@ vi.mock("@/hooks/useNavigateTransition", () => ({ useNavigateTransition: () => v
 vi.mock("@/hooks/useUnsavedChangesGuard", () => ({ useUnsavedChangesGuard: () => undefined }));
 vi.mock("@/features/customers", () => ({ CustomerSelector: ({ customerId, onCustomerIdChange }: { customerId: string; onCustomerIdChange: (value: string) => void }) =>
   <input aria-label="Cliente" value={customerId} onChange={(event) => onCustomerIdChange(event.target.value)} /> }));
-vi.mock("../../hooks/invoices/useNextInvoiceNumber", () => ({ useNextInvoiceNumber: () => ({ data: "FAC-QA", isLoading: false }) }));
+vi.mock("../../hooks/useNextInvoiceNumber", () => ({ useNextInvoiceNumber: () => ({ data: "FAC-QA", isLoading: false }) }));
 vi.mock("../../components/invoice-form/MultiBookingSelector", () => ({ MultiBookingSelector: () => null }));
 vi.mock("../../hooks/useDamagePrefill", () => ({ useDamagePrefill: () => ({ block: null, isLoading: false, retry: vi.fn() }) }));
 vi.mock("../../hooks/useInvoiceFormLogic", async () => {

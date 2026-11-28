@@ -22,7 +22,7 @@ vi.mock("@/features/users", async (importOriginal) => {
 vi.mock("@/app-routes/routes-config", () => ({ routeLoaders: {} }));
 vi.mock("@/hooks/useNavigateTransition", () => ({ useNavigateTransition: () => state.navigate }));
 vi.mock("@/hooks/useDebouncedValue", () => ({ useDebouncedValue: (value: string) => state.debounce ?? value }));
-vi.mock("@/features/system/hooks/useEntitySearch", () => ({
+vi.mock("../../hooks/useEntitySearch", () => ({
   useEntitySearch: (_query: string, _enabled: boolean, activeQuery: string) => ({ activeQuery, canSearchEntities: state.canSearch, isResolvingAccess: state.resolvingAccess, isAccessError: state.accessError, retryAccess: state.retryAccess, data: state.data, isFetching: state.fetching, isPending: state.pending, isError: state.error, refetch: state.retry }),
 }));
 // Command and Dialog are intentionally real: cmdk filters and sorts DOM items.

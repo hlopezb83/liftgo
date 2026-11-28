@@ -8,10 +8,10 @@ import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { Switch } from "@/components/ui/switch";
 import { getAccessLevel, useHasFinancialAccess, useRolePermissions, useUserRole } from "@/features/users";
 import { formatMtyDate } from "@/lib/utils";
-import { useUpdateBooking } from "../../hooks/bookings/useBookingMutations";
+import { useUpdateBooking } from "../../hooks/useBookingMutations";
 import { allowsRecurringBilling } from "../../lib/recurringBillingEligibility";
-import { RecurringBillingBadge } from "../bookings/RecurringBillingBadge";
-import type { BookingWithForklift } from "../../hooks/bookings/useBookings";
+import { RecurringBillingBadge } from "../RecurringBillingBadge";
+import type { BookingWithForklift } from "../../hooks/useBookings";
 
 /** Estados donde ya no tiene sentido cambiar la recurrencia (no habrá más ciclos). */
 const CLOSED_STATUSES = new Set(["cancelled", "completed"]);

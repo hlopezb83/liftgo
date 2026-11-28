@@ -13,7 +13,7 @@ vi.mock("@/features/suppliers", () => ({
   }),
 }));
 
-vi.mock("@/features/accounts-payable/hooks/useSupplierBillMutations", () => ({
+vi.mock("../useSupplierBillMutations", () => ({
   useCreateSupplierBill: () => ({ mutate: mocks.create, isPending: false }),
   useUpdateSupplierBill: () => ({ mutate: mocks.update, isPending: false }),
 }));
@@ -25,8 +25,8 @@ vi.mock("@/hooks/useUnsavedChangesGuard", () => ({
 // These imports resolve to the actual selected source tree, not a copied
 // payload builder or reimplemented formula. Schema, defaults, totals and the
 // form submission path all remain real; the transport is captured at mutate.
-import { useSupplierBillForm } from "@/features/accounts-payable/hooks/useSupplierBillForm";
-import type { SupplierBillDetail } from "@/features/accounts-payable/hooks/useSupplierBill";
+import { useSupplierBillForm } from "../useSupplierBillForm";
+import type { SupplierBillDetail } from "../useSupplierBill";
 
 const billId = "00000000-0000-4000-8000-000000000201";
 const changedDescription = "Synthetic metadata-only edit";

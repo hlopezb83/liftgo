@@ -1,6 +1,6 @@
 import { monthBounds } from "@/lib/date/monthBounds";
-import { firstBillingPeriod } from "@/lib/domain/firstBillingPeriod";
 import { formatDateRange } from "@/lib/utils";
+import { firstBillingPeriod } from "./firstBillingPeriod";
 
 /**
  * Reglas de compatibilidad para agrupar varias reservas en UNA factura y

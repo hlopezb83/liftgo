@@ -8,9 +8,9 @@ const state = vi.hoisted(() => ({ mobile: false, error: false, loading: false, r
 vi.mock("@/hooks/use-mobile", () => ({ useIsMobile: () => state.mobile, useIsTabletOrBelow: () => state.mobile }));
 vi.mock("@/features/users", () => ({ useHasModuleAccess: () => false }));
 vi.mock("../../hooks/useInventoryPart", () => ({ useInventoryPart: () => ({ data: null }) }));
-vi.mock("../../components/inventory/PartDetailSheet", () => ({ PartDetailSheet: () => null }));
-vi.mock("../../components/inventory/PartFormDialog", () => ({ PartFormDialog: () => null }));
-vi.mock("../../components/inventory/ActivatePartDialog", () => ({ ActivatePartDialog: () => null }));
+vi.mock("../../components/PartDetailSheet", () => ({ PartDetailSheet: () => null }));
+vi.mock("../../components/PartFormDialog", () => ({ PartFormDialog: () => null }));
+vi.mock("../../components/ActivatePartDialog", () => ({ ActivatePartDialog: () => null }));
 vi.mock("../../hooks/useInventoryPage", () => ({ useInventoryPage: (f: InventoryPageFilters) => {
   const rows = Array.from({ length: 501 }, (_, i) => ({ id: `p${i}`, name: i === 500 ? "Z antigua" : `Pieza ${i}`, sku: i === 500 ? "TARGET" : `SKU${i}`, category: i === 500 ? "Baterías" : "Filtros", stock_quantity: i === 500 ? 0 : 10, min_stock_level: 2, unit_cost: 5 })).filter((p) => (!f.search || `${p.name} ${p.sku}`.includes(f.search)) && (f.category === "all" || p.category === f.category) && (!f.lowStockOnly || p.stock_quantity <= p.min_stock_level));
   const pageIndex = Math.min(f.pageIndex, Math.max(0, Math.ceil(rows.length / f.pageSize) - 1));

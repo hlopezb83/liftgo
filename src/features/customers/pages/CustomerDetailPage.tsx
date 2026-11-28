@@ -20,8 +20,8 @@ import { CustomerFinancialSummary } from "../components/customer-detail/Customer
 import { CustomerInviteDialog } from "../components/customer-detail/CustomerInviteDialog";
 import { CustomerInvoicesList } from "../components/customer-detail/CustomerInvoicesList";
 import { CustomerProfitabilityCard } from "../components/customer-detail/CustomerProfitabilityCard";
-import { CustomerFormDialog } from "../components/customers/CustomerFormDialog";
-import { useCustomerDetailPage } from "../hooks/customers/useCustomerDetailPage";
+import { CustomerFormDialog } from "../components/CustomerFormDialog";
+import { useCustomerDetailPage } from "../hooks/useCustomerDetailPage";
 
 function customerSubtitle(customer: { name: string; company?: string | null; rfc?: string | null }): string | undefined {
   const company = (customer.company ?? "").trim();

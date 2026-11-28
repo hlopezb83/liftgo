@@ -21,7 +21,7 @@ vi.mock("@/hooks/filters/useTableFilters", () => ({
 }));
 vi.mock("@/hooks/useNavigateTransition", () => ({ useNavigateTransition: () => vi.fn() }));
 vi.mock("@/layouts/RoleGuard", () => ({ RoleGuard: () => null }));
-vi.mock("../../components/suppliers/SupplierFormDialog", () => ({ SupplierFormDialog: () => null }));
+vi.mock("../../components/SupplierFormDialog", () => ({ SupplierFormDialog: () => null }));
 
 afterEach(cleanup);
 

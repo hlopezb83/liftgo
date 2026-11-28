@@ -8,7 +8,7 @@ import { GLOBAL_BRAND_LOCKUP_PATH } from "@/lib/branding/globalBrandLogo";
 
 const getIssuerBranding = vi.fn();
 
-vi.mock("@/lib/issuerBranding.functions", () => ({
+vi.mock("@/lib/branding/issuerBranding.functions", () => ({
   getIssuerBranding: (...args: unknown[]) => getIssuerBranding(...args),
 }));
 

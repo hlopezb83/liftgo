@@ -6,7 +6,7 @@ import {
   useDeleteBooking,
   useCancelBooking,
   type BookingWithForklift,
-} from "../bookings/useBookings";
+} from "../useBookings";
 import { useCreateBookingExtension } from "./useBookingExtensions";
 
 export const BOOKING_STATUS_LABELS: Record<string, string> = {

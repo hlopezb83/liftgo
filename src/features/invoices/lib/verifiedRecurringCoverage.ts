@@ -1,6 +1,6 @@
 import currency from "currency.js";
-import { firstBillingPeriod } from "@/lib/domain/firstBillingPeriod";
 import { proratedMonthlyCents } from "@/lib/domain/invoiceTotals";
+import { firstBillingPeriod } from "./firstBillingPeriod";
 import { bookingClaimOccupiesPeriod, type BookingInvoiceClaim, type InvoiceClaimIndex } from "./originalBookingPeriod";
 import type { BillableBooking } from "./bookingCompatibility";
 

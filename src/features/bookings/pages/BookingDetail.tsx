@@ -18,11 +18,11 @@ import { BookingHourometerCard } from "../components/booking-detail/BookingHouro
 import { BookingNextStepCard } from "../components/booking-detail/BookingNextStepCard";
 import { BookingSummaryCard } from "../components/booking-detail/BookingSummaryCard";
 import { BookingTransportsCard } from "../components/booking-detail/BookingTransportsCard";
-import { BookingActions } from "../components/bookings/BookingActions";
-import { BookingStatusHistory } from "../components/bookings/BookingStatusHistory";
+import { BookingActions } from "../components/BookingActions";
+import { BookingStatusHistory } from "../components/BookingStatusHistory";
 import { useBookingExtensions } from "../hooks/bookingActions/useBookingExtensions";
 import { useBookingHourometer } from "../hooks/bookingDetail/useBookingHourometer";
-import { useBooking } from "../hooks/bookings/useBookings";
+import { useBooking } from "../hooks/useBookings";
 
 function bookingBackTo(state: unknown): string {
   const quoteOrigin = (state as { quoteReturnTo?: unknown } | null)?.quoteReturnTo;

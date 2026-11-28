@@ -2,6 +2,7 @@ import { enforceRateLimit, requireAdmin } from "../_shared/auth.ts";
 import { jsonError, jsonResponse } from "../_shared/http.ts";
 import { handleCors } from "../_shared/cors.ts";
 import { aiChatCompletion, AiGatewayError } from "../_shared/ai.ts";
+import { wrapEdgeFunction } from "../_shared/edgeSentry.ts";
 import { resolveCallerOrganization } from "../_shared/orgContext.ts";
 import { insertManual } from "./manual.ts";
 
@@ -65,7 +66,7 @@ SECCIONES:
 (c) **Flujo de daños**: Inspección de retorno detecta daño → Registro de daño → Orden de mantenimiento → Reparación → Factura al cliente
 (d) **Flujo de mantenimiento preventivo**: Registro de servicio con próxima fecha → Alerta en dashboard → Equipo pasa a mantenimiento → Se completa → Vuelve a disponible`;
 
-Deno.serve(async (req) => {
+async function handle(req: Request): Promise<Response> {
   const corsRes = handleCors(req);
   if (corsRes) return corsRes;
 
@@ -184,4 +185,6 @@ Deno.serve(async (req) => {
     console.error("[generate-manual] error:", e);
     return jsonError(req, 500, "Error interno del servidor");
   }
-});
+}
+
+Deno.serve(wrapEdgeFunction("generate-manual", handle));

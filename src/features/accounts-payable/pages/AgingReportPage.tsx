@@ -11,6 +11,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { exportToCsv } from "@/lib/exportCsv";
 import { formatCurrency } from "@/lib/format/formatCurrency";
 import { useAgingReport } from "../hooks/useAgingReport";
+import { computeAgingOverdueMetrics } from "../lib/supplierBillMath";
 
 const COLS: { key: keyof import("../hooks/useAgingReport").AgingRow; label: string }[] = [
   { key: "current", label: "Corriente" },
@@ -23,9 +24,7 @@ const COLS: { key: keyof import("../hooks/useAgingReport").AgingRow; label: stri
 ];
 
 function AgingReportKpis({ totals, isLoading }: Pick<ReturnType<typeof useAgingReport>, "totals" | "isLoading">) {
-  const overduePct = totals.total > 0
-    ? ((totals.d1_30 + totals.d31_60 + totals.d61_90 + totals.d90_plus) / totals.total) * 100
-    : 0;
+  const { overdueTotal, overduePct } = computeAgingOverdueMetrics(totals);
 
   return (
     <div className="grid grid-cols-2 md:grid-cols-4 gap-3" aria-busy={isLoading} role={isLoading ? "status" : undefined}>
@@ -41,7 +40,7 @@ function AgingReportKpis({ totals, isLoading }: Pick<ReturnType<typeof useAgingR
       <Card><CardContent className="p-4">
         <p className="text-xs text-muted-foreground">Vencido</p>
         {isLoading ? <Skeleton className="h-7 w-24" /> : <p className="text-xl font-bold tabular-nums text-destructive">
-          {formatCurrency(totals.d1_30 + totals.d31_60 + totals.d61_90 + totals.d90_plus)}
+          {formatCurrency(overdueTotal)}
         </p>}
       </CardContent></Card>
       <Card><CardContent className="p-4">

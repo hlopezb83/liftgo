@@ -2,11 +2,11 @@ import { useState } from "react";
 import { QueryErrorState } from "@/components/feedback/QueryErrorState";
 import { FormDialog } from "@/components/forms/FormDialog";
 import { Badge } from "@/components/ui/badge";
-import type { CatalogImportSummary } from "@/lib/platformCatalogImport.types";
 import { useCatalogImportPreview } from "../../hooks/usePlatformCatalogImport";
 import { CATALOG_IMPORT_STATUS } from "../../lib/catalogImportPresentation";
 import { CatalogImportComparison } from "./CatalogImportComparison";
 import { CatalogImportReviewForm } from "./CatalogImportReviewForm";
+import type { CatalogImportSummary } from "../../lib/platformCatalogImport.types";
 
 export function CatalogImportReviewDialog({ candidate, onClose }: { candidate: CatalogImportSummary; onClose: () => void }) {
   const query = useCatalogImportPreview({ kind: candidate.kind, source_id: candidate.source_id }, candidate.status !== "invalid");

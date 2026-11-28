@@ -11,7 +11,7 @@ import { hasLegacyVat, LEGACY_VAT_MESSAGE } from "@/lib/fiscal/legacyVat";
 import { useParams } from "@/lib/router-compat";
 import { notifyError, notifySuccess, notifyValidation } from "@/lib/ui/appFeedback";
 import { preserveQuoteChargeIdentities, quoteChargePreview } from "../../lib/quoteChargeIdentity";
-import { useQuote, useCreateQuote, useUpdateQuote } from "../quotes/useQuotes";
+import { useQuote, useCreateQuote, useUpdateQuote } from "../useQuotes";
 import { unchangedHistoricalQuoteFiscal, preserveHistoricalQuoteFiscal } from "./legacyQuoteFiscal";
 import { buildSaleItems, buildRentalItems } from "./quoteFormBuilders";
 import { buildQuotePayload } from "./quoteFormPayload";

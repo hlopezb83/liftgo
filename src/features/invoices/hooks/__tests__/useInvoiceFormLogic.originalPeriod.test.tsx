@@ -2,7 +2,7 @@ import { act, renderHook } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 const state = vi.hoisted(() => ({ bookings: [] as unknown[], claims: [] as unknown[], extensions: [] as unknown[], returns: [] as unknown[], existing: null as unknown,
   rows: [] as unknown[], candidatesReady: true, candidatesError: false, returnReady: true, ready: true, error: false, handler: vi.fn(), refetch: vi.fn() }));
-vi.mock("../invoices/useInvoiceBookingCandidates", () => ({ useInvoiceBookingCandidates: () => ({ isSuccess: state.candidatesReady, isError: state.candidatesError, data: state.bookings, refetch: state.refetch }) }));
+vi.mock("../useInvoiceBookingCandidates", () => ({ useInvoiceBookingCandidates: () => ({ isSuccess: state.candidatesReady, isError: state.candidatesError, data: state.bookings, refetch: state.refetch }) }));
 vi.mock("@/features/customers", async () => ({
   ...await vi.importActual("@/features/customers/lib/customerTaxRate"), useCustomers: () => ({ data: [] }) }));
 vi.mock("@/features/fleet", () => ({ useQuoteAssignments: () => ({ data: [] }) }));
@@ -10,9 +10,9 @@ vi.mock("../invoiceForm/useInvoiceRentalEquipment", () => ({ useInvoiceRentalEqu
 vi.mock("../invoiceForm/useInvoiceSourceCustomer", () => ({ useInvoiceSourceCustomer: () => ({ loadForId: vi.fn(), dependencies: [], prefillCustomers: [] }) }));
 vi.mock("@/features/quotes", () => ({ useQuote: () => ({ data: undefined }), useQuotesByIds: () => ({ data: [] }), useQuoteSaleAssignmentStatus: () => ({ isComplete: true }) }));
 vi.mock("@/hooks/useInitialRecordVersion", () => ({ useInitialRecordVersion: () => 1 }));
-vi.mock("../invoices/useInvoices", () => ({ useInvoice: () => ({ data: state.existing }) }));
-vi.mock("../invoices/useInvoiceBookings", () => ({ useInvoiceBookings: () => ({ data: state.rows, refetch: state.refetch }) }));
-vi.mock("../invoices/useBookingBillingEvidence", () => ({ useBookingBillingEvidence: () => ({
+vi.mock("../useInvoices", () => ({ useInvoice: () => ({ data: state.existing }) }));
+vi.mock("../useInvoiceBookings", () => ({ useInvoiceBookings: () => ({ data: state.rows, refetch: state.refetch }) }));
+vi.mock("../useBookingBillingEvidence", () => ({ useBookingBillingEvidence: () => ({
   claims: { data: state.claims, isSuccess: state.ready, isError: state.error, refetch: state.refetch },
   returns: { data: state.returns, isSuccess: state.returnReady && state.ready, isError: state.error, refetch: state.refetch },
   extensions: { data: state.extensions, isSuccess: state.ready, isError: state.error, refetch: state.refetch },

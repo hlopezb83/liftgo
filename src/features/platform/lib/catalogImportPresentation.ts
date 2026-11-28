@@ -1,4 +1,4 @@
-import type { CatalogImportPreview, CatalogImportSummary } from "@/lib/platformCatalogImport.types";
+import type { CatalogImportPreview, CatalogImportSummary } from "./platformCatalogImport.types";
 
 export const CATALOG_IMPORT_STATUS: Record<CatalogImportSummary["status"], string> = {
   new: "Nuevo registro", duplicate: "Coincidencia global", conflict: "Requiere revisión",

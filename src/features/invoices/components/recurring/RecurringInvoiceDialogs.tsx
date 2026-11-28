@@ -1,5 +1,5 @@
 import { lazy, memo, Suspense, useCallback, useEffect, useEffectEvent, useState } from "react";
-import { useRecurringInvoiceWorkflow } from "../../hooks/invoices/recurring/useRecurringInvoiceWorkflow";
+import { useRecurringInvoiceWorkflow } from "../../hooks/recurring/useRecurringInvoiceWorkflow";
 import { RecurringInvoicesPreviewDialog } from "./RecurringInvoicesPreviewDialog";
 
 const RecurringInvoicesResultDialog = lazy(() => import("./RecurringInvoicesResultDialog")

@@ -38,8 +38,8 @@ vi.mock("@/lib/query/useVerifiedIdentityScope", () => ({ useVerifiedIdentityScop
 vi.mock("../../components/list/InvoicesToolbar", () => ({ InvoicesActionsBar: ({ onExport }: { onExport: () => void }) => <button onClick={onExport}>Export CSV</button>, InvoicesFiltersBar: () => null }));
 vi.mock("../../components/recurring/RecurringInvoicesPreviewDialog", () => ({ RecurringInvoicesPreviewDialog: () => null }));
 vi.mock("../../components/recurring/RecurringInvoicesResultDialog", () => ({ RecurringInvoicesResultDialog: () => null }));
-vi.mock("../../hooks/invoices/recurring/useGenerateRecurringInvoices", () => ({ useGenerateRecurringInvoices: () => ({ mutate: vi.fn() }) }));
-vi.mock("../../hooks/invoices/recurring/usePreviewRecurringInvoices", () => ({ usePreviewRecurringInvoices: () => ({ mutate: vi.fn() }) }));
+vi.mock("../../hooks/recurring/useGenerateRecurringInvoices", () => ({ useGenerateRecurringInvoices: () => ({ mutate: vi.fn() }) }));
+vi.mock("../../hooks/recurring/usePreviewRecurringInvoices", () => ({ usePreviewRecurringInvoices: () => ({ mutate: vi.fn() }) }));
 
 function compareRows(a: FixtureRow, b: FixtureRow, orders: Order[]) {
   for (const { column, ascending, nullsFirst } of orders) {

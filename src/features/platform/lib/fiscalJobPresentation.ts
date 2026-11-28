@@ -1,4 +1,4 @@
-import { FISCAL_QUEUE_STATUSES, type FiscalJob } from "@/lib/platformFiscalJobs.types";
+import { FISCAL_QUEUE_STATUSES, type FiscalJob } from "./platformFiscalJobs.types";
 
 export function fiscalJobStatus(job: FiscalJob) {
   return job.removed ? FISCAL_QUEUE_STATUSES.removed : FISCAL_QUEUE_STATUSES[job.state.status];

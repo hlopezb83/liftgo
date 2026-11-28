@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { Facturapi6Preview } from "@/features/qa/components/Facturapi6Preview";
+import { Facturapi6Preview } from "@/features/qa";
 export const Route = createFileRoute("/qa/facturapi6-preflight")({
   head: () => ({ meta: [
     { title: "LiftGO · Revisión temporal Facturapi 6" },

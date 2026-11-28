@@ -1,6 +1,6 @@
 import { act, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import type { PlatformAccess } from "@/lib/platformAccess.types";
+import type { PlatformAccess } from "@/lib/auth/platformAccess.types";
 import { getAuthSnapshot } from "@/lib/ui/authSnapshot";
 
 const state = vi.hoisted(() => ({

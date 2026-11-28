@@ -21,13 +21,13 @@ vi.mock("@/components/ui/select", () => ({
   SelectItem: ({ children, value }: { children: ReactNode; value: string }) => <option value={value}>{children}</option>,
 }));
 vi.mock("../../components/accountantExport/AccountantExportReport", () => ({ AccountantExportReport: () => { state.financialMount("accountant-export"); return <div>Financial accountant export</div>; } }));
-vi.mock("../../components/reports/UtilizationReport", () => ({ UtilizationReport: () => <div>Operational units</div> }));
-vi.mock("../../components/reports/UtilizationByModelReport", () => ({ UtilizationByModelReport: () => <div>Operational models</div> }));
-vi.mock("../../components/reports/RevenueReport", () => ({ RevenueReport: () => { state.financialMount("revenue"); return <div>Financial revenue</div>; } }));
-vi.mock("../../components/reports/AgingReport", () => ({ AgingReport: () => { state.financialMount("aging"); return <div>Financial aging</div>; } }));
-vi.mock("../../components/reports/IncomeStatementReport", () => ({ IncomeStatementReport: () => { state.financialMount("income-statement"); return <div>Financial income</div>; } }));
-vi.mock("../../components/reports/MaintenanceCostReport", () => ({ MaintenanceCostReport: () => { state.financialMount("maintenance"); return <div>Financial maintenance</div>; } }));
-vi.mock("../../components/reports/ProfitabilityByModelReport", () => ({ ProfitabilityByModelReport: () => { state.financialMount("profitability"); return <div>Financial profit</div>; } }));
+vi.mock("../../components/UtilizationReport", () => ({ UtilizationReport: () => <div>Operational units</div> }));
+vi.mock("../../components/UtilizationByModelReport", () => ({ UtilizationByModelReport: () => <div>Operational models</div> }));
+vi.mock("../../components/RevenueReport", () => ({ RevenueReport: () => { state.financialMount("revenue"); return <div>Financial revenue</div>; } }));
+vi.mock("../../components/AgingReport", () => ({ AgingReport: () => { state.financialMount("aging"); return <div>Financial aging</div>; } }));
+vi.mock("../../components/IncomeStatementReport", () => ({ IncomeStatementReport: () => { state.financialMount("income-statement"); return <div>Financial income</div>; } }));
+vi.mock("../../components/MaintenanceCostReport", () => ({ MaintenanceCostReport: () => { state.financialMount("maintenance"); return <div>Financial maintenance</div>; } }));
+vi.mock("../../components/ProfitabilityByModelReport", () => ({ ProfitabilityByModelReport: () => { state.financialMount("profitability"); return <div>Financial profit</div>; } }));
 
 beforeEach(() => { state.canSeeFinancials = false; state.params = new URLSearchParams(); state.financialMount.mockClear(); });
 

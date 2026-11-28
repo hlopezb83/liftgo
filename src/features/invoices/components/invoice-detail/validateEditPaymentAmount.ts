@@ -1,5 +1,5 @@
 import { roundMoney } from "@/lib/money";
-import { convertCurrencyAmount, roundCurrencyAmount } from "../../lib/paymentCurrency";
+import { convertCurrencyAmount, roundCurrencyAmount } from "@/lib/money/paymentCurrency";
 
 interface PaymentCurrencyContext {
   invoiceCurrency?: string | null;

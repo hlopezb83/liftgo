@@ -2,7 +2,7 @@ import { useMemo } from "react";
 import { indexBillingEvidence, type BillingEvidenceIndex } from "../../lib/billingEvidenceIndex";
 import { completedRecurringBooking } from "../../lib/completedRecurringBooking";
 import { originalPeriodBooking, originalPeriodUnavailable, bookingPeriodConflict } from "../../lib/originalBookingPeriod";
-import { useBookingBillingEvidence } from "../invoices/useBookingBillingEvidence";
+import { useBookingBillingEvidence } from "../useBookingBillingEvidence";
 import type { BillableBooking } from "../../lib/bookingCompatibility";
 import type { ReturnBillingEvidence } from "../../lib/completedRecurringBooking";
 import type { BillingExtension, BookingInvoiceClaim } from "../../lib/originalBookingPeriod";

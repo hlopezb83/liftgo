@@ -1,8 +1,8 @@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { FISCAL_OPERATIONS, type FiscalJob } from "@/lib/platformFiscalJobs.types";
 import { healthDate } from "../hooks/usePlatformHealth";
 import { fiscalJobMode, fiscalJobStatus } from "../lib/fiscalJobPresentation";
+import { FISCAL_OPERATIONS, type FiscalJob } from "../lib/platformFiscalJobs.types";
 
 export function PlatformFiscalJobCard({ job, onOpen }: { job: FiscalJob; onOpen: () => void }) {
   return <li className="space-y-4 p-4 sm:p-5">

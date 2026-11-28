@@ -12,11 +12,11 @@ const mocks = vi.hoisted(() => ({ canWrite: false, role: "auditor", createNote: 
 vi.mock("@/features/users", () => ({
   useHasModuleAccess: () => mocks.canWrite, useUserRole: () => ({ data: mocks.role }),
 }));
-vi.mock("../../../hooks/invoices/collections/useCollectionNotes", () => ({
+vi.mock("../../../hooks/collections/useCollectionNotes", () => ({
   useCollectionNotes: () => ({ data: [{ id: "note-1", note: "El cliente confirmó recepción", created_at: "2026-09-27", next_followup_date: null }], isLoading: false }),
   useCreateCollectionNote: () => ({ mutate: mocks.createNote, isPending: false }),
 }));
-vi.mock("@/features/invoices/hooks/paymentIntents", () => ({
+vi.mock("../../../hooks/paymentIntents", () => ({
   useAdminPaymentIntents: () => ({ isSuccess: true, data: [{ id: "intent-1", amount: 100, transfer_date: "2026-09-27",
     status: "pending_review", proof_url: "org/proof.pdf" }] }),
   useReviewPaymentIntent: () => ({ mutate: mocks.review, isPending: false }),
@@ -25,7 +25,7 @@ vi.mock("../../../hooks/invoiceDetail/useReceptorTaxInfo", () => ({
   useValidateReceptorTaxInfo: () => ({ mutate: mocks.validate, isPending: false }),
 }));
 vi.mock("../EditReceptorFiscalDialog", () => ({ EditReceptorFiscalDialog: () => null }));
-vi.mock("../../invoices/RecordPaymentDialog", () => ({ RecordPaymentDialog: () => <div role="dialog">Registrar pago</div> }));
+vi.mock("../../RecordPaymentDialog", () => ({ RecordPaymentDialog: () => <div role="dialog">Registrar pago</div> }));
 vi.mock("../CancelCfdiDialog", () => ({ CancelCfdiDialog: () => <div role="dialog">Cancelar CFDI</div> }));
 
 function renderWithClient(children: ReactNode) {

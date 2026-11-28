@@ -54,7 +54,7 @@ describe("aislamiento por organización en código de servidor", () => {
   it("recorre los directorios de servidor esperados", () => {
     const files = serverSourceFiles().map((f) => relative(ROOT, f).replaceAll("\\", "/"));
     expect(files.some((f) => f.startsWith("src/lib/"))).toBe(true);
-    expect(files).toContain("src/lib/feedbackAi.functions.ts");
+    expect(files).toContain("src/features/feedback/lib/feedbackAi.functions.ts");
     expect(files).toContain("src/lib/server/adminGuards.server.ts");
   });
 
@@ -82,7 +82,7 @@ describe("aislamiento por organización en código de servidor", () => {
 
   it("classifyFeedbackReportFn acota lectura y escritura por organization_id", () => {
     const source = readFileSync(
-      join(ROOT, "src", "lib", "feedbackAi.functions.ts"),
+      join(ROOT, "src", "features", "feedback", "lib", "feedbackAi.functions.ts"),
       "utf8",
     );
     expect(source).toContain("requireInternalOrganization");

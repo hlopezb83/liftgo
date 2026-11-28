@@ -24,7 +24,7 @@ import { InvoiceSummaryCards } from "./InvoiceSummaryCards";
 import { PaymentIntentsSection } from "./PaymentIntentsSection";
 import { ValidateReceptorButton } from "./ValidateReceptorButton";
 import type { useInvoiceDetailActions } from "../../hooks/invoiceDetail/useInvoiceDetailActions";
-import type { useInvoice } from "../../hooks/invoices/useInvoices";
+import type { useInvoice } from "../../hooks/useInvoices";
 import type { usePayments } from "../../hooks/usePayments";
 import type { InvoiceCreditBalance } from "../../lib/invoiceCreditBalance";
 import type { computeInvoiceVisibility } from "../../lib/invoiceVisibility";

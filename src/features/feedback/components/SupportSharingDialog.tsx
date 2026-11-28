@@ -10,7 +10,7 @@ import { Label } from "@/components/ui/label";
 import { NativeSelect } from "@/components/ui/native-select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Textarea } from "@/components/ui/textarea";
-import { SUPPORT_SEVERITIES, SUPPORT_STATUSES, type SupportCase } from "@/lib/platformSupport.types";
+import { SUPPORT_SEVERITIES, SUPPORT_STATUSES, type SupportCase } from "@/lib/support/platformSupport.types";
 import { useFeedbackScreenshotUrl } from "../hooks/useFeedbackScreenshotUrl";
 import { useSupportSharing } from "../hooks/useSupportSharing";
 import type { FeedbackReport } from "../hooks/useFeedbackReports";

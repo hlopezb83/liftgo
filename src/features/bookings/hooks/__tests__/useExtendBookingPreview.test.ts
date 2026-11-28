@@ -37,7 +37,7 @@ vi.mock("@/features/fleet", () => ({
 
 import { useExtendBookingPreview } from "../bookingActions/useExtendBookingPreview";
 import { buildExtensionLineItems } from "../../lib/extensionBilling";
-import type { BookingWithForklift } from "../bookings/useBookings";
+import type { BookingWithForklift } from "../useBookings";
 
 const booking = {
   id: "bk-1",

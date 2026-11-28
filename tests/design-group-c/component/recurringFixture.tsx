@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { RecurringInvoicesPreviewDialog } from "../../../src/features/invoices/components/recurring/RecurringInvoicesPreviewDialog";
-import type { RecurringPreviewLine, RecurringPreviewScope } from "../../../src/features/invoices/hooks/invoices/recurring/usePreviewRecurringInvoices";
+import type { RecurringPreviewLine, RecurringPreviewScope } from "../../../src/features/invoices/hooks/recurring/usePreviewRecurringInvoices";
 
 const pending: RecurringPreviewLine[] = Array.from({ length: 18 }, (_, index) => ({
   bookingId: `qa-${index}`, bookingCode: `QA-${index}`, customerId: `customer-${index % 3}`,

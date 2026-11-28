@@ -12,7 +12,6 @@ vi.mock("@/components/layout/ListPageLayout", () => ({
   }) => <>{actions}<button onClick={() => onRowClick({ id: "customer-1" })}>Abrir fila</button>{mobileCardRender({ id: "customer-1" })}</>,
 }));
 vi.mock("@/contexts/pageActions", () => ({ usePageActions: vi.fn() }));
-vi.mock("@/features/crm", () => ({ useUpdateProspect: () => ({ mutate: state.link }) }));
 vi.mock("@/features/users", () => ({ useHasModuleAccess: () => state.canWrite }));
 vi.mock("@/hooks/filters/useTableFilters", () => ({
   useTableFilters: () => ({ values: { q: "" }, set: vi.fn(), reset: vi.fn(), hasActive: false, filtered: [] }),
@@ -26,25 +25,25 @@ vi.mock("@/lib/router-compat", () => ({
   }],
 }));
 vi.mock("@/lib/ui/appFeedback", () => ({ notifySuccess: vi.fn() }));
-vi.mock("../../hooks/customers/useCustomersColumns", () => ({ useCustomersColumns: () => [] }));
-vi.mock("../../hooks/customers/customerQueries", () => ({
+vi.mock("../../hooks/useCustomersColumns", () => ({ useCustomersColumns: () => [] }));
+vi.mock("../../hooks/customerQueries", () => ({
   useCustomersIncremental: () => ({ data: { pages: [[]] }, isLoading: false, isError: false,
     refetch: vi.fn(), hasNextPage: false, isFetchingNextPage: false, fetchNextPage: vi.fn() }),
 }));
-vi.mock("../../hooks/customers/useCustomers", () => ({
+vi.mock("../../hooks/useCustomers", () => ({
   useCustomers: () => ({ data: [], isLoading: false, isError: false, refetch: vi.fn() }),
-  useCreateCustomer: () => ({ mutate: state.create, isPending: false }),
+  useCreateCustomerWithProspectLink: () => ({ mutate: state.create, isPending: false }),
   useUpdateCustomer: () => ({ mutate: vi.fn(), isPending: false }),
 }));
-vi.mock("../../components/customers/CustomerMobileCard", () => ({
+vi.mock("../../components/CustomerMobileCard", () => ({
   CustomerMobileCard: ({ customer, onOpen }: { customer: { id: string }; onOpen: (id: string) => void }) => <button onClick={() => onOpen(customer.id)}>Abrir tarjeta</button>,
 }));
-vi.mock("../../components/customers/CustomersToolbar", () => ({
+vi.mock("../../components/CustomersToolbar", () => ({
   CustomersActions: ({ onCreate }: { onCreate: () => void }) => <button onClick={onCreate}>Nuevo cliente</button>,
   CustomersSecondaryActions: () => null,
   CustomersFilters: () => null,
 }));
-vi.mock("../../components/customers/CustomerFormDialog", () => ({
+vi.mock("../../components/CustomerFormDialog", () => ({
   CustomerFormDialog: ({ open, onOpenChange, onSubmit, initialData }: {
     open: boolean; onOpenChange: (open: boolean) => void;
     onSubmit: (data: { name: string }) => void; initialData?: { name?: string };
@@ -78,15 +77,19 @@ describe("CustomersPage — origen del alta", () => {
     fireEvent.click(screen.getByRole("button", { name: "Nuevo cliente" }));
     expect(screen.getByText("Alta independiente")).toBeInTheDocument();
     await finishCreate();
-    expect(state.link).not.toHaveBeenCalled();
+    expect(state.create).toHaveBeenCalledWith(
+      expect.objectContaining({ prospectId: null }),
+      expect.objectContaining({ onSuccess: expect.any(Function) }),
+    );
   });
 
   it("una conversión guardada conserva la vinculación al prospecto correcto", async () => {
     state.search = "from_prospect=true&prospect_id=prospect-1&company=Origen";
     render(<CustomersPage />);
     await finishCreate();
-    expect(state.link).toHaveBeenCalledWith(
-      { id: "prospect-1", customer_id: "customer-new" }, expect.objectContaining({ onSuccess: expect.any(Function) }),
+    expect(state.create).toHaveBeenCalledWith(
+      expect.objectContaining({ prospectId: "prospect-1" }),
+      expect.objectContaining({ onSuccess: expect.any(Function) }),
     );
   });
 

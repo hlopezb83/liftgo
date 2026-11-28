@@ -4,6 +4,7 @@ import { InfoAlertIcon, SuccessIcon, SpinnerIcon, EditIcon, SecurityIcon } from 
 import { Button } from "@/components/ui/button";
 import { useHasModuleAccess, useUserRole } from "@/features/users";
 import type { Tables } from "@/integrations/supabase/types";
+import { canExecuteFiscalInvoiceAction } from "@/lib/rules/invoices";
 import { notifySuccess } from "@/lib/ui/appFeedback";
 import {
   useValidateReceptorTaxInfo,
@@ -30,7 +31,7 @@ function labelFor(path: string): string {
 export function ValidateReceptorButton({ invoice }: Props) {
   const { data: role } = useUserRole();
   const canWrite = useHasModuleAccess("Facturas", "full");
-  const canValidate = canWrite && (role === "admin" || role === "administrativo");
+  const canValidate = canWrite && canExecuteFiscalInvoiceAction(role);
   const [open, setOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
   const [result, setResult] = useState<ReceptorValidationResult | null>(null);

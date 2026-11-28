@@ -76,8 +76,11 @@ export const REGIMEN_FISCAL_CATALOG: RegimenFiscalDef[] = REGIMEN_FISCAL.map((r)
 const BY_CODE = new Map(REGIMEN_FISCAL_CATALOG.map((r) => [r.code, r]));
 
 /** true si el código existe en el catálogo vigente del SAT. */
-export function isValidRegimenFiscalCode(code: string): boolean {
-  return BY_CODE.has(code);
+export function isValidRegimenFiscalCode(
+  code: string | null | undefined,
+): boolean {
+  const v = String(code ?? "").trim();
+  return /^\d{3}$/.test(v) && BY_CODE.has(v);
 }
 
 /** Deriva el tipo de persona a partir de la longitud del RFC (12 = moral, 13 = física). */

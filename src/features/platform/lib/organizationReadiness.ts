@@ -1,4 +1,4 @@
-import type { PlatformOrganizationDetail } from "@/lib/platformOrganizationDetail.types";
+import type { PlatformOrganizationDetail } from "./platformOrganizationDetail.types";
 
 export interface ReadinessItem {
   id: string;

@@ -25,7 +25,7 @@ const data = vi.hoisted(() => {
     returns: [{ booking_id: bookingId, forklift_id: forklift.id, inspected_at: "2026-10-10T18:00:00Z" }],
     empty: [], charges, refetch: vi.fn(), load: vi.fn().mockResolvedValue(charges), mutate: vi.fn() };
 });
-vi.mock("../invoices/useInvoiceBookingCandidates", () => ({
+vi.mock("../useInvoiceBookingCandidates", () => ({
   useInvoiceBookingCandidates: () => ({ isSuccess: true, data: data.bookings, refetch: data.refetch }),
 }));
 vi.mock("@/features/bookings", async () => ({
@@ -51,20 +51,20 @@ vi.mock("@/features/quotes", async () => ({
   useQuoteSaleAssignmentStatus: () => ({ isComplete: true, totalAssigned: 0, totalRequired: 0, missingByLine: data.empty }),
   useUpdateQuote: () => ({ mutate: data.mutate, isPending: false }),
 }));
-vi.mock("../invoices/useInvoices", () => ({
+vi.mock("../useInvoices", () => ({
   useInvoice: () => ({ data: undefined, isLoading: false }),
   useSaveInvoiceWithBookings: (opts: { onBusinessBlock?: (block: BusinessBlock) => void }) => {
     data.saveOptions = opts;
     return { mutate: data.mutate, isPending: false };
   },
 }));
-vi.mock("../invoices/useInvoiceBookings", () => ({ useInvoiceBookings: () => ({ data: data.empty, refetch: data.refetch }) }));
-vi.mock("../invoices/useBookingBillingEvidence", () => ({ useBookingBillingEvidence: () => ({
+vi.mock("../useInvoiceBookings", () => ({ useInvoiceBookings: () => ({ data: data.empty, refetch: data.refetch }) }));
+vi.mock("../useBookingBillingEvidence", () => ({ useBookingBillingEvidence: () => ({
   claims: { data: data.empty, isSuccess: true, isError: false, refetch: data.refetch },
   returns: { data: data.returns, isSuccess: true, isError: false, refetch: data.refetch },
   extensions: { data: data.empty, isSuccess: true, isError: false, refetch: data.refetch },
 }) }));
-vi.mock("../invoices/useQuoteChargeAvailability", () => ({ useQuoteChargeAvailability: () => ({
+vi.mock("../useQuoteChargeAvailability", () => ({ useQuoteChargeAvailability: () => ({
   data: data.charges, isError: false, isFetching: false, loadForQuotes: data.load, refetch: data.refetch,
 }) }));
 

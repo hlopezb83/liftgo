@@ -8,7 +8,7 @@ import {
   clearStaleChunkReloadGuard,
   isStaleChunkMessage,
   recoverFromStaleChunk,
-} from "@/lib/staleChunkReload";
+} from "@/lib/observability/staleChunkReload";
 
 interface Props {
   children: ReactNode;

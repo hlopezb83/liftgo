@@ -9,7 +9,7 @@ const { useAuthMock, getOrganizationContextMock } = vi.hoisted(() => ({
 }));
 
 vi.mock("@/contexts/AuthContext", () => ({ useAuth: useAuthMock }));
-vi.mock("@/lib/organizationContext.functions", () => ({
+vi.mock("@/lib/organization/organizationContext.functions", () => ({
   getOrganizationContext: getOrganizationContextMock,
 }));
 

@@ -2,7 +2,7 @@ import { useUserRole } from "@/features/users";
 import { useBookingActions } from "./useBookingActions";
 import { useBookingDialogsState } from "./useBookingDialogsState";
 import { useExtendBookingPreview } from "./useExtendBookingPreview";
-import type { BookingWithForklift } from "../bookings/useBookings";
+import type { BookingWithForklift } from "../useBookings";
 
 // Re-export para preservar imports existentes. La fuente canónica vive en
 // `bookingActions/useBookingActions`. Se eliminó el alias `STATUS_LABELS`

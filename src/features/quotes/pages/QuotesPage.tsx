@@ -20,8 +20,8 @@ import { Link } from "@/lib/router-compat-ui";
 import { formatDateRange, nowMty, parseDateLocal } from "@/lib/utils";
 import { QUOTE_STATUS_TAB_LABELS, quoteStatusLabel as quoteLabel } from "../constants";
 import { isPublicoGeneral } from "../hooks/quoteDetail/useQuoteDetailData";
-import { quoteQueries, type QuoteListItem } from "../hooks/quotes/useQuotes";
-import { useQuotesPage } from "../hooks/quotes/useQuotesPage";
+import { quoteQueries, type QuoteListItem } from "../hooks/useQuotes";
+import { useQuotesPage } from "../hooks/useQuotesPage";
 import { formatQuoteTotal } from "../lib/quoteDisplay";
 import { buildQuotesColumns } from "./quotesColumns";
 
@@ -34,19 +34,19 @@ const QUOTE_STATUS_OPTIONS = [
 ];
 
 type Quote = QuoteListItem;
+const EMPTY_QUOTES: Quote[] = [];
+const QUOTE_COLUMNS = buildQuotesColumns<Quote>();
+const QUOTE_FACETS = {
+  q: { type: "text" as const, fields: ["quote_number", "customer_name"] as (keyof Quote)[] },
+  status: { type: "enum" as const, field: "status" as keyof Quote, options: ["all", ...QUOTE_STATUSES] as const },
+};
 
 export default function QuotesPage() {
   const navigate = useNavigateTransition();
   const canWrite = useHasModuleAccess("Cotizaciones", "full");
-  const { values, set, reset, hasActive } = useTableFilters<Quote, {
-    q: { type: "text"; fields: (keyof Quote)[] };
-    status: { type: "enum"; field: keyof Quote; options: readonly (QuoteStatus | "all")[] };
-  }>({
+  const { values, set, reset, hasActive } = useTableFilters<Quote, typeof QUOTE_FACETS>({
     mode: "server",
-    facets: {
-      q: { type: "text", fields: ["quote_number", "customer_name"] as (keyof Quote)[] },
-      status: { type: "enum", field: "status", options: ["all", ...QUOTE_STATUSES] as const },
-    },
+    facets: QUOTE_FACETS,
   });
 
   const tableViewState = useTableViewState();
@@ -66,10 +66,10 @@ export default function QuotesPage() {
   });
   const table = useLiftgoTable<Quote>({
     ...tableViewState,
-    data: data?.items,
+    data: data?.items ?? EMPTY_QUOTES,
     pageCount: Math.ceil((data?.totalCount ?? 0) / pagination.pageSize),
     manualSorting: true,
-    columns: buildQuotesColumns<Quote>(),
+    columns: QUOTE_COLUMNS,
     getRowId: (q) => q.id,
   });
 

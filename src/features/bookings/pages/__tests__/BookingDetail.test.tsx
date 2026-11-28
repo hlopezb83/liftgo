@@ -18,7 +18,7 @@ const useBookingExtensionsMock = vi.fn();
 const access = vi.hoisted(() => ({ allowed: true, quotes: true }));
 const transportQueryFn = vi.fn();
 
-vi.mock("../../hooks/bookings/useBookings", () => ({
+vi.mock("../../hooks/useBookings", () => ({
   useBooking: () => useBookingMock(),
 }));
 
@@ -32,8 +32,8 @@ vi.mock("@/features/deliveries", async (importOriginal) => ({
   },
 }));
 vi.mock("@/features/users", () => ({ useHasModuleAccess: (module: string) => module === "Cotizaciones" ? access.quotes : access.allowed, useHasFinancialAccess: () => true }));
-vi.mock("../../components/bookings/BookingActions", () => ({ BookingActions: () => null }));
-vi.mock("../../components/bookings/BookingStatusHistory", () => ({ BookingStatusHistory: () => null }));
+vi.mock("../../components/BookingActions", () => ({ BookingActions: () => null }));
+vi.mock("../../components/BookingStatusHistory", () => ({ BookingStatusHistory: () => null }));
 vi.mock("../../components/booking-detail/BookingBillingCard", () => ({ BookingBillingCard: () => null }));
 
 vi.mock("../../hooks/bookingActions/useBookingExtensions", () => ({

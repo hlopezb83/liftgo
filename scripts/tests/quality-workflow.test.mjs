@@ -7,7 +7,7 @@ test('overdue transport changes run the PostgreSQL contract before required CI p
   const filters = ci.split('            sql_contracts:\n')[1].split('            quote_paging:')[0];
   for (const path of ['scripts/tests/overdue-deliveries.postgres.mjs', 'src/features/deliveries/lib/overdueDeliveriesPageRpc.ts',
     'src/features/deliveries/hooks/useOverdueDeliveriesPage.ts', 'src/features/deliveries/pages/OverdueDeliveriesPage.tsx',
-    'src/features/deliveries/pages/DeliveriesPage.tsx', 'src/features/dashboard/components/dashboard/AlertsRow.tsx', '.github/workflows/ci.yml']) {
+    'src/features/deliveries/pages/DeliveriesPage.tsx', 'src/features/dashboard/components/AlertsRow.tsx', '.github/workflows/ci.yml']) {
     assert.ok(filters.includes(`- ${path}`), path);
   }
   assert.match(ci, /node scripts\/tests\/dashboard-search.postgres.mjs\n\s+node scripts\/tests\/overdue-deliveries.postgres.mjs/);

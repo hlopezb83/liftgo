@@ -2,11 +2,18 @@ import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import type { AppRole } from "@/lib/domain/roles";
+import { createEntityKeys } from "@/lib/query/createEntityKeys";
 
 // Re-export para compatibilidad con consumidores existentes. La fuente de
 // verdad del tipo vive en `@/lib/domain/roles`.
 export type { AppRole };
 
+const userRoleBaseKeys = createEntityKeys("user_role");
+
+const userRoleKeys = {
+  ...userRoleBaseKeys,
+  byUser: (userId: string | undefined) => [...userRoleBaseKeys.all, userId] as const,
+} as const;
 
 // Priority order when a user has multiple roles: highest privilege wins.
 const ROLE_PRIORITY: AppRole[] = [
@@ -24,7 +31,7 @@ export function useUserRole() {
   const userId = user?.id;
 
   return useQuery<AppRole | null>({
-    queryKey: ["user_role", userId],
+    queryKey: userRoleKeys.byUser(userId),
     enabled: !!userId,
     // Roles cambian con muy baja frecuencia. Cachear 5min reduce ~18k calls/día
     // a `user_roles`. Errores transitorios se recuperan vía retry: 2.

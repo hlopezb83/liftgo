@@ -2,7 +2,7 @@ import { parseISO } from "date-fns";
 import { z } from "zod";
 import { toYMD } from "@/lib/format/dateFormats";
 import { nowMty } from "@/lib/utils";
-import type { MaintenanceLog } from "../hooks/maintenance/useMaintenanceLogs";
+import type { MaintenanceLog } from "../hooks/useMaintenanceLogs";
 
 export const maintenanceFormSchema = z.object({
   forkliftId: z.string().min(1, "Montacargas requerido"),

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import type { PlatformOrganizationRow } from "@/lib/platformAdmin.types";
-import type { OrganizationGovernanceSummary } from "@/lib/platformOrganizationGovernance.types";
+import type { PlatformOrganizationRow } from "../lib/platformAdmin.types";
+import type { OrganizationGovernanceSummary } from "../lib/platformOrganizationGovernance.types";
 import { filterOrganizationRegistry } from "../lib/organizationGovernanceList";
 const companies: PlatformOrganizationRow[] = [
   { id: "A", name: "ELOGISTIX SHIPPING", slug: "elogistix", razon_social: null, is_active: true, created_at: "now", internal_members: 1, portal_accounts: 0, customers: 2 },

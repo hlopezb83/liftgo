@@ -2,7 +2,7 @@ import type { ColumnDef } from "@/components/dataTable/v2";
 import { serviceTypeLabel } from "@/lib/constants";
 import { formatDateMty } from "@/lib/format/dateFormats";
 import { formatCurrency } from "@/lib/format/formatCurrency";
-import { MaintenanceStatusBadge } from "../components/maintenance/MaintenanceStatusBadge";
+import { MaintenanceStatusBadge } from "../components/MaintenanceStatusBadge";
 import type { EnrichedMaintenanceLog } from "../lib/maintenancePageHelpers";
 
 export const maintenanceColumns: ColumnDef<EnrichedMaintenanceLog>[] = [

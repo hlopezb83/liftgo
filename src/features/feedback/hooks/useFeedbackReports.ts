@@ -124,9 +124,7 @@ export function useMyFeedbackPointsTotal() {
     enabled: !!user?.id,
     staleTime: 30_000,
     queryFn: async () => {
-      type PointsRpc = () => PromiseLike<{ data: unknown; error: { message: string } | null }>;
-      const rpc = supabase.rpc.bind(supabase) as unknown as (name: string) => ReturnType<PointsRpc>;
-      const { data, error } = await rpc("get_my_feedback_points_total");
+      const { data, error } = await supabase.rpc("get_my_feedback_points_total");
       if (error) throw error;
       return Number(data ?? 0);
     },

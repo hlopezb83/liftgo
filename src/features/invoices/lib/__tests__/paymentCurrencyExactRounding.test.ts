@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
+import { convertCurrencyAmount } from "@/lib/money/paymentCurrency";
 import { validateEditPaymentAmount } from "../../components/invoice-detail/validateEditPaymentAmount";
-import { convertCurrencyAmount } from "../paymentCurrency";
 
 describe("PostgreSQL numeric rounding parity", () => {
   it("does not pre-round a decimal quotient across the half-cent boundary", () => {

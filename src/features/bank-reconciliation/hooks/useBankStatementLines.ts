@@ -51,11 +51,6 @@ interface BankKpiRpcRow {
   credits: number | string;
 }
 
-type UntypedRpc = (
-  name: string,
-  args: Record<string, unknown>,
-) => PromiseLike<{ data: unknown; error: { message: string } | null }>;
-
 /** Query key para las líneas de un estado de cuenta, filtradas por cuenta bancaria. */
 export const bankLinesKey = (bankAccountId: string | null) =>
   [...bankLineKeys.all, "account", bankAccountId] as const;
@@ -80,11 +75,11 @@ export function useBankStatementLines(
     enabled: !!bankAccountId,
     staleTime: 30_000,
     queryFn: async () => {
-      const rpc = supabase.rpc.bind(supabase) as unknown as UntypedRpc;
-      const { data, error } = await rpc("get_bank_statement_lines_page", {
+      if (!bankAccountId) return { rows: [], totalCount: 0 };
+      const { data, error } = await supabase.rpc("get_bank_statement_lines_page", {
         p_bank_account_id: bankAccountId,
-        p_status: status === "all" ? null : status,
-        p_search: search || null,
+        p_status: status === "all" ? undefined : status,
+        p_search: search || undefined,
         p_page_size: pageSize,
         p_offset: (page - 1) * pageSize,
       });
@@ -111,28 +106,30 @@ export function useBankStatementLines(
   };
 }
 
+function normalizeBankKpis(row?: BankKpiRpcRow | null): BankReconciliationKpis {
+  return {
+    totalCount: Number(row?.total_count ?? 0),
+    matchedCount: Number(row?.matched_count ?? 0),
+    pendingCount: Number(row?.pending_count ?? 0),
+    ignoredCount: Number(row?.ignored_count ?? 0),
+    charges: Number(row?.charges ?? 0),
+    credits: Number(row?.credits ?? 0),
+  };
+}
+
 export function useBankReconciliationKpis(bankAccountId: string | null) {
   return useQuery({
     queryKey: [...bankLinesKey(bankAccountId), "kpis"] as const,
     enabled: !!bankAccountId,
     staleTime: 30_000,
     queryFn: async (): Promise<BankReconciliationKpis> => {
-      const rpc = supabase.rpc.bind(supabase) as unknown as UntypedRpc;
-      const { data, error } = await rpc("get_bank_reconciliation_kpis", {
+      if (!bankAccountId) return normalizeBankKpis();
+      const { data, error } = await supabase.rpc("get_bank_reconciliation_kpis", {
         p_bank_account_id: bankAccountId,
       });
       if (error) throw error;
-      const row = (
-        Array.isArray(data) ? data[0] : data
-      ) as BankKpiRpcRow | null;
-      return {
-        totalCount: Number(row?.total_count ?? 0),
-        matchedCount: Number(row?.matched_count ?? 0),
-        pendingCount: Number(row?.pending_count ?? 0),
-        ignoredCount: Number(row?.ignored_count ?? 0),
-        charges: Number(row?.charges ?? 0),
-        credits: Number(row?.credits ?? 0),
-      };
+      const row = (Array.isArray(data) ? data[0] : data) as BankKpiRpcRow | null;
+      return normalizeBankKpis(row);
     },
   });
 }

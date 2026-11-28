@@ -1,5 +1,6 @@
-import { classifyFeedbackReportFn } from "@/lib/feedbackAi.functions";
 import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
+import { classifyFeedbackReportFn } from "../lib/feedbackAi.functions";
+import { feedbackReportKeys } from "../lib/queryKeys";
 
 export interface ClassifyFeedbackArgs {
   reportId: string;
@@ -24,7 +25,7 @@ export function useClassifyFeedback() {
         throw error;
       }
     },
-    invalidateKeys: [["feedback_reports"]],
+    invalidateKeys: [feedbackReportKeys.all],
     errorTitle: "No se pudo clasificar con AI",
   });
 }

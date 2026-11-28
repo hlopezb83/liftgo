@@ -18,7 +18,7 @@ const mocks = vi.hoisted(() => ({
   useReview: vi.fn(),
 }));
 vi.mock("@/features/users", () => ({ useUserRole: () => ({ data: mocks.role }) }));
-vi.mock("../../../hooks/invoices/useQuoteChargeLegacyReview", () => ({ useQuoteChargeLegacyReview: () => { mocks.useReview(); return mocks.query; } }));
+vi.mock("../../../hooks/useQuoteChargeLegacyReview", () => ({ useQuoteChargeLegacyReview: () => { mocks.useReview(); return mocks.query; } }));
 vi.mock("@/lib/router-compat-ui", () => ({ Link: ({ to, children }: { to: string; children: ReactNode }) => <a href={to}>{children}</a> }));
 
 const quoteId = "10700000-0000-4000-8000-000000000001";

@@ -17,6 +17,7 @@ export const TYPES_FILE = join(
 export const SERVER_DIRS = [
   join(ROOT, "src", "lib"),
   join(ROOT, "src", "lib", "server"),
+  join(ROOT, "src", "features"),
   join(ROOT, "src", "routes", "api"),
   join(ROOT, "src", "integrations", "supabase"),
 ];
@@ -39,28 +40,28 @@ export interface AllowEntry {
 
 export const ALLOWLIST: AllowEntry[] = [
   {
-    file: "src/lib/customerPortal.link.ts",
+    file: "src/features/customers/lib/customerPortal.link.ts",
     table: "organization_memberships",
     match: /\.delete\(\)\s*\.eq\(\s*"auth_user_id"/,
     reason:
       "Compensación de la invitación al portal sobre el usuario recién creado.",
   },
   {
-    file: "src/lib/customerPortal.link.ts",
+    file: "src/features/customers/lib/customerPortal.link.ts",
     table: "customer_portal_accounts",
     match: /\.delete\(\)\s*\.eq\(\s*"auth_user_id"/,
     reason:
       "Compensación de la invitación al portal sobre el usuario recién creado.",
   },
   {
-    file: "src/lib/customerPortal.helpers.ts",
+    file: "src/features/customers/lib/customerPortal.helpers.ts",
     table: "customer_portal_accounts",
     match: /\.select\(\s*"id"\s*\)\s*\.eq\(\s*"auth_user_id"/,
     reason:
       "Existencia del vínculo legado por identidad: sólo devuelve id y decide si manda la cuenta con empresa.",
   },
   {
-    file: "src/lib/customerPortal.helpers.ts",
+    file: "src/features/customers/lib/customerPortal.helpers.ts",
     table: "organization_memberships",
     match: /\.select\(\s*"organization_id"\s*\)\s*\.eq\(\s*"auth_user_id"/,
     reason:

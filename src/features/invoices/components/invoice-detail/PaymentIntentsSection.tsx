@@ -10,12 +10,12 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { Form } from "@/components/ui/form";
-import { useAdminPaymentIntents, useReviewPaymentIntent } from "@/features/invoices/hooks/paymentIntents";
 import { useHasModuleAccess } from "@/features/users";
 import { formatDateMty } from "@/lib/format/dateFormats";
 import { formatCurrency } from "@/lib/format/formatCurrency";
 import { zodResolver } from "@/lib/forms/zodResolver";
 import { openStorageFile } from "@/lib/storage/openStorageFile";
+import { useAdminPaymentIntents, useReviewPaymentIntent } from "../../hooks/paymentIntents";
 import {
   usePaymentIntentsColumns,
   type PaymentIntent,

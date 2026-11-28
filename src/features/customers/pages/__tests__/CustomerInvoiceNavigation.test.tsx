@@ -6,7 +6,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { InvoiceDetailBody } from "@/features/invoices/components/invoice-detail/InvoiceDetailBody";
 import { useLocation } from "@/lib/router-compat";
 import MainLayout from "@/layouts/MainLayout";
-import { parseSearch, stringifySearch } from "@/lib/searchSerialization";
+import { parseSearch, stringifySearch } from "@/lib/navigation/searchSerialization";
 import CustomersPage from "../CustomersPage";
 import CustomerDetailPage from "../CustomerDetailPage";
 
@@ -34,19 +34,19 @@ vi.mock("@/layouts/OfflineBanner", () => ({ OfflineBanner: () => null }));
 vi.mock("@/features/feedback", () => ({ FeedbackFab: () => null }));
 vi.mock("@/features/system/components/GlobalSearch", () => ({ GlobalSearch: () => null }));
 vi.mock("@/features/crm", () => ({ useUpdateProspect: () => ({ mutate: vi.fn() }) }));
-vi.mock("../../hooks/customers/customerQueries", () => ({
+vi.mock("../../hooks/customerQueries", () => ({
   useCustomersIncremental: () => ({ data: { pages: [[{ id: customerId, name: "QA-AUDIT", rfc: null, phone: null, email: null }]] }, isLoading: false, isError: false,
     refetch: vi.fn(), hasNextPage: false, isFetchingNextPage: false, fetchNextPage: vi.fn() }),
 }));
-vi.mock("../../hooks/customers/useCustomers", () => ({
-  useCreateCustomer: () => ({ mutate: vi.fn(), isPending: false }),
+vi.mock("../../hooks/useCustomers", () => ({
+  useCreateCustomerWithProspectLink: () => ({ mutate: vi.fn(), isPending: false }),
   useUpdateCustomer: () => ({ mutate: vi.fn(), isPending: false }),
 }));
-vi.mock("../../components/customers/CustomersToolbar", () => ({
+vi.mock("../../components/CustomersToolbar", () => ({
   CustomersActions: () => null, CustomersSecondaryActions: () => null, CustomersFilters: () => null,
 }));
 vi.mock("@/layouts/RoleGuard", () => ({ RoleGuard: () => null }));
-vi.mock("../../hooks/customers/useCustomerDetailPage", () => ({
+vi.mock("../../hooks/useCustomerDetailPage", () => ({
   useCustomerDetailPage: () => ({
     customer: { id: customerId, name: "Cliente de prueba" },
     summary: {}, summaryReady: true, summaryActionsReady: true, bookings: [],
@@ -63,7 +63,7 @@ vi.mock("../../components/customer-detail/CustomerDeleteDialog", () => ({ Custom
 vi.mock("../../components/customer-detail/CustomerFinancialSummary", () => ({ CustomerFinancialSummary: () => null }));
 vi.mock("../../components/customer-detail/CustomerInviteDialog", () => ({ CustomerInviteDialog: () => null }));
 vi.mock("../../components/customer-detail/CustomerProfitabilityCard", () => ({ CustomerProfitabilityCard: () => null }));
-vi.mock("../../components/customers/CustomerFormDialog", () => ({ CustomerFormDialog: () => null }));
+vi.mock("../../components/CustomerFormDialog", () => ({ CustomerFormDialog: () => null }));
 vi.mock("@/components/domain/ReadOnlyLineItemsTable", () => ({ ReadOnlyLineItemsTable: () => null }));
 vi.mock("@/components/domain/TotalsSummary", () => ({ TotalsSummary: () => null }));
 vi.mock("@/features/invoices/components/StampErrorDialog", () => ({ StampErrorDialog: () => null }));

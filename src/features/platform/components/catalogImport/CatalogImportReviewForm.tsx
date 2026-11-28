@@ -6,9 +6,9 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { catalogImportInputSchema, type CatalogImportInput, type CatalogImportPreview } from "@/lib/platformCatalogImport.types";
 import { notifyValidation } from "@/lib/ui/appFeedback";
 import { useImportCatalogCandidate } from "../../hooks/usePlatformCatalogImport";
+import { catalogImportInputSchema, type CatalogImportInput, type CatalogImportPreview } from "../../lib/platformCatalogImport.types";
 
 export function CatalogImportReviewForm({ preview, onDone, onPendingChange }: {
   preview: CatalogImportPreview; onDone: () => void; onPendingChange: (pending: boolean) => void;

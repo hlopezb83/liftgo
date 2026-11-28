@@ -44,10 +44,20 @@ test('only the exact auth page has a Supabase UI exception', () => {
   assert.deepEqual(check(source, path.join(root, 'src/features/auth/pages/AuthPage.tsx')), []);
   assert.equal(check(source, path.join(root, 'src/features/auth/pages/Other.tsx')).length, 1);
   assert.deepEqual(check(source, path.join(root, 'src/features/fleet/hooks/useFleet.ts')), []);
+  assert.equal(check(source, path.join(root, 'src/components/layout/TableContent.tsx'))[0].rule, 'G4');
 });
-test('shared PDF renderers depend on document data, not feature modules', () => {
+test('shared src/lib and src/integrations never depend on feature modules', () => {
   const pdf = path.join(root, 'src/lib/pdf/documents/ContractDocument.tsx');
+  const libUtil = path.join(root, 'src/lib/format/dateFormats.ts');
+  const supabaseClient = path.join(root, 'src/integrations/supabase/client.ts');
   assert.equal(check('import { value } from "@/features/contracts";', pdf)[0].rule, 'G5');
+  assert.equal(check('import { value } from "@/features/invoices";', libUtil)[0].rule, 'G5');
+  assert.equal(check('import { init } from "@/features/auth/recoverySession";', supabaseClient)[0].rule, 'G5');
   assert.deepEqual(check('import type { ContractData } from "../contract/data";', pdf), []);
+});
+test('layouts, contexts, hooks and components use public feature barrels while routes allow page code-splitting', () => {
+  assert.equal(check('import { X } from "@/features/system/components/GlobalSearch";', path.join(root, 'src/layouts/MainLayout.tsx'))[0].rule, 'G5');
+  assert.deepEqual(check('import { GlobalSearch } from "@/features/system";', path.join(root, 'src/layouts/MainLayout.tsx')), []);
+  assert.deepEqual(check('const Page = lazy(() => import("@/features/quotes/pages/QuotesPage"));', path.join(root, 'src/routes/_main/quotes.index.tsx')), []);
 });
 test('repository feature graph respects G4/G5', () => assert.deepEqual(checkFeatureImports(root), []));

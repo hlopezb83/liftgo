@@ -7,7 +7,7 @@ import { todayKeyMty } from "@/lib/format/dateFormats";
 import { Link } from "@/lib/router-compat-ui";
 import { bookingNextStep, type BookingNextAction, type BookingTransport } from "../../hooks/bookingDetail/bookingNextStep";
 import { useBookingTransportContext } from "../../hooks/bookingDetail/useBookingTransportContext";
-import { type BookingWithForklift } from "../../hooks/bookings/useBookings";
+import { type BookingWithForklift } from "../../hooks/useBookings";
 
 interface Props {
   booking: BookingWithForklift;

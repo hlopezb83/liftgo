@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import type { LegalTemplateContent } from "@/lib/platformLegalTemplates.types";
+import type { LegalTemplateContent } from "../lib/platformLegalTemplates.types";
 import { legalTemplateDifferences, legalTemplateSections } from "../lib/legalTemplateReview";
 const before: LegalTemplateContent = { intro_text: "Contrato {{folio}}", body_text: null, declarations_landlord: ["Representación"],
   declarations_tenant: ["Domicilio"], clauses: [{ title: "Renta", body: "Pago mensual" }],

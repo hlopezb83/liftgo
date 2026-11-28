@@ -10,7 +10,7 @@ const state = vi.hoisted(() => ({ read: vi.fn(), navigate: vi.fn() }));
 vi.mock("@/integrations/supabase/client", () => ({
   supabase: createSupabaseChainMock({ tableResolvers: { booking_extensions: () => state.read() } }),
 }));
-vi.mock("../../hooks/bookings/useBookings", () => ({ useBooking: () => ({ data: {
+vi.mock("../../hooks/useBookings", () => ({ useBooking: () => ({ data: {
   id: "booking-1", booking_number: "SYNTHETIC", start_date: "2026-10-01", end_date: "2026-10-20",
   status: "confirmed", recurring_billing: false,
 } }) }));
@@ -19,8 +19,8 @@ vi.mock("@/features/deliveries", async (importOriginal) => ({
   ...await importOriginal<typeof import("@/features/deliveries")>(), deliveryQueries: { list: () => ({ queryKey: ["deliveries"], queryFn: async () => [] }) } }));
 vi.mock("@/features/users", () => ({ useHasModuleAccess: () => true, useHasFinancialAccess: () => true }));
 vi.mock("@/hooks/useNavigateTransition", () => ({ useNavigateTransition: () => state.navigate }));
-vi.mock("../../components/bookings/BookingActions", () => ({ BookingActions: () => null }));
-vi.mock("../../components/bookings/BookingStatusHistory", () => ({ BookingStatusHistory: () => null }));
+vi.mock("../../components/BookingActions", () => ({ BookingActions: () => null }));
+vi.mock("../../components/BookingStatusHistory", () => ({ BookingStatusHistory: () => null }));
 vi.mock("../../components/booking-detail/BookingBillingCard", () => ({ BookingBillingCard: () => null }));
 
 import BookingDetail from "../BookingDetail";

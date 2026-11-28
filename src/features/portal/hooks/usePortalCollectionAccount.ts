@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/contexts/AuthContext";
-import { portalQueries, type PortalCollectionAccount } from "../lib/queryKeys";
+import { portalQueries } from "../lib/portalQueries";
 
 
 

@@ -6,11 +6,11 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { listPlatformPartsCatalogFn, type PlatformEquipmentModelRow, type PlatformPartCatalogRow } from "@/lib/platformCatalog.functions";
 import { notifyValidation } from "@/lib/ui/appFeedback";
-import { useSavePlatformPartCatalog } from "../hooks/usePlatformEquipmentCatalog";
+import { useGetPlatformPartCatalog, useSavePlatformPartCatalog } from "../hooks/usePlatformEquipmentCatalog";
 import { isPlatformEditConflict } from "../lib/platformEditConflict";
 import { PlatformCurrentFields, PlatformEditConflict } from "./PlatformEditConflict";
+import type { PlatformEquipmentModelRow, PlatformPartCatalogRow } from "../lib/platformCatalog.types";
 
 type FormState = {
   sku: string;
@@ -41,6 +41,7 @@ export function PlatformPartCatalogDialog({
   models: PlatformEquipmentModelRow[];
 }) {
   const save = useSavePlatformPartCatalog();
+  const getPart = useGetPlatformPartCatalog();
   const descriptionId = useId();
   const [expectedUpdatedAt, setExpectedUpdatedAt] = useState(part?.updated_at);
   const conflict = isPlatformEditConflict(save.error);
@@ -95,7 +96,7 @@ export function PlatformPartCatalogDialog({
     >
       <div className="grid gap-4 py-2">
         {conflict && <PlatformEditConflict loadCurrent={async () => {
-          const current = (await listPlatformPartsCatalogFn()).find((row) => row.id === part?.id);
+          const current = part?.id ? await getPart(part.id) : null;
           if (!current) throw new Error("El SKU ya no está disponible.");
           return { token: current.updated_at, preview: <PlatformCurrentFields values={{
             SKU: current.sku, Nombre: current.name, Descripción: current.description ?? "", Fabricante: current.manufacturer ?? "",

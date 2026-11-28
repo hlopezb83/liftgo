@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { useLeaderboard, type LeaderboardPeriod, type LeaderboardRow } from "../hooks/useLeaderboard";
 
+const EMPTY_LEADERBOARD: LeaderboardRow[] = [];
 const PODIUM_COLORS = ["text-warning", "text-muted-foreground", "text-[hsl(var(--chart-2))]"];
 
 function PositionCell({ pos }: { pos: number }) {
@@ -18,62 +19,62 @@ function PositionCell({ pos }: { pos: number }) {
   return <span className="text-sm font-medium text-muted-foreground">{pos}</span>;
 }
 
+const LEADERBOARD_COLUMNS: ColumnDef<LeaderboardRow>[] = [
+  {
+    id: "position",
+    header: "#",
+    enableSorting: false,
+    meta: { headClassName: "w-16" },
+    cell: ({ row, table }) => {
+      const sortedRows = table.getSortedRowModel().rows;
+      const pos = sortedRows.findIndex((r) => r.id === row.id) + 1;
+      return <PositionCell pos={pos} />;
+    },
+  },
+  {
+    id: "reporter_name",
+    header: "Nombre",
+    accessorKey: "reporter_name",
+    cell: ({ row }) => <span className="font-medium">{row.original.reporter_name}</span>,
+  },
+  {
+    id: "total_reports",
+    header: "Reportes",
+    accessorKey: "total_reports",
+    meta: { kind: "number" },
+    cell: ({ row }) => <span className="tabular-nums">{row.original.total_reports}</span>,
+  },
+  {
+    id: "accepted_reports",
+    header: "Aceptados",
+    accessorKey: "accepted_reports",
+    meta: { kind: "number" },
+    cell: ({ row }) => <span className="tabular-nums">{row.original.accepted_reports}</span>,
+  },
+  {
+    id: "resolved_reports",
+    header: "Resueltos",
+    accessorKey: "resolved_reports",
+    meta: { kind: "number" },
+    cell: ({ row }) => <span className="tabular-nums">{row.original.resolved_reports}</span>,
+  },
+  {
+    id: "total_points",
+    header: "Puntos",
+    accessorKey: "total_points",
+    meta: { kind: "number" },
+    cell: ({ row }) => (
+      <span className="tabular-nums font-semibold">{row.original.total_points}</span>
+    ),
+  },
+];
+
 function LeaderboardTable({ period }: { period: LeaderboardPeriod }) {
   const { data, isLoading, isError, refetch } = useLeaderboard(period);
 
-  const columns: ColumnDef<LeaderboardRow>[] = [
-      {
-        id: "position",
-        header: "#",
-        enableSorting: false,
-        meta: { headClassName: "w-16" },
-        cell: ({ row, table }) => {
-          const sortedRows = table.getSortedRowModel().rows;
-          const pos = sortedRows.findIndex((r) => r.id === row.id) + 1;
-          return <PositionCell pos={pos} />;
-        },
-      },
-      {
-        id: "reporter_name",
-        header: "Nombre",
-        accessorKey: "reporter_name",
-        cell: ({ row }) => <span className="font-medium">{row.original.reporter_name}</span>,
-      },
-      {
-        id: "total_reports",
-        header: "Reportes",
-        accessorKey: "total_reports",
-        meta: { kind: "number" },
-        cell: ({ row }) => <span className="tabular-nums">{row.original.total_reports}</span>,
-      },
-      {
-        id: "accepted_reports",
-        header: "Aceptados",
-        accessorKey: "accepted_reports",
-        meta: { kind: "number" },
-        cell: ({ row }) => <span className="tabular-nums">{row.original.accepted_reports}</span>,
-      },
-      {
-        id: "resolved_reports",
-        header: "Resueltos",
-        accessorKey: "resolved_reports",
-        meta: { kind: "number" },
-        cell: ({ row }) => <span className="tabular-nums">{row.original.resolved_reports}</span>,
-      },
-      {
-        id: "total_points",
-        header: "Puntos",
-        accessorKey: "total_points",
-        meta: { kind: "number" },
-        cell: ({ row }) => (
-          <span className="tabular-nums font-semibold">{row.original.total_points}</span>
-        ),
-      },
-    ];
-
   const table = useLiftgoTable<LeaderboardRow>({
-    data,
-    columns,
+    data: data ?? EMPTY_LEADERBOARD,
+    columns: LEADERBOARD_COLUMNS,
     getRowId: (row) => row.reporter_id,
     initialSorting: [{ id: "total_points", desc: true }],
   });

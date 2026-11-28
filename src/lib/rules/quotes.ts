@@ -1,4 +1,5 @@
 import type { Tables } from "@/integrations/supabase/types";
+import type { AppRole } from "@/lib/domain/roles";
 
 /**
  * Reglas de dominio para cotizaciones. Fuente única de verdad para
@@ -6,6 +7,8 @@ import type { Tables } from "@/integrations/supabase/types";
  */
 
 type QuoteLike = Pick<Tables<"quotes">, "status"> & Partial<Pick<Tables<"quotes">, "accepted_at">>;
+
+const QUOTE_ACCEPTED_CANCEL_ROLES: readonly AppRole[] = ["admin", "administrativo"] as const;
 
 const EDITABLE_STATUSES = new Set(["draft", "sent"]);
 // GUI-FE-01 (G-VEN-03): sólo una cotización ACEPTADA puede convertirse en
@@ -27,6 +30,13 @@ export function canConvertQuote(
 ): boolean {
   if (opts.isSale || opts.alreadyConverted) return false;
   return CONVERTIBLE_STATUSES.has(quote.status);
+}
+
+export function canCancelAcceptedQuote(
+  quote: Pick<Tables<"quotes">, "status">,
+  role: string | null | undefined,
+): boolean {
+  return quote.status === "accepted" && Boolean(role && (QUOTE_ACCEPTED_CANCEL_ROLES as readonly string[]).includes(role));
 }
 
 export function canActOnPortalQuote(quote: Pick<Tables<"quotes">, "status">): boolean {

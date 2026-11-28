@@ -5,10 +5,10 @@ import { PageFallback } from "@/app-routes/RouteSkeletons";
 import { ErrorDiagnostic } from "@/components/feedback/ErrorDiagnostic";
 import { AppProviders } from "@/layouts/AppProviders";
 import { ErrorBoundary } from "@/layouts/ErrorBoundary";
-import { reportLovableError } from "@/lib/lovable-error-reporting";
 import { captureOperationalError } from "@/lib/observability/captureOperationalError";
+import { reportLovableError } from "@/lib/observability/lovable-error-reporting";
 import { SentryNavigationSync } from "@/lib/observability/SentryNavigationSync";
-import { clearStaleChunkReloadGuard, handleStaleChunkPreloadError, isStaleChunkMessage, recoverFromStaleChunk } from "@/lib/staleChunkReload";
+import { clearStaleChunkReloadGuard, handleStaleChunkPreloadError, isStaleChunkMessage, recoverFromStaleChunk } from "@/lib/observability/staleChunkReload";
 import appCss from "../styles.css?url";
 import type { QueryClient } from "@tanstack/react-query";
 

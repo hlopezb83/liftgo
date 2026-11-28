@@ -6,7 +6,7 @@ import { useInvoiceFormSubmit } from "../useInvoiceFormSubmit";
 vi.mock("@/features/quotes", () => ({
   useUpdateQuote: () => ({ isPending: false }),
 }));
-vi.mock("../../invoices/useInvoices", () => ({
+vi.mock("../../useInvoices", () => ({
   useSaveInvoiceWithBookings: () => ({ isPending: false }),
 }));
 

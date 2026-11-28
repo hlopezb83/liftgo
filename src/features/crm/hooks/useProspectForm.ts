@@ -1,14 +1,12 @@
-import { useEffect, useState } from "react";
-import { useCrmQuote, useCrmQuoteOptions } from "@/features/quotes";
-import { useDebouncedValue } from "@/hooks/useDebouncedValue";
+import { useState } from "react";
 import {
   STAGES_REQUIRING_DEAL_VALUE,
   prospectPayloadSchema,
-  sortQuotesByCompanyMatch,
   validateDealValue,
   type ProspectFormPayload,
 } from "../lib/prospectFormSchema";
 import { quoteDealValueMxn } from "../lib/quoteDealValue";
+import { useProspectQuoteSelection } from "./useProspectQuoteSelection";
 import type { Prospect } from "./useProspects";
 
 export { STAGE_LABELS } from "../lib/constants";
@@ -22,16 +20,43 @@ interface UseProspectFormParams {
 }
 
 interface ProspectFormSnapshot {
-  company: string; contact: string; email: string; phone: string;
-  dealValue: string; notes: string; quoteId: string | null;
+  company: string;
+  contact: string;
+  email: string;
+  phone: string;
+  dealValue: string;
+  notes: string;
+  quoteId: string | null;
 }
 
-/** R22-A: compara el estado actual del formulario contra los valores iniciales. */
-function isProspectFormDirty(
-  prospect: Prospect | null | undefined,
-  s: ProspectFormSnapshot,
-): boolean {
-  const initial: ProspectFormSnapshot = {
+interface ProspectFormErrors {
+  dealValueError: string | null;
+  emailError: string | null;
+  companyError: string | null;
+  contactError: string | null;
+  phoneError: string | null;
+  notesError: string | null;
+  formError: string | null;
+}
+
+interface ProspectFormState {
+  values: ProspectFormSnapshot;
+  errors: ProspectFormErrors;
+  quoteSearch: string;
+}
+
+const EMPTY_ERRORS: ProspectFormErrors = {
+  dealValueError: null,
+  emailError: null,
+  companyError: null,
+  contactError: null,
+  phoneError: null,
+  notesError: null,
+  formError: null,
+};
+
+function buildInitialValues(prospect: Prospect | null | undefined): ProspectFormSnapshot {
+  return {
     company: prospect?.companyName ?? "",
     contact: prospect?.contactPerson ?? "",
     email: prospect?.email ?? "",
@@ -40,6 +65,21 @@ function isProspectFormDirty(
     notes: prospect?.notes ?? "",
     quoteId: prospect?.quoteId ?? null,
   };
+}
+
+function createInitialState(prospect: Prospect | null | undefined): ProspectFormState {
+  return {
+    values: buildInitialValues(prospect),
+    errors: EMPTY_ERRORS,
+    quoteSearch: "",
+  };
+}
+
+function isProspectFormDirty(
+  prospect: Prospect | null | undefined,
+  s: ProspectFormSnapshot,
+): boolean {
+  const initial = buildInitialValues(prospect);
   const keys = Object.keys(initial) as Array<keyof ProspectFormSnapshot>;
   return keys.some((k) => s[k] !== initial[k]);
 }
@@ -47,162 +87,118 @@ function isProspectFormDirty(
 export function useProspectForm({
   prospect, open, overrideStage,
 }: UseProspectFormParams) {
-  const [company, setCompany] = useState("");
-  const [contact, setContact] = useState("");
-  const [email, setEmail] = useState("");
-  const [phone, setPhone] = useState("");
-  const [dealValue, setDealValue] = useState("");
-  const [notes, setNotes] = useState("");
-  const [quoteId, setQuoteId] = useState<string | null>(null);
-  const [dealValueError, setDealValueError] = useState<string | null>(null);
-  const [emailError, setEmailError] = useState<string | null>(null);
-  // R23-O: error inline de "Empresa" (antes lo reportaba la burbuja nativa del navegador).
-  const [companyError, setCompanyError] = useState<string | null>(null);
-  const [contactError, setContactError] = useState<string | null>(null);
-  const [phoneError, setPhoneError] = useState<string | null>(null);
-  const [notesError, setNotesError] = useState<string | null>(null);
-  const [formError, setFormError] = useState<string | null>(null);
+  const sessionKey = `${prospect?.id ?? "new"}:${open}`;
+  const [prevSessionKey, setPrevSessionKey] = useState(sessionKey);
+  const [state, setState] = useState<ProspectFormState>(() => createInitialState(prospect));
 
-  const [quoteSearch, setQuoteSearch] = useState("");
-  const debouncedQuoteSearch = useDebouncedValue(quoteSearch);
-  const quoteOptions = useCrmQuoteOptions(debouncedQuoteSearch, open);
-  const linkedQuoteQuery = useCrmQuote(quoteId, open);
-  const selectedQuote = quoteId && linkedQuoteQuery.data?.id === quoteId ? linkedQuoteQuery.data : null;
-  const allQuotes = [...new Map((quoteOptions.data?.pages.flat() ?? []).map((quote) => [quote.id, quote])).values()];
-  const matchingQuotes = sortQuotesByCompanyMatch(
-    selectedQuote && !allQuotes.some((quote) => quote.id === selectedQuote.id)
-      ? [selectedQuote, ...allQuotes] : allQuotes, company,
-  );
-  const linkedQuoteError = !quoteId ? null
-    : linkedQuoteQuery.isError ? "No se pudo verificar la cotización vinculada. Reintenta antes de guardar."
-    : linkedQuoteQuery.isPending || linkedQuoteQuery.isFetching ? "Espera a que se verifique la cotización vinculada."
-    : !selectedQuote ? "La cotización vinculada no está disponible. Reintenta o desvincúlala explícitamente."
-    : null;
+  if (prevSessionKey !== sessionKey) {
+    setPrevSessionKey(sessionKey);
+    setState(createInitialState(prospect));
+  }
 
-  // El alta respeta la etapa inicial del servidor, incluso desde un acceso rápido heredado.
+  const { values, errors, quoteSearch } = state;
+  const setField = <K extends keyof ProspectFormSnapshot>(
+    key: K,
+    value: ProspectFormSnapshot[K],
+    errorKey?: keyof ProspectFormErrors,
+  ) => {
+    setState((prev) => ({
+      ...prev,
+      values: { ...prev.values, [key]: value },
+      errors: errorKey ? { ...prev.errors, [errorKey]: null } : prev.errors,
+    }));
+  };
+
+  const quoteData = useProspectQuoteSelection({
+    quoteId: values.quoteId,
+    company: values.company,
+    quoteSearch,
+    open,
+    onSearchChange: (q) => setState((prev) => ({ ...prev, quoteSearch: q })),
+  });
+
   const effectiveStage = prospect ? (overrideStage ?? prospect.stage) : "nuevo_prospecto";
   const requiresDealValue = STAGES_REQUIRING_DEAL_VALUE.includes(effectiveStage);
 
-  useEffect(() => {
-    /* eslint-disable react-hooks/set-state-in-effect -- rehidrata múltiples campos desde
-       props (prospect) al abrir el modal; el prev-prop guard supera el umbral de complejidad. */
-    if (prospect) {
-      setCompany(prospect.companyName);
-      setContact(prospect.contactPerson ?? "");
-      setEmail(prospect.email ?? "");
-      setPhone(prospect.phone ?? "");
-      setDealValue(String(prospect.dealValue ?? 0));
-      setNotes(prospect.notes ?? "");
-      setQuoteId(prospect.quoteId ?? null);
-    } else {
-      setCompany(""); setContact(""); setEmail(""); setPhone("");
-      setDealValue(""); setNotes(""); setQuoteId(null);
-    }
-    setQuoteSearch("");
-    setDealValueError(null);
-    setEmailError(null);
-    setCompanyError(null);
-    setContactError(null);
-    setPhoneError(null);
-    setNotesError(null);
-    setFormError(null);
-    /* eslint-enable react-hooks/set-state-in-effect */
-  }, [prospect, open]);
-
   const handleQuoteChange = (value: string) => {
-    setFormError(null);
     const selectedId = value === "none" ? null : value;
-    setQuoteId(selectedId);
-    if (selectedId) {
-      const quote = matchingQuotes.find((q) => q.id === selectedId);
-      if (quote) {
-        const converted = quoteDealValueMxn(quote);
-        setDealValue(converted.value === null ? "" : String(converted.value));
-        setDealValueError(converted.error);
-      }
-    } else {
-      setDealValueError(null);
-    }
+    const matched = selectedId ? quoteData.matchingQuotes.find((q) => q.id === selectedId) : undefined;
+    const converted = matched ? quoteDealValueMxn(matched) : null;
+    setState((prev) => ({
+      ...prev,
+      values: {
+        ...prev.values,
+        quoteId: selectedId,
+        dealValue: converted ? (converted.value === null ? "" : String(converted.value)) : prev.values.dealValue,
+      },
+      errors: {
+        ...prev.errors,
+        formError: null,
+        dealValueError: selectedId ? (converted ? converted.error : prev.errors.dealValueError) : null,
+      },
+    }));
   };
 
   const buildPayload = (): ProspectFormPayload | null => {
-    if (linkedQuoteError) {
-      setFormError(linkedQuoteError);
+    if (quoteData.linkedQuoteError) {
+      setState((prev) => ({ ...prev, errors: { ...prev.errors, formError: quoteData.linkedQuoteError } }));
       return null;
     }
-    const quoteError = selectedQuote ? quoteDealValueMxn(selectedQuote).error : null;
+    const quoteError = quoteData.selectedQuote ? quoteDealValueMxn(quoteData.selectedQuote).error : null;
     if (quoteError) {
-      setDealValueError(quoteError);
+      setState((prev) => ({ ...prev, errors: { ...prev.errors, dealValueError: quoteError } }));
       return null;
     }
-    const { value, error } = validateDealValue(dealValue, requiresDealValue);
+    const { value, error } = validateDealValue(values.dealValue, requiresDealValue);
     if (error) {
-      setDealValueError(error);
+      setState((prev) => ({ ...prev, errors: { ...prev.errors, dealValueError: error } }));
       return null;
     }
-    // v7.217.0 (C9): validación Zod en la frontera. Detecta email inválido,
-    // longitudes fuera de rango y quote_id mal formado antes del mutation.
     const parsed = prospectPayloadSchema.safeParse({
-      company_name: company,
-      contact_person: contact,
-      email,
-      phone,
+      company_name: values.company,
+      contact_person: values.contact,
+      email: values.email,
+      phone: values.phone,
       deal_value: value,
-      notes,
+      notes: values.notes,
       stage: effectiveStage,
-      quote_id: quoteId,
+      quote_id: values.quoteId,
     });
     if (!parsed.success) {
       const errorFor = (field: string) => parsed.error.issues.find((i) => i.path[0] === field)?.message ?? null;
-      setCompanyError(errorFor("company_name"));
-      setEmailError(errorFor("email"));
-      setDealValueError(errorFor("deal_value"));
-      setContactError(errorFor("contact_person"));
-      setPhoneError(errorFor("phone"));
-      setNotesError(errorFor("notes"));
-      setFormError(errorFor("stage") ?? errorFor("quote_id"));
+      setState((prev) => ({
+        ...prev,
+        errors: {
+          companyError: errorFor("company_name"),
+          emailError: errorFor("email"),
+          dealValueError: errorFor("deal_value"),
+          contactError: errorFor("contact_person"),
+          phoneError: errorFor("phone"),
+          notesError: errorFor("notes"),
+          formError: errorFor("stage") ?? errorFor("quote_id"),
+        },
+      }));
       return null;
     }
-    setCompanyError(null);
-    setEmailError(null);
-    setDealValueError(null);
-    setContactError(null);
-    setPhoneError(null);
-    setNotesError(null);
-    setFormError(null);
+    setState((prev) => ({ ...prev, errors: EMPTY_ERRORS }));
     return parsed.data;
   };
 
-  // R22-A: sin RHF, derivamos isDirty comparando contra los valores iniciales.
-  const isDirty = isProspectFormDirty(prospect, {
-    company, contact, email, phone, dealValue, notes, quoteId,
-  });
-
   return {
-    isDirty,
-    fields: { company, contact, email, phone, dealValue, notes, quoteId, dealValueError, emailError, companyError, contactError, phoneError, notesError, formError },
+    isDirty: isProspectFormDirty(prospect, values),
+    fields: { ...values, ...errors },
     setters: {
-      setCompany: (v: string) => { setCompany(v); setCompanyError(null); },
-      setContact: (v: string) => { setContact(v); setContactError(null); },
-      setEmail: (v: string) => { setEmail(v); setEmailError(null); },
-      setPhone: (v: string) => { setPhone(v); setPhoneError(null); },
-      setDealValue: (v: string) => { setDealValue(v); setDealValueError(null); },
-      setNotes: (v: string) => { setNotes(v); setNotesError(null); },
+      setCompany: (v: string) => setField("company", v, "companyError"),
+      setContact: (v: string) => setField("contact", v, "contactError"),
+      setEmail: (v: string) => setField("email", v, "emailError"),
+      setPhone: (v: string) => setField("phone", v, "phoneError"),
+      setDealValue: (v: string) => setField("dealValue", v, "dealValueError"),
+      setNotes: (v: string) => setField("notes", v, "notesError"),
       handleQuoteChange,
     },
-    matchingQuotes,
-    selectedQuote,
-    quoteSelection: {
-      search: quoteSearch,
-      onSearchChange: setQuoteSearch,
-      isLoading: quoteOptions.isFetching,
-      isError: quoteOptions.isError,
-      hasMore: !!quoteOptions.hasNextPage,
-      onLoadMore: () => { void quoteOptions.fetchNextPage(); },
-      onRetry: () => { void quoteOptions.refetch(); },
-      linkedError: linkedQuoteError,
-      onRetryLinked: () => { void linkedQuoteQuery.refetch(); },
-    },
+    matchingQuotes: quoteData.matchingQuotes,
+    selectedQuote: quoteData.selectedQuote,
+    quoteSelection: quoteData.quoteSelection,
     effectiveStage,
     requiresDealValue,
     buildPayload,

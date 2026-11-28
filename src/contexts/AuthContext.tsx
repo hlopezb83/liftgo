@@ -1,6 +1,6 @@
 /* eslint-disable react-refresh/only-export-components */
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
-import { startRecoveryCapture } from "@/features/auth/recoveryCapture";
+import { startRecoveryCapture } from "@/features/auth";
 import { supabase } from "@/integrations/supabase/client";
 import { syncFormDraftIdentity } from "@/lib/storage/formDraftStorage";
 import { dismissAuthError } from "@/lib/ui/appFeedback";

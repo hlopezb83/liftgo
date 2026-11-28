@@ -7,10 +7,10 @@ import { InvoicePaymentSummary } from "../InvoicePaymentSummary";
 const mocks = vi.hoisted(() => ({ canWrite: false, stamp: vi.fn(), refresh: vi.fn(), editDialogProps: vi.fn() }));
 vi.mock("@/features/users", () => ({ useHasModuleAccess: () => mocks.canWrite }));
 vi.mock("@/features/bank-reconciliation", () => ({ ReconciliationBadge: () => null }));
-vi.mock("../../../hooks/invoices/cfdi/usePaymentComplement", () => ({
+vi.mock("../../../hooks/cfdi/usePaymentComplement", () => ({
   useStampPaymentComplement: () => ({ mutate: mocks.stamp, isPending: false }),
 }));
-vi.mock("../../../hooks/invoices/cfdi/useRefreshCancellationStatus", () => ({
+vi.mock("../../../hooks/cfdi/useRefreshCancellationStatus", () => ({
   useRefreshRepCancellationStatus: () => ({ mutate: mocks.refresh, isPending: false }),
 }));
 vi.mock("../EditPaymentDialog", () => ({ EditPaymentDialog: (props: Record<string, unknown>) => {

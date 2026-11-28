@@ -3,7 +3,7 @@ import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { ChecklistEditor, ClausesEditor, EditableList } from "@/features/operations";
-import type { LegalTemplateContent } from "@/lib/platformLegalTemplates.functions";
+import type { LegalTemplateContent } from "../../lib/platformLegalTemplates.functions";
 
 export function LegalTemplateContentEditor({
   value,

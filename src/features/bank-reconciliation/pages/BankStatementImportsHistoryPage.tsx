@@ -1,4 +1,4 @@
-import { useCallback, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { DataTableV2, useLiftgoTable } from "@/components/dataTable/v2";
 import { ListTruncationNotice } from "@/components/feedback/ListTruncationNotice";
 import { QueryErrorState } from "@/components/feedback/QueryErrorState";
@@ -33,9 +33,10 @@ export default function BankStatementImportsHistoryPage() {
 
   const onDeleteRequest = useCallback((row: ImportRow) => setSelectedImport(row), []);
   const columns = useBankImportsColumns(canDelete, onDeleteRequest);
+  const visibleImports = useMemo(() => visibleListRows(imports), [imports]);
 
   const table = useLiftgoTable<ImportRow>({
-    data: visibleListRows(imports),
+    data: visibleImports,
     columns,
     getRowId: (i) => i.id,
     initialSorting: [{ id: "created_at", desc: true }],

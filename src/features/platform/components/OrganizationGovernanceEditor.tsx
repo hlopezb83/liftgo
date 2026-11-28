@@ -3,12 +3,12 @@ import { FormDialog, FormDialogFooter } from "@/components/forms/FormDialog";
 import { FormDialogCancelButton } from "@/components/forms/FormDialogCancelButton";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
-import {
-  organizationGovernanceInputSchema, type OrganizationGovernance, type OrganizationGovernanceFields as GovernanceFieldsValues,
-} from "@/lib/platformOrganizationGovernance.types";
 import { notifyError, notifyValidation } from "@/lib/ui/appFeedback";
 import { extractErrorDetails } from "@/lib/ui/errorDetailsExtract";
 import { useSetOrganizationGovernance } from "../hooks/useOrganizationGovernance";
+import {
+  organizationGovernanceInputSchema, type OrganizationGovernance, type OrganizationGovernanceFields as GovernanceFieldsValues,
+} from "../lib/platformOrganizationGovernance.types";
 import { OrganizationGovernanceFields } from "./OrganizationGovernanceFields";
 import { OrganizationGovernanceSummary } from "./OrganizationGovernanceSummary";
 

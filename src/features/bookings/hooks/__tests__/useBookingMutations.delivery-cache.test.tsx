@@ -5,8 +5,8 @@ import { deliveryBookingDateError } from "@/features/deliveries/lib/deliveryBook
 import { e2eVisibilityFilter } from "@/lib/supabase/constants";
 import { createQueryWrapper } from "@/test/helpers/queryClient";
 import { bookingKeys } from "../../lib/queryKeys";
-import { useCancelBooking, useCreateBooking, useDeleteBooking, useUpdateBooking } from "../bookings/useBookingMutations";
-import { useConfirmedBookingsForDelivery } from "../bookings/useBookings";
+import { useCancelBooking, useCreateBooking, useDeleteBooking, useUpdateBooking } from "../useBookingMutations";
+import { useConfirmedBookingsForDelivery } from "../useBookings";
 
 const server = vi.hoisted(() => ({
   rows: [{ id: "booking-1", customer_name: "QA", start_date: "2026-10-23", end_date: "2026-10-30", forklift_id: "forklift-1", status: "confirmed" }],

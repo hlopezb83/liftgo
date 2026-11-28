@@ -1,0 +1,43 @@
+import { useFormContext } from "react-hook-form";
+import { TextField } from "@/components/forms/fields";
+import { FormSection } from "@/components/forms/FormSection";
+import type { CustomerFormData } from "../../lib/customerFormSchema";
+
+export function ContactSection() {
+  const { control } = useFormContext<CustomerFormData>();
+  return (
+    <FormSection title="Contacto">
+      <TextField
+        control={control}
+        name="contact_person"
+        label="Persona de Contacto"
+        placeholder="María García"
+      />
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+        {/* autoComplete="off": el autorrelleno del navegador no debe pisar el prellenado. */}
+        <TextField
+          control={control}
+          name="email"
+          label="Correo"
+          type="email"
+          autoComplete="off"
+          placeholder="contacto@empresa.com"
+        />
+        <TextField
+          control={control}
+          name="phone"
+          label="Teléfono"
+          type="tel"
+          autoComplete="off"
+          placeholder="+52 81 1234 5678"
+        />
+      </div>
+      <TextField
+        control={control}
+        name="website"
+        label="Sitio Web"
+        placeholder="https://empresa.com"
+      />
+    </FormSection>
+  );
+}

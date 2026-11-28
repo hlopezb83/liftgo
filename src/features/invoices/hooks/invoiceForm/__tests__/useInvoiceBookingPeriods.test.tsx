@@ -7,7 +7,7 @@ const returned = vi.hoisted(() => ({
   booking_id: "b1", forklift_id: "f1", inspected_at: "2026-09-21T19:00:00Z",
 }));
 
-vi.mock("../../invoices/useBookingBillingEvidence", () => {
+vi.mock("../../useBookingBillingEvidence", () => {
   const success = { isSuccess: true, isError: false, isFetching: false, refetch: vi.fn() };
   const claims = { ...success, data: [] };
   const extensions = { ...success, data: [] };

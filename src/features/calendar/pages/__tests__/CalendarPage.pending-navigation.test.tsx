@@ -7,8 +7,8 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import BookingDetail from "@/features/bookings/pages/BookingDetail";
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import { useLocation, useSearchParams } from "@/lib/router-compat";
-import { parseSearch, stringifySearch } from "@/lib/searchSerialization";
-import { GanttRow } from "../../components/calendar/GanttRow";
+import { parseSearch, stringifySearch } from "@/lib/navigation/searchSerialization";
+import { GanttRow } from "../../components/GanttRow";
 import CalendarPage from "../CalendarPage";
 
 const fixture = vi.hoisted(() => ({ mobile: false }));
@@ -19,7 +19,7 @@ const booking = {
 vi.mock("@/lib/utils", async (original) => ({
   ...await original<typeof import("@/lib/utils")>(), nowMty: () => new Date(2026, 9, 18, 12),
 }));
-vi.mock("@/features/bookings/hooks/bookings/useBookings", () => ({
+vi.mock("@/features/bookings/hooks/useBookings", () => ({
   useBooking: () => ({ data: booking, isLoading: false, isError: false, refetch: vi.fn() }),
 }));
 vi.mock("@/features/deliveries", () => ({
@@ -27,8 +27,8 @@ vi.mock("@/features/deliveries", () => ({
 }));
 vi.mock("@/features/users", () => ({ useHasModuleAccess: () => false, useHasFinancialAccess: () => false }));
 vi.mock("@/features/bookings/hooks/bookingActions/useBookingExtensions", () => ({ useBookingExtensions: () => ({ data: [] }) }));
-vi.mock("@/features/bookings/components/bookings/BookingActions", () => ({ BookingActions: () => null }));
-vi.mock("@/features/bookings/components/bookings/BookingStatusHistory", () => ({ BookingStatusHistory: () => null }));
+vi.mock("@/features/bookings/components/BookingActions", () => ({ BookingActions: () => null }));
+vi.mock("@/features/bookings/components/BookingStatusHistory", () => ({ BookingStatusHistory: () => null }));
 vi.mock("@/features/bookings/components/booking-detail/BookingBillingCard", () => ({ BookingBillingCard: () => null }));
 vi.mock("@/features/availability", () => ({ useServerTodayMty: () => "2026-10-18" }));
 vi.mock("@/hooks/use-mobile", () => ({ useIsMobile: () => fixture.mobile }));
@@ -43,9 +43,9 @@ vi.mock("@/features/fleet", () => ({
 vi.mock("../../hooks/useMaintenanceWindows", () => ({
   useMaintenanceWindows: () => ({ data: [], isLoading: false, isError: false, isFetching: false, refetch: vi.fn() }),
 }));
-vi.mock("../../components/calendar/CalendarStatCards", () => ({ CalendarStatCards: () => null }));
-vi.mock("../../components/calendar/EquipmentListView", () => ({ EquipmentListView: () => null }));
-vi.mock("../../components/calendar/GanttChart", () => ({
+vi.mock("../../components/CalendarStatCards", () => ({ CalendarStatCards: () => null }));
+vi.mock("../../components/EquipmentListView", () => ({ EquipmentListView: () => null }));
+vi.mock("../../components/GanttChart", () => ({
   GanttChart: () => <GanttRow canOpenBookings forklift={{ id: "fl-1", name: "FL-01" } as never} days={[new Date(2026, 10, 16)]} segments={[{
     booking: booking as never, label: "Cliente noviembre", durationDays: 2, color: "blue", leftPercent: 0, widthPercent: 100,
   }]} />,

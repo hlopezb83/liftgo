@@ -10,7 +10,7 @@ import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import { NavLink } from "@/layouts/NavLink";
 import { isNavItemActive } from "@/layouts/sidebar/isNavItemActive";
-import { parseSearch, stringifySearch } from "@/lib/searchSerialization";
+import { parseSearch, stringifySearch } from "@/lib/navigation/searchSerialization";
 
 /**
  * TS-05: el estado activo nativo de TanStack (`aria-current="page"`) debe

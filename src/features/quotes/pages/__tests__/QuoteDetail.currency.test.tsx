@@ -16,11 +16,11 @@ vi.mock("../../hooks/quoteDetail/useQuoteDetailLogic", () => ({ useQuoteDetailLo
 vi.mock("../../hooks/quoteDetail/useQuoteSaleAssignmentStatus", () => ({ useQuoteSaleAssignmentStatus: mocks.assignments }));
 vi.mock("@/hooks/useNavigateTransition", () => ({ useNavigateTransition: () => mocks.navigate }));
 vi.mock("@/lib/router-compat", () => ({ useParams: () => ({ id: "fixture-quote" }) }));
-vi.mock("../../components/quotes/QuoteDetailActions", () => ({
+vi.mock("../../components/QuoteDetailActions", () => ({
   QuoteDetailActions: (props: unknown) => { mocks.actions(props); return null; },
 }));
-vi.mock("../../components/quotes/QuoteConversionDialogs", () => ({ QuoteConversionDialogs: () => null }));
-vi.mock("../../components/quotes/AssignForkliftsCard", () => ({ AssignForkliftsCard: () => <div>Asignación de equipos</div> }));
+vi.mock("../../components/QuoteConversionDialogs", () => ({ QuoteConversionDialogs: () => null }));
+vi.mock("../../components/AssignForkliftsCard", () => ({ AssignForkliftsCard: () => <div>Asignación de equipos</div> }));
 vi.mock("@/features/invoices", () => ({ QuoteChargeLegacyReview: () => null }));
 
 const lineItems: LineItem[] = [

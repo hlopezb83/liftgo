@@ -1,13 +1,14 @@
 // Endpoint heredado: la ruta preferida es src/lib/feedbackAi.functions.ts.
 // Se conserva endurecido (alcance por empresa) para consumidores antiguos.
+import type { SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2.118.0";
 import { aiChatCompletion } from "../_shared/ai.ts";
 import { enforceRateLimit, requireRole } from "../_shared/auth.ts";
+import { wrapEdgeFunction } from "../_shared/edgeSentry.ts";
 import type { SupabaseLike } from "../_shared/types.ts";
-import type { SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2.118.0";
 import { handleClassifyFeedbackReport } from "./handler.ts";
 
-Deno.serve((req) =>
-  handleClassifyFeedbackReport(req, {
+function handle(req: Request): Promise<Response> {
+  return handleClassifyFeedbackReport(req, {
     authenticate: async (request, roles) => {
       const auth = await requireRole(request, roles);
       if (!auth.ok) return { ok: false, response: auth.response };
@@ -27,5 +28,7 @@ Deno.serve((req) =>
         windowSeconds,
       ),
     aiChat: aiChatCompletion,
-  })
-);
+  });
+}
+
+Deno.serve(wrapEdgeFunction("classify-feedback-report", handle));

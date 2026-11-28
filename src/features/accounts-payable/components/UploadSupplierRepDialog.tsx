@@ -17,8 +17,8 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { zodResolver } from "@/lib/forms/zodResolver";
-import { REP_MAX_FILE_BYTES } from "@/lib/supplierRepXml";
 import { useUploadSupplierRep } from "../hooks/useSupplierRepMutations";
+import { REP_MAX_FILE_BYTES } from "../lib/supplierRepXml";
 
 interface Props {
   open: boolean;

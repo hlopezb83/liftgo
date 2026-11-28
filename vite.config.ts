@@ -3,17 +3,37 @@
 //   - TanStack devtools (dev-only, first), tanstackStart, viteReact, tailwindcss, tsConfigPaths,
 //     nitro (build-only using cloudflare as a default target), VITE_* env injection, @ path alias,
 //     React/TanStack dedupe, error logger plugins, and sandbox detection (port/host/strictPort).
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
 import { defineConfig } from "@lovable.dev/vite-tanstack-config";
 import { sentryVitePlugin } from "@sentry/bundler-plugins/vite";
 import { visualizer } from "rollup-plugin-visualizer";
 import { prepareBuildIdentity } from "./scripts/gen-version.mjs";
 
-// Every entry point generates current metadata, then validates the actual tree.
-// Direct `vite build` / `build:dev` cannot rely on package lifecycle hooks.
-const identity = await prepareBuildIdentity(process.cwd());
-const APP_VERSION = identity.version;
-const SENTRY_RELEASE = `liftgo@${APP_VERSION}`;
-const APP_SOURCE_ID = identity.sourceSha256;
+function readCurrentAppVersion(rootDir: string): string {
+  const entries = JSON.parse(readFileSync(resolve(rootDir, "public/changelog.json"), "utf8")) as Array<{
+    version?: string;
+  }>;
+  return entries[0]?.version ?? "0.0.0";
+}
+
+// Every Vite entry point generates current metadata, then validates the actual tree.
+// Running inside an enforce:"pre" Vite plugin `config()` hook ensures direct `vite build`,
+// `vite dev`, and hosting builds execute it before resolving config, while static config
+// readers like `knip` do not mutate `public/version.json`.
+const releaseIdentityPlugin = {
+  name: "liftgo:release-identity",
+  enforce: "pre" as const,
+  async config() {
+    const identity = await prepareBuildIdentity(process.cwd());
+    return {
+      define: {
+        "import.meta.env.VITE_APP_VERSION": JSON.stringify(identity.version),
+        "import.meta.env.VITE_APP_SOURCE_ID": JSON.stringify(identity.sourceSha256),
+      },
+    };
+  },
+};
 
 export default defineConfig({
   tanstackStart: {
@@ -44,14 +64,8 @@ export default defineConfig({
   vite: {
     worker: { format: "es" },
     build: { sourcemap: process.env.SENTRY_AUTH_TOKEN ? "hidden" : false },
-    define: {
-      "import.meta.env.VITE_APP_VERSION": JSON.stringify(APP_VERSION),
-      "import.meta.env.VITE_APP_SOURCE_ID": JSON.stringify(APP_SOURCE_ID),
-    },
-
-
-
     plugins: [
+      releaseIdentityPlugin,
       // ANALYZE=1 bun run build → /tmp/bundle-stats.html para auditorías de bundle.
       process.env.ANALYZE === "1" &&
         visualizer({
@@ -67,7 +81,7 @@ export default defineConfig({
           project: process.env.SENTRY_PROJECT ?? "liftgo",
           authToken: process.env.SENTRY_AUTH_TOKEN,
           release: {
-            name: SENTRY_RELEASE,
+            name: `liftgo@${readCurrentAppVersion(process.cwd())}`,
             setCommits: process.env.SENTRY_RELEASE_COMMIT
               ? { repo: "hlopezb83/liftgo", commit: process.env.SENTRY_RELEASE_COMMIT, auto: false }
               : { auto: true, ignoreMissing: true, ignoreEmpty: true },

@@ -2,7 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import type { ErrorComponentProps } from "@tanstack/react-router";
 import { ErrorBoundary } from "@/layouts/ErrorBoundary";
-import { clearStaleChunkReloadGuard } from "@/lib/staleChunkReload";
+import { clearStaleChunkReloadGuard } from "@/lib/observability/staleChunkReload";
 import { Route } from "@/routes/__root";
 
 const mocks = vi.hoisted(() => ({ invalidate: vi.fn(), capture: vi.fn(), report: vi.fn() }));
@@ -13,7 +13,7 @@ vi.mock("@tanstack/react-router", async (original) => ({
 vi.mock("@/components/feedback/ErrorDiagnostic", () => ({ ErrorDiagnostic: () => <div>Diagnóstico</div> }));
 vi.mock("@/layouts/AppProviders", () => ({ AppProviders: () => null }));
 vi.mock("@/lib/observability/SentryNavigationSync", () => ({ SentryNavigationSync: () => null }));
-vi.mock("@/lib/lovable-error-reporting", () => ({ reportLovableError: mocks.report }));
+vi.mock("@/lib/observability/lovable-error-reporting", () => ({ reportLovableError: mocks.report }));
 vi.mock("@/lib/observability/captureOperationalError", () => ({ captureOperationalError: mocks.capture }));
 vi.mock("@/lib/observability/sentry", () => ({ Sentry: { withScope: (callback: (scope: unknown) => void) => callback({ setTag: vi.fn(), setContext: vi.fn() }) } }));
 

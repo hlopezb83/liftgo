@@ -9,7 +9,7 @@ import {
   SummaryBar,
 } from "./RecurringPreviewParts";
 import { buildCustomerGroups, type RecurringCustomerGroup } from "./recurringPreviewPresentation";
-import type { RecurringPreviewLine } from "../../hooks/invoices/recurring/usePreviewRecurringInvoices";
+import type { RecurringPreviewLine } from "../../hooks/recurring/usePreviewRecurringInvoices";
 
 interface Props {
   isLoading: boolean;

@@ -2,7 +2,8 @@ import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
-import { portalQueries, type PortalQuoteListRow } from "../lib/queryKeys";
+import { portalQueries } from "../lib/portalQueries";
+import { portalQuoteKeys, type PortalQuoteListRow } from "../lib/queryKeys";
 
 export function usePortalQuotesPage(page: number, pageSize = 25) {
   const { user } = useAuth();
@@ -10,7 +11,7 @@ export function usePortalQuotesPage(page: number, pageSize = 25) {
   const safeSize = Math.min(100, Math.max(1, pageSize));
   const from = (safePage - 1) * safeSize;
   return useQuery({
-    queryKey: [...portalQueries.quotes.keys.lists(), user?.id, "page", safePage, safeSize] as const,
+    queryKey: [...portalQuoteKeys.lists(), user?.id, "page", safePage, safeSize] as const,
     enabled: !!user,
     staleTime: 60_000,
     queryFn: async (): Promise<{ rows: PortalQuoteListRow[]; totalCount: number }> => {
@@ -45,7 +46,7 @@ export function useAcceptPortalQuote() {
       if (error) throw error;
       return data;
     },
-    invalidateKeys: [portalQueries.quotes.keys.all],
+    invalidateKeys: [portalQuoteKeys.all],
     successMsg: "Cotización aceptada",
     errorTitle: "Error al aceptar cotización",
   });
@@ -61,7 +62,7 @@ export function useRejectPortalQuote() {
       if (error) throw error;
       return data;
     },
-    invalidateKeys: [portalQueries.quotes.keys.all],
+    invalidateKeys: [portalQuoteKeys.all],
     successMsg: "Cotización rechazada",
     errorTitle: "Error al rechazar cotización",
   });

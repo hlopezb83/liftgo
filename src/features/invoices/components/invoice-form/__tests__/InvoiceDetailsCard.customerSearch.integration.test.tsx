@@ -4,7 +4,7 @@ import { useForm, useWatch } from "react-hook-form";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { PropsWithChildren } from "react";
 import { Form } from "@/components/ui/form";
-import { customerQueries, useCustomers, useCustomerSelectorSearch } from "@/features/customers/hooks/customers/customerQueries";
+import { customerQueries, useCustomers, useCustomerSelectorSearch } from "@/features/customers/hooks/customerQueries";
 import { useInvoiceFormHandlers } from "../../../hooks/invoiceForm/useInvoiceFormHandlers";
 import { buildEmptyInvoiceValues, type InvoiceFormValues } from "../../../lib/invoiceFormSchema";
 import { InvoiceDetailsCard } from "../InvoiceDetailsCard";
@@ -23,7 +23,7 @@ vi.mock("@/contexts/OrganizationContext", () => ({
   useOrganizationContext: () => ({ status: "ready", organizationId: "qa-org" }),
 }));
 vi.mock("@/features/customers", async () => ({
-  CustomerSelector: (await import("@/features/customers/components/customers/CustomerSelector")).CustomerSelector,
+  CustomerSelector: (await import("@/features/customers/components/CustomerSelector")).CustomerSelector,
   customerTaxRate: (await import("@/features/customers/lib/customerTaxRate")).customerTaxRate,
 }));
 

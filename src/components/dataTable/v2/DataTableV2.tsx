@@ -16,7 +16,7 @@ interface Props<T extends RowData> {
   emptyMessage?: string;
   onRowClick?: (item: T) => void;
   rowAction?: TableRowAction<T>;
-  onRowPrefetch?: (item: T) => unknown;
+  onRowHover?: (item: T) => void;
   rowClassName?: (item: T) => string | undefined;
   mobileCardRender?: (item: T) => ReactNode;
   footer?: ReactNode;
@@ -50,7 +50,7 @@ export function DataTableV2<T extends RowData>({
   emptyMessage = "Sin resultados",
   onRowClick,
   rowAction,
-  onRowPrefetch,
+  onRowHover,
   rowClassName,
   mobileCardRender,
   footer,
@@ -97,7 +97,7 @@ export function DataTableV2<T extends RowData>({
     selectionKey,
     onRowClick,
     rowAction,
-    onRowPrefetch,
+    onRowHover,
     rowClassName,
   };
 

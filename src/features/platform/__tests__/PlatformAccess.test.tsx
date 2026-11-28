@@ -2,9 +2,10 @@ import { useQueryClient, type QueryClient } from "@tanstack/react-query";
 import { fireEvent, render, screen } from "@testing-library/react";
 import { useEffect, useState } from "react";
 import { describe, expect, it } from "vitest";
-import { platformAccessSchema, type PlatformAccess } from "@/lib/platformAccess.types";
+import { platformAccessSchema, type PlatformAccess } from "@/lib/auth/platformAccess.types";
 import { PlatformAccessScope } from "../components/PlatformAccessScope";
 import { canAccessPlatformRoute, usePlatformCapabilities } from "../hooks/usePlatformAccess";
+import { platformKeys } from "../lib/queryKeys";
 
 const root: PlatformAccess = { isOperator: true, profile: "root", revision: "1", capabilities: ["organizations.read", "organizations.details", "catalogs.read", "catalogs.write", "audit.read"] };
 const support: PlatformAccess = { isOperator: true, profile: "support", revision: "2", capabilities: ["organizations.read", "catalogs.read"] };
@@ -38,13 +39,14 @@ describe("permisos y caché de plataforma", () => {
     const tree = (access: PlatformAccess) => <PlatformAccessScope key={access.revision} access={access}><Probe /></PlatformAccessScope>;
     const view = render(tree(root));
     const oldClient = current!;
-    oldClient.setQueryData(["platform", "private"], { secret: "previous-authority" });
+    const privateKey = [...platformKeys.all, "private"] as const;
+    oldClient.setQueryData(privateKey, { secret: "previous-authority" });
     fireEvent.change(screen.getByLabelText("Borrador"), { target: { value: "Cambios sin guardar" } });
     view.rerender(tree(support));
     expect(screen.getByLabelText("Borrador")).toHaveValue("");
     expect(screen.queryByText("Guardar maestro")).not.toBeInTheDocument();
-    expect(oldClient.getQueryData(["platform", "private"])).toBeUndefined();
-    expect(current!.getQueryData(["platform", "private"])).toBeUndefined();
+    expect(oldClient.getQueryData(privateKey)).toBeUndefined();
+    expect(current!.getQueryData(privateKey)).toBeUndefined();
   });
 
   it("sin ámbito verificado no muestra controles privilegiados", () => {

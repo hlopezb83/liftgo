@@ -6,12 +6,12 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import type { PlatformLegalTemplateRow } from "@/lib/platformLegalTemplates.functions";
 import {
   useAssignPlatformLegalTemplateVersion,
   usePlatformLegalTemplateAssignments,
   usePlatformLegalTemplateVersions,
 } from "../../hooks/usePlatformLegalTemplates";
+import type { PlatformLegalTemplateRow } from "../../lib/platformLegalTemplates.functions";
 
 export function PlatformLegalTemplateAssignmentsDialog({
   template,

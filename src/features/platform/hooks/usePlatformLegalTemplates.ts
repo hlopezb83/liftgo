@@ -1,7 +1,10 @@
 import { useQuery } from "@tanstack/react-query";
+import { useCallback } from "react";
 import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
+import { notifySuccess } from "@/lib/ui/appFeedback";
 import {
   assignPlatformLegalTemplateVersionFn,
+  getPlatformLegalTemplateFn,
   listPlatformLegalTemplateAssignmentsFn,
   listPlatformLegalTemplatesFn,
   listPlatformLegalTemplateVersionsFn,
@@ -12,22 +15,12 @@ import {
   type PlatformLegalTemplateVersion,
   type PublishLegalTemplateVersionInput,
   type PublishLegalTemplateVersionResult,
-} from "@/lib/platformLegalTemplates.functions";
-import { notifySuccess } from "@/lib/ui/appFeedback";
-import { platformKeys } from "./usePlatformOperator";
-import { platformReadKeys } from "./usePlatformReadModels";
-
-const legalKeys = {
-  all: [...platformKeys.all, "legal-templates"] as const,
-  versions: (definitionId: string) =>
-    [...legalKeys.all, definitionId, "versions"] as const,
-  assignments: (definitionId: string) =>
-    [...legalKeys.all, definitionId, "assignments"] as const,
-};
+} from "../lib/platformLegalTemplates.functions";
+import { platformKeys } from "../lib/queryKeys";
 
 export function usePlatformLegalTemplates(enabled: boolean) {
   return useQuery({
-    queryKey: legalKeys.all,
+    queryKey: platformKeys.legalTemplates.all,
     enabled,
     staleTime: 30_000,
     queryFn: async (): Promise<PlatformLegalTemplateRow[]> =>
@@ -35,12 +28,20 @@ export function usePlatformLegalTemplates(enabled: boolean) {
   });
 }
 
+export function useGetPlatformLegalTemplate() {
+  return useCallback(
+    (id: string): Promise<PlatformLegalTemplateRow | null> =>
+      getPlatformLegalTemplateFn({ data: { id } }),
+    [],
+  );
+}
+
 export function usePlatformLegalTemplateVersions(
   definitionId: string,
   enabled: boolean,
 ) {
   return useQuery({
-    queryKey: legalKeys.versions(definitionId),
+    queryKey: platformKeys.legalTemplates.versions(definitionId),
     enabled: enabled && !!definitionId,
     staleTime: 30_000,
     queryFn: async (): Promise<PlatformLegalTemplateVersion[]> =>
@@ -55,7 +56,7 @@ export function usePlatformLegalTemplateAssignments(
   enabled: boolean,
 ) {
   return useQuery({
-    queryKey: legalKeys.assignments(definitionId),
+    queryKey: platformKeys.legalTemplates.assignments(definitionId),
     enabled: enabled && !!definitionId,
     staleTime: 15_000,
     queryFn: async (): Promise<PlatformLegalTemplateAssignment[]> =>
@@ -72,10 +73,10 @@ export function usePublishPlatformLegalTemplateVersion() {
   >({
     mutationFn: async (input) =>
       publishPlatformLegalTemplateVersionFn({ data: input }),
-    invalidateKeys: [legalKeys.all, platformReadKeys.all],
+    invalidateKeys: [platformKeys.legalTemplates.all, platformKeys.readModels.all],
     invalidateKeysFn: (_result, input) => [
-      legalKeys.versions(input.definition_id),
-      legalKeys.assignments(input.definition_id),
+      platformKeys.legalTemplates.versions(input.definition_id),
+      platformKeys.legalTemplates.assignments(input.definition_id),
     ],
     onSuccess: (result) => {
       notifySuccess(`Versión legal ${result.version} publicada`);
@@ -88,9 +89,9 @@ export function useAssignPlatformLegalTemplateVersion() {
   return useEntityMutation<AssignLegalTemplateVersionInput, { success: true }>({
     mutationFn: async (input) =>
       assignPlatformLegalTemplateVersionFn({ data: input }),
-    invalidateKeys: [legalKeys.all, platformReadKeys.all],
+    invalidateKeys: [platformKeys.legalTemplates.all, platformKeys.readModels.all],
     invalidateKeysFn: (_result, input) => [
-      legalKeys.assignments(input.definition_id),
+      platformKeys.legalTemplates.assignments(input.definition_id),
     ],
     successMsg: "Versión legal asignada",
     errorTitle: "No se pudo asignar la versión legal",

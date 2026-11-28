@@ -59,7 +59,7 @@ vi.mock("../../../supabase/functions/_shared/facturapi/client.ts", () => ({
   describeFacturapiError: (error: Error) => ({ message: error.message }),
 }));
 // Dynamic import avoids putting Deno-only dependencies in the frontend TS graph.
-const handlerPath = "../../../supabase/functions/reconcile-stamping-invoices/index.ts";
+const handlerPath = "../../../supabase/functions/reconcile-stamping-invoices/handler.ts";
 export const { handleRequest } = (await import(handlerPath)) as {
   handleRequest: (request: Request) => Promise<Response>;
 };

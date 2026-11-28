@@ -1,31 +1,26 @@
 {
   "$schema": "https://unpkg.com/knip@6/schema-jsonc.json",
   "entry": [
-    // TanStack Start: entradas reales del build SSR (router/start/server).
-    "src/router.tsx",
-    "src/start.ts",
-    "src/server.ts",
     // Limpieza manual documentada; nunca se ejecuta durante el análisis.
     "scripts/cleanup-e2e.ts",
     // Verificaciones locales y archivos lanzados como argumentos de subprocess.
     "scripts/tests/obsolete-vat.postgres.mjs",
     "scripts/tests/sale-quote-guard-model.mjs",
     "scripts/tests/fiscal/vitest.config.ts",
+    "scripts/tests/contract-deposit/deposit.integration.mjs",
+    "scripts/tests/contract-deposit/run-local-postgres.mjs",
+    "scripts/tests/deliveries-page/deliveries.integration.mjs",
+    "scripts/tests/deliveries-page/run-local-postgres.mjs",
     "scripts/tests/inventory/inventory-page.integration.mjs",
+    "scripts/tests/maintenance/consumption-concurrency.mjs",
     "scripts/tests/operations/run-completed-recurring-lifecycle.cjs",
     "scripts/tests/operations/run-operational-corrections.mjs",
     "scripts/tests/quotes/quotes-page.integration.mjs",
-    "scripts/tests/quotes/run-local-postgres.mjs",
-    "scripts/tests/invoice-booking-reads.postgres.mjs",
-    "scripts/tests/dashboard-search.postgres.mjs",
     // Edge functions desplegadas en Supabase: son entrypoints propios,
     // no las importa src/ (cron, webhooks y llamadas invoke las referencian).
     "supabase/functions/**/index.ts",
     "supabase/functions/**/handler.ts",
-    "supabase/functions/**/*_test.ts",
-    "playwright.config.ts",
-    "playwright.smoke.config.ts",
-    "vite.config.ts"
+    "supabase/functions/**/*_test.ts"
   ],
   "project": ["src/**", "scripts/**", "supabase/functions/**"],
   "ignoreFiles": [
@@ -37,10 +32,8 @@
   "ignore": [
     "src/components/ui/**",
     "supabase/functions/_shared/**",
-    "src/integrations/supabase/types.ts",
-    "supabase/tests/**"
+    "src/integrations/supabase/types.ts"
   ],
-
   "ignoreDependencies": [
     // Deno resolves these assertions through its import map and lockfile.
     "@std/assert",
@@ -50,35 +43,7 @@
     "seroval-plugins",
     // drizzle-kit carga el ORM en tiempo de ejecución para `migrate` (CI RLS/A-B).
     "drizzle-orm",
-    "lovable-tagger",
-    "tailwindcss-animate",
-    "tw-animate-css",
-    "@tailwindcss/vite",
-    "vitest-sonner-reporter",
-    "@vitest/coverage-v8",
-    "wrangler",
-    "@radix-ui/react-aspect-ratio",
-    "@radix-ui/react-avatar",
-    "@radix-ui/react-context-menu",
-    "@radix-ui/react-hover-card",
-    "@radix-ui/react-menubar",
-    "@radix-ui/react-navigation-menu",
-    "@radix-ui/react-progress",
-    "@radix-ui/react-radio-group",
-    "@radix-ui/react-slider",
-    "embla-carousel-react",
-    "input-otp",
-    "react-resizable-panels",
-    "vaul",
-    "@babel/core",
-    "@rolldown/plugin-babel",
-    "@tailwindcss/postcss",
-    "@types/babel__core",
-    "babel-plugin-react-compiler",
-    "eslint-plugin-import-x",
-    "eslint-plugin-jsx-a11y",
-    "eslint-plugin-playwright",
-    "eslint-plugin-react-compiler"
+    "@tailwindcss/postcss"
   ],
   "ignoreIssues": {
     // These contract tests inspect intentional transitive resolutions.
@@ -86,7 +51,6 @@
     // Deno's npm: specifier is resolved by the Edge runtime.
     "supabase/functions/validate-supplier-rep/handler.ts": ["unlisted"]
   },
-  "ignoreBinaries": ["knip", "tsc", "tsx", "wrangler"],
   "rules": {
     "files": "error",
     "dependencies": "error",

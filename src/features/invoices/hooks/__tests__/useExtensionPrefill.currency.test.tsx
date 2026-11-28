@@ -69,7 +69,7 @@ vi.mock("@/lib/ui/appFeedback", () => ({
 }));
 
 import { useExtendBookingPreview } from "@/features/bookings/hooks/bookingActions/useExtendBookingPreview";
-import type { BookingWithForklift } from "@/features/bookings/hooks/bookings/useBookings";
+import type { BookingWithForklift } from "@/features/bookings/hooks/useBookings";
 import { useExtensionPrefill } from "../useExtensionPrefill";
 import { useInvoiceFormHandlers } from "../invoiceForm/useInvoiceFormHandlers";
 import { useInvoiceFormTotals } from "../invoiceForm/useInvoiceFormTotals";

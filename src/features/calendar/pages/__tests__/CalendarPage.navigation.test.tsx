@@ -49,10 +49,10 @@ vi.mock("@/features/fleet", () => ({
 vi.mock("../../hooks/useMaintenanceWindows", () => ({
   useMaintenanceWindows: () => ({ data: [], isLoading: false, isError: false, isFetching: false, refetch: vi.fn() }),
 }));
-vi.mock("../../components/calendar/CalendarStatCards", () => ({ CalendarStatCards: () => null }));
-vi.mock("../../components/calendar/EquipmentListView", () => ({ EquipmentListView: () => <div>Lista de equipos</div> }));
-vi.mock("../../components/calendar/GanttChart", async () => {
-  const { GanttRow } = await import("../../components/calendar/GanttRow");
+vi.mock("../../components/CalendarStatCards", () => ({ CalendarStatCards: () => null }));
+vi.mock("../../components/EquipmentListView", () => ({ EquipmentListView: () => <div>Lista de equipos</div> }));
+vi.mock("../../components/GanttChart", async () => {
+  const { GanttRow } = await import("../../components/GanttRow");
   return { GanttChart: () => <GanttRow canOpenBookings={fixture.canReadBookings} forklift={fixture.forklift as never} days={[new Date(2026, 10, 1)]} segments={[{
     booking: fixture.booking as never, label: "Cliente noviembre", durationDays: 30, color: "blue", leftPercent: 0, widthPercent: 100,
   }]} /> };

@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toYMD } from "@/lib/date/toYMD";
+import { reportKeys } from "../lib/queryKeys";
 
 /**
  * Fila canónica devuelta por el RPC `report_profit_by_model`. Consumida por el
@@ -28,7 +29,7 @@ export function useProfitByModelReport(startDate: Date, endDate: Date) {
   const start = toYMD(startDate);
   const end = toYMD(endDate);
   return useQuery({
-    queryKey: ["report", "profit-by-model", start, end],
+    queryKey: reportKeys.profitByModel(start, end),
     queryFn: async (): Promise<ModelRow[]> => {
       const { data, error } = await supabase.rpc("report_profit_by_model", {
         _start: start,

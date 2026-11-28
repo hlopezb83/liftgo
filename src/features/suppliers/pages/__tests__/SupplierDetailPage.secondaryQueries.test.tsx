@@ -21,9 +21,9 @@ vi.mock("../../hooks/useSupplierLinkedActivity", () => ({
 vi.mock("@/features/fleet", () => ({ DocumentAttachments: () => null }));
 vi.mock("@/features/users", () => ({ useHasModuleAccess: () => false }));
 vi.mock("@/layouts/RoleGuard", () => ({ RoleGuard: () => null }));
-vi.mock("../../components/suppliers/SupplierContactsSection", () => ({ SupplierContactsSection: () => null }));
-vi.mock("../../components/suppliers/SupplierBankAccountsSection", () => ({ SupplierBankAccountsSection: () => null }));
-vi.mock("../../components/suppliers/SupplierFormDialog", () => ({ SupplierFormDialog: () => null }));
+vi.mock("../../components/SupplierContactsSection", () => ({ SupplierContactsSection: () => null }));
+vi.mock("../../components/SupplierBankAccountsSection", () => ({ SupplierBankAccountsSection: () => null }));
+vi.mock("../../components/SupplierFormDialog", () => ({ SupplierFormDialog: () => null }));
 afterEach(cleanup);
 beforeEach(() => {
   for (const query of Object.values(queries)) {

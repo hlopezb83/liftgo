@@ -1,6 +1,6 @@
 import { supabase } from "@/integrations/supabase/client";
 import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
-import { adminPaymentIntentsQueries } from "../../lib/paymentIntentsQueryKeys";
+import { adminPaymentIntentsKeys } from "../../lib/paymentIntentsQueryKeys";
 import { invoiceKeys, paymentKeys } from "../../lib/queryKeys";
 
 interface ReviewParams {
@@ -44,7 +44,7 @@ export function useReviewPaymentIntent() {
       }
     },
     invalidateKeys: [
-      adminPaymentIntentsQueries.keys.all,
+      adminPaymentIntentsKeys.all,
       paymentKeys.all,
       invoiceKeys.all,
     ],

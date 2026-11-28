@@ -1,5 +1,5 @@
-import { usePortalInvoice, usePortalInvoicePayments } from "@/features/customers";
 import { sumMoney } from "@/lib/money";
+import { usePortalInvoice, usePortalInvoicePayments } from "./useCustomerPortal";
 
 // R6-FE-05 (N6-POR-01): el shape real de invoices.line_items (verificado en
 // DB, jsonb_object_keys) es description/unit_price/qty/total. Se conservan

@@ -1,6 +1,6 @@
-import { Link } from "@tanstack/react-router";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Button } from "@/components/ui/button";
+import { Link } from "@/lib/router-compat-ui";
 import { PlatformCatalogImportCard } from "../components/catalogImport/PlatformCatalogImportCard";
 
 export default function PlatformCatalogImportPage() {

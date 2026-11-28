@@ -1,5 +1,5 @@
-import type { PlatformAuditEvent } from "@/lib/platformAudit.types";
-import type { PlatformOrganizationDetail } from "@/lib/platformOrganizationDetail.types";
+import type { PlatformAuditEvent } from "../lib/platformAudit.types";
+import type { PlatformOrganizationDetail } from "../lib/platformOrganizationDetail.types";
 
 export const ORG_ID = "88000000-0000-4000-8000-000000000001";
 export const ACTOR_ID = "88000000-0000-4000-8000-000000000002";

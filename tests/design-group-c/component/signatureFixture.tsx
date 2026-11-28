@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { SignaturePad } from "../../../src/features/contracts/components/contracts/SignaturePad";
+import { SignaturePad } from "../../../src/features/contracts/components/SignaturePad";
 
 export function SignatureFixture() {
   const [disabled, setDisabled] = useState(false);

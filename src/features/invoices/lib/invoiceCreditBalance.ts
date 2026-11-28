@@ -1,5 +1,5 @@
 import { roundMoney, sumMoney } from "@/lib/money";
-import { convertCurrencyAmount } from "./paymentCurrency";
+import { convertCurrencyAmount } from "@/lib/money/paymentCurrency";
 
 interface SourceInvoice {
   id: string;

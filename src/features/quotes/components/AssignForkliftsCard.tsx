@@ -1,0 +1,124 @@
+import { useState } from "react";
+import { PackageCheck, WarnIcon } from "@/components/icons";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
+import {
+  useAssignForklift,
+  useForklifts,
+  useQuoteAssignments,
+  useSaleAvailableForklifts,
+  useUnassignForklift,
+} from "@/features/fleet";
+import type { LineItem } from "@/lib/domain/invoiceHelpers";
+import { filterSaleForkliftsForLine } from "../lib/saleForkliftMatching";
+import { getSaleLines } from "../utils/saleLines";
+import { AssignForkliftsLineRow } from "./AssignForkliftsLineRow";
+
+interface Props {
+  quoteId: string;
+  lineItems: LineItem[];
+}
+
+
+
+export function AssignForkliftsCard({ quoteId, lineItems }: Props) {
+  const { data: allForklifts, isLoading: isLoadingForklifts } = useForklifts();
+  const { data: saleAvailableForklifts, isLoading: isLoadingSaleCandidates } = useSaleAvailableForklifts();
+  const { data: assignments, isLoading } = useQuoteAssignments(quoteId);
+  const assignMutation = useAssignForklift();
+  const unassignMutation = useUnassignForklift();
+
+  const [selections, setSelections] = useState<Record<number, string>>({});
+
+  const assignedForkliftIds = new Set((assignments || []).map((a) => a.forklift_id));
+
+  if (isLoading || isLoadingForklifts || isLoadingSaleCandidates) return <Skeleton className="h-48" />;
+
+  const selectedElsewhereForLine = (currentIndex: number) =>
+    new Set(
+      Object.entries(selections)
+        .filter(([k]) => Number(k) !== currentIndex)
+        .map(([, v]) => v)
+    );
+
+  const linesData = getSaleLines(lineItems).map(({ item, index }) => {
+    const quantity = item.quantity || 1;
+    // La descripción generada conserva fabricante y modelo completos, aunque el
+    // modelo contenga varias palabras; se compara como una etiqueta normalizada.
+    const available = filterSaleForkliftsForLine(
+      item.description,
+      saleAvailableForklifts || [],
+      assignedForkliftIds,
+    );
+    const assigned = (assignments || []).filter((a) => a.line_index === index);
+    const assignedForklifts = assigned
+      .map((a) => {
+        const fl = (allForklifts || []).find((f) => f.id === a.forklift_id);
+        return fl ? { ...a, forklift: fl } : null;
+      })
+      .filter(Boolean) as Array<{ id: string; forklift_id: string; forklift: { name: string; serial_number: string | null } }>;
+    return { item, index, quantity, available, assignedForklifts, assignedCount: assigned.length };
+  });
+
+  const handleAssign = (lineIndex: number) => {
+    const forkliftId = selections[lineIndex];
+    if (!forkliftId) return;
+    assignMutation.mutate(
+      [{ quoteId, forkliftId, lineIndex }],
+      {
+        onSuccess: () => setSelections((s) => {
+          const copy = { ...s };
+          delete copy[lineIndex];
+          return copy;
+        }),
+      }
+    );
+  };
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="text-base flex items-center gap-2">
+          <PackageCheck className="h-5 w-5" />
+          Asignar equipos del Inventario
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-5">
+        {(() => {
+          const totalRequired = linesData.reduce((sum, l) => sum + l.quantity, 0);
+          const totalAssigned = linesData.reduce((sum, l) => sum + l.assignedCount, 0);
+          if (totalAssigned >= totalRequired) return null;
+          return (
+            <Alert variant="default" className="border-warning/30 bg-warning/10">
+              <WarnIcon className="h-4 w-4 text-warning" />
+              <AlertDescription className="text-warning">
+                {totalRequired - totalAssigned === 1 ? "Falta 1 equipo" : `Faltan ${totalRequired - totalAssigned} equipos`} por asignar para poder facturar esta cotización.
+              </AlertDescription>
+            </Alert>
+          );
+        })()}
+        {linesData.map(({ item, index, quantity, available, assignedForklifts, assignedCount }) => (
+          <AssignForkliftsLineRow
+            key={index}
+            description={item.description}
+            index={index}
+            quantity={quantity}
+            assignedCount={assignedCount}
+            assignedForklifts={assignedForklifts}
+            available={available}
+            selectedValue={selections[index] || ""}
+            selectedElsewhere={selectedElsewhereForLine(index)}
+            isAssigning={assignMutation.isPending}
+            isUnassigning={unassignMutation.isPending}
+            onSelect={(v) => setSelections((s) => ({ ...s, [index]: v }))}
+            onAssign={() => handleAssign(index)}
+            onUnassign={(assignmentId, forkliftId) =>
+              unassignMutation.mutate({ assignmentId, forkliftId })
+            }
+          />
+        ))}
+      </CardContent>
+    </Card>
+  );
+}

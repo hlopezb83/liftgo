@@ -4,7 +4,7 @@ import type { AppRole } from "@/lib/domain/roles";
 import { customerKeys } from "@/features/customers/lib/queryKeys";
 import { createQueryWrapper } from "@/test/helpers/queryClient";
 import { createSupabaseChainMock, type ChainCall, type SupabaseMockResponse } from "@/test/helpers/supabaseChain";
-import type { BookingWithForklift } from "../bookings/useBookings";
+import type { BookingWithForklift } from "../useBookings";
 
 const state = vi.hoisted(() => ({
   role: { data: "admin" as AppRole | null | undefined, isLoading: false, isError: false },

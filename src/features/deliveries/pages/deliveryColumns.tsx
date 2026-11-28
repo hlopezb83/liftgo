@@ -7,7 +7,7 @@ import { deliveryOverdueDays, deliveryOverdueLabel } from "../lib/deliveryOverdu
 import { deliveryTypeLabel } from "../lib/deliveryTypeLabel";
 import { isHistoricallyReconciled } from "../lib/historicalReconciliation";
 import { resolveDeliveryForkliftName } from "../lib/resolveDeliveryForkliftName";
-import type { DeliveryCardItem } from "../components/deliveries/DeliveryMobileCard";
+import type { DeliveryCardItem } from "../components/DeliveryMobileCard";
 
 export function buildDeliveryColumns<T extends DeliveryCardItem>(forkliftMap: Map<string, { name?: string | null }>, today?: string): ColumnDef<T>[] {
   return [

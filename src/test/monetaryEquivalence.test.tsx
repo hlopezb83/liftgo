@@ -1,11 +1,11 @@
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { computeTotals, lineItemTotal } from "@/lib/domain/invoiceTotals";
-import { convertCurrencyAmount, sumPaymentsInInvoiceCurrency } from "@/features/invoices/lib/paymentCurrency";
-import { validateEditPaymentAmount } from "@/features/invoices/components/invoice-detail/validateEditPaymentAmount";
 import { customerFormSchema } from "@/features/customers/lib/customerFormSchema";
-import { formatCurrencyWithCode } from "@/lib/format/formatCurrency";
+import { validateEditPaymentAmount } from "@/features/invoices/components/invoice-detail/validateEditPaymentAmount";
 import type { Tables } from "@/integrations/supabase/types";
+import { computeTotals, lineItemTotal } from "@/lib/domain/invoiceTotals";
+import { formatCurrencyWithCode } from "@/lib/format/formatCurrency";
+import { convertCurrencyAmount, sumPaymentsInInvoiceCurrency } from "@/lib/money/paymentCurrency";
 import { recurringChargeAmounts, type RecurringQuoteCharge } from "../../supabase/functions/generate-recurring-invoices/quoteCharges";
 import { validateCreditNoteSourceLines } from "../../supabase/functions/_shared/creditNoteSourceValidation";
 import { documentCases, creditCases, conversionCases, missingRateCases, mixedPayments, fractionalTaxDiscrepancy } from "../../tests/fixtures/monetaryEquivalence";

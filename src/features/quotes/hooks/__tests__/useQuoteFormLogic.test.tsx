@@ -31,7 +31,7 @@ vi.mock("@/features/fleet", () => ({
   }),
 }));
 
-vi.mock("../quotes/useQuotes", () => ({
+vi.mock("../useQuotes", () => ({
   useQuote: () => ({ data: null }),
   useCreateQuote: () => ({ mutate: createMutate, isPending: false }),
   useUpdateQuote: () => ({ mutate: updateMutate, isPending: false }),

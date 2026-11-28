@@ -1,7 +1,7 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { FeedbackReport } from "../hooks/useFeedbackReports";
-import type { SupportCase } from "@/lib/platformSupport.types";
+import type { SupportCase } from "@/lib/support/platformSupport.types";
 const state = vi.hoisted(() => ({ share: vi.fn(), withdraw: vi.fn(), refresh: vi.fn(), needsRefresh: false,
   query: { data: null as SupportCase | null, isPending: false, isFetching: false, isError: false, error: new Error("Sin conexión"), refetch: vi.fn() } }));
 vi.mock("../hooks/useSupportSharing", () => ({ useSupportSharing: () => ({ query: state.query, needsRefresh: state.needsRefresh, refresh: state.refresh,

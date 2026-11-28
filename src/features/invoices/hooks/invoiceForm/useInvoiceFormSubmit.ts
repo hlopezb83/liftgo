@@ -8,7 +8,7 @@ import type { BusinessBlock } from "@/lib/rules/businessBlocks";
 import { nowMty } from "@/lib/utils";
 import { resolveCfdiFormaPago } from "../../lib/cfdiPaymentForm";
 import { toLineItems } from "../../lib/invoiceLineSerialization";
-import { useSaveInvoiceWithBookings } from "../invoices/useInvoices";
+import { useSaveInvoiceWithBookings } from "../useInvoices";
 import type { InvoiceFormValues, CfdiFormValues } from "../../lib/invoiceFormSchema";
 
 

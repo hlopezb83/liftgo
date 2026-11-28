@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { buildComparisonCsvRows, buildComparisonValues, buildCsvRows } from "../statementRowFactories";
 import { computeDerivedTotals, emptyExpenses, type MonthData, type StatementRow, type YearTotals } from "../types";
-import { cellColor, formatCell, formatRowDelta } from "../../../components/reports/incomeStatement/incomeStatementHelpers";
+import { cellColor, formatCell, formatRowDelta } from "../../../components/incomeStatement/incomeStatementHelpers";
 
 describe("N2: márgenes con ingresos no positivos", () => {
   it.each([0, -200])("revenue %s: no aplica sin modificar importes", (revenue) => {

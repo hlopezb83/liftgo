@@ -1,0 +1,82 @@
+import { useQueryClient } from "@tanstack/react-query";
+import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
+import { invokeEdgeFunction } from "@/lib/supabase/invokeEdgeFunction";
+import { notifyInfo, notifySuccess } from "@/lib/ui/appFeedback";
+import { translateFacturapiError } from "../../lib/facturapiErrors";
+import { notifyCfdiError } from "../../lib/notifyCfdiError";
+import { isPacPending } from "../../lib/pacPending";
+import { invoiceKeys } from "../../lib/queryKeys";
+
+interface StampCfdiResponse {
+  cfdi_uuid: string;
+  stub?: boolean;
+  error?: string;
+  invoice_number?: string | null;
+}
+
+// R7 Bloque 12: patrones benignos que el backend devuelve cuando otra pestaña
+// (o un dblclick que pasó el guard de UI) ya disparó el timbrado. Se muestran
+// como info, no como error, y el consumidor sigue invalidando el detalle.
+const BENIGN_STAMP_PATTERNS = [
+  /already stamped/i,
+  /already in progress/i,
+  /timbrado en proceso/i,
+  /ya (est[aá]|se encuentra) timbrada/i,
+];
+
+function isBenignStampError(raw: string): boolean {
+  return BENIGN_STAMP_PATTERNS.some((r) => r.test(raw));
+}
+
+/**
+ * Timbra una factura ante el PAC (Facturapi) vía edge function `stamp-cfdi`.
+ * Ahora usa `useEntityMutation` con `errorMessage` dinámico para traducir
+ * códigos de error de Facturapi sin renunciar a la invalidación estándar.
+ */
+export function useStampCfdi() {
+  const queryClient = useQueryClient();
+  return useEntityMutation<string, StampCfdiResponse>({
+    mutationFn: async (invoiceId) => {
+      return await invokeEdgeFunction<StampCfdiResponse>("stamp-cfdi", {
+        body: { invoice_id: invoiceId },
+      });
+    },
+    invalidateKeys: [invoiceKeys.all],
+    errorTitle: "Error al timbrar CFDI",
+    errorMessage: (error) => {
+      const raw = error instanceof Error ? error.message : String(error);
+      return translateFacturapiError(raw);
+    },
+    onError: (error, invoiceId) => {
+      if ((error as { code?: unknown }).code === "STAMP_RECOVERY_REQUIRED") {
+        notifyInfo("La factura requiere conciliación. Consulta su estado antes de volver a timbrar.");
+        void queryClient.invalidateQueries({ queryKey: invoiceKeys.detail(invoiceId) });
+        return true;
+      }
+      if (isPacPending(error)) {
+        notifyInfo("Solicitud de timbrado recibida. La factura sigue pendiente; consulta su estado para confirmar el resultado.");
+        void queryClient.invalidateQueries({ queryKey: invoiceKeys.detail(invoiceId) });
+        return true;
+      }
+      const raw = error instanceof Error ? error.message : String(error);
+      if (isBenignStampError(raw)) {
+        notifyInfo("El timbrado ya está en proceso; actualizando estado…");
+        void queryClient.invalidateQueries({ queryKey: invoiceKeys.detail(invoiceId) });
+        return true; // suprime toast de error estándar
+      }
+      // Toast con traducción SAT + reporte copiable con el payload íntegro
+      // del PAC (soporte administrativo lo necesita completo).
+      notifyCfdiError({ error, phase: "Timbrado CFDI" });
+      return true;
+    },
+
+    onSuccess: (data) => {
+      const suffix = data.stub
+        ? " (modo prueba)"
+        : data.invoice_number && data.invoice_number.startsWith("FAC-")
+        ? ` — folio asignado: ${data.invoice_number}`
+        : "";
+      notifySuccess(`CFDI timbrado${suffix} — UUID: ${data.cfdi_uuid}`);
+    },
+  });
+}

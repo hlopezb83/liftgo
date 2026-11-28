@@ -18,11 +18,11 @@ vi.mock("@/features/users", () => ({
     permissions?.[role]?.[module] ?? "none",
 }));
 
-vi.mock("@/features/invoices/hooks/invoices/cfdi/useRefreshCancellationStatus", () => ({
+vi.mock("../../../hooks/cfdi/useRefreshCancellationStatus", () => ({
   useRefreshCancellationStatus: () => ({ mutate: vi.fn(), isPending: false }),
 }));
 
-vi.mock("@/features/invoices/components/invoices/InvoicePDFButton", () => ({
+vi.mock("../../InvoicePDFButton", () => ({
   InvoicePDFButton: () => null,
 }));
 

@@ -18,11 +18,12 @@ import { InvoiceFiscalBadge } from "../components/InvoiceStatusBadges";
 import { InvoiceMobileCard } from "../components/list/InvoiceMobileCard";
 import { InvoicesActionsBar, InvoicesFiltersBar } from "../components/list/InvoicesToolbar";
 import RecurringInvoiceDialogs from "../components/recurring/RecurringInvoiceDialogs";
-import { useInvoiceCsvExport } from "../hooks/invoices/useInvoiceCsvExport";
-import { invoiceQueries, useInvoicesInfinite, type InvoiceListItem } from "../hooks/invoices/useInvoices";
-import { useInvoicesFilters } from "../hooks/invoices/useInvoicesFilters";
+import { useInvoiceCsvExport } from "../hooks/useInvoiceCsvExport";
+import { invoiceQueries, useInvoicesInfinite, type InvoiceListItem } from "../hooks/useInvoices";
+import { useInvoicesFilters } from "../hooks/useInvoicesFilters";
 
 type Invoice = InvoiceListItem;
+const EMPTY_INVOICES: Invoice[] = [];
 
 const invoiceColumns: ColumnDef<Invoice>[] = [
       { id: "invoice_number", header: "Factura #", accessorKey: "invoice_number",
@@ -65,7 +66,7 @@ export default function InvoicesPage() {
   const invoicesQuery = useInvoicesInfinite(queryFilters, sorting);
   const { data, isLoading, isError, refetch, fetchNextPage, hasNextPage, isFetchingNextPage } = invoicesQuery;
   const isUpdatingFilters = invoicesQuery.isPlaceholderData;
-  const invoiceRows = useMemo(() => data?.pages.flatMap((p) => p.rows) ?? [], [data]);
+  const invoiceRows = useMemo(() => data?.pages.flatMap((p) => p.rows) ?? EMPTY_INVOICES, [data]);
   const navigate = useNavigateTransition();
   const [recurringOpening, setRecurringOpening] = useState(0);
   const canCreate = useHasModuleAccess("Facturas", "full");
@@ -75,7 +76,7 @@ export default function InvoicesPage() {
   usePageActions({ onNew: canCreate ? () => navigate("/invoices/new") : undefined, newLabel: "Nueva factura" });
 
   const table = useLiftgoTable<Invoice>({
-    data: isUpdatingFilters ? [] : invoiceRows,
+    data: isUpdatingFilters ? EMPTY_INVOICES : invoiceRows,
     columns: invoiceColumns,
     getRowId: (i) => i.id,
     ...tableViewState,

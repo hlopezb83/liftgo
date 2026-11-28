@@ -1,10 +1,14 @@
 import { useQuery } from "@tanstack/react-query";
+import { useCallback } from "react";
 import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
+import { notifySuccess } from "@/lib/ui/appFeedback";
 import {
+  getPlatformEquipmentModelFn,
+  getPlatformPartCatalogFn,
   listPlatformEquipmentModelsFn,
   listPlatformPartsCatalogFn,
-  savePlatformPartCatalogFn,
   savePlatformEquipmentModelFn,
+  savePlatformPartCatalogFn,
   setPlatformEquipmentModelActiveFn,
   setPlatformPartCatalogActiveFn,
   type EquipmentModelCatalogInput,
@@ -13,14 +17,12 @@ import {
   type PlatformPartCatalogRow,
   type SetEquipmentModelCatalogActiveInput,
   type SetPartCatalogActiveInput,
-} from "@/lib/platformCatalog.functions";
-import { notifySuccess } from "@/lib/ui/appFeedback";
-import { platformKeys } from "./usePlatformOperator";
-import { platformReadKeys } from "./usePlatformReadModels";
+} from "../lib/platformCatalog.functions";
+import { platformKeys } from "../lib/queryKeys";
 
 export function usePlatformEquipmentCatalog(enabled: boolean) {
   return useQuery({
-    queryKey: [...platformKeys.all, "equipment-model-catalog"],
+    queryKey: platformKeys.equipmentCatalog(),
     enabled,
     staleTime: 30_000,
     queryFn: async (): Promise<PlatformEquipmentModelRow[]> =>
@@ -28,12 +30,20 @@ export function usePlatformEquipmentCatalog(enabled: boolean) {
   });
 }
 
+export function useGetPlatformEquipmentModel() {
+  return useCallback(
+    (id: string): Promise<PlatformEquipmentModelRow | null> =>
+      getPlatformEquipmentModelFn({ data: { id } }),
+    [],
+  );
+}
+
 export function useSavePlatformEquipmentModel() {
   return useEntityMutation<EquipmentModelCatalogInput, { id: string }>({
     mutationFn: async (input) => savePlatformEquipmentModelFn({ data: input }),
     invalidateKeys: [
-      [...platformKeys.all, "equipment-model-catalog"],
-      platformReadKeys.all,
+      platformKeys.equipmentCatalog(),
+      platformKeys.readModels.all,
     ],
     onSuccess: (_result, input) => {
       notifySuccess(input.id ? "Modelo actualizado" : "Modelo global creado");
@@ -50,8 +60,8 @@ export function useSetPlatformEquipmentModelActive() {
     mutationFn: async (input) =>
       setPlatformEquipmentModelActiveFn({ data: input }),
     invalidateKeys: [
-      [...platformKeys.all, "equipment-model-catalog"],
-      platformReadKeys.all,
+      platformKeys.equipmentCatalog(),
+      platformKeys.readModels.all,
     ],
     onSuccess: (_result, input) => {
       notifySuccess(input.active ? "Modelo reactivado en el catálogo LiftGo" : "Modelo desactivado en el catálogo LiftGo");
@@ -62,7 +72,7 @@ export function useSetPlatformEquipmentModelActive() {
 
 export function usePlatformPartsCatalog(enabled: boolean) {
   return useQuery({
-    queryKey: [...platformKeys.all, "parts-catalog"],
+    queryKey: platformKeys.partsCatalog(),
     enabled,
     staleTime: 30_000,
     queryFn: async (): Promise<PlatformPartCatalogRow[]> =>
@@ -70,12 +80,20 @@ export function usePlatformPartsCatalog(enabled: boolean) {
   });
 }
 
+export function useGetPlatformPartCatalog() {
+  return useCallback(
+    (id: string): Promise<PlatformPartCatalogRow | null> =>
+      getPlatformPartCatalogFn({ data: { id } }),
+    [],
+  );
+}
+
 export function useSavePlatformPartCatalog() {
   return useEntityMutation<PartCatalogInput, { id: string }>({
     mutationFn: async (input) => savePlatformPartCatalogFn({ data: input }),
     invalidateKeys: [
-      [...platformKeys.all, "parts-catalog"],
-      platformReadKeys.all,
+      platformKeys.partsCatalog(),
+      platformKeys.readModels.all,
     ],
     onSuccess: (_result, input) => {
       notifySuccess(input.id ? "SKU actualizado" : "SKU global creado");
@@ -89,8 +107,8 @@ export function useSetPlatformPartCatalogActive() {
     mutationFn: async (input) =>
       setPlatformPartCatalogActiveFn({ data: input }),
     invalidateKeys: [
-      [...platformKeys.all, "parts-catalog"],
-      platformReadKeys.all,
+      platformKeys.partsCatalog(),
+      platformKeys.readModels.all,
     ],
     onSuccess: (_result, input) => {
       notifySuccess(input.active ? "SKU reactivado en el catálogo LiftGo" : "SKU desactivado en el catálogo LiftGo");

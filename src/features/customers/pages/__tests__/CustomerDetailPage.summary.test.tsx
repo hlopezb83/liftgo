@@ -17,17 +17,17 @@ vi.mock("@/features/users", () => ({
   getAccessLevel: () => state.access,
   useHasModuleAccess: (_module: string, minimum: string) => minimum === "full" ? state.access === "full" : state.access !== "none",
 }));
-vi.mock("../../hooks/customers/useCustomers", () => ({
+vi.mock("../../hooks/useCustomers", () => ({
   useCustomer: () => ({ data: { id, name: "QA Cliente", notes: "Contacto disponible" }, isLoading: false, isError: false, refetch: vi.fn() }),
   useCustomerPortalAccount: () => ({ data: null }),
 }));
-vi.mock("../../hooks/customers/useCustomerProfitability", () => ({ useCustomerProfitability: () => ({ data: undefined }) }));
+vi.mock("../../hooks/useCustomerProfitability", () => ({ useCustomerProfitability: () => ({ data: undefined }) }));
 vi.mock("../../hooks/customerDetail/useCustomerDetailActions", () => ({ useCustomerDetailActions: () => ({
   updateCustomer: { isPending: false }, deleteCustomer: { isPending: false }, inviteCustomer: { isPending: false },
   handleDelete: state.archive, handleEditSubmit: vi.fn(), handleInvite: vi.fn(), setInviteResult: vi.fn(),
 }) }));
 vi.mock("../../components/customer-detail/CustomerContactCard", () => ({ CustomerContactCard: () => <p>Ficha de contacto disponible</p> }));
-vi.mock("../../components/customers/CustomerFormDialog", () => ({ CustomerFormDialog: () => null }));
+vi.mock("../../components/CustomerFormDialog", () => ({ CustomerFormDialog: () => null }));
 vi.mock("../../components/customer-detail/CustomerInviteDialog", () => ({ CustomerInviteDialog: () => null }));
 
 function setup() {

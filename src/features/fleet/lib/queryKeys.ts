@@ -4,6 +4,11 @@
  */
 import { createEntityKeys } from "@/lib/query/createEntityKeys";
 
+export const fleetKeys = {
+  all: ["fleet"] as const,
+  occupiedForkliftIdsToday: () => [...fleetKeys.all, "occupied-forklift-ids-today"] as const,
+} as const;
+
 export const forkliftKeys = {
   all: ["forklifts"] as const,
   lists: () => [...forkliftKeys.all, "list"] as const,

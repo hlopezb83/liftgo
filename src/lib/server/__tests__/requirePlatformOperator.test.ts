@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import type { PlatformCapability } from "@/lib/platformAccess.types";
+import type { PlatformCapability } from "@/lib/auth/platformAccess.types";
 
 const privilegedLoaded = vi.hoisted(() => vi.fn());
 vi.mock("@/integrations/supabase/client.server", () => {

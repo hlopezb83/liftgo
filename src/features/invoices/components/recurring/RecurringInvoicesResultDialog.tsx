@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Link } from "@/lib/router-compat-ui";
 import { notifySuccess } from "@/lib/ui/appFeedback";
 import { formatRecurringFailure } from "../../lib/formatRecurringFailure";
-import type { GenerateRecurringResponse } from "../../hooks/invoices/recurring/useGenerateRecurringInvoices";
+import type { GenerateRecurringResponse } from "../../hooks/recurring/useGenerateRecurringInvoices";
 
 interface Props {
   open: boolean;

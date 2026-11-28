@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
-import { convertCurrencyAmount, sumPaymentsInInvoiceCurrency } from "@/features/invoices/lib/paymentCurrency";
 import { validateEditPaymentAmount } from "@/features/invoices/components/invoice-detail/validateEditPaymentAmount";
+import { convertCurrencyAmount, sumPaymentsInInvoiceCurrency } from "@/lib/money/paymentCurrency";
 
 type FxVector = {
   id: string;

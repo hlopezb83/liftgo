@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import { useLiftgoTable } from "@/components/dataTable/v2";
 import { FiltersToolbar } from "@/components/filters/FiltersToolbar";
 import { ListPageLayout } from "@/components/layout/ListPageLayout";
@@ -8,13 +8,14 @@ import { useTableFilters } from "@/hooks/filters/useTableFilters";
 import { useTableViewState } from "@/hooks/filters/useTableViewState";
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import { formatDateMty } from "@/lib/format/dateFormats";
-import { DeliveryMobileCard } from "../components/deliveries/DeliveryMobileCard";
+import { DeliveryMobileCard } from "../components/DeliveryMobileCard";
 import { deliveryQueries } from "../hooks/useDeliveries";
 import { useOverdueDeliveriesPage } from "../hooks/useOverdueDeliveriesPage";
 import { buildDeliveryColumns } from "./deliveryColumns";
 import type { OverdueDeliveryItem } from "../lib/overdueDeliveriesPageRpc";
 
 // The page RPC includes the authorized equipment name; no fleet-wide read is needed.
+const EMPTY_OVERDUE: OverdueDeliveryItem[] = [];
 const EMPTY_FLEET = new Map<string, { name?: string | null }>();
 const STATUS_OPTIONS = [
   { value: "all", label: "Programados y en tránsito" },
@@ -27,6 +28,11 @@ const TYPE_OPTIONS = [
   { value: "pickup", label: "Recolección" },
   { value: "return", label: "Devolución" },
 ];
+const OVERDUE_FACETS = {
+  q: { type: "text" as const, fields: ["delivery_number", "driver_name", "address"] as (keyof OverdueDeliveryItem)[] },
+  status: { type: "enum" as const, field: "status" as keyof OverdueDeliveryItem, options: ["all", "scheduled", "in_transit"] },
+  type: { type: "enum" as const, field: "type" as keyof OverdueDeliveryItem, options: ["all", "delivery", "pickup", "return"] },
+};
 
 function overdueFilterLabels(values: { q: string; status: string; type: string }): string[] {
   return [
@@ -39,17 +45,9 @@ function overdueFilterLabels(values: { q: string; status: string; type: string }
 
 export function OverdueDeliveriesPage() {
   const navigate = useNavigateTransition();
-  const { values, set, reset, hasActive } = useTableFilters<OverdueDeliveryItem, {
-    q: { type: "text"; fields: (keyof OverdueDeliveryItem)[] };
-    status: { type: "enum"; field: keyof OverdueDeliveryItem; options: readonly string[] };
-    type: { type: "enum"; field: keyof OverdueDeliveryItem; options: readonly string[] };
-  }>({
+  const { values, set, reset, hasActive } = useTableFilters<OverdueDeliveryItem, typeof OVERDUE_FACETS>({
     mode: "server",
-    facets: {
-      q: { type: "text", fields: ["delivery_number", "driver_name", "address"] },
-      status: { type: "enum", field: "status", options: ["all", "scheduled", "in_transit"] },
-      type: { type: "enum", field: "type", options: ["all", "delivery", "pickup", "return"] },
-    },
+    facets: OVERDUE_FACETS,
   });
   const view = useTableViewState(undefined, [{ id: "scheduled_date", desc: false }]);
   const { controlledPagination: pagination, controlledSorting: sorting, onControlledPaginationChange } = view;
@@ -61,10 +59,12 @@ export function OverdueDeliveriesPage() {
       onControlledPaginationChange({ ...pagination, pageIndex: data.pageIndex });
     }
   }, [data, pagination, onControlledPaginationChange]);
+  const today = data?.today;
+  const columns = useMemo(() => buildDeliveryColumns<OverdueDeliveryItem>(EMPTY_FLEET, today), [today]);
   const table = useLiftgoTable<OverdueDeliveryItem>({
     ...view,
-    data: data?.items,
-    columns: buildDeliveryColumns<OverdueDeliveryItem>(EMPTY_FLEET, data?.today),
+    data: data?.items ?? EMPTY_OVERDUE,
+    columns,
     getRowId: (row) => row.id,
     pageCount: Math.ceil((data?.totalCount ?? 0) / pagination.pageSize),
     manualSorting: true,

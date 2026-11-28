@@ -1,15 +1,16 @@
 import { useQuery } from "@tanstack/react-query";
 import { createContext, useCallback, useContext } from "react";
 import { useAuth } from "@/contexts/AuthContext";
-import { getPlatformAccessFn } from "@/lib/platformAccess.functions";
-import type { PlatformAccess, PlatformCapability } from "@/lib/platformAccess.types";
+import type { PlatformAccess, PlatformCapability } from "@/lib/auth/platformAccess.types";
+import { getPlatformAccessFn } from "../lib/platformAccess.functions";
+import { platformKeys } from "../lib/queryKeys";
 
 export const PlatformAccessContext = createContext<PlatformAccess | null>(null);
 
 export function usePlatformAccessStatus() {
   const { user } = useAuth();
   return useQuery({
-    queryKey: ["platform", "access", user?.id],
+    queryKey: platformKeys.access(user?.id),
     enabled: !!user?.id,
     staleTime: 0,
     refetchOnWindowFocus: "always",

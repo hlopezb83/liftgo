@@ -1,12 +1,12 @@
+import { QueryClientContext, type QueryClient } from "@tanstack/react-query";
+import { useContext, type ReactNode } from "react";
 import { DataTableV2 } from "@/components/dataTable/v2/DataTableV2";
-import type { TableRowAction } from "@/components/dataTable/v2/types";
-import type { LiftgoTable } from "@/components/dataTable/v2/types";
+import type { LiftgoTable, TableRowAction } from "@/components/dataTable/v2/types";
 import { EmptyState } from "@/components/feedback/EmptyState";
 import { ErrorState } from "@/components/feedback/ErrorState";
 import { TableSkeleton } from "@/components/feedback/TableSkeleton";
 import { FilterIcon, type LucideIcon } from "@/components/icons";
 import { MobileCardList } from "@/components/layout/MobileCardList";
-import type { ReactNode } from "react";
 
 export interface TableContentProps<T extends { id?: string }> {
   isLoading: boolean;
@@ -37,6 +37,7 @@ export function TableContent<T extends { id?: string }>({
   hasActiveFilters, onClearFilters,
   onRowClick, rowAction, onRowPrefetch, mobileCardRender, mobileKeyExtractor, skeletonColumns,
 }: TableContentProps<T>) {
+  const queryClient = useContext(QueryClientContext);
   if (isError) return <ErrorState error={error} onRetry={onRetry} />;
   if (isLoading) return <TableSkeleton columnCount={skeletonColumns} />;
   if (showEmpty) {
@@ -76,7 +77,12 @@ export function TableContent<T extends { id?: string }>({
     );
   }
   if (table) {
-    return <DataTableV2 table={table} emptyMessage={emptyMessage} onRowClick={onRowClick} rowAction={rowAction} onRowPrefetch={onRowPrefetch} />;
+    const onRowHover = onRowPrefetch && queryClient
+      ? (item: T) => {
+          void queryClient.prefetchQuery(onRowPrefetch(item) as Parameters<QueryClient["prefetchQuery"]>[0]);
+        }
+      : undefined;
+    return <DataTableV2 table={table} emptyMessage={emptyMessage} onRowClick={onRowClick} rowAction={rowAction} onRowHover={onRowHover} />;
   }
   return null;
 }

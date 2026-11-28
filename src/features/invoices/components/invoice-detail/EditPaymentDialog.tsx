@@ -18,12 +18,12 @@ import { toYMD } from "@/lib/date/toYMD";
 import { FORMA_PAGO } from "@/lib/domain/satCatalogs";
 import { formatCurrencyWithCode } from "@/lib/format/formatCurrency";
 import { zodResolver } from "@/lib/forms/zodResolver";
+import { roundCurrencyAmount } from "@/lib/money/paymentCurrency";
 import { describeBusinessBlock } from "@/lib/rules/businessBlocks";
 import { positiveAmount } from "@/lib/schemas";
 import { notifyError, notifySuccess, notifyValidation } from "@/lib/ui/appFeedback";
 import { nowMty } from "@/lib/utils";
 import { useUpdatePayment, type Payment } from "../../hooks/usePayments";
-import { roundCurrencyAmount } from "../../lib/paymentCurrency";
 import { PAYMENT_METHODS, satCodeForMethod } from "../../lib/paymentMethods";
 import { validateEditPaymentAmount } from "./validateEditPaymentAmount";
 

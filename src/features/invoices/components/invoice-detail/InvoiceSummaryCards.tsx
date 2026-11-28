@@ -1,7 +1,7 @@
 import { UserIcon, CalendarIcon } from "@/components/icons";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { formatStoredCfdiError } from "@/features/invoices/lib/formatStoredCfdiError";
 import { formatDateMty } from "@/lib/format/dateFormats";
+import { formatStoredCfdiError } from "../../lib/formatStoredCfdiError";
 
 
 type Props = {

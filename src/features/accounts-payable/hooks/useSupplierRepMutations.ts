@@ -1,7 +1,7 @@
 import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
 import { callRpc } from "@/lib/rpc";
-import { validateSupplierRepFn } from "@/lib/supplierRep.functions";
 import { notifySuccess, notifyWarning } from "@/lib/ui/appFeedback";
+import { validateSupplierRepFn } from "../lib/supplierRep.functions";
 import { supplierBillKeys } from "./useSupplierBills";
 
 const invalidationKeys = (billId?: string | null) => {

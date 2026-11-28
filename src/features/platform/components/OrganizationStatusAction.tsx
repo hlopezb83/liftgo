@@ -10,9 +10,9 @@ import {
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { organizationStatusReasonSchema } from "@/lib/platformOrganizationStatus.types";
 import { usePlatformCapabilities } from "../hooks/usePlatformAccess";
 import { useSetOrganizationActive } from "../hooks/usePlatformOperator";
+import { organizationStatusReasonSchema } from "../lib/platformOrganizationStatus.types";
 
 export function OrganizationStatusAction({
   id,

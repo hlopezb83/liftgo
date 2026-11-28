@@ -1,4 +1,5 @@
 import { differenceInCalendarDays } from "date-fns";
+import { useMemo } from "react";
 import { useLiftgoTable, type ColumnDef } from "@/components/dataTable/v2";
 import { PlusCircle } from "@/components/icons";
 import { ListPageLayout } from "@/components/layout/ListPageLayout";
@@ -7,10 +8,12 @@ import { Button } from "@/components/ui/button";
 import { type BookingWithForklift } from "@/features/bookings";
 import { useHasModuleAccess } from "@/features/users";
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";
-import { formatDateMty } from "@/lib/format/dateFormats";
+import { formatDateMty, toYMD } from "@/lib/format/dateFormats";
 import { nowMty, parseDateLocal } from "@/lib/utils";
 import { PendingReturnCard } from "../components/PendingReturnCard";
 import { usePendingReturns } from "../hooks/usePendingReturns";
+
+const EMPTY_PENDING_RETURNS: BookingWithForklift[] = [];
 
 /**
  * /returns/pending — Reservas vencidas con entrega completada y devolución
@@ -26,73 +29,78 @@ export default function PendingReturnsPage() {
   const { data: pendingReturns, isLoading, isError, error, refetch } = usePendingReturns();
 
   // Alineado con get_dashboard_stats(): fin < hoy (America/Monterrey).
-  const today = nowMty();
-  today.setHours(0, 0, 0, 0);
+  const todayKey = toYMD(nowMty());
+  const today = useMemo(() => parseDateLocal(todayKey), [todayKey]);
 
-  const pending = pendingReturns ?? [];
+  const pending = pendingReturns ?? EMPTY_PENDING_RETURNS;
 
-
-  const columns: ColumnDef<BookingWithForklift>[] = [
-    {
-      id: "booking_number",
-      header: "Reserva",
-      accessorKey: "booking_number",
-      cell: ({ row }) => (
-        <span className="font-mono text-sm text-primary">{row.original.booking_number}</span>
-      ),
-    },
-    {
-      id: "forklift_name",
-      header: "Montacargas",
-      accessorFn: (b) => b.forklifts?.name ?? "",
-      cell: ({ row }) => (
-        <span className="font-medium">{row.original.forklifts?.name ?? "—"}</span>
-      ),
-    },
-    {
-      id: "customer_name",
-      header: "Cliente",
-      accessorKey: "customer_name",
-    },
-    {
-      id: "end_date",
-      header: "Fin de renta",
-      accessorKey: "end_date",
-      cell: ({ row }) => (
-        <span className="font-mono text-sm">{formatDateMty(row.original.end_date)}</span>
-      ),
-    },
-    {
-      id: "days_overdue",
-      header: "Días vencido",
-      accessorFn: (b) => differenceInCalendarDays(today, parseDateLocal(b.end_date)),
-      cell: ({ row }) => {
-        const days = differenceInCalendarDays(today, parseDateLocal(row.original.end_date));
-        return (
-          <Badge variant={days > 7 ? "destructive" : "secondary"} className="font-mono">
-            {days} {days === 1 ? "día" : "días"}
-          </Badge>
-        );
+  const columns = useMemo<ColumnDef<BookingWithForklift>[]>(() => {
+    const cols: ColumnDef<BookingWithForklift>[] = [
+      {
+        id: "booking_number",
+        header: "Reserva",
+        accessorKey: "booking_number",
+        cell: ({ row }) => (
+          <span className="font-mono text-sm text-primary">{row.original.booking_number}</span>
+        ),
       },
-    },
-  ];
+      {
+        id: "forklift_name",
+        header: "Montacargas",
+        accessorFn: (b) => b.forklifts?.name ?? "",
+        cell: ({ row }) => (
+          <span className="font-medium">{row.original.forklifts?.name ?? "—"}</span>
+        ),
+      },
+      {
+        id: "customer_name",
+        header: "Cliente",
+        accessorKey: "customer_name",
+      },
+      {
+        id: "end_date",
+        header: "Fin de renta",
+        accessorKey: "end_date",
+        cell: ({ row }) => (
+          <span className="font-mono text-sm">{formatDateMty(row.original.end_date)}</span>
+        ),
+      },
+      {
+        id: "days_overdue",
+        header: "Días vencido",
+        accessorFn: (b) => differenceInCalendarDays(today, parseDateLocal(b.end_date)),
+        cell: ({ row }) => {
+          const days = differenceInCalendarDays(today, parseDateLocal(row.original.end_date));
+          return (
+            <Badge variant={days > 7 ? "destructive" : "secondary"} className="font-mono">
+              {days} {days === 1 ? "día" : "días"}
+            </Badge>
+          );
+        },
+      },
+    ];
 
-  if (canWrite) columns.push({
-    id: "actions",
-    header: "",
-    cell: ({ row }) => (
-      <Button
-        size="sm"
-        variant="outline"
-        onClick={(e) => {
-          e.stopPropagation();
-          navigate(`/returns?booking_id=${row.original.id}`);
-        }}
-      >
-        <PlusCircle className="h-4 w-4 mr-1" /> Registrar devolución
-      </Button>
-    ),
-  });
+    if (canWrite) {
+      cols.push({
+        id: "actions",
+        header: "",
+        cell: ({ row }) => (
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={(e) => {
+              e.stopPropagation();
+              navigate(`/returns?booking_id=${row.original.id}`);
+            }}
+          >
+            <PlusCircle className="h-4 w-4 mr-1" /> Registrar devolución
+          </Button>
+        ),
+      });
+    }
+
+    return cols;
+  }, [canWrite, navigate, today]);
 
   const table = useLiftgoTable<BookingWithForklift>({
     data: pending,

@@ -1,10 +1,11 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { useRef, useState } from "react";
-import { performPlatformFiscalActionFn } from "@/lib/platformFiscalActions.functions";
-import { FISCAL_ACTION_STATUS, type FiscalActionInput } from "@/lib/platformFiscalActions.types";
-import type { FiscalJob } from "@/lib/platformFiscalJobs.types";
 import { notifyError, notifySuccess, notifyValidation, notifyWarning } from "@/lib/ui/appFeedback";
 import { extractErrorDetails } from "@/lib/ui/errorDetailsExtract";
+import { performPlatformFiscalActionFn } from "../lib/platformFiscalActions.functions";
+import { FISCAL_ACTION_STATUS, type FiscalActionInput } from "../lib/platformFiscalActions.types";
+import { platformKeys } from "../lib/queryKeys";
+import type { FiscalJob } from "../lib/platformFiscalJobs.types";
 
 export const FISCAL_REASON_MIN_LENGTH = 10;
 
@@ -30,7 +31,7 @@ export function usePlatformFiscalAction(job: FiscalJob) {
       if (status && status >= 400 && status < 500) setPending(null);
       notifyError({ error, title: "No se confirmó la consulta fiscal", phase: "mutation", context: { jobId: job.id, requestId: input.requestId } });
     } finally {
-      await client.invalidateQueries({ queryKey: ["platform", "fiscal-jobs"] });
+      await client.invalidateQueries({ queryKey: platformKeys.fiscalJobs.all });
       guard.current = false; setBusy(false);
     }
   }

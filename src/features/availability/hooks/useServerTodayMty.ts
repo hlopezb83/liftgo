@@ -1,7 +1,10 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toYMD } from "@/lib/date/toYMD";
+import { createEntityKeys } from "@/lib/query/createEntityKeys";
 import { nowMty } from "@/lib/utils";
+
+const serverTodayMtyKeys = createEntityKeys("server-today-mty");
 
 /**
  * R10.9: fecha "hoy" (TZ Monterrey) como YYYY-MM-DD, resuelta en el servidor
@@ -11,7 +14,7 @@ import { nowMty } from "@/lib/utils";
  */
 export function useServerTodayMty(): string {
   const { data } = useQuery({
-    queryKey: ["server-today-mty"],
+    queryKey: serverTodayMtyKeys.all,
     queryFn: async () => {
       const { data, error } = await supabase.rpc("today_mty");
       if (error) throw error;

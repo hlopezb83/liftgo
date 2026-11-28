@@ -2,7 +2,7 @@ import { toYMD } from "@/lib/format/dateFormats";
 import { type ReactNode } from "react";
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, expect, it, vi } from "vitest";
-import IncomeStatementPage from "@/features/reports/pages/IncomeStatementPage";
+import IncomeStatementPage from "../IncomeStatementPage";
 vi.mock("@/components/ui/select", () => ({
   Select: ({
     value,
@@ -27,7 +27,7 @@ vi.mock("@/components/ui/select", () => ({
   SelectTrigger: () => null,
   SelectValue: () => null,
 }));
-vi.mock("@/features/reports/components/reports/IncomeStatementReport", () => ({
+vi.mock("../../components/IncomeStatementReport", () => ({
   IncomeStatementReport: ({
     startDate,
     endDate,

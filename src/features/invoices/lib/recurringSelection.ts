@@ -26,7 +26,7 @@
  * prorrateo y el candado de tarifa desactualizada siguen siendo autoridad del
  * Edge Function.
  */
-import type { RecurringPreviewLine } from "../hooks/invoices/recurring/usePreviewRecurringInvoices";
+import type { RecurringPreviewLine } from "../hooks/recurring/usePreviewRecurringInvoices";
 
 export interface RecurringSelectionState {
   /** Reservas actualmente marcadas para facturar. */

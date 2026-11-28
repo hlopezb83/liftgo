@@ -5,14 +5,14 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import {
   resetRecoveryCaptureForTests,
   startRecoveryCapture,
-} from "@/features/auth/recoveryCapture";
+} from "../recoveryCapture";
 import {
   detectRecoveryFromHref,
   getRecoveryStatus,
   initRecoveryFromLocation,
   resetRecoveryForTests,
   RECOVERY_PENDING_TIMEOUT_MS,
-} from "@/features/auth/recoverySession";
+} from "../recoverySession";
 import { AuthGuard } from "@/layouts/AuthGuard";
 import { useLocation } from "@/lib/router-compat";
 import { TestRouter } from "@/test/router";

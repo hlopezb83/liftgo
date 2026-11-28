@@ -45,7 +45,7 @@ vi.mock("../../../supabase/functions/_shared/facturapi/client.ts", () => ({
 // Keep Deno-only imports out of the browser TypeScript graph. Vitest still
 // executes the real handler, with every external dependency mocked above.
 const handlerPath =
-  "../../../supabase/functions/reconcile-stamping-invoices/index.ts";
+  "../../../supabase/functions/reconcile-stamping-invoices/handler.ts";
 const { handleRequest } = (await import(handlerPath)) as {
   handleRequest: (req: Request) => Promise<Response>;
 };

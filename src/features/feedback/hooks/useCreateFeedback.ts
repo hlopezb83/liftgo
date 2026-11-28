@@ -4,6 +4,7 @@ import type { TablesInsert } from "@/integrations/supabase/types";
 import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
 import { organizationStoragePathForSession } from "@/lib/storage/organizationPath";
 import { notifySuccess } from "@/lib/ui/appFeedback";
+import { feedbackReportKeys } from "../lib/queryKeys";
 import type { FeedbackContext } from "./useFeedbackContext";
 import type { SelectedElementInfo } from "../lib/cssPath";
 import type { FeedbackFormValues } from "../lib/schema";
@@ -72,7 +73,7 @@ export function useCreateFeedback() {
       }
       return data;
     },
-    invalidateKeys: [["feedback_reports"]],
+    invalidateKeys: [feedbackReportKeys.all],
     errorTitle: "No se pudo enviar el reporte",
     onSuccess: (report) => {
       notifySuccess(`Reporte enviado: ${report.folio}`, {

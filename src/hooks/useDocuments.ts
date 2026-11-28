@@ -12,12 +12,13 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
-import { documentsQueries, extractStoragePath, type DocumentsFilter } from "@/lib/query/documentsQueryKeys";
+import { documentsQueries } from "@/lib/query/documentsQueries";
+import { documentsKeys, extractStoragePath, type DocumentsFilter } from "@/lib/query/documentsQueryKeys";
 import { organizationStoragePathForSession } from "@/lib/storage/organizationPath";
 
 function documentInvalidationKeys(entityType?: string | null) {
   return [
-    documentsQueries.keys.all,
+    documentsKeys.all,
     ...(entityType === "damage_record" ? [["damage_photo_counts"] as const] : []),
   ];
 }
