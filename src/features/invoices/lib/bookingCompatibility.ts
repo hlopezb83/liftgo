@@ -27,6 +27,7 @@ export interface BillableBooking {
   booking_number?: string | null;
   /** Verified UI-only pending cycle; never replaces operational booking dates. */
   pending_billing_period?: { start: string; end: string };
+  pending_billing_cycle?: "anniversary";
   currency?: string | null;
   tipo_cambio?: number | string | null;
 }

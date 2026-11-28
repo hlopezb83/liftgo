@@ -1,3 +1,9 @@
+## [8.54.1] - 2026-11-28
+
+- La factura manual permite continuar reservas recurrentes activas desde el primer día pendiente, sin ocultarlas por tener facturas anteriores.
+- Precarga un ciclo mensual desde ese día, acotado al contrato, y su renta pactada; mantiene bloqueos por solapes e historiales sin fechas verificables.
+- El motor recurrente automático, las facturas existentes y la recuperación de reservas completadas conservan sus reglas.
+
 ## [8.54.0] - 2026-11-28
 
 - El botón para limpiar el cliente ahora es un control independiente junto al selector; se usa con teclado y regresa el foco al selector.

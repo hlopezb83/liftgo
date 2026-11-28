@@ -2,11 +2,49 @@ import { periodOutsideBookingsError, lateRecoverySelectionError } from "../booki
 import { describe, expect, it } from "vitest";
 import { bookingPeriodSelectionError, originalPeriodUnavailable } from "../originalBookingPeriod";
 import { bookingIncompatibilityReason, prefillBillingPeriod } from "../bookingCompatibility";
-import { pendingRecurringPeriod } from "../pendingRecurringPeriod";
+import { pendingActiveRecurringPeriod, pendingRecurringPeriod } from "../pendingRecurringPeriod";
 import type { BookingInvoiceClaim } from "../originalBookingPeriod";
 const booking = { id: "b1", start_date: "2026-07-15", end_date: "2026-10-31", recurring_billing: true };
 const claim = (start: string | null, end: string | null, status = "draft"): BookingInvoiceClaim => ({
   booking_id: "b1", invoice_id: `${start}-${end}`, status, billing_period_start: start, billing_period_end: end,
+});
+describe("active manual monthly continuation", () => {
+  const active = { id: "b1", start_date: "2026-09-11", end_date: "2027-01-10" };
+  it("suggests November 11 through December 10 after the two billed months", () => {
+    expect(pendingActiveRecurringPeriod(active, [claim("2026-09-11", "2026-11-10")]))
+      .toEqual({ period: { start: "2026-11-11", end: "2026-12-10" }, error: null });
+  });
+  it("caps continuation at the contract end", () => {
+    expect(pendingActiveRecurringPeriod({ ...active, end_date: "2026-11-25" }, [claim("2026-09-11", "2026-11-10")]).period)
+      .toEqual({ start: "2026-11-11", end: "2026-11-25" });
+  });
+  it("removes a fully occupied reservation", () => {
+    expect(pendingActiveRecurringPeriod(active, [claim("2026-09-11", "2027-01-10")]))
+      .toEqual({ period: null, error: null });
+  });
+  it("does not skip a cancelled earlier month to reach the last billed day", () => {
+    expect(pendingActiveRecurringPeriod(active, [claim("2026-09-11", "2026-10-10", "cancelled"), claim("2026-10-11", "2026-11-10")]).period)
+      .toEqual({ start: "2026-09-11", end: "2026-10-10" });
+  });
+  it("blocks a future occupied fragment instead of proposing overlapping dates", () => {
+    expect(pendingActiveRecurringPeriod(active, [claim("2026-09-11", "2026-11-10"), claim("2026-11-20", "2026-11-25")]).error).toBeTruthy();
+  });
+  it.each(["draft", "sent", "paid", "cancellation_pending"])("keeps %s dates occupied", (status) => {
+    expect(pendingActiveRecurringPeriod(active, [claim("2026-09-11", "2026-11-10", status)]).period?.start).toBe("2026-11-11");
+  });
+  it("advances contiguous direct and pivot fragments without mutating history", () => {
+    const history = [claim("2026-09-11", "2026-10-10"), claim("2026-10-11", "2026-11-10")];
+    const original = structuredClone(history);
+    expect(pendingActiveRecurringPeriod(active, [...history, history[0]]).period).toEqual({ start: "2026-11-11", end: "2026-12-10" });
+    expect(history).toEqual(original);
+  });
+  it("rejects unknown history and ignores other reservations", () => {
+    expect(pendingActiveRecurringPeriod(active, [claim(null, null)]).error).toBeTruthy();
+    expect(pendingActiveRecurringPeriod(active, [{ ...claim(null, null), booking_id: "other" }]).period?.start).toBe("2026-09-11");
+  });
+  it.each([["2024-01-31", "2024-02-28"], ["2026-01-31", "2026-02-27"], ["2026-12-11", "2027-01-10"]])("clamps month and year boundaries from %s", (start, end) => {
+    expect(pendingActiveRecurringPeriod({ ...active, start_date: start, end_date: "2027-12-31" }, []).period).toEqual({ start, end });
+  });
 });
 describe("pending recurring periods", () => {
   it("advances after the first claimed cycle instead of hiding all remaining months", () => {

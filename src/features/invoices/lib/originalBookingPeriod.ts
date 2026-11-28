@@ -62,7 +62,8 @@ export function originalPeriodUnavailable(
   booking: BillableBooking, claims: BookingInvoiceClaim[], currentInvoiceId?: string,
 ): boolean {
   if (booking.pending_billing_period) return bookingPeriodConflict(booking.id, booking.pending_billing_period.start, booking.pending_billing_period.end, claims, currentInvoiceId);
-  // Active recurring bookings retain their automatic-engine selector policy.
+  // Unprojected recurring bookings fail closed; verified pending cycles above
+  // remain available without discarding all months because of one prior invoice.
   if (booking.recurring_billing) return claims.some((claim) => claim.booking_id === booking.id
     && claim.invoice_id !== currentInvoiceId && bookingClaimOccupiesPeriod(claim));
   return bookingPeriodConflict(booking.id, booking.start_date, booking.end_date, claims, currentInvoiceId);

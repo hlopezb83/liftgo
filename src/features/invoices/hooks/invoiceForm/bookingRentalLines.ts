@@ -5,6 +5,7 @@ import { proratedMonthlyAmount } from "@/lib/domain/invoiceTotals";
 import { formatMtyDate, nowMty } from "@/lib/utils";
 import { prefillBillingPeriod } from "../../lib/bookingCompatibility";
 import { firstBillingPeriod, prorateMonthlyLine } from "../../lib/firstBillingPeriod";
+import { anniversaryCycleDays } from "../../lib/pendingRecurringPeriod";
 import { cfdiFromCustomer, type Customer } from "./invoiceFormBuilders";
 import type { InvoiceRentalEquipment } from "./useInvoiceRentalEquipment";
 import type { InvoiceFormValues, LineItemValues } from "../../lib/invoiceFormSchema";
@@ -28,6 +29,7 @@ export interface InvoiceHandlerBooking {
   tipo_cambio?: number | string | null;
   recurring_billing?: boolean | null;
   pending_billing_period?: { start: string; end: string };
+  pending_billing_cycle?: "anniversary";
 }
 
 const SAT_LINE_DEFAULTS = {
@@ -46,7 +48,10 @@ function buildPendingCycleLines(
   forklift: InvoiceRentalEquipment,
 ): LineItemValues[] {
   if (!booking.pending_billing_period) return [];
-  const cycle = firstBillingPeriod(booking.pending_billing_period.start, booking.pending_billing_period.end);
+  const { start, end } = booking.pending_billing_period;
+  const anniversary = booking.pending_billing_cycle === "anniversary";
+  const calendarCycle = firstBillingPeriod(start, end);
+  const cycle = anniversary ? anniversaryCycleDays(start, end) : calendarCycle;
   if (!cycle) return [];
   const monthly = booking.monthly_rate ?? forklift.monthly_rate;
   if (monthly == null || !Number.isFinite(monthly) || monthly < 0) {
@@ -54,7 +59,9 @@ function buildPendingCycleLines(
   }
   const amount = proratedMonthlyAmount(monthly, cycle.billedDays, cycle.daysInMonth);
   return [{
-    description: `${forklift.name} — Renta mensual ${monthLabel(cycle.start)} (${cycle.billedDays} días)`,
+    description: anniversary
+      ? `${forklift.name} — Renta mensual ${formatMtyDate(start, "dd/MM/yyyy")} al ${formatMtyDate(end, "dd/MM/yyyy")}`
+      : `${forklift.name} — Renta mensual ${monthLabel(cycle.start)} (${cycle.billedDays} días)`,
     quantity: 1,
     unit_price: amount,
     total: amount,

@@ -1,0 +1,8 @@
+{
+  "description": "Corrige el bloqueo de reservas recurrentes activas en la factura manual y propone su siguiente ciclo pendiente sin duplicar fechas.",
+  "changes": [
+    "La reserva activa con facturas anteriores puede seleccionarse cuando tiene un siguiente ciclo completo disponible dentro del contrato.",
+    "Un periodo facturado hasta el 10 de noviembre permite precargar del 11 de noviembre al 10 de diciembre, con una mensualidad pactada y prorrateo sólo si termina antes el contrato.",
+    "Las fechas superpuestas o el historial sin fechas verificables siguen bloqueados. No cambia el motor recurrente automático ni las facturas existentes."
+  ]
+}

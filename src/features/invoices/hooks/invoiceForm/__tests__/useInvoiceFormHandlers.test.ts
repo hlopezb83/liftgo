@@ -242,6 +242,23 @@ describe("completed recurring recovery monthly amounts", () => {
   });
 });
 
+describe("active anniversary monthly rental", () => {
+  const active = { id: "b046", forklift_id: "fk-1", start_date: "2026-09-11", end_date: "2027-01-10",
+    recurring_billing: true, monthly_rate: 27000, pending_billing_cycle: "anniversary" as const,
+    pending_billing_period: { start: "2026-11-11", end: "2026-12-10" } };
+  it("bills one complete monthly rental of 27000 before tax without November truncation", () => {
+    expect(buildLinesForBooking(active, [forklift])).toEqual([expect.objectContaining({ quantity: 1, unit_price: 27000, total: 27000 })]);
+    expect(prefillBillingPeriod(active, new Date("2026-11-28T12:00:00Z"))).toEqual({ start: "2026-11-11", end: "2026-12-10" });
+  });
+  it("prorates only a final contract fragment against its complete monthly cycle", () => {
+    expect(buildLinesForBooking({ ...active, end_date: "2026-11-25", pending_billing_period: { start: "2026-11-11", end: "2026-11-25" } }, [forklift]))
+      .toEqual([expect.objectContaining({ quantity: 1, unit_price: 13500, total: 13500 })]);
+  });
+  it("retains a zero agreed rate instead of borrowing the equipment rate", () => {
+    expect(buildLinesForBooking({ ...active, monthly_rate: 0 }, [forklift])).toEqual([expect.objectContaining({ total: 0 })]);
+  });
+});
+
 
 it("blocks missing recurring monthly rate rather than inventing a zero amount", () => {
   expect(() => buildLinesForBooking({ id: "b1", forklift_id: "fk-1", start_date: "2026-07-01", end_date: "2026-08-31", recurring_billing: true, monthly_rate: null,

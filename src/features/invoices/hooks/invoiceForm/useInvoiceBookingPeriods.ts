@@ -2,6 +2,7 @@ import { useMemo } from "react";
 import { indexBillingEvidence, type BillingEvidenceIndex } from "../../lib/billingEvidenceIndex";
 import { completedRecurringBooking } from "../../lib/completedRecurringBooking";
 import { originalPeriodBooking, originalPeriodUnavailable, bookingPeriodConflict } from "../../lib/originalBookingPeriod";
+import { pendingActiveRecurringPeriod } from "../../lib/pendingRecurringPeriod";
 import { useBookingBillingEvidence } from "../useBookingBillingEvidence";
 import type { BillableBooking } from "../../lib/bookingCompatibility";
 import type { ReturnBillingEvidence } from "../../lib/completedRecurringBooking";
@@ -46,6 +47,12 @@ function historyError(isEdit: boolean, extensionId: string | null, invalidHistor
     ? "Hay reservas con historial de extensiones incompleto o incoherente. Revisa su historial antes de facturar el periodo original." : null;
 }
 
+function projectActiveBooking<T extends BillableBooking>(booking: T, claims: BookingInvoiceClaim[], errors: Map<string, string>) {
+  const pending = pendingActiveRecurringPeriod(booking, claims);
+  if (pending.error) errors.set(booking.id, `${booking.booking_number ?? booking.id}: ${pending.error}`);
+  return pending.period ? [{ ...booking, pending_billing_period: pending.period, pending_billing_cycle: "anniversary" as const }] : [];
+}
+
 function projectBookings<T extends BillableBooking>(
   bookings: T[] | undefined, isEdit: boolean, extensionId: string | null,
   index: BillingEvidenceIndex, returnsReady: boolean, latestReturnTime: number | null,
@@ -58,12 +65,16 @@ function projectBookings<T extends BillableBooking>(
   });
   const now = latestReturnTime === null ? new Date() : new Date(latestReturnTime);
   const billingBookings = originals?.flatMap((booking) => {
+    const bookingClaims = index.claimsByBooking.get(booking.id) ?? EMPTY_CLAIMS;
+    if (booking.status === "confirmed" && booking.recurring_billing && bookingClaims.length > 0) {
+      return projectActiveBooking(booking, bookingClaims, errors);
+    }
     if (booking.status === "completed" && booking.recurring_billing && !returnsReady) {
       errors.set(booking.id, `${booking.booking_number ?? booking.id}: no se pudo verificar la devolución efectiva. Espera o reintenta consultar su historial.`);
       return [];
     }
     const monthly = booking.monthly_rate ?? index.monthlyRateByForklift.get(booking.forklift_id ?? "");
-    const result = completedRecurringBooking(booking, index.claimsByBooking.get(booking.id) ?? EMPTY_CLAIMS,
+    const result = completedRecurringBooking(booking, bookingClaims,
       index.returnsByBooking.get(booking.id) ?? EMPTY_RETURNS, now, monthly, index.claimsByInvoice);
     if (result.error) errors.set(booking.id, `${booking.booking_number ?? booking.id}: ${result.error}`);
     return result.booking ? [result.booking] : [];

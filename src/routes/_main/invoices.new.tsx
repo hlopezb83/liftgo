@@ -21,5 +21,13 @@ function GuardedRoute() {
 }
 
 export const Route = createFileRoute("/_main/invoices/new")({
+  head: () => ({ meta: [
+    { title: "Nueva factura | Lift GO" },
+    { name: "description", content: "Prepara una factura de Lift GO con las reservas y su siguiente periodo pendiente de renta." },
+    { property: "og:title", content: "Nueva factura | Lift GO" },
+    { property: "og:description", content: "Captura y revisa los periodos de renta antes de facturar en Lift GO." },
+    { property: "og:type", content: "website" },
+    { name: "twitter:card", content: "summary" },
+  ] }),
   component: GuardedRoute,
 });

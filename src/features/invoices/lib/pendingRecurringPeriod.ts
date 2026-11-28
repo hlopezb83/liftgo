@@ -16,6 +16,24 @@ function nextDay(value: string): string {
   date.setUTCDate(date.getUTCDate() + 1);
   return date.toISOString().slice(0, 10);
 }
+
+/** Inclusive month from start, clamping the next anniversary to its month. */
+export function anniversaryCycleEnd(start: string): string {
+  const date = new Date(`${start}T00:00:00Z`);
+  const day = date.getUTCDate();
+  date.setUTCDate(1);
+  date.setUTCMonth(date.getUTCMonth() + 1);
+  const last = new Date(date.getTime());
+  last.setUTCMonth(last.getUTCMonth() + 1, 0);
+  date.setUTCDate(Math.min(day, last.getUTCDate()));
+  date.setUTCDate(date.getUTCDate() - 1);
+  return date.toISOString().slice(0, 10);
+}
+
+export function anniversaryCycleDays(start: string, end: string) {
+  const inclusiveDays = (to: string) => Math.round((Date.parse(to) - Date.parse(start)) / 86400000) + 1;
+  return { start, billedDays: inclusiveDays(end), daysInMonth: inclusiveDays(anniversaryCycleEnd(start)) };
+}
 function monthEnd(value: string): string {
   const date = new Date(`${value}T00:00:00Z`);
   date.setUTCMonth(date.getUTCMonth() + 1, 0);
@@ -32,6 +50,31 @@ function activeRanges(bookingId: string, claims: BookingInvoiceClaim[]): Claimed
     ranges.push({ start, end, claim });
   }
   return ranges.sort((a, b) => a.start.localeCompare(b.start));
+}
+
+/** Manual continuation only: never use a max billed date that skips a gap.
+ * Unknown history or a future claim inside the proposed month fails closed. */
+export function pendingActiveRecurringPeriod(
+  booking: Pick<BillableBooking, "id" | "start_date" | "end_date">,
+  claims: BookingInvoiceClaim[],
+): PendingRecurringPeriod {
+  if (!validDate(booking.start_date) || !validDate(booking.end_date) || booking.start_date > booking.end_date) {
+    return { period: null, error: invalidHistory };
+  }
+  const ranges = activeRanges(booking.id, claims);
+  if (!ranges) return { period: null, error: invalidHistory };
+  let start = booking.start_date;
+  for (const range of ranges) {
+    if (range.start > start) break;
+    if (range.end >= start) start = nextDay(range.end);
+  }
+  if (start > booking.end_date) return { period: null, error: null };
+  const monthlyEnd = anniversaryCycleEnd(start);
+  const end = monthlyEnd < booking.end_date ? monthlyEnd : booking.end_date;
+  if (ranges.some((range) => range.start <= end && range.end >= start)) {
+    return { period: null, error: "El siguiente ciclo tiene días ya facturados. Revisa sus facturas antes de continuar para evitar cobros duplicados." };
+  }
+  return { period: { start, end }, error: null };
 }
 function fullyCovered(start: string, end: string, ranges: RecurringPeriod[]): boolean {
   let cursor = start;

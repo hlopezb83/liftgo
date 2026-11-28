@@ -1,5 +1,11 @@
 # Roadmap operativo y estado de evidencia
 
+## Factura manual de reservas recurrentes activas (28 de noviembre de 2026)
+
+- [x] Proyectar el siguiente ciclo pendiente sin saltar huecos ni traslapar facturas; conservar edición, extensiones y reservas completadas.
+- [x] Prellenar fechas y renta mensual del ciclo 11 de noviembre–10 de diciembre; 132 pruebas focales de periodos, selección y tarifas pasan.
+- [x] Changelog/metadatos 8.54.1 actualizados; ocho pruebas de changelog y 23 de identidad pasan, ESLint focal y compilación automática sin errores. Chromium con sesión real confirmó RSV-0046, 11/11/2026–10/12/2026, cantidad 1, $27,000 + $4,320 IVA = $31,320, en escritorio y celular 390 sin desbordamiento; no se guardó ni emitió. Tipos y suite completa quedan para CI; publicación no realizada.
+
 ## Migración Facturapi 6.0.0 (10 de noviembre de 2026)
 
 - [x] Solicitud 20:20 UTC: npm confirma 6.0.0; tras revisión del límite, usuario indicó «Continua sin respaldo». Kit aplicado en `fx6-prod-20261110T2025Z`; herramienta oficial confirmó despliegue de las 12 funciones. Jobs 18/19 pausados brevemente y restaurados/verificados activos en la misma intervención. 26/26 focales y manifiesto vigentes; sin invocación ni emisión por el agente.
