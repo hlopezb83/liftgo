@@ -86,6 +86,39 @@ function Harness({ existing, onSubmit, onPayload, trace }: {
 }
 
 describe("CfdiFieldsCard existing USD invoice prefill", () => {
+  it("seleccionar forma 99 cambia PUE a PPD y envía ambos valores coherentes", async () => {
+    const onPayload = vi.fn();
+    const view = render(<Harness existing={{ ...existingUsd, metodo_pago: "PUE", forma_pago: "03" }}
+      onSubmit={vi.fn()} onPayload={onPayload} trace={[]} />);
+    const select = Array.from(view.container.querySelectorAll("select")).find((element) => element.value === "03");
+    if (!select) throw new Error("Falta selector de forma de pago 03");
+    fireEvent.change(select, { target: { value: "99" } });
+    expect(JSON.parse(screen.getByLabelText("CFDI values").textContent ?? "{}")).toMatchObject({ metodoPago: "PPD", formaPago: "99" });
+    fireEvent.submit(screen.getByRole("form", { name: "Synthetic invoice form" }));
+    await waitFor(() => expect(onPayload).toHaveBeenCalledOnce());
+    expect(onPayload.mock.calls[0]?.[0]).toMatchObject({ metodo_pago: "PPD", forma_pago: "99" });
+  });
+
+  it("seleccionar una forma definida conserva PUE", () => {
+    const view = render(<Harness onSubmit={vi.fn()} trace={[]} />);
+    const select = Array.from(view.container.querySelectorAll("select")).find((element) => element.value === "03");
+    if (!select) throw new Error("Falta selector de forma de pago 03");
+    fireEvent.change(select, { target: { value: "01" } });
+    expect(JSON.parse(screen.getByLabelText("CFDI values").textContent ?? "{}")).toMatchObject({ metodoPago: "PUE", formaPago: "01" });
+  });
+
+  it("volver a PUE tras seleccionar 99 restaura forma 03", () => {
+    const view = render(<Harness onSubmit={vi.fn()} trace={[]} />);
+    const selects = () => Array.from(view.container.querySelectorAll("select"));
+    const forma = selects().find((element) => element.value === "03");
+    if (!forma) throw new Error("Falta selector de forma de pago 03");
+    fireEvent.change(forma, { target: { value: "99" } });
+    const metodo = selects().find((element) => element.value === "PPD");
+    if (!metodo) throw new Error("Falta selector de método PPD");
+    fireEvent.change(metodo, { target: { value: "PUE" } });
+    expect(JSON.parse(screen.getByLabelText("CFDI values").textContent ?? "{}")).toMatchObject({ metodoPago: "PUE", formaPago: "03" });
+  });
+
   it("keeps the visible USD currency and amounts when cached invoice is present at mount", async () => {
     const trace: Trace[] = [];
     render(<Harness existing={existingUsd} onSubmit={vi.fn()} trace={trace} />);

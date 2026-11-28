@@ -22,7 +22,14 @@ function CfdiCatalogSelects() {
         <FormItem>
           <FormLabel>Forma de Pago</FormLabel>
           <Select value={field.value} disabled={metodoPago === "PPD"} onValueChange={(value) => {
-            if (value) field.onChange(value);
+            if (!value) return;
+            field.onChange(value);
+            if (value === "99") {
+              setValue("cfdi.metodoPago", "PPD", {
+                shouldDirty: true,
+                shouldValidate: true,
+              });
+            }
           }}>
             <FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl>
             <SelectContent>

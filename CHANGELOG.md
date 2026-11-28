@@ -1,3 +1,7 @@
+## [8.54.2] - 2026-11-28
+
+- Seleccionar 99 · Por definir en la factura cambia automáticamente el método de pago a PPD; conserva la sincronización al regresar a PUE y la normalización de PPD al guardar.
+
 ## [8.54.1] - 2026-11-28
 
 - La factura manual permite continuar reservas recurrentes activas desde el primer día pendiente, sin ocultarlas por tener facturas anteriores.

@@ -1,5 +1,10 @@
 # Roadmap operativo y estado de evidencia
 
+## Sincronización de forma 99 y método PPD (28 de noviembre de 2026)
+
+- [x] Seleccionar 99 cambia PUE a PPD; 26 pruebas focales pasan. Chromium con sesión real confirmó 99/PPD y regreso a PUE/03, sin guardar ni timbrar.
+- [x] Changelog/metadatos 8.54.2 actualizados, 23 pruebas de identidad pasan, ESLint focal y compilación automática sin errores; CI completa y publicación no realizadas.
+
 ## Factura manual de reservas recurrentes activas (28 de noviembre de 2026)
 
 - [x] Proyectar el siguiente ciclo pendiente sin saltar huecos ni traslapar facturas; conservar edición, extensiones y reservas completadas.

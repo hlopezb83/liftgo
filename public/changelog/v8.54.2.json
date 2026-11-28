@@ -1,0 +1,7 @@
+{
+  "description": "Sincroniza los campos de pago al seleccionar 99 · Por definir en la factura.",
+  "changes": [
+    "Seleccionar forma de pago 99 cambia automáticamente el método a PPD.",
+    "Se conserva el regreso a PUE con forma 03 y la normalización de PPD a 99 al guardar."
+  ]
+}
