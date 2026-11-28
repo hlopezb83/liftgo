@@ -78,7 +78,7 @@ describe("invoice quote SAT defaults", () => {
     });
     expect(form.lineItems[0]).toMatchObject({ clave_prod_serv: "", clave_unidad: "" });
     expect(form.lineItems[1]).toMatchObject({ line_kind: "charge", source_quote_id: quoteId, source_quote_line_id: chargeId,
-      clave_prod_serv: sat.clave_prod_serv ?? "78101800", clave_unidad: sat.clave_unidad ?? "E48" });
+      clave_prod_serv: sat.clave_prod_serv ?? "81141601", clave_unidad: sat.clave_unidad ?? "E48" });
   });
 
   it("leaves every historical line unchanged, including missing and rental-looking sale codes", () => {

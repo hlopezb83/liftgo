@@ -10,6 +10,25 @@ function payload(overrides={}, quoteOverrides={}) {
     ...overrides,
   }],...quoteOverrides}]};
 }
+test('recurring logistics defaults to 81141601 with existing tax treatment',()=>{
+  const [line]=recurringQuoteCharges(payload(),[quote]);
+  assert.equal(line.clave_prod_serv,'81141601');
+  assert.equal(line.clave_unidad,'E48');
+  assert.equal(line.objeto_imp,'02');
+  assert.deepEqual(recurringChargeAmounts(line,16),{netCents:20000,taxCents:3200});
+});
+test('recurring logistics preserves an explicit source SAT code',()=>{
+  const value=payload();
+  const original={...value.quotes[0].lines[0].line,charge_kind:'logistics',clave_prod_serv:'78101800'};
+  const [line]=recurringQuoteCharges(payload({line:original}),[quote]);
+  assert.equal(line.clave_prod_serv,'78101800');
+  assert.equal(original.clave_prod_serv,'78101800');
+});
+test('recurring insurance keeps its independent SAT default',()=>{
+  const value=payload();
+  const [line]=recurringQuoteCharges(payload({line:{...value.quotes[0].lines[0].line,charge_kind:'insurance'}}),[quote]);
+  assert.equal(line.clave_prod_serv,'84131500');
+});
 test('partial availability creates only remaining source quantity',()=>{
   const [line]=recurringQuoteCharges(payload(),[quote]);
   assert.equal(line.quantity,2); assert.equal(line.total,200);

@@ -83,7 +83,7 @@ export function buildAvailableQuoteChargeLines(quoteIds: string[], availability?
       source_quote_line_id: charge.quote_line_id,
       quantity: charge.remaining_quantity,
       total: lineItemTotal(charge.remaining_quantity, charge.line.unit_price),
-      clave_prod_serv: charge.line.clave_prod_serv || (charge.line.charge_kind === "insurance" ? "84131500" : "78101800"),
+      clave_prod_serv: charge.line.clave_prod_serv || (charge.line.charge_kind === "insurance" ? "84131500" : "81141601"),
       clave_unidad: charge.line.clave_unidad || "E48",
       objeto_imp: charge.line.objeto_imp || "02",
     }];

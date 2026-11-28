@@ -1,5 +1,10 @@
 # Roadmap operativo y estado de evidencia
 
+## Clave SAT de logística (28 de noviembre de 2026)
+
+- [x] Valor predeterminado 81141601 en factura manual y código recurrente; etiqueta Logística. Conserva códigos explícitos, seguro, renta e impuestos.
+- [x] 90 pruebas focales, ocho de changelog y 23 de identidad pasan; ESLint focal y compilación automática sin errores. Chromium con sesión real confirmó selección 81141601 en Nueva factura sin guardar ni timbrar; changelog/metadatos 8.54.3 actualizados. CI completa pendiente; no se publicó ni desplegó el generador recurrente.
+
 ## Sincronización de forma 99 y método PPD (28 de noviembre de 2026)
 
 - [x] Seleccionar 99 cambia PUE a PPD; 26 pruebas focales pasan. Chromium con sesión real confirmó 99/PPD y regreso a PUE/03, sin guardar ni timbrar.

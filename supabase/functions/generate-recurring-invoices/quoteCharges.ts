@@ -118,7 +118,7 @@ export function recurringQuoteCharges(
         discount_type: discountType,
         clave_prod_serv: String(
           line.clave_prod_serv ??
-            (line.charge_kind === "insurance" ? "84131500" : "78101800"),
+            (line.charge_kind === "insurance" ? "84131500" : "81141601"),
         ),
         clave_unidad: String(line.clave_unidad ?? "E48"),
         objeto_imp: String(line.objeto_imp ?? "02"),

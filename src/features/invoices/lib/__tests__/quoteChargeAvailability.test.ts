@@ -21,6 +21,27 @@ function availability(consumed = 0): QuoteChargeAvailability {
 }
 
 describe("authoritative quote-charge availability", () => {
+  it("uses 81141601 for logistics without a supplied code and preserves its tax settings", () => {
+    const data = availability();
+    delete data.quotes[0].lines[0].line.clave_prod_serv;
+    expect(buildAvailableQuoteChargeLines([quoteId], data)[0]).toMatchObject({
+      clave_prod_serv: "81141601", clave_unidad: "E48", objeto_imp: "02", tax_rate: 8,
+    });
+  });
+
+  it("preserves an explicitly supplied logistics code instead of rewriting the quote", () => {
+    const data = availability();
+    expect(buildAvailableQuoteChargeLines([quoteId], data)[0].clave_prod_serv).toBe("78101800");
+    expect(data.quotes[0].lines[0].line.clave_prod_serv).toBe("78101800");
+  });
+
+  it("keeps the insurance default independent of logistics", () => {
+    const data = availability();
+    data.quotes[0].lines[0].line.charge_kind = "insurance";
+    delete data.quotes[0].lines[0].line.clave_prod_serv;
+    expect(buildAvailableQuoteChargeLines([quoteId], data)[0].clave_prod_serv).toBe("84131500");
+  });
+
   it("allows a complete quote without extras and requires review again if a charge is added", () => {
     const data = availability();
     data.quotes[0].legacy_review_required = true;

@@ -1,0 +1,9 @@
+{
+  "description": "Actualiza la clave predeterminada de logística sin modificar documentos existentes ni reglas fiscales.",
+  "changes": [
+    "Los cargos sin clave explícita usan 81141601 en facturación manual y en el código recurrente.",
+    "El catálogo muestra 81141601 como Logística.",
+    "Se conservan códigos explícitos, seguro, renta e impuestos; cambiar la clave no elimina retenciones aplicables.",
+    "No se publicó ni desplegó el generador recurrente."
+  ]
+}

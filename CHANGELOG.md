@@ -1,3 +1,8 @@
+## [8.54.3] - 2026-11-28
+
+- Los cargos de logística sin clave SAT explícita usan 81141601 en la factura manual y en el código del generador recurrente; el catálogo identifica esta clave como Logística.
+- Conserva claves explícitas, documentos existentes y reglas de impuestos; no elimina retenciones ni cambia claves de renta. El generador recurrente requiere despliegue separado.
+
 ## [8.54.2] - 2026-11-28
 
 - Seleccionar 99 · Por definir en la factura cambia automáticamente el método de pago a PPD; conserva la sincronización al regresar a PUE y la normalización de PPD al guardar.
