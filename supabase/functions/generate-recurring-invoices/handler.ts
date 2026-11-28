@@ -11,6 +11,10 @@ import { assertNoLegacyVat } from "../_shared/legacyVat.ts";
 import { requireServiceOrRole } from "../_shared/auth.ts";
 import { handleCors } from "../_shared/cors.ts";
 import { authenticateCronRequest } from "../_shared/cronAuth.ts";
+import {
+  createRequestDiagnostics,
+  type EdgeDiagnostics,
+} from "../_shared/edgeDiagnostics.ts";
 import { jsonError, jsonResponse } from "../_shared/http.ts";
 import {
   recurringChargeAmounts,
@@ -334,6 +338,7 @@ export type HandlerDependencies = {
   getAdminClient?: typeof getAdminClient;
   planningDate?: Date;
   performance?: RecurringPerformance;
+  diagnostics?: EdgeDiagnostics;
 };
 
 function attachPerformance(
@@ -359,6 +364,7 @@ export async function handleRequest(
   const corsRes = handleCors(req);
   if (corsRes) return corsRes;
   const metrics = dependencies.performance ?? createRecurringPerformance();
+  const diag = createRequestDiagnostics(dependencies.diagnostics);
   let instrumentPreview = false;
 
   try {
@@ -377,6 +383,7 @@ export async function handleRequest(
     let scopeOrganizationId: string | null = null;
     if (cronAuth.ok) {
       supabase = (dependencies.getAdminClient ?? getAdminClient)();
+      diag.authenticated({ role: "service_role" });
     } else {
       const auth = await metrics.measure(
         "auth_user",
@@ -387,6 +394,10 @@ export async function handleRequest(
           ]),
       );
       if (!auth.ok) return auth.response;
+      diag.authenticated({
+        userId: auth.userId,
+        role: auth.role ?? undefined,
+      });
       supabase = auth.adminClient;
       if (auth.role !== "service_role") {
         const callerOrg = await metrics.measure(
@@ -401,6 +412,7 @@ export async function handleRequest(
           return jsonError(req, callerOrg.status, callerOrg.message);
         }
         scopeOrganizationId = callerOrg.organizationId;
+        diag.organization(scopeOrganizationId);
       }
     }
 
@@ -631,6 +643,7 @@ export async function handleRequest(
       pending_count: pendingCount,
     });
   } catch (err) {
+    diag.capture(err, 500, "generate_recurring_invoices_unhandled");
     console.error("[generate-recurring-invoices]", err);
     const response = jsonError(req, 500, "Internal server error");
     return instrumentPreview

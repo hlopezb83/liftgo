@@ -8,7 +8,11 @@ export type VerifiedEdgeIdentity = {
 /** Puerto de diagnóstico: el handler no importa el SDK ni controla su transporte. */
 export interface EdgeDiagnostics {
   identify(identity: VerifiedEdgeIdentity): void;
-  capture(error: unknown, status?: number): void;
+  capture(error: unknown, status?: number, stage?: string): void;
+  withJob?<T>(
+    identity: VerifiedEdgeIdentity,
+    work: () => T | Promise<T>,
+  ): Promise<T>;
 }
 
 function safely(work: () => void): void {
@@ -29,8 +33,15 @@ export function createRequestDiagnostics(port?: EdgeDiagnostics) {
       identity = { ...identity, organizationId };
       safely(() => port?.identify({ ...identity }));
     },
-    capture(error: unknown, status?: number) {
-      safely(() => port?.capture(error, status));
+    capture(error: unknown, status?: number, stage?: string) {
+      safely(() => port?.capture(error, status, stage));
+    },
+    withJob<T>(
+      jobIdentity: VerifiedEdgeIdentity,
+      work: () => T | Promise<T>,
+    ): Promise<T> {
+      if (port?.withJob) return port.withJob(jobIdentity, work);
+      return Promise.resolve().then(work);
     },
   };
 }

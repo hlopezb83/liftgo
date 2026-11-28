@@ -1,6 +1,10 @@
 // Pure handler for stamp-credit-note, deps-injected for testability.
 import { authenticateWithDeps } from "../_shared/authWithDeps.ts";
 import { handleCors } from "../_shared/cors.ts";
+import {
+  createRequestDiagnostics,
+  type EdgeDiagnostics,
+} from "../_shared/edgeDiagnostics.ts";
 import { jsonResponse } from "../_shared/http.ts";
 import type { SupabaseLike } from "../_shared/types.ts";
 import {
@@ -23,6 +27,7 @@ export interface StampCreditNoteDeps {
   createServiceClient: () => SupabaseLike;
   fetchImpl: typeof fetch;
   env: (k: string) => string | undefined;
+  diagnostics?: EdgeDiagnostics;
 }
 
 async function compensateCreditNoteCrash(params: {
@@ -86,6 +91,7 @@ export async function handleStampCreditNote(
   if (corsRes) return corsRes;
   const json: JsonResponder = (body, status) =>
     jsonResponse(req, body, { status });
+  const diag = createRequestDiagnostics(deps.diagnostics);
 
   let creditNoteId: unknown = undefined;
   let userId: string | undefined = undefined;
@@ -104,6 +110,10 @@ export async function handleStampCreditNote(
       logTag: "[stamp-credit-note]",
     });
     if (!auth.ok) return json({ error: auth.message }, auth.status);
+    diag.authenticated({
+      userId: auth.userId,
+      role: auth.isServiceRole ? "service_role" : undefined,
+    });
     userId = auth.userId;
     const supabase = auth.supabase;
     supabaseRef = supabase;
@@ -132,6 +142,7 @@ export async function handleStampCreditNote(
       sourceLines,
       releaseClaim,
     } = claimedRes.data;
+    diag.organization(organizationId);
 
     const fiscalCfg = await resolveCreditNoteFiscalConfig({
       supabase,
@@ -177,6 +188,13 @@ export async function handleStampCreditNote(
       json,
     });
   } catch (err) {
+    diag.capture(
+      err,
+      pacAccepted ? 502 : 500,
+      pacAccepted
+        ? "credit_note_post_stamp_persistence"
+        : "stamp_credit_note_unhandled",
+    );
     console.error("[stamp-credit-note] unhandled exception", {
       credit_note_id: creditNoteId,
       userId,
@@ -192,14 +210,20 @@ export async function handleStampCreditNote(
       emittedFacturapiId,
       emittedCfdiUuid,
     });
-    if (pacAccepted) {
-      return json({
-        error: emittedCfdiUuid
-          ? "El CFDI se timbró pero ocurrió un error interno al finalizar. Se reconciliará automáticamente; no reintentes el timbrado manualmente."
-          : "Facturapi aceptó la NC sin UUID, pero ocurrió un error interno al guardar. Se reconciliará automáticamente; no reintentes el timbrado manualmente.",
-        reconciling: true,
-      }, 502);
-    }
-    return json({ error: "Internal server error" }, 500);
+    return buildCreditNoteCrashResponse(json, pacAccepted, emittedCfdiUuid);
   }
+}
+
+function buildCreditNoteCrashResponse(
+  json: JsonResponder,
+  pacAccepted: boolean,
+  emittedCfdiUuid: string | null,
+): Response {
+  if (!pacAccepted) return json({ error: "Internal server error" }, 500);
+  return json({
+    error: emittedCfdiUuid
+      ? "El CFDI se timbró pero ocurrió un error interno al finalizar. Se reconciliará automáticamente; no reintentes el timbrado manualmente."
+      : "Facturapi aceptó la NC sin UUID, pero ocurrió un error interno al guardar. Se reconciliará automáticamente; no reintentes el timbrado manualmente.",
+    reconciling: true,
+  }, 502);
 }

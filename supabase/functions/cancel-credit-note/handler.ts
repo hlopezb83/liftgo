@@ -3,6 +3,10 @@ import { cancellationResult } from "../_shared/facturapi/cancellationResult.ts";
 // Multiempresa · Fase 1: la organización se valida contra la NC leída de BD
 // ANTES de cualquier claim, update o llamada al PAC.
 import { handleCors } from "../_shared/cors.ts";
+import {
+  createRequestDiagnostics,
+  type EdgeDiagnostics,
+} from "../_shared/edgeDiagnostics.ts";
 import { jsonError, jsonResponse } from "../_shared/http.ts";
 import { isNonEmptyString, isUUID } from "../_shared/validate.ts";
 import { authenticateWithDeps } from "../_shared/authWithDeps.ts";
@@ -30,6 +34,7 @@ export interface CancelCreditNoteDeps {
   createServiceClient: () => SupabaseLike;
   fetchImpl: typeof fetch;
   env: (key: string) => string | undefined;
+  diagnostics?: EdgeDiagnostics;
 }
 
 const VALID_MOTIVES = new Set(["01", "02", "03", "04"]);
@@ -48,6 +53,7 @@ export async function handleCancelCreditNote(
 ): Promise<Response> {
   const corsRes = handleCors(req);
   if (corsRes) return corsRes;
+  const diag = createRequestDiagnostics(deps.diagnostics);
 
   // R4-01 (patrón cancel-cfdi): refs fuera del try para liberar el claim en
   // el catch cuando una excepción ocurre ANTES de contactar al PAC; si ya se
@@ -77,6 +83,10 @@ export async function handleCancelCreditNote(
       logTag: "[cancel-credit-note]",
     });
     if (!auth.ok) return jsonError(req, auth.status, auth.message);
+    diag.authenticated({
+      userId: auth.userId,
+      role: auth.isServiceRole ? "service_role" : undefined,
+    });
     const supabase = auth.supabase;
     supabaseRef = supabase;
 
@@ -126,6 +136,7 @@ export async function handleCancelCreditNote(
       return jsonError(req, orgCheck.status, orgCheck.message);
     }
     const organizationId = orgCheck.organizationId;
+    diag.organization(organizationId);
 
     if (ncRow.cfdi_status !== "stamped") {
       return jsonError(req, 400, "Only stamped credit notes can be cancelled");
@@ -297,6 +308,7 @@ export async function handleCancelCreditNote(
       accepted: isAccepted,
     });
   } catch (err) {
+    diag.capture(err, 500, "cancel_credit_note_unhandled");
     // R4-01: solo liberamos el claim si nunca se contactó al PAC; si ya se
     // llamó, el estado 'pending' es correcto hasta reconciliar con el SAT.
     if (!pacAttempted) await releaseClaimRef();

@@ -2,6 +2,7 @@ import "./lib/observability/error-capture";
 
 import { consumeLastCapturedError, runWithRequestErrorCapture } from "./lib/observability/error-capture";
 import { renderErrorPage } from "./lib/observability/error-page";
+import { handleSentryTunnel, resolveAllowedServerDsn, SENTRY_TUNNEL_PATH } from "./lib/observability/sentryTunnel.server";
 import { captureServerError, withServerSentry } from "./lib/observability/serverSentry.server";
 
 type ServerEntry = {
@@ -49,6 +50,13 @@ function isH3SwallowedErrorBody(body: string): boolean {
 
 export default {
   async fetch(request: Request, env: unknown, ctx: unknown) {
+    try {
+      if (new URL(request.url).pathname === SENTRY_TUNNEL_PATH) {
+        const runtimeEnv = env ?? (request as Request & { runtime?: { cloudflare?: { env?: unknown } } }).runtime?.cloudflare?.env;
+        return await handleSentryTunnel(request, resolveAllowedServerDsn(runtimeEnv));
+      }
+    } catch { /* URL malformada: delegar al flujo normal */ }
+
     return runWithRequestErrorCapture(() => withServerSentry(request, env, ctx, async () => {
       try {
         const handler = await getServerEntry();

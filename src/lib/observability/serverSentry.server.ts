@@ -2,6 +2,7 @@ import { captureException, getClient, getIsolationScope, setAsyncLocalStorageAsy
 import { wrapRequestHandler } from "@sentry/cloudflare/request";
 import { databasePrivilegeIncident, databasePrivilegeTarget } from "./databasePrivilegeFailure";
 import { createPrivacyOptions, PUBLIC_SENTRY_DSN, scrubServerEvent } from "./privacyOptions";
+import { resolveSampleRate } from "./sampleRate";
 
 type RequestContext = { waitUntil(promise: Promise<unknown>): void; passThroughOnException?(): void };
 type RuntimeRequest = Request & { runtime?: { cloudflare?: { context?: RequestContext; env?: unknown } }; waitUntil?: RequestContext["waitUntil"] };
@@ -9,17 +10,35 @@ const reported = new WeakMap<object, WeakSet<object>>();
 const FALLBACK_FLUSH_BUDGET_MS = 750;
 let contextStrategyInstalled = false;
 
+function resolveServerDsn(bindings: Record<string, unknown>): string {
+  return typeof bindings.SENTRY_DSN === "string"
+    ? bindings.SENTRY_DSN
+    : process.env.SENTRY_DSN ?? import.meta.env.VITE_SENTRY_DSN ?? PUBLIC_SENTRY_DSN;
+}
+
+function resolveServerEnvironment(bindings: Record<string, unknown>): string {
+  const fromBinding = typeof bindings.SENTRY_ENVIRONMENT === "string" ? bindings.SENTRY_ENVIRONMENT.trim() : "";
+  return fromBinding
+    || process.env.SENTRY_ENVIRONMENT?.trim()
+    || import.meta.env.VITE_SENTRY_ENVIRONMENT?.trim()
+    || import.meta.env.MODE;
+}
+
 export function createServerSentryOptions(env: unknown): CloudflareOptions | undefined {
   if (!import.meta.env.PROD && import.meta.env.VITE_SENTRY_FORCE !== "1") return undefined;
   const bindings = env && typeof env === "object" ? env as Record<string, unknown> : {};
-  const dsn = typeof bindings.SENTRY_DSN === "string" ? bindings.SENTRY_DSN
-    : process.env.SENTRY_DSN ?? import.meta.env.VITE_SENTRY_DSN ?? PUBLIC_SENTRY_DSN;
+  const dsn = resolveServerDsn(bindings);
   if (!dsn) return undefined;
+  const rawSampleRate = bindings.SENTRY_TRACES_SAMPLE_RATE
+    ?? process.env.SENTRY_TRACES_SAMPLE_RATE
+    ?? import.meta.env.VITE_SENTRY_TRACES_SAMPLE_RATE;
   return {
-    ...createPrivacyOptions(), dsn, environment: import.meta.env.MODE,
+    ...createPrivacyOptions(),
+    dsn,
+    environment: resolveServerEnvironment(bindings),
     release: `liftgo@${import.meta.env.VITE_APP_VERSION ?? "unknown"}`,
-    // Captura de fallos primero. Trazas del servidor requieren medir cuota y latencia.
-    tracesSampleRate: 0,
+    // Trazas muestreadas al 5 % en producción (sobrescribible con SENTRY_TRACES_SAMPLE_RATE); scrubSpan sanea atributos.
+    tracesSampleRate: resolveSampleRate(rawSampleRate, import.meta.env.PROD ? 0.05 : 0),
     integrations: (integrations) => integrations.filter(({ name }) => name !== "Console"),
     beforeSend: scrubServerEvent,
     initialScope: { tags: { app: "liftgo-erp", runtime: "server" } },

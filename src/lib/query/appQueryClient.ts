@@ -1,12 +1,14 @@
 import { QueryClient, QueryCache, MutationCache } from "@tanstack/react-query";
 import { handleSessionExpired } from "@/lib/auth/sessionExpiry";
+import { captureOperationalError } from "@/lib/observability/captureOperationalError";
 import { notifyError } from "@/lib/ui/appFeedback";
 
 /**
  * Handlers globales: si una query/mutación no marca `meta.silent = true`,
  * mostramos un toast persistente con botón "Ver detalles" que abre el reporte
  * estructurado. Mutaciones/queries que ya manejan su propio error pueden
- * silenciar el global con `meta: { silent: true }`.
+ * silenciar el global con `meta: { silent: true }`, pero los incidentes técnicos
+ * (5xx / INTERNAL_ERROR) siguen reportándose a Sentry (deduplicados por instancia).
  *
  * El QueryClient lo instancia el router (src/router.tsx) para que SSR cree un
  * cliente por request; esta fábrica vive fuera de AppProviders para que ese
@@ -26,7 +28,11 @@ export function createAppQueryClient(): QueryClient {
       onError: (error, query) => {
         // G-C3: un JWT vencido cierra sesión y manda al login antes de cualquier toast.
         void handleSessionExpired(error).then((handled) => {
-          if (handled || query.meta?.silent) return;
+          if (handled) return;
+          if (query.meta?.silent) {
+            captureOperationalError(error, { phase: "query" });
+            return;
+          }
           notifyError({ title: "No se pudo cargar la información", error, phase: "query", method: String(query.queryKey[0] ?? "query") });
         });
       },
@@ -34,9 +40,13 @@ export function createAppQueryClient(): QueryClient {
     mutationCache: new MutationCache({
       onError: (error, _vars, _ctx, mutation) => {
         void handleSessionExpired(error).then((handled) => {
-          if (handled || mutation.meta?.silent) return;
-          // Si la mutación ya tiene un onError local, dejamos que él maneje el toast.
-          if (mutation.options.onError) return;
+          if (handled) return;
+          // Si la mutación silencia el toast o tiene un onError local, omitimos el toast
+          // global pero aseguramos la captura técnica en Sentry (WeakSet evita duplicados).
+          if (mutation.meta?.silent || mutation.options.onError) {
+            captureOperationalError(error, { phase: "mutation" });
+            return;
+          }
           notifyError({ error, phase: "mutation" });
         });
       },

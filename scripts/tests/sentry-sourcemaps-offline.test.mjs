@@ -42,3 +42,22 @@ test('Sentry stamps matching debug IDs into hidden source maps without uploads',
     }
   }
 });
+
+test('Sentry sourcemaps, environment separation, and Edge release contracts stay wired', async () => {
+  const repoRoot = path.resolve(import.meta.dirname, '..', '..');
+  const viteConfig = await readFile(path.join(repoRoot, 'vite.config.ts'), 'utf8');
+  assert.match(viteConfig, /sourcemap:\s*process\.env\.SENTRY_AUTH_TOKEN\s*\?\s*"hidden"\s*:\s*false/);
+  assert.match(viteConfig, /filesToDeleteAfterUpload:\s*"\.\/dist\/\*\*\/\*\.map"/);
+
+  const clientSentry = await readFile(path.join(repoRoot, 'src/lib/observability/sentry.ts'), 'utf8');
+  assert.match(clientSentry, /VITE_SENTRY_ENVIRONMENT/);
+  assert.match(clientSentry, /\/api\/sentry-tunnel/);
+
+  const serverSentry = await readFile(path.join(repoRoot, 'src/lib/observability/serverSentry.server.ts'), 'utf8');
+  assert.match(serverSentry, /SENTRY_ENVIRONMENT/);
+
+  const edgeSentry = await readFile(path.join(repoRoot, 'supabase/functions/_shared/edgeSentry.ts'), 'utf8');
+  assert.match(edgeSentry, /SENTRY_ENVIRONMENT/);
+  assert.match(edgeSentry, /SENTRY_RELEASE/);
+  assert.doesNotMatch(edgeSentry, /liftgo-cloud@2026-10-03/);
+});

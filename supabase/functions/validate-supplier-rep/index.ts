@@ -2,7 +2,11 @@
 // Se conserva endurecido (alcance por empresa) para consumidores antiguos.
 import type { SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2.118.0";
 import { enforceRateLimit, requireRole } from "../_shared/auth.ts";
-import { wrapEdgeFunction } from "../_shared/edgeSentry.ts";
+import {
+  captureEdgeError,
+  setVerifiedEdgeIdentity,
+  wrapEdgeFunction,
+} from "../_shared/edgeSentry.ts";
 import type { SupabaseLike } from "../_shared/types.ts";
 import { handleValidateSupplierRep } from "./handler.ts";
 
@@ -22,6 +26,7 @@ function handle(req: Request): Promise<Response> {
       return {
         ok: true,
         userId: auth.userId,
+        role: auth.role,
         adminClient: auth.adminClient as unknown as SupabaseLike,
       };
     },
@@ -34,6 +39,10 @@ function handle(req: Request): Promise<Response> {
         max,
         windowSeconds,
       ),
+    diagnostics: {
+      identify: setVerifiedEdgeIdentity,
+      capture: captureEdgeError,
+    },
   });
 }
 

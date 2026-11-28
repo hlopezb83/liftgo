@@ -29,6 +29,8 @@ export interface NoiseContext {
   readonly blocked: ReadonlySet<string>;
   /** Sólo abortos GET/script del hosting reconocidos por la guarda de ESTE spec. */
   readonly blockedHostingScripts: ReadonlySet<string>;
+  /** Sólo abortos POST /api/sentry-tunnel reconocidos por la guarda de ESTE spec. */
+  readonly blockedTelemetry?: ReadonlySet<string>;
 }
 
 export interface NoiseVerdict {
@@ -78,11 +80,14 @@ export function classifyConsoleError(
     sameOrigin = false;
   }
   if (sameOrigin) {
-    // Generic blocked URLs are not provenance for this narrow exception.
+    // Generic blocked URLs are not provenance for these narrow exceptions.
     const hostingScript = knownHostingScriptUrl(entry.url, ctx.origin);
-    const ignored = entry.text === "Failed to load resource: net::ERR_FAILED"
+    const isExpectedHostingAbort = entry.text === "Failed to load resource: net::ERR_FAILED"
       && hostingScript !== undefined && ctx.blockedHostingScripts.has(hostingScript);
-    return { ignored, diagnostic };
+    const isExpectedTelemetryAbort = entry.text === "Failed to load resource: net::ERR_FAILED"
+      && normalized === `${ctx.origin}/api/sentry-tunnel`
+      && (ctx.blockedTelemetry?.has(normalized) ?? false);
+    return { ignored: isExpectedHostingAbort || isExpectedTelemetryAbort, diagnostic };
   }
 
   if (ctx.blocked.has(normalized)) return { ignored: true, diagnostic };

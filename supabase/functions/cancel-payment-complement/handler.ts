@@ -1,6 +1,10 @@
 import { cancellationResult } from "../_shared/facturapi/cancellationResult.ts";
 // Pure handler for cancel-payment-complement, deps-injected for testability.
 import { handleCors } from "../_shared/cors.ts";
+import {
+  createRequestDiagnostics,
+  type EdgeDiagnostics,
+} from "../_shared/edgeDiagnostics.ts";
 import { jsonError, jsonResponse } from "../_shared/http.ts";
 import { isUUID } from "../_shared/validate.ts";
 import type { SupabaseLike } from "../_shared/types.ts";
@@ -28,6 +32,7 @@ export interface CancelRepDeps {
   createServiceClient: () => SupabaseLike;
   fetchImpl: typeof fetch;
   env: (key: string) => string | undefined;
+  diagnostics?: EdgeDiagnostics;
 }
 
 const VALID_MOTIVES = new Set(["01", "02", "03", "04"]);
@@ -46,6 +51,7 @@ export async function handleCancelPaymentComplement(
 ): Promise<Response> {
   const corsRes = handleCors(req);
   if (corsRes) return corsRes;
+  const diag = createRequestDiagnostics(deps.diagnostics);
 
   // R4-01 (patrón cancel-cfdi): refs fuera del try para liberar el claim en
   // el catch cuando una excepción ocurre ANTES de contactar al PAC; si ya se
@@ -72,6 +78,10 @@ export async function handleCancelPaymentComplement(
       logTag: "[cancel-payment-complement]",
     });
     if (!auth.ok) return jsonError(req, auth.status, auth.message);
+    diag.authenticated({
+      userId: auth.userId,
+      role: auth.isServiceRole ? "service_role" : undefined,
+    });
     const supabase = auth.supabase;
     supabaseRef = supabase;
 
@@ -138,6 +148,7 @@ export async function handleCancelPaymentComplement(
       return jsonError(req, orgCheck.status, orgCheck.message);
     }
     const organizationId = orgCheck.organizationId;
+    diag.organization(organizationId);
 
     // N-49: claim atómico pre-PAC — persiste motivo/sustitución/razón y marca
     // rep_cancellation_status='pending' en un solo UPDATE condicionado. Sólo
@@ -317,7 +328,8 @@ export async function handleCancelPaymentComplement(
       accepted: isAccepted,
       warning: CANCELLATION_WARNINGS[satStatus],
     });
-  } catch (_err) {
+  } catch (caught) {
+    diag.capture(caught, 500, "cancel_rep_unhandled");
     // R4-01: solo liberamos el claim si nunca se contactó al PAC; si ya se
     // llamó, el estado 'pending' es correcto hasta reconciliar con el SAT.
     if (!pacAttempted) await releaseClaimRef();

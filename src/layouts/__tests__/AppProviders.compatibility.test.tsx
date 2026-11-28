@@ -16,7 +16,10 @@ vi.mock("@tanstack/react-router", () => ({
 }));
 vi.mock("next-themes", () => ({ ThemeProvider: ({ children }: { children: ReactNode }) => children }));
 vi.mock("@tanstack/react-query-devtools", () => ({ ReactQueryDevtools: () => null }));
-vi.mock("@/contexts/AuthContext", () => ({ AuthProvider: ({ children }: { children: ReactNode }) => children }));
+vi.mock("@/contexts/AuthContext", () => ({
+  AuthProvider: ({ children }: { children: ReactNode }) => children,
+  useAuth: () => ({ user: null }),
+}));
 vi.mock("@/lib/ui/AuthQueryCacheSync", () => ({ AuthQueryCacheSync: () => null }));
 vi.mock("@/components/ui/tooltip", () => ({ TooltipProvider: ({ children }: { children: ReactNode }) => children }));
 vi.mock("@/components/ui/sonner", () => ({ Toaster: () => null }));

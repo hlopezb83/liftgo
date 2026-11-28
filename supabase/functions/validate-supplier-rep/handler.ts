@@ -9,6 +9,10 @@
 // Ruta preferida de la aplicación: src/lib/supplierRep.functions.ts. Este
 // endpoint se mantiene sólo por compatibilidad con consumidores antiguos.
 import { handleCors } from "../_shared/cors.ts";
+import {
+  createRequestDiagnostics,
+  type EdgeDiagnostics,
+} from "../_shared/edgeDiagnostics.ts";
 import { jsonError, jsonResponse } from "../_shared/http.ts";
 import { isUUID } from "../_shared/validate.ts";
 import { organizationStoragePath } from "../_shared/storagePath.ts";
@@ -35,6 +39,7 @@ export const {
 interface RepAuthOk {
   ok: true;
   userId: string;
+  role?: string;
   adminClient: SupabaseLike;
 }
 interface RepAuthFail {
@@ -54,6 +59,7 @@ export interface ValidateSupplierRepDeps {
     windowSeconds: number,
   ) => Promise<Response | null>;
   now?: () => Date;
+  diagnostics?: EdgeDiagnostics;
 }
 
 export async function handleValidateSupplierRep(
@@ -62,10 +68,12 @@ export async function handleValidateSupplierRep(
 ): Promise<Response> {
   const corsRes = handleCors(req);
   if (corsRes) return corsRes;
+  const diag = createRequestDiagnostics(deps.diagnostics);
 
   try {
     const auth = await deps.authenticate(req, ["admin", "administrativo"]);
     if (!auth.ok) return auth.response;
+    diag.authenticated({ userId: auth.userId, role: auth.role });
     const { userId, adminClient: supabase } = auth;
 
     // Mismo rate limit que parse-csf (5 req / 60s por usuario).
@@ -83,6 +91,7 @@ export async function handleValidateSupplierRep(
     const org = await resolveCallerOrganization(supabase, userId);
     if (!org.ok) return jsonError(req, org.status, org.message);
     const organizationId = org.organizationId;
+    diag.organization(organizationId);
 
     const body = await req.json().catch(() => ({}));
     const { payment_id, xml_base64, pdf_base64, force } = body as {
@@ -367,6 +376,7 @@ export async function handleValidateSupplierRep(
       pdf_url: pdfPath,
     });
   } catch (err) {
+    diag.capture(err, 500, "validate_supplier_rep_unhandled");
     console.error("validate-supplier-rep error:", err);
     return jsonError(req, 500, "Internal server error");
   }

@@ -41,6 +41,13 @@ describe("redactPII", () => {
     expect(redactPII(null)).toBe("");
     expect(redactPII(undefined)).toBe("");
   });
+
+  it("redacta teléfonos mexicanos pero preserva timestamps Unix y códigos técnicos de 10 dígitos", () => {
+    expect(redactPII("Contacto +52 81 1234 5678")).toBe("Contacto [REDACTED]");
+    expect(redactPII("Tel: (81) 1234-5678 y 8112345678")).toBe("Tel: [REDACTED] y [REDACTED]");
+    expect(redactPII("fallo en ts=1732750000 epoch=1700000001")).toBe("fallo en ts=1732750000 epoch=1700000001");
+    expect(redactPII("error code=8112345678")).toBe("error code=8112345678");
+  });
 });
 
 describe("scrubUrl", () => {
