@@ -37,8 +37,8 @@ export function createServerSentryOptions(env: unknown): CloudflareOptions | und
     dsn,
     environment: resolveServerEnvironment(bindings),
     release: `liftgo@${import.meta.env.VITE_APP_VERSION ?? "unknown"}`,
-    // Trazas muestreadas al 5 % en producción (sobrescribible con SENTRY_TRACES_SAMPLE_RATE); scrubSpan sanea atributos.
-    tracesSampleRate: resolveSampleRate(rawSampleRate, import.meta.env.PROD ? 0.05 : 0),
+    // Trazas desactivadas por defecto (opt-in con SENTRY_TRACES_SAMPLE_RATE); scrubSpan sanea atributos.
+    tracesSampleRate: resolveSampleRate(rawSampleRate, 0),
     integrations: (integrations) => integrations.filter(({ name }) => name !== "Console"),
     beforeSend: scrubServerEvent,
     initialScope: { tags: { app: "liftgo-erp", runtime: "server" } },
