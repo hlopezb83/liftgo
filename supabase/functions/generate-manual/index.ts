@@ -2,7 +2,11 @@ import { enforceRateLimit, requireAdmin } from "../_shared/auth.ts";
 import { jsonError, jsonResponse } from "../_shared/http.ts";
 import { handleCors } from "../_shared/cors.ts";
 import { aiChatCompletion, AiGatewayError } from "../_shared/ai.ts";
-import { wrapEdgeFunction } from "../_shared/edgeSentry.ts";
+import {
+  captureEdgeError,
+  setVerifiedEdgeIdentity,
+  wrapEdgeFunction,
+} from "../_shared/edgeSentry.ts";
 import { resolveCallerOrganization } from "../_shared/orgContext.ts";
 import { insertManual } from "./manual.ts";
 
@@ -66,6 +70,19 @@ SECCIONES:
 (c) **Flujo de daños**: Inspección de retorno detecta daño → Registro de daño → Orden de mantenimiento → Reparación → Factura al cliente
 (d) **Flujo de mantenimiento preventivo**: Registro de servicio con próxima fecha → Alerta en dashboard → Equipo pasa a mantenimiento → Se completa → Vuelve a disponible`;
 
+function captureAndJsonError(
+  req: Request,
+  status: number,
+  message: string,
+  stage: string,
+  err?: unknown,
+): Response {
+  if (status >= 500) {
+    captureEdgeError(err ?? new Error(message), status, stage);
+  }
+  return jsonError(req, status, message);
+}
+
 async function handle(req: Request): Promise<Response> {
   const corsRes = handleCors(req);
   if (corsRes) return corsRes;
@@ -73,6 +90,7 @@ async function handle(req: Request): Promise<Response> {
   try {
     const auth = await requireAdmin(req);
     if (!auth.ok) return auth.response;
+    setVerifiedEdgeIdentity({ userId: auth.userId, role: auth.role });
     const supabase = auth.adminClient;
 
     // SEC: la generación del manual consume muchos créditos de AI; mismo
@@ -94,6 +112,11 @@ async function handle(req: Request): Promise<Response> {
     if (!callerOrg.ok) {
       return jsonError(req, callerOrg.status, callerOrg.message);
     }
+    setVerifiedEdgeIdentity({
+      userId: auth.userId,
+      role: auth.role,
+      organizationId: callerOrg.organizationId,
+    });
 
     // LOVABLE_API_KEY se valida dentro de aiChatCompletion.
 
@@ -152,18 +175,23 @@ async function handle(req: Request): Promise<Response> {
       parsedArgs = toolArguments;
     } catch (aiErr) {
       if (aiErr instanceof AiGatewayError) {
-        return jsonError(req, aiErr.status, aiErr.message);
+        return captureAndJsonError(
+          req,
+          aiErr.status,
+          aiErr.message,
+          "generate_manual_ai_gateway",
+          aiErr,
+        );
       }
       throw aiErr;
     }
 
-    if (!parsedArgs) {
-      return jsonError(req, 500, "La IA no retornó el formato esperado");
-    }
-    const sections = (parsedArgs as { sections?: unknown }).sections;
-
+    const sections = (parsedArgs as { sections?: unknown } | null)?.sections;
     if (!Array.isArray(sections) || sections.length === 0) {
-      return jsonError(req, 500, "No se generaron secciones");
+      const msg = parsedArgs
+        ? "No se generaron secciones"
+        : "La IA no retornó el formato esperado";
+      return captureAndJsonError(req, 500, msg, "generate_manual_ai_format");
     }
 
     // Multiempresa: el consecutivo y el manual son POR ORGANIZACIÓN.
@@ -173,15 +201,17 @@ async function handle(req: Request): Promise<Response> {
       sections,
     );
     if (!saved.ok) {
-      return jsonError(
+      return captureAndJsonError(
         req,
         saved.status,
         saved.message ?? "Error al guardar el manual",
+        "generate_manual_persist",
       );
     }
 
     return jsonResponse(req, { success: true, manual: saved.manual });
   } catch (e) {
+    captureEdgeError(e, 500, "generate_manual_unhandled");
     console.error("[generate-manual] error:", e);
     return jsonError(req, 500, "Error interno del servidor");
   }

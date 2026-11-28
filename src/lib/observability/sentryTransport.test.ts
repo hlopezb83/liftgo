@@ -69,9 +69,11 @@ describe("SDK real con transporte en memoria, sin red", () => {
     expect(events()).toHaveLength(0);
   });
 
-  it("captura fallos sin enviar spans ni activar Replay, incluso con un flag antiguo", async () => {
+  it("captura fallos sin enviar spans ni activar Replay cuando tracesSampleRate=0, incluso con flag antiguo", async () => {
     vi.stubEnv("VITE_SENTRY_REPLAY", "1");
+    vi.stubEnv("VITE_SENTRY_TRACES_SAMPLE_RATE", "0");
     const config = options();
+    expect(config.tracesSampleRate).toBe(0);
     expect(config.replaysSessionSampleRate).toBe(0);
     expect(config.replaysOnErrorSampleRate).toBe(0);
     Sentry.init(config);
@@ -83,6 +85,21 @@ describe("SDK real con transporte en memoria, sin red", () => {
     for (const type of ["span", "transaction", "replay_event", "replay_recording", "log", "metric"]) expect(itemTypes).not.toContain(type);
     expect(events()).toHaveLength(1);
     expect((events()[0] as Sentry.Event).tags?.organization_id).toBe("org-a");
+    expect(Sentry.getReplay()).toBeUndefined();
+    expect(JSON.stringify(envelopes)).not.toContain("opaque");
+    expect(JSON.stringify(envelopes)).not.toContain("private-id");
+  });
+
+  it("sanea spans cuando tracesSampleRate está activo (1.0) y nunca activa Replay", async () => {
+    vi.stubEnv("VITE_SENTRY_TRACES_SAMPLE_RATE", "1");
+    const config = options();
+    expect(config.tracesSampleRate).toBe(1);
+    expect(config.replaysSessionSampleRate).toBe(0);
+    expect(config.replaysOnErrorSampleRate).toBe(0);
+    Sentry.init(config);
+    syncSentryIdentity({ userId: "actor-a", organizationId: "org-a", role: "admin", workspace: "organization" });
+    Sentry.startSpan({ name: "/customers/9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d", attributes: { "url.full": "/auth#access_token=opaque", "params.id": "private-id" } }, () => {});
+    await Sentry.flush(1000);
     expect(Sentry.getReplay()).toBeUndefined();
     expect(JSON.stringify(envelopes)).not.toContain("opaque");
     expect(JSON.stringify(envelopes)).not.toContain("private-id");

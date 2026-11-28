@@ -2,6 +2,10 @@
 // The Deno.serve entry wires Supabase, the invoice PAC gateway and env.
 import { authenticateWithDeps } from "../_shared/authWithDeps.ts";
 import { handleCors } from "../_shared/cors.ts";
+import {
+  createRequestDiagnostics,
+  type EdgeDiagnostics,
+} from "../_shared/edgeDiagnostics.ts";
 import { jsonResponse } from "../_shared/http.ts";
 import { computeStampVariance } from "../_shared/money.ts";
 import { stampOutcome } from "../_shared/stampOutcome.ts";
@@ -25,6 +29,7 @@ export interface StampCfdiDeps {
   createServiceClient: () => SupabaseLike;
   createInvoiceGateway: (apiKey: string) => InvoiceGateway;
   env: (key: string) => string | undefined;
+  diagnostics?: EdgeDiagnostics;
 }
 
 async function releaseClaimAfterCrash(
@@ -59,6 +64,7 @@ export async function handleStampCfdi(
   if (corsRes) return corsRes;
   const json: JsonResponder = (body, status) =>
     jsonResponse(req, body, { status });
+  const diag = createRequestDiagnostics(deps.diagnostics);
 
   let supabaseRef: SupabaseLike | null = null;
   let invoiceIdRef: string | null = null;
@@ -75,6 +81,10 @@ export async function handleStampCfdi(
       logTag: "[stamp-cfdi]",
     });
     if (!auth.ok) return json({ error: auth.message }, auth.status);
+    diag.authenticated({
+      userId: auth.userId,
+      role: auth.isServiceRole ? "service_role" : auth.role,
+    });
     const supabase = auth.supabase;
     supabaseRef = supabase;
 
@@ -97,6 +107,7 @@ export async function handleStampCfdi(
       saleSatContext,
       controls,
     } = claimedRes.data;
+    diag.organization(organizationId);
     claimed = true;
     invoiceIdRef = invoiceId;
 
@@ -154,6 +165,11 @@ export async function handleStampCfdi(
       json,
     });
   } catch (err) {
+    diag.capture(
+      err,
+      500,
+      providerResponded ? "post_stamp_persistence" : "stamp_cfdi_unhandled",
+    );
     console.error("[stamp-cfdi] unhandled exception", err);
     await releaseClaimAfterCrash(
       supabaseRef,

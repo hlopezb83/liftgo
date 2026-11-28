@@ -1,4 +1,8 @@
-import { wrapEdgeFunction } from "../_shared/edgeSentry.ts";
+import {
+  captureEdgeError,
+  setVerifiedEdgeIdentity,
+  wrapEdgeFunction,
+} from "../_shared/edgeSentry.ts";
 import { getAdminClient, getCallerClient } from "../_shared/supabaseClients.ts";
 import type { SupabaseLike } from "../_shared/types.ts";
 import {
@@ -16,6 +20,10 @@ function handle(req: Request): Promise<Response> {
         getAdminClient() as unknown as DownloadSupabaseLike,
       fetchImpl: fetch,
       env: (k) => Deno.env.get(k),
+      diagnostics: {
+        identify: setVerifiedEdgeIdentity,
+        capture: captureEdgeError,
+      },
     } satisfies DownloadCfdiDeps,
   );
 }

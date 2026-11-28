@@ -1,5 +1,6 @@
 import { nextRetryAt } from "../_shared/cfdiRetryQueue.ts";
 import type { authenticateCronRequest } from "../_shared/cronAuth.ts";
+import type { EdgeDiagnostics } from "../_shared/edgeDiagnostics.ts";
 import type { lookupPacInvoice } from "../_shared/facturapi/invoiceRecovery.ts";
 import type { OrgQueryClient } from "../_shared/orgContext.ts";
 import type { getAdminClient } from "../_shared/supabaseClients.ts";
@@ -38,6 +39,7 @@ export interface HandleRequestDeps {
   authenticate?: typeof authenticateCronRequest;
   lookup?: typeof lookupPacInvoice;
   fetch?: typeof fetch;
+  diagnostics?: EdgeDiagnostics;
 }
 
 export const OPERATION_TO_FUNCTION: Record<string, string> = {

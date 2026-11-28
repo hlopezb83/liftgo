@@ -2,6 +2,10 @@
 import { handleCors } from "../_shared/cors.ts";
 import { authenticateCronRequest } from "../_shared/cronAuth.ts";
 import {
+  createRequestDiagnostics,
+  type EdgeDiagnostics,
+} from "../_shared/edgeDiagnostics.ts";
+import {
   createFacturapiClient,
   getFacturapiConfigForOrganization,
 } from "../_shared/facturapi/client.ts";
@@ -239,51 +243,46 @@ async function reconcileOrganization(
   return truncated;
 }
 
-export async function handleRequest(req: Request): Promise<Response> {
+export async function handleRequest(
+  req: Request,
+  deps: { diagnostics?: EdgeDiagnostics } = {},
+): Promise<Response> {
   const startedAt = Date.now();
   const outOfBudget = () => Date.now() - startedAt > RUN_BUDGET_MS;
   const corsRes = handleCors(req);
   if (corsRes) return corsRes;
   const json = (b: unknown, status: number) => jsonResponse(req, b, { status });
+  const diag = createRequestDiagnostics(deps.diagnostics);
 
   const admin = getAdminClient();
   const auth = await authenticateCronRequest(req);
   if (!auth.ok) return json({ error: auth.error }, auth.status);
+  diag.authenticated({ role: "service_role" });
 
   const manualOrg = await resolveManualOrg(req, admin);
-  if (!manualOrg.ok) {
-    return json({ error: manualOrg.message }, manualOrg.status);
-  }
+  if (!manualOrg.ok) return json({ error: manualOrg.message }, manualOrg.status);
+  if (manualOrg.organizationId) diag.organization(manualOrg.organizationId);
 
-  const cutoff = new Date(Date.now() - STALE_THRESHOLD_MIN * 60_000)
-    .toISOString();
+  const cutoff = new Date(Date.now() - STALE_THRESHOLD_MIN * 60_000).toISOString();
   const selection: SelectionContext = {
-    admin,
-    cutoff,
-    manualOrganizationId: manualOrg.organizationId,
-    rowLimit: RUN_ROW_LIMIT,
+    admin, cutoff, manualOrganizationId: manualOrg.organizationId, rowLimit: RUN_ROW_LIMIT,
   };
 
   const { data: rows, error } = await selectStuckInvoices(selection);
   if (error) {
+    diag.capture(error, 500, "reconcile_fetch_stuck_invoices");
     console.error("[reconcile-stamping] fetch failed", error);
     return json({ error: "Fetch failed" }, 500);
   }
 
-  const queues = await loadSecondaryQueues(
-    selection,
-    (rows ?? []) as StuckInvoice[],
-  );
-  if (isCompletelyIdle(queues)) {
-    return json({ processed: 0, results: [] }, 200);
-  }
+  const queues = await loadSecondaryQueues(selection, (rows ?? []) as StuckInvoice[]);
+  if (isCompletelyIdle(queues)) return json({ processed: 0, results: [] }, 200);
 
   const grouped = groupAllQueues(queues);
   const results: ReconciliationResult[] = [];
   if (queues.pdfPendingErr) {
     results.push({
-      invoice_id: "unknown",
-      status: "nc_pdf_selection_error",
+      invoice_id: "unknown", status: "nc_pdf_selection_error",
       error: "No se pudo consultar la cola de PDF de NC",
     });
   }
@@ -296,22 +295,12 @@ export async function handleRequest(req: Request): Promise<Response> {
       truncated = true;
       break;
     }
-    if (
-      await reconcileOrganization(
-        admin,
-        organizationId,
-        grouped,
-        outOfBudget,
-        results,
-        organizations,
-      )
-    ) {
-      truncated = true;
-    }
+    const orgTruncated = await diag.withJob(
+      { organizationId, role: "service_role" },
+      () => reconcileOrganization(admin, organizationId, grouped, outOfBudget, results, organizations),
+    );
+    if (orgTruncated) truncated = true;
   }
 
-  return json(
-    { processed: results.length, truncated, results, organizations },
-    200,
-  );
+  return json({ processed: results.length, truncated, results, organizations }, 200);
 }

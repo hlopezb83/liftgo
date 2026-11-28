@@ -1,6 +1,10 @@
 // Pure handler for download-cfdi, deps-injected for testability.
 // SIN cambio de comportamiento observable respecto al Deno.serve original.
 import { handleCors } from "../_shared/cors.ts";
+import {
+  createRequestDiagnostics,
+  type EdgeDiagnostics,
+} from "../_shared/edgeDiagnostics.ts";
 import { jsonError } from "../_shared/http.ts";
 import { isUUID } from "../_shared/validate.ts";
 import {
@@ -12,13 +16,16 @@ import {
   authenticateDownload,
   type BaseFormat,
   type DlFormat,
-  type DownloadCfdiDeps,
+  type DownloadCfdiDeps as BaseDownloadCfdiDeps,
   type DownloadSupabaseLike,
   enforceRateLimitWithDeps,
   resolvePortalForRole,
 } from "./downloadAuthAndAccess.ts";
 
-export type { DownloadCfdiDeps, DownloadSupabaseLike };
+export type DownloadCfdiDeps = BaseDownloadCfdiDeps & {
+  diagnostics?: EdgeDiagnostics;
+};
+export type { DownloadSupabaseLike };
 
 const VALID_FORMATS = new Set<string>(["xml", "pdf", "acuse_xml", "acuse_pdf"]);
 
@@ -105,10 +112,12 @@ export async function handleDownloadCfdi(
 ): Promise<Response> {
   const corsRes = handleCors(req);
   if (corsRes) return corsRes;
+  const diag = createRequestDiagnostics(deps.diagnostics);
 
   try {
     const auth = await authenticateDownload(req, deps);
     if (!auth.ok) return auth.response;
+    diag.authenticated({ userId: auth.userId, role: auth.role });
     const supabase = auth.supabase;
 
     const limited = await enforceRateLimitWithDeps(
@@ -163,6 +172,7 @@ export async function handleDownloadCfdi(
       isAcuse,
     );
   } catch (err) {
+    diag.capture(err, 500, "download_cfdi_unhandled");
     console.error("download-cfdi error:", err);
     return jsonError(req, 500, "Internal server error");
   }

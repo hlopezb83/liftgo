@@ -11,6 +11,10 @@
 // endpoint se mantiene sólo por compatibilidad con consumidores antiguos.
 import { z } from "https://esm.sh/zod@4.6.7";
 import { handleCors } from "../_shared/cors.ts";
+import {
+  createRequestDiagnostics,
+  type EdgeDiagnostics,
+} from "../_shared/edgeDiagnostics.ts";
 import { jsonError, jsonResponse } from "../_shared/http.ts";
 import type { SupabaseLike } from "../_shared/types.ts";
 import { resolveCallerOrganization } from "../_shared/orgContext.ts";
@@ -65,6 +69,7 @@ const ClassificationSchema = z.object({
 interface ClassifyAuthOk {
   ok: true;
   userId: string;
+  role?: string;
   adminClient: SupabaseLike;
 }
 interface ClassifyAuthFail {
@@ -85,6 +90,7 @@ export interface ClassifyDeps {
   ) => Promise<Response | null>;
   aiChat: (opts: AiChatOptions) => Promise<AiChatResult>;
   now?: () => Date;
+  diagnostics?: EdgeDiagnostics;
 }
 
 function buildPrompt(
@@ -145,11 +151,13 @@ export async function handleClassifyFeedbackReport(
 ): Promise<Response> {
   const cors = handleCors(req);
   if (cors) return cors;
+  const diag = createRequestDiagnostics(deps.diagnostics);
 
   try {
     // LOVABLE_API_KEY se valida dentro de aiChatCompletion; no duplicar aquí.
     const auth = await deps.authenticate(req, ["admin", "administrativo"]);
     if (!auth.ok) return auth.response;
+    diag.authenticated({ userId: auth.userId, role: auth.role });
     const admin = auth.adminClient;
 
     // SEC: la clasificación consume créditos de AI; mismo límite que parse-csf.
@@ -167,6 +175,7 @@ export async function handleClassifyFeedbackReport(
     const org = await resolveCallerOrganization(admin, auth.userId);
     if (!org.ok) return jsonError(req, org.status, org.message);
     const organizationId = org.organizationId;
+    diag.organization(organizationId);
 
     const parsed = BodySchema.safeParse(await req.json());
     if (!parsed.success) {
@@ -216,6 +225,9 @@ export async function handleClassifyFeedbackReport(
       rawContent = text ?? "";
     } catch (aiErr) {
       if (aiErr instanceof AiGatewayError) {
+        if (aiErr.status >= 500) {
+          diag.capture(aiErr, aiErr.status, "classify_feedback_ai_gateway");
+        }
         return jsonError(req, aiErr.status, aiErr.message);
       }
       throw aiErr;
@@ -226,6 +238,7 @@ export async function handleClassifyFeedbackReport(
       const parsedAi = JSON.parse(rawContent);
       classification = ClassificationSchema.parse(parsedAi);
     } catch (parseErr) {
+      diag.capture(parseErr, 502, "classify_feedback_ai_parse");
       console.error("[classify-feedback] parse fail", parseErr, rawContent);
       return jsonError(req, 502, "Respuesta de AI inválida");
     }
@@ -264,6 +277,7 @@ export async function handleClassifyFeedbackReport(
       .single();
 
     if (updateErr) {
+      diag.capture(updateErr, 500, "classify_feedback_persist");
       // M-16b: no filtrar el error crudo de BD al cliente; log interno.
       console.error("[classify-feedback] update error:", updateErr);
       return jsonError(req, 500, "No se pudo procesar la solicitud");
@@ -271,6 +285,7 @@ export async function handleClassifyFeedbackReport(
 
     return jsonResponse(req, { report: updated, classification });
   } catch (err) {
+    diag.capture(err, 500, "classify_feedback_unhandled");
     console.error("[classify-feedback] fatal", err);
     // No filtrar err.message al cliente (detalle interno); mensaje genérico.
     return jsonError(req, 500, "Internal server error");

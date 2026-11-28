@@ -8,14 +8,23 @@ const PATTERNS = [
   /\beyJ[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}\b/g,
   /Bearer\s+[^\s"',;]+/gi,
   /\bsk_(?:test|live|user)_[A-Za-z0-9_-]+/g,
-  /(?<![A-Za-z0-9])(?:\+?52[\s-]?)?(?:\d[\s-]?){9}\d(?![A-Za-z0-9])/g,
 ];
+// Teléfonos mexicanos: +52/52 explícito, paréntesis/separadores, o 10 dígitos iniciando en 2–9
+// (el plan de numeración MX nunca inicia en 0–1; así preservamos timestamps Unix 10xx–19xx).
+const PHONE_PATTERN = /(?<![A-Za-z0-9])(?:\+?52[\s-]?(?:\(\d{2,3}\)[\s-]?)?(?:\d[\s-]?){9}\d|\(\d{2,3}\)[\s-]?(?:\d[\s-]?){6,7}\d|[2-9](?:[\s-]?\d){9})(?![A-Za-z0-9])/g;
+const TECHNICAL_NUM_PREFIX = /(?:^|[\s,({[])(?:ts|timestamp|epoch|code|status|err|error|id|seq|port)\s*[:=]\s*$/i;
 const SENSITIVE_KEY = /^(?:authorization|proxyauthorization|cookies?|setcookie|xapikey|apikey|key|secret|clientsecret|password|passwd|pwd|token|accesstoken|refreshtoken|idtoken|email|phone|telephone|rfc|curp|querystring|body|requestbody|responsebody|variables|formdata)$/i;
 const URL_KEY = /(?:urls?|uri|href|filename|abs_path|path|pathname)$|^(?:to|from|url\..*|http\.target)$/i;
 
 export function redactPII(input: string | undefined | null): string {
   let out = input ?? "";
   for (const pattern of PATTERNS) out = out.replace(pattern, REDACTED);
+  out = out.replace(PHONE_PATTERN, (match, offset: number, source: string) => {
+    if (!match.includes("+") && !match.includes("(") && TECHNICAL_NUM_PREFIX.test(source.slice(Math.max(0, offset - 24), offset))) {
+      return match;
+    }
+    return REDACTED;
+  });
   return out.replace(/\b((?:password|passwd|pwd|secret|api[_-]?key|access[_-]?token|refresh[_-]?token|id[_-]?token|token)["']?\s*[:=]\s*)(?:"(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*'|[^\s&,;"'}]+)/gi, `$1${REDACTED}`);
 }
 

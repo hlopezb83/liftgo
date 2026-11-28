@@ -1,6 +1,10 @@
 import { cancellationResult } from "../_shared/facturapi/cancellationResult.ts";
 // Pure handler for cancel-cfdi, deps-injected for testability.
 import { handleCors } from "../_shared/cors.ts";
+import {
+  createRequestDiagnostics,
+  type EdgeDiagnostics,
+} from "../_shared/edgeDiagnostics.ts";
 import { jsonError, jsonResponse } from "../_shared/http.ts";
 import { isNonEmptyString, isUUID } from "../_shared/validate.ts";
 import type { SupabaseLike } from "../_shared/types.ts";
@@ -36,6 +40,7 @@ export interface CancelCfdiDeps {
   createServiceClient: () => SupabaseLike;
   fetchImpl: typeof fetch;
   env: (key: string) => string | undefined;
+  diagnostics?: EdgeDiagnostics;
 }
 
 export async function handleCancelCfdi(
@@ -48,6 +53,7 @@ export async function handleCancelCfdi(
     jsonResponse(req, body, { status });
   const err = (status: number, message: string) =>
     jsonError(req, status, message);
+  const diag = createRequestDiagnostics(deps.diagnostics);
 
   // S2-2.4: refs para poder liberar el claim de cancelación ante cualquier
   // salida temprana o excepción inesperada.
@@ -76,6 +82,10 @@ export async function handleCancelCfdi(
       logTag: "[cancel-cfdi]",
     });
     if (!auth.ok) return json({ error: auth.message }, auth.status);
+    diag.authenticated({
+      userId: auth.userId,
+      role: auth.isServiceRole ? "service_role" : auth.role,
+    });
     const supabase = auth.supabase;
     supabaseRef = supabase;
 
@@ -129,6 +139,7 @@ export async function handleCancelCfdi(
       return json({ error: orgCheck.message }, orgCheck.status);
     }
     const organizationId = orgCheck.organizationId;
+    diag.organization(organizationId);
 
     if (inv.is_e2e === true) {
       return json({ error: "E2E invoices cannot be cancelled at SAT" }, 403);
@@ -369,7 +380,8 @@ export async function handleCancelCfdi(
       },
       200,
     );
-  } catch (_err) {
+  } catch (caught) {
+    diag.capture(caught, 500, "cancel_cfdi_unhandled");
     // Solo liberamos el claim si nunca se contactó al PAC; si ya se llamó, el
     // estado 'pending' es correcto hasta que se reconcilie con el SAT.
     if (!pacAttempted) await releaseCancelClaim();

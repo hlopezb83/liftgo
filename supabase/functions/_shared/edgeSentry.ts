@@ -32,10 +32,14 @@ export function edgeSentryOptions(): Sentry.DenoOptions | undefined {
   const cloud = Deno.version.deno.startsWith("supabase-edge-runtime-");
   const dsn = Deno.env.get("SENTRY_DSN") ?? (cloud ? PUBLIC_DSN : undefined);
   if (!dsn) return undefined;
+  const environment = Deno.env.get("SENTRY_ENVIRONMENT")?.trim() ||
+    "production";
+  const release = Deno.env.get("SENTRY_RELEASE")?.trim() ||
+    "liftgo-cloud@unversioned";
   return {
     dsn,
-    release: Deno.env.get("SENTRY_RELEASE") ?? "liftgo-cloud@2026-10-03",
-    environment: "production",
+    release,
+    environment,
   };
 }
 
@@ -120,7 +124,7 @@ export function createEdgeObserver(config: Options) {
       scope.setTag("role", identity.role);
     } catch { /* Identidad de diagnóstico, no autorización del negocio. */ }
   }
-  function capture(error: unknown, status?: number) {
+  function capture(error: unknown, status?: number, stage?: string) {
     const current = state.getStore();
     if (
       !client || !current || current.suppressed || current.reported ||
@@ -131,14 +135,15 @@ export function createEdgeObserver(config: Options) {
       if (error && typeof error === "object") {
         if (current.seen.has(error)) return;
       }
+      const tags: Record<string, string> = {};
+      if (status) tags.http_status = String(status);
+      if (stage) tags.error_stage = stage;
       // El SDK marca objetos capturados. Una copia evita suprimir el mismo Error
       // reutilizado por otra solicitud; el stack original conserva el punto del fallo.
       (config.captureException ?? Sentry.captureException)(
         edgeException(error),
         {
-          captureContext: {
-            tags: status ? { http_status: String(status) } : undefined,
-          },
+          captureContext: Object.keys(tags).length > 0 ? { tags } : undefined,
           mechanism: { type: "liftgo.edge", handled: true },
         },
       );

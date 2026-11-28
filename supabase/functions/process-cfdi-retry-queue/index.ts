@@ -2,7 +2,13 @@
 // Corre por cron (pg_cron cada 5 min). Endpoint protegido con CRON_SECRET.
 import { handleCors } from "../_shared/cors.ts";
 import { authenticateCronRequest } from "../_shared/cronAuth.ts";
-import { wrapEdgeFunction } from "../_shared/edgeSentry.ts";
+import { createRequestDiagnostics } from "../_shared/edgeDiagnostics.ts";
+import {
+  captureEdgeError,
+  setVerifiedEdgeIdentity,
+  withVerifiedEdgeJob,
+  wrapEdgeFunction,
+} from "../_shared/edgeSentry.ts";
 import { FiscalRetryContextError } from "../_shared/facturapi/retryContext.ts";
 import { jsonResponse } from "../_shared/http.ts";
 import { getAdminClient } from "../_shared/supabaseClients.ts";
@@ -256,22 +262,28 @@ export async function handleRequest(
   if (corsRes) return corsRes;
   const json = (b: unknown, status: number) => jsonResponse(req, b, { status });
   const envGet = deps.env ?? ((k: string) => Deno.env.get(k));
+  const diag = createRequestDiagnostics(deps.diagnostics);
 
   const envCfg = resolveEnvConfig(envGet);
   if (!envCfg) {
     console.error("[process-cfdi-retry-queue] missing env");
+    diag.capture(new Error("Server misconfigured"), 500, "retry_queue_config");
     return json({ error: "Server misconfigured" }, 500);
   }
 
   const admin = (deps.admin ?? getAdminClient()) as unknown as AdminClient;
   const auth = await (deps.authenticate ?? authenticateCronRequest)(req);
   if (!auth.ok) return json({ error: auth.error }, auth.status);
+  diag.authenticated({ role: "service_role" });
 
   const nowIso = new Date().toISOString();
   const staleCutoff = new Date(Date.now() - STALE_PROCESSING_MIN * 60_000)
     .toISOString();
   const batch = await fetchQueueBatch(admin, nowIso, staleCutoff);
-  if (!batch.ok) return json({ error: "Queue fetch failed" }, 500);
+  if (!batch.ok) {
+    diag.capture(new Error("Queue fetch failed"), 500, "retry_queue_fetch");
+    return json({ error: "Queue fetch failed" }, 500);
+  }
 
   const results: QueueResult[] = [];
   let truncated = false;
@@ -280,16 +292,15 @@ export async function handleRequest(
       truncated = true;
       break;
     }
+    const rowParams = {
+      admin, row, nowIso, serviceKey: envCfg.serviceKey,
+      projectRef: envCfg.projectRef, envGet, deps,
+    };
     results.push(
-      await processQueueRow({
-        admin,
-        row,
-        nowIso,
-        serviceKey: envCfg.serviceKey,
-        projectRef: envCfg.projectRef,
-        envGet,
-        deps,
-      }),
+      await diag.withJob(
+        { organizationId: row.organization_id, role: "service_role" },
+        () => processQueueRow(rowParams),
+      ),
     );
   }
 
@@ -297,7 +308,13 @@ export async function handleRequest(
 }
 
 if (import.meta.main) {
+  const diagnostics = {
+    identify: setVerifiedEdgeIdentity,
+    capture: captureEdgeError,
+    withJob: withVerifiedEdgeJob,
+  };
   Deno.serve(
-    wrapEdgeFunction("process-cfdi-retry-queue", (req) => handleRequest(req)),
+    wrapEdgeFunction("process-cfdi-retry-queue", (req) =>
+      handleRequest(req, { diagnostics })),
   );
 }

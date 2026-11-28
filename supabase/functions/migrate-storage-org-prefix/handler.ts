@@ -1,5 +1,9 @@
 import { handleCors } from "../_shared/cors.ts";
 import { authenticateCronRequest } from "../_shared/cronAuth.ts";
+import {
+  createRequestDiagnostics,
+  type EdgeDiagnostics,
+} from "../_shared/edgeDiagnostics.ts";
 import { jsonResponse } from "../_shared/http.ts";
 import {
   DELETE_ENV_FLAG,
@@ -138,11 +142,19 @@ async function runApplyReferencedMode(params: {
   return respond({ ...applySummary, outcomes });
 }
 
-export async function handleStorageMigration(req: Request): Promise<Response> {
+export interface StorageMigrationHandlerDeps {
+  diagnostics?: EdgeDiagnostics;
+}
+
+export async function handleStorageMigration(
+  req: Request,
+  deps: StorageMigrationHandlerDeps = {},
+): Promise<Response> {
   const cors = handleCors(req);
   if (cors) return cors;
   const respond: Responder = (body, status = 200) =>
     jsonResponse(req, body, { status });
+  const diag = createRequestDiagnostics(deps.diagnostics);
 
   if (req.method !== "POST") {
     return respond({ error: "Method not allowed" }, 405);
@@ -150,6 +162,7 @@ export async function handleStorageMigration(req: Request): Promise<Response> {
 
   const auth = await authenticateCronRequest(req);
   if (!auth.ok) return respond({ error: auth.error }, auth.status);
+  diag.authenticated({ role: "service_role" });
 
   const input = await parseInput(req);
   if (!input) return respond({ error: "Invalid request" }, 400);
@@ -230,7 +243,8 @@ export async function handleStorageMigration(req: Request): Promise<Response> {
       summary,
       respond,
     });
-  } catch {
+  } catch (err) {
+    diag.capture(err, 500, "migrate_storage_unhandled");
     return respond({ error: "Storage migration operation failed." }, 500);
   }
 }

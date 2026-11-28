@@ -26,13 +26,27 @@ describe("arranque explícito del cliente", () => {
     vi.stubEnv("MODE", "production"); vi.stubEnv("VITE_SENTRY_DSN", ""); initClientSentry();
     expect(sdk.init).not.toHaveBeenCalled();
   });
-  it("inicializa en producción una sola vez sin cargar integraciones adicionales", () => {
+  it("inicializa en producción una sola vez con tunnel, traces muestreadas (5%) y Replay apagado", () => {
     vi.stubEnv("MODE", "production"); vi.stubEnv("VITE_SENTRY_REPLAY", "1");
     sdk.init.mockImplementation(() => sdk.getClient.mockReturnValue({}));
     initClientSentry(); initClientSentry();
     expect(sdk.init).toHaveBeenCalledTimes(1);
     expect(sdk.init.mock.calls[0][0]).toMatchObject({
-      tracesSampleRate: 0, replaysSessionSampleRate: 0, replaysOnErrorSampleRate: 0,
+      tunnel: "/api/sentry-tunnel",
+      environment: "production",
+      tracesSampleRate: 0.05, replaysSessionSampleRate: 0, replaysOnErrorSampleRate: 0,
+    });
+  });
+  it("respeta VITE_SENTRY_ENVIRONMENT y VITE_SENTRY_TRACES_SAMPLE_RATE=0", () => {
+    vi.stubEnv("MODE", "production");
+    vi.stubEnv("VITE_SENTRY_ENVIRONMENT", "preview");
+    vi.stubEnv("VITE_SENTRY_TRACES_SAMPLE_RATE", "0");
+    vi.stubEnv("VITE_SENTRY_TUNNEL", "");
+    initClientSentry();
+    expect(sdk.init.mock.calls[0][0]).toMatchObject({
+      environment: "preview",
+      tracesSampleRate: 0,
+      tunnel: undefined,
     });
   });
   it("elimina breadcrumbs de console e interacción y no oculta fallos de chunks", () => {
