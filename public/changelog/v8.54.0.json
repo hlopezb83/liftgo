@@ -1,0 +1,12 @@
+{
+  "description": "Se aplicó la auditoría visual y de accesibilidad, se separó la acción de limpiar cliente, los avisos de cambios sin guardar se ajustan a cada intento y la bitácora de errores se filtra antes de enviarse.",
+  "changes": [
+    "El botón para limpiar el cliente ahora es un control independiente junto al selector; se usa con teclado y regresa el foco al selector.",
+    "El aviso de cambios sin guardar se aplica solo al intento de salida en curso: reintentar no aprovecha ni cancela un aviso anterior.",
+    "Textos, bordes, focos y estados subieron a contraste WCAG AA; en móvil, el asa de arrastre y el filtro por rol son más grandes y usan el ancho completo.",
+    "Los indicadores de avance y variación usan colores consistentes (verde, ámbar y rojo) con etiquetas legibles.",
+    "Los reportes de errores viajan por un canal propio y se les retiran datos personales antes de enviarse, tanto en el navegador como en el servidor y las funciones de fondo.",
+    "La estructura interna del ERP se reorganizó según los 14 pasos de la auditoría de arquitectura (Fases A–G), sin nuevas funciones para el usuario.",
+    "Se actualizó la herramienta de compilación del proyecto."
+  ]
+}
