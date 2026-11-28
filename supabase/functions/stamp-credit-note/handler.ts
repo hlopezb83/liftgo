@@ -112,7 +112,7 @@ export async function handleStampCreditNote(
     if (!auth.ok) return json({ error: auth.message }, auth.status);
     diag.authenticated({
       userId: auth.userId,
-      role: auth.isServiceRole ? "service_role" : auth.role,
+      role: auth.isServiceRole ? "service_role" : undefined,
     });
     userId = auth.userId;
     const supabase = auth.supabase;

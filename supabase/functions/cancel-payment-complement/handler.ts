@@ -80,7 +80,7 @@ export async function handleCancelPaymentComplement(
     if (!auth.ok) return jsonError(req, auth.status, auth.message);
     diag.authenticated({
       userId: auth.userId,
-      role: auth.isServiceRole ? "service_role" : auth.role,
+      role: auth.isServiceRole ? "service_role" : undefined,
     });
     const supabase = auth.supabase;
     supabaseRef = supabase;

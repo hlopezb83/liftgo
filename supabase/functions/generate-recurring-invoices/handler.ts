@@ -394,7 +394,10 @@ export async function handleRequest(
           ]),
       );
       if (!auth.ok) return auth.response;
-      diag.authenticated({ userId: auth.userId, role: auth.role });
+      diag.authenticated({
+        userId: auth.userId,
+        role: auth.role ?? undefined,
+      });
       supabase = auth.adminClient;
       if (auth.role !== "service_role") {
         const callerOrg = await metrics.measure(

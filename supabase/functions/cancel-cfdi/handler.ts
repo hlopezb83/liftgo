@@ -84,7 +84,7 @@ export async function handleCancelCfdi(
     if (!auth.ok) return json({ error: auth.message }, auth.status);
     diag.authenticated({
       userId: auth.userId,
-      role: auth.isServiceRole ? "service_role" : auth.role,
+      role: auth.isServiceRole ? "service_role" : undefined,
     });
     const supabase = auth.supabase;
     supabaseRef = supabase;

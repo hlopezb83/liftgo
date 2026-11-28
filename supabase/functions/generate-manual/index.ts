@@ -90,7 +90,8 @@ async function handle(req: Request): Promise<Response> {
   try {
     const auth = await requireAdmin(req);
     if (!auth.ok) return auth.response;
-    setVerifiedEdgeIdentity({ userId: auth.userId, role: auth.role });
+    const role = auth.role ?? undefined;
+    setVerifiedEdgeIdentity({ userId: auth.userId, role });
     const supabase = auth.adminClient;
 
     // SEC: la generación del manual consume muchos créditos de AI; mismo
@@ -114,7 +115,7 @@ async function handle(req: Request): Promise<Response> {
     }
     setVerifiedEdgeIdentity({
       userId: auth.userId,
-      role: auth.role,
+      role,
       organizationId: callerOrg.organizationId,
     });
 

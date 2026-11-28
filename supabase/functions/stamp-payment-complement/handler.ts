@@ -32,7 +32,7 @@ export async function handleStampPaymentComplement(
   try {
     const auth = await requireRoleDI(req, deps, ["admin", "administrativo"]);
     if (!auth.ok) return jsonError(req, auth.status, auth.message);
-    diag.authenticated({ userId: auth.userId, role: auth.role });
+    diag.authenticated({ userId: auth.userId });
     const supabase = auth.supabase;
 
     const { payment_id } = await req.json().catch(() => ({}));
