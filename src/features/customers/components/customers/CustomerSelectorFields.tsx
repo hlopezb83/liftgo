@@ -58,33 +58,6 @@ function CustomerFieldLabel({ compact, required }: { compact?: boolean; required
   return compact ? null : <Label>{required ? "Cliente *" : "Cliente Existente"}</Label>;
 }
 
-function ClearCustomerControl({
-  visible,
-  onClear,
-}: {
-  visible: boolean;
-  onClear: (e: React.MouseEvent) => void;
-}) {
-  if (!visible) return null;
-  return (
-    <span
-      role="button"
-      tabIndex={0}
-      aria-label="Limpiar cliente"
-      onClick={onClear}
-      onKeyDown={(e) => {
-        if (e.key === "Enter" || e.key === " ") {
-          e.preventDefault();
-          onClear(e as unknown as React.MouseEvent);
-        }
-      }}
-      className="rounded-sm p-0.5 opacity-70 hover:bg-muted hover:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring cursor-pointer"
-    >
-      <XIcon className="h-3.5 w-3.5" />
-    </span>
-  );
-}
-
 function CustomerSelectorStatus({
   helpText,
   initialListTruncated,
@@ -175,7 +148,7 @@ export function CustomerCombobox({
   onOpenChange: (open: boolean) => void;
   onSearchTermChange: (value: string) => void;
   onSelect: (customer: CustomerSelectorOption) => void;
-  onClear: (e: React.MouseEvent) => void;
+  onClear: () => void;
 }) {
   const triggerRef = useRef<HTMLButtonElement>(null);
   const searchRef = useRef<HTMLInputElement>(null);
@@ -188,23 +161,36 @@ export function CustomerCombobox({
     <div className="space-y-1.5">
       <CustomerFieldLabel compact={compact} required={required} />
       <Popover open={open} onOpenChange={onOpenChange}>
-        <PopoverTrigger asChild>
-          <Button
-            ref={triggerRef}
-            type="button"
-            variant="outline"
-            role="combobox"
-            aria-label={"Cliente" + (required ? " (obligatorio): " : ": ") + triggerLabel}
-            aria-expanded={open}
-            className={cn("w-full justify-between font-normal", !selected && "text-muted-foreground")}
-          >
-            <span className="truncate text-left">{triggerLabel}</span>
-            <span className="ml-2 flex shrink-0 items-center gap-1">
-              <ClearCustomerControl visible={Boolean(selected) && !required} onClear={onClear} />
-              <ChevronDownIcon className="h-4 w-4 opacity-50" />
-            </span>
-          </Button>
-        </PopoverTrigger>
+        <div className="flex items-center gap-1">
+          <PopoverTrigger asChild>
+            <Button
+              ref={triggerRef}
+              type="button"
+              variant="outline"
+              role="combobox"
+              aria-label={"Cliente" + (required ? " (obligatorio): " : ": ") + triggerLabel}
+              aria-expanded={open}
+              className={cn("min-w-0 flex-1 justify-between font-normal", !selected && "text-muted-foreground")}
+            >
+              <span className="truncate text-left">{triggerLabel}</span>
+              <ChevronDownIcon aria-hidden="true" className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+            </Button>
+          </PopoverTrigger>
+          {selected && !required && (
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              aria-label="Limpiar cliente"
+              onClick={() => {
+                triggerRef.current?.focus();
+                onClear();
+              }}
+            >
+              <XIcon aria-hidden="true" className="h-3.5 w-3.5" />
+            </Button>
+          )}
+        </div>
         <PopoverContent className="p-0" align="start" style={{ width: "var(--radix-popover-trigger-width)" }}>
           <Command shouldFilter={!searchActive} filter={filterCustomerLabel}>
             <CommandInput

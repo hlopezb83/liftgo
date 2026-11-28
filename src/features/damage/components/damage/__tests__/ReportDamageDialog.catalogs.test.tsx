@@ -35,7 +35,7 @@ it.each(["forklifts", "customers"] as const)("recovers %s independently without 
   fireEvent.change(screen.getByLabelText(/Descripción del daño/), { target: { value: "Captura conservada" } });
   const photo = new File(["photo"], "damage.png", { type: "image/png" });
   await act(async () => { fireEvent.change(document.querySelector('input[type="file"]')!, { target: { files: [photo] } }); });
-  expect(await screen.findByAltText("Preview 1")).toBeInTheDocument();
+  expect(await screen.findByAltText("Vista previa 1")).toBeInTheDocument();
   const failed = failedCatalog === "forklifts" ? mocks.forklifts : mocks.customers;
   const retry = failedCatalog === "forklifts" ? mocks.retryForklifts : mocks.retryCustomers;
   const data = failedCatalog === "forklifts" ? fleet : clients;
@@ -49,7 +49,7 @@ it.each(["forklifts", "customers"] as const)("recovers %s independently without 
   failed.mockReturnValue(ready(data, retry));
   view.rerender(<ReportDamageDialog open />);
   expect(screen.getByLabelText(/Descripción del daño/)).toHaveValue("Captura conservada");
-  expect(screen.getByAltText("Preview 1")).toBeInTheDocument();
+  expect(screen.getByAltText("Vista previa 1")).toBeInTheDocument();
   fireEvent.click(screen.getByRole("button", { name: "Reportar (1 foto)" }));
   await waitFor(() => expect(mocks.save).toHaveBeenCalledWith(expect.objectContaining({ forkliftId: "forklift-1", customerId: "customer-1", description: "Captura conservada" })));
   await waitFor(() => expect(mocks.upload).toHaveBeenCalledWith(expect.objectContaining({ file: photo })));
