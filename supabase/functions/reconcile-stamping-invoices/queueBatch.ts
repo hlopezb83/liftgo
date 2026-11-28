@@ -13,7 +13,7 @@ import type {
   StuckInvoice,
 } from "./processorTypes.ts";
 
-export type RowRecord = Record<string, unknown>;
+type RowRecord = Record<string, unknown>;
 
 export interface GroupedQueues {
   stuck: GroupedByOrganization<StuckInvoice>;

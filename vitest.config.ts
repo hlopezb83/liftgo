@@ -1,7 +1,7 @@
 import { fileURLToPath } from "node:url";
 import os from "os";
 import react from "@vitejs/plugin-react";
-import { defineConfig } from "vitest/config";
+import { configDefaults, defineConfig } from "vitest/config";
 import BalancedCiSequencer from "./scripts/ci/vitest-balanced-sequencer.mjs";
 
 // Núcleos realmente disponibles para el proceso (respeta cgroups en CI y
@@ -16,21 +16,80 @@ if (IS_SHARD && !BLOB_OUTPUT_FILE) {
   throw new Error("Sharded reports require VITEST_BLOB_OUTPUT_FILE in a fresh per-run directory");
 }
 
+// Suites puras .ts que no requieren DOM: evitan levantar happy-dom y jest-dom.
+const NODE_PROJECT_INCLUDES = [
+  "src/lib/**/*.{test,spec}.ts",
+  "src/features/*/lib/**/*.{test,spec}.ts",
+  "src/features/*/server/**/*.{test,spec}.ts",
+  "src/features/*/utils/**/*.{test,spec}.ts",
+  "src/features/*/domain-schemas.test.ts",
+  "src/test/**/*.{test,spec}.ts",
+];
+
+// Excepciones explícitas dentro de NODE_PROJECT_INCLUDES que sí usan APIs DOM.
+const NODE_PROJECT_DOM_EXCEPTIONS = [
+  "src/features/accounts-payable/lib/__tests__/parseCfdiXml.test.ts",
+  "src/features/accounts-payable/lib/__tests__/validateCfdiTotal.test.ts",
+  "src/features/bank-reconciliation/lib/__tests__/xmlParsers.test.ts",
+  "src/features/calendar/lib/refreshCalendarQueries.test.ts",
+  "src/features/customers/lib/__tests__/customerPayload.test.ts",
+  "src/features/invoices/lib/__tests__/reconciliationExportParity.test.ts",
+  "src/features/reports/lib/accountantExport/__tests__/accountantPackage.test.ts",
+  "src/features/reports/lib/accountantExport/__tests__/queuedCancellation.test.ts",
+  "src/features/reports/lib/accountantExport/__tests__/workbookPresentation.test.ts",
+  "src/lib/__tests__/exportCsvGuarded.test.ts",
+  "src/lib/__tests__/exportCsvLegacy.test.ts",
+  "src/lib/observability/captureOperationalError.offline.test.ts",
+  "src/lib/observability/captureOperationalError.test.ts",
+  "src/lib/observability/sentryInit.test.ts",
+  "src/lib/observability/sentryTransport.test.ts",
+  "src/lib/observability/staleChunkReload.test.ts",
+  "src/lib/observability/staleChunkSentry.test.ts",
+  "src/lib/pdf/assets/__tests__/globalBrandLogo.test.ts",
+  "src/lib/query/__tests__/queryUpgradeLifecycle.test.ts",
+  "src/test/rolePermissions.test.ts",
+];
+
 export default defineConfig({
   // Sin `babel-plugin-react-compiler` aquí: el compiler no aporta valor bajo
   // vitest/jsdom y suma tiempo de transformación en cada test file.
   plugins: [react()],
 
   test: {
-    // happy-dom es ~2-3× más rápido que jsdom y suficiente para el 99% de la
-    // suite. Los tests que necesiten jsdom (p.ej. serialización de estilos de
-    // @react-pdf/renderer) deben declarar `// @vitest-environment jsdom` en
-    // el docblock del archivo.
-    environment: "happy-dom",
     globals: true,
     sequence: process.env.VITEST_CI_BALANCED === "1" ? { sequencer: BalancedCiSequencer } : undefined,
-    setupFiles: ["./src/test/setup.ts"],
-    include: ["src/**/*.{test,spec}.{ts,tsx}"],
+    projects: [
+      {
+        extends: true,
+        test: {
+          name: "unit-node",
+          environment: "node",
+          setupFiles: ["./src/test/setup.node.ts"],
+          include: NODE_PROJECT_INCLUDES,
+          exclude: [...configDefaults.exclude, ...NODE_PROJECT_DOM_EXCEPTIONS],
+        },
+      },
+      {
+        extends: true,
+        test: {
+          name: "unit-dom",
+          environment: "happy-dom",
+          setupFiles: ["./src/test/setup.ts"],
+          include: ["src/**/*.{test,spec}.{ts,tsx}"],
+          exclude: [...configDefaults.exclude, ...NODE_PROJECT_INCLUDES],
+        },
+      },
+      {
+        extends: true,
+        test: {
+          name: "unit-dom-lib",
+          environment: "happy-dom",
+          setupFiles: ["./src/test/setup.ts"],
+          include: NODE_PROJECT_DOM_EXCEPTIONS,
+          exclude: [...configDefaults.exclude],
+        },
+      },
+    ],
     // Paralelismo explícito: por defecto vitest usa CPUS-1 y arranca los
     // workers en frío. Fijar el máximo a todos los núcleos y precalentar un
     // piso de workers reduce el wall time tanto en runners de 4 vCPU como en
