@@ -3,7 +3,7 @@
 // Fail-closed: al abrir el wizard NADA viene marcado; sólo el toggle
 // explícito del operador agrega filas a la selección.
 import { describe, it, expect } from "vitest";
-import type { RecurringPreviewLine } from "../../hooks/invoices/recurring/usePreviewRecurringInvoices";
+import type { RecurringPreviewLine } from "../../hooks/recurring/usePreviewRecurringInvoices";
 import {
   emptyRecurringSelection,
   reconcileRecurringSelection,

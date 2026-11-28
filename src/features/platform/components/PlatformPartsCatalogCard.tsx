@@ -5,13 +5,13 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import type { PlatformEquipmentModelRow, PlatformPartCatalogRow } from "@/lib/platformCatalog.functions";
 import { usePlatformCapabilities } from "../hooks/usePlatformAccess";
 import {
   usePlatformPartsCatalog,
   useSetPlatformPartCatalogActive,
 } from "../hooks/usePlatformEquipmentCatalog";
 import { PlatformPartCatalogDialog } from "./PlatformPartCatalogDialog";
+import type { PlatformEquipmentModelRow, PlatformPartCatalogRow } from "../lib/platformCatalog.functions";
 
 export function PlatformPartsCatalogCard({ models }: { models: PlatformEquipmentModelRow[] }) {
   const { can } = usePlatformCapabilities();

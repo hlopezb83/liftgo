@@ -5,11 +5,11 @@ import { PageContainer } from "@/components/layout/PageContainer";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { usePortalCustomer, usePortalBookings, usePortalInvoices } from "@/features/customers";
 import { countLabel } from "@/lib/format/countLabel";
 import { formatCompactCurrency, kpiSizeClass } from "@/lib/format/formatCurrency";
 import { PortalBookingsCard, PortalRecentInvoicesCard } from "../components/PortalSections";
 import { PortalUpcomingDues } from "../components/PortalUpcomingDues";
+import { usePortalCustomer, usePortalBookings, usePortalInvoices } from "../hooks/useCustomerPortal";
 import { derivePortalKpis } from "../lib/portalKpis";
 
 

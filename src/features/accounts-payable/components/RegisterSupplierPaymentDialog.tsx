@@ -10,14 +10,10 @@ import { UploadIcon, X } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import { Form } from "@/components/ui/form";
 import { Label } from "@/components/ui/label";
-import { toYMD } from "@/lib/date/toYMD";
 import { formatCurrencyWithCode } from "@/lib/format/formatCurrency";
 import { zodResolver } from "@/lib/forms/zodResolver";
-import type { BusinessBlock } from "@/lib/rules/businessBlocks";
-import { notifyWarning } from "@/lib/ui/appFeedback";
 import { nowMty } from "@/lib/utils";
-import { useRegisterSupplierPayment } from "../hooks/useRegisterSupplierPayment";
-import { removeSupplierReceipt, useUploadSupplierReceipt } from "../hooks/useUploadSupplierReceipt";
+import { useSubmitSupplierPayment } from "../hooks/useSubmitSupplierPayment";
 import { PAYMENT_METHODS } from "../lib/supplierBillConstants";
 import { supplierPaymentSchema, type SupplierPaymentFormData } from "../lib/supplierPaymentSchema";
 
@@ -88,17 +84,7 @@ export function RegisterSupplierPaymentDialog(props: Props) {
 function SupplierPaymentSession({
   open, onOpenChange, billId, billNumber, balance, currency = "MXN", onCloseAutoFocus,
 }: Props) {
-  const [serverBlock, setServerBlock] = useState<BusinessBlock | null>(null);
-  const register = useRegisterSupplierPayment({
-    onBusinessBlock: (block) => {
-      setServerBlock({
-        ...block,
-        reason: "El saldo pendiente cambió antes de que se guardara el pago.",
-        nextStep: "Revisa el saldo actualizado que aparece arriba y confirma el monto antes de volver a intentar.",
-      });
-    },
-  });
-  const uploader = useUploadSupplierReceipt();
+  const { submitPayment, isPending, isUploading, serverBlock } = useSubmitSupplierPayment({ billId });
   const [receiptFile, setReceiptFile] = useState<File | null>(null);
 
   const form = useForm<SupplierPaymentFormData>({
@@ -112,46 +98,14 @@ function SupplierPaymentSession({
   });
 
   const onSubmit = async (data: SupplierPaymentFormData) => {
-    setServerBlock(null);
-    let receipt_url = data.receipt_url || undefined;
-    let uploadedPath: string | undefined;
-    if (receiptFile) {
-      const uploaded = await uploader.mutateAsync({ file: receiptFile, billId });
-      // N-9: persistimos el path, no una signed URL de 5 años.
-      receipt_url = uploaded.path;
-      uploadedPath = uploaded.path;
-    }
-    try {
-      await register.mutateAsync({
-        bill_id: billId,
-        amount: data.amount,
-        payment_date: toYMD(data.payment_date) ?? "",
-        payment_method: data.payment_method || undefined,
-        bank_account: data.bank_account || undefined,
-        reference: data.reference || undefined,
-        receipt_url,
-        notes: data.notes || undefined,
-      });
-      onOpenChange(false);
-    } catch {
-      // A failed payment must not leave an unreferenced receipt in Storage.
-      if (uploadedPath) {
-        const { error } = await removeSupplierReceipt(uploadedPath);
-        if (error) notifyWarning("No se pudo limpiar el comprobante", {
-          error,
-          description: "El pago no se registró. Contacta a soporte para revisar el archivo subido.",
-        });
-      }
-    }
+    await submitPayment(data, receiptFile, () => onOpenChange(false));
   };
-
-  const isPending = register.isPending || uploader.isPending;
 
   return (
     <FormDialog
       onCloseAutoFocus={onCloseAutoFocus}
       className="[&_input]:scroll-mt-32 [&_textarea]:scroll-mt-32 [&_input]:scroll-mb-24 [&_textarea]:scroll-mb-24"
-      isPending={register.isPending || uploader.isPending}
+      isPending={isPending}
       isDirty={form.formState.isDirty || receiptFile !== null}
       open={open} onOpenChange={onOpenChange} title={`Registrar pago — ${billNumber}`}>
       <div className="rounded-md bg-muted/50 p-3 mb-2 flex items-center justify-between text-sm">
@@ -193,7 +147,7 @@ function SupplierPaymentSession({
           <TextareaField control={form.control} name="notes" label="Notas" rows={2} />
           <FormDialogFooter>
             <FormActions
-              submitLabel={uploader.isPending ? "Subiendo…" : "Registrar pago"}
+              submitLabel={isUploading ? "Subiendo…" : "Registrar pago"}
               isPending={isPending}
               onCancel={() => onOpenChange(false)}
             />

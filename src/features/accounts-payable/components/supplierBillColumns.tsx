@@ -1,4 +1,4 @@
-
+import { useMemo } from "react";
 import { type ColumnDef } from "@/components/dataTable/v2";
 import { StatusBadge } from "@/components/feedback/StatusBadge";
 import { Card, CardContent } from "@/components/ui/card";
@@ -12,7 +12,7 @@ type SupplierBillTableRow = Pick<AccountsPayableBillRow,
   "id" | "bill_number" | "suppliers" | "issue_date" | "due_date" | "total" | "balance" | "currency" | "status" | "approval_status" | "category">;
 
 export function useSupplierBillColumns<T extends SupplierBillTableRow = SupplierBillTableRow>(): ColumnDef<T>[] {
-  return [
+  return useMemo<ColumnDef<T>[]>(() => [
     {
       id: "bill_number", header: "Folio", accessorKey: "bill_number",
       cell: ({ row }) => <Untranslated className="font-mono font-medium whitespace-nowrap">{row.original.bill_number}</Untranslated>,
@@ -74,7 +74,7 @@ export function useSupplierBillColumns<T extends SupplierBillTableRow = Supplier
       accessorFn: (b) => b.category ?? "",
       cell: ({ row }) => row.original.category ? EXPENSE_CATEGORY_LABELS[row.original.category] : "—",
     },
-  ];
+  ], []);
 }
 
 export function renderSupplierBillMobileCard(

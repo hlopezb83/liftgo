@@ -1,13 +1,12 @@
-import { useMutation } from "@tanstack/react-query";
 import { useEffect } from "react";
 import { ErrorDiagnostic } from "@/components/feedback/ErrorDiagnostic";
 import { Button } from "@/components/ui/button";
-import { getPlatformSupportScreenshotFn } from "@/lib/platformSupport.functions";
-import type { SupportCase } from "@/lib/platformSupport.types";
+import type { SupportCase } from "@/lib/support/platformSupport.types";
 import { healthDate } from "../hooks/usePlatformHealth";
+import { usePlatformSupportScreenshot } from "../hooks/usePlatformSupport";
 
 function SupportCapture({ caseId }: { caseId: string }) {
-  const capture = useMutation({ mutationFn: () => getPlatformSupportScreenshotFn({ data: { caseId } }), meta: { silent: true } });
+  const capture = usePlatformSupportScreenshot(caseId);
   const { data, reset } = capture;
   useEffect(() => {
     if (!data) return;

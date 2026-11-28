@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useLiftgoTable } from "@/components/dataTable/v2";
 import { SearchBar } from "@/components/forms/SearchBar";
 import { SecurityIcon, UsersIcon } from "@/components/icons";
@@ -9,19 +9,19 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useToggleDialog } from "@/hooks/useDialogState";
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import { STAFF_ROLES } from "@/lib/constants";
-import { CredentialsDialog } from "../components/users/CredentialsDialog";
-import { DeleteUserDialog } from "../components/users/DeleteUserDialog";
-import { EditNameDialog } from "../components/users/EditNameDialog";
-import { InviteUserDialog } from "../components/users/InviteUserDialog";
-import { RoleBadge } from "../components/users/RoleBadge";
-import { RoleChangeDialog } from "../components/users/RoleChangeDialog";
-import { SetPasswordDialog } from "../components/users/SetPasswordDialog";
-import { UserMobileCard } from "../components/users/UserMobileCard";
+import { CredentialsDialog } from "../components/CredentialsDialog";
+import { DeleteUserDialog } from "../components/DeleteUserDialog";
+import { EditNameDialog } from "../components/EditNameDialog";
+import { InviteUserDialog } from "../components/InviteUserDialog";
+import { RoleBadge } from "../components/RoleBadge";
+import { RoleChangeDialog } from "../components/RoleChangeDialog";
+import { SetPasswordDialog } from "../components/SetPasswordDialog";
+import { UserMobileCard } from "../components/UserMobileCard";
 import { useHasModuleAccess } from "../hooks/useHasModuleAccess";
-import { useUserManagementColumns } from "../hooks/users/useUserManagementColumns";
-import { useUserManagementDialogs } from "../hooks/users/useUserManagementDialogs";
-import { useUserManagementFilters } from "../hooks/users/useUserManagementFilters";
 import { useUsersWithRoles, useToggleStatus, type UserRow } from "../hooks/useUserManagement";
+import { useUserManagementColumns } from "../hooks/useUserManagementColumns";
+import { useUserManagementDialogs } from "../hooks/useUserManagementDialogs";
+import { useUserManagementFilters } from "../hooks/useUserManagementFilters";
 import type { AppRole } from "../hooks/useUserRole";
 
 
@@ -52,13 +52,21 @@ export default function UserManagementPage() {
   const activeAdmins = (users ?? []).filter((u) => u.role === "admin" && u.is_active);
   const lastAdminId = activeAdmins.length === 1 ? activeAdmins[0].user_id : undefined;
 
-  const onRoleChange = (u: UserRow, newRole: AppRole) => setRoleChangeTarget({ user: u, newRole });
-  const onToggleStatus = (userId: string, currentActive: boolean) => {
-    toggleStatus.mutate({ userId, isActive: !currentActive });
-  };
-  const onEdit = (u: UserRow) => setEditTarget(u);
-  const onSetPassword = (u: UserRow) => setPasswordTarget(u);
-  const onDelete = (u: UserRow) => setDeleteTarget(u);
+  const toggleMutateRef = useRef(toggleStatus.mutate);
+  useEffect(() => {
+    toggleMutateRef.current = toggleStatus.mutate;
+  });
+
+  const onRoleChange = useCallback(
+    (u: UserRow, newRole: AppRole) => setRoleChangeTarget({ user: u, newRole }),
+    [setRoleChangeTarget],
+  );
+  const onToggleStatus = useCallback((userId: string, currentActive: boolean) => {
+    toggleMutateRef.current({ userId, isActive: !currentActive });
+  }, []);
+  const onEdit = useCallback((u: UserRow) => setEditTarget(u), [setEditTarget]);
+  const onSetPassword = useCallback((u: UserRow) => setPasswordTarget(u), [setPasswordTarget]);
+  const onDelete = useCallback((u: UserRow) => setDeleteTarget(u), [setDeleteTarget]);
 
   const columns = useUserManagementColumns({
     currentUserId: currentUser?.id,

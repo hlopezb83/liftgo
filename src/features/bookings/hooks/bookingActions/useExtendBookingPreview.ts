@@ -5,7 +5,7 @@ import { computeTotals } from "@/lib/domain/invoiceHelpers";
 import { toYMD } from "@/lib/format/dateFormats";
 import { DEFAULT_VAT_RATE } from "@/lib/money";
 import { buildExtensionLineItems, extensionBillableRange, type ExtensionBillableRange } from "../../lib/extensionBilling";
-import type { BookingWithForklift } from "../bookings/useBookings";
+import type { BookingWithForklift } from "../useBookings";
 
 export interface BookingExtensionPreview {
   items: ReturnType<typeof buildExtensionLineItems>;

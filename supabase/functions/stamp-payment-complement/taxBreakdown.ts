@@ -16,6 +16,41 @@ export interface RepTax {
   factor: "Tasa";
 }
 
+function isNonNegativeFinite(value: number): boolean {
+  return Number.isFinite(value) && value >= 0;
+}
+
+function computeLineContribution(
+  line: RepLine,
+  headerRate: number,
+): { rate: number; base: number; grossLine: number; taxable: boolean } | null {
+  if (!line || typeof line !== "object" || Array.isArray(line)) return null;
+  const fallbackTotal = Number(line.quantity ?? 1) *
+    Number(line.unit_price ?? 0);
+  const raw = Number(line.total ?? fallbackTotal);
+  const discount = Number(line.discount ?? 0);
+  const rate = line.tax_rate ?? headerRate;
+  if (![raw, discount, rate].every(isNonNegativeFinite)) return null;
+
+  const gross = toCents(raw);
+  const reduction = line.discount_type === "$"
+    ? toCents(discount)
+    : toCents((fromCents(gross) * Math.min(discount, 100)) / 100);
+  const base = Math.max(0, gross - reduction);
+  const taxable = (line.objeto_imp ?? "02") !== "01";
+  const taxCents = taxable ? toCents((fromCents(base) * rate) / 100) : 0;
+  return { rate, base, grossLine: base + taxCents, taxable };
+}
+
+function areValidSummaryTotals(
+  grossCents: number,
+  paidCents: number,
+  bases: Iterable<number>,
+): boolean {
+  const allSafe = [grossCents, paidCents, ...bases].every(Number.isSafeInteger);
+  return allSafe && grossCents > 0 && paidCents > 0 && paidCents <= grossCents;
+}
+
 /** Bases are in the related invoice currency, not the payment currency.
  * Each discounted source base receives the SAME paid fraction. Allocating a
  * gross payment by net-base weights distorts mixed tax rates. Round once per
@@ -28,46 +63,35 @@ export function repTaxBreakdown(
 ): RepTax[] | null {
   if (
     !Number.isFinite(paidAmount) || paidAmount <= 0 ||
-    !Number.isFinite(headerRate) || headerRate < 0
-  ) return null;
+    !isNonNegativeFinite(headerRate)
+  ) {
+    return null;
+  }
   const groups = new Map<number, number>();
   let grossCents = 0;
   for (const line of lines) {
-    if (!line || typeof line !== "object" || Array.isArray(line)) return null;
-    const raw = Number(
-      line.total ?? Number(line.quantity ?? 1) * Number(line.unit_price ?? 0),
-    );
-    const discount = Number(line.discount ?? 0);
-    const rate = line.tax_rate ?? headerRate;
-    if (
-      !Number.isFinite(raw) || raw < 0 || !Number.isFinite(discount) ||
-      discount < 0 || !Number.isFinite(rate) || rate < 0
-    ) return null;
-    const gross = toCents(raw);
-    const reduction = line.discount_type === "$"
-      ? toCents(discount)
-      : toCents(fromCents(gross) * Math.min(discount, 100) / 100);
-    const base = Math.max(0, gross - reduction);
-    const taxable = (line.objeto_imp ?? "02") !== "01";
-    grossCents += base + (taxable ? toCents(fromCents(base) * rate / 100) : 0);
-    if (taxable) groups.set(rate, (groups.get(rate) ?? 0) + base);
+    const parsed = computeLineContribution(line, headerRate);
+    if (!parsed) return null;
+    grossCents += parsed.grossLine;
+    if (parsed.taxable) {
+      groups.set(parsed.rate, (groups.get(parsed.rate) ?? 0) + parsed.base);
+    }
   }
   const paidCents = toCents(paidAmount);
-  if (
-    ![grossCents, paidCents, ...groups.values()].every(Number.isSafeInteger) ||
-    grossCents <= 0 || paidCents <= 0 || paidCents > grossCents
-  ) return null;
-  return [...groups].filter(([, base]) => base > 0).map(([rate, base]) => {
-    // Exact positive integer ratio with half-up ties, without an intermediate
-    // floating-point product. Full payment reproduces every original base.
-    const numerator = BigInt(base) * BigInt(paidCents);
-    const denominator = BigInt(grossCents);
-    const cents = Number((2n * numerator + denominator) / (2n * denominator));
-    return {
-      base: fromCents(cents),
-      type: "IVA",
-      rate: rate / 100,
-      factor: "Tasa",
-    };
-  });
+  if (!areValidSummaryTotals(grossCents, paidCents, groups.values())) {
+    return null;
+  }
+  return [...groups]
+    .filter(([, base]) => base > 0)
+    .map(([rate, base]) => {
+      const numerator = BigInt(base) * BigInt(paidCents);
+      const denominator = BigInt(grossCents);
+      const cents = Number((2n * numerator + denominator) / (2n * denominator));
+      return {
+        base: fromCents(cents),
+        type: "IVA",
+        rate: rate / 100,
+        factor: "Tasa",
+      };
+    });
 }

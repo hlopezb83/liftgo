@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useLiftgoTable, type ColumnDef } from "@/components/dataTable/v2";
 import { StatusBadge } from "@/components/feedback/StatusBadge";
 import { FiltersToolbar } from "@/components/filters/FiltersToolbar";
@@ -16,17 +16,26 @@ import { DAMAGE_STATUSES, STATUS_LABELS } from "@/lib/constants";
 import { formatDateMty } from "@/lib/format/dateFormats";
 import { formatCurrency } from "@/lib/format/formatCurrency";
 import type { DamageRecordWithJoins } from "@/types/rental";
-import { DamageDetailSheet } from "../components/damage/DamageDetailSheet";
-import { ReportDamageDialog } from "../components/damage/ReportDamageDialog";
+import { DamageDetailSheet } from "../components/DamageDetailSheet";
+import { ReportDamageDialog } from "../components/ReportDamageDialog";
 import { useDamagePhotoCounts } from "../hooks/useDamagePhotoCounts";
 import { useDamageRecords } from "../hooks/useDamageRecords";
 
 type DamageRow = NonNullable<ReturnType<typeof useDamageRecords>["data"]>[number];
 type DamageStatus = (typeof DAMAGE_STATUSES)[number];
+const EMPTY_DAMAGE_ROWS: DamageRow[] = [];
 const DAMAGE_STATUS_OPTIONS = [
   { value: "all" as const, label: "Todos los estados" },
   ...DAMAGE_STATUSES.map((s) => ({ value: s, label: STATUS_LABELS[s] ?? s })),
 ];
+const DAMAGE_FACETS = {
+  q: {
+    type: "text" as const,
+    fields: ["description"] as (keyof DamageRow)[],
+    accessors: [(r: DamageRow) => r.forklifts?.name, (r: DamageRow) => r.customers?.name],
+  },
+  status: { type: "enum" as const, field: "status" as keyof DamageRow, options: ["all", ...DAMAGE_STATUSES] as const },
+};
 
 export default function DamageTrackingPage() {
   const canWrite = useHasModuleAccess("Daños", "full");
@@ -40,22 +49,12 @@ export default function DamageTrackingPage() {
   // el CTA del EmptyState (mismo patrón que InventoryPage/PartFormDialog).
   const reportDialog = useToggleDialog();
 
-  const { values, set, reset, hasActive, filtered } = useTableFilters<DamageRow, {
-    q: { type: "text"; fields: (keyof DamageRow)[]; accessors: ((r: DamageRow) => string | null | undefined)[] };
-    status: { type: "enum"; field: keyof DamageRow; options: readonly (DamageStatus | "all")[] };
-  }>({
-    items: records ?? [],
-    facets: {
-      q: {
-        type: "text",
-        fields: ["description"] as (keyof DamageRow)[],
-        accessors: [(r) => r.forklifts?.name, (r) => r.customers?.name],
-      },
-      status: { type: "enum", field: "status", options: ["all", ...DAMAGE_STATUSES] as const },
-    },
+  const { values, set, reset, hasActive, filtered } = useTableFilters<DamageRow, typeof DAMAGE_FACETS>({
+    items: records ?? EMPTY_DAMAGE_ROWS,
+    facets: DAMAGE_FACETS,
   });
 
-  const columns = buildDamageColumns(photoCounts);
+  const columns = useMemo(() => buildDamageColumns(photoCounts), [photoCounts]);
 
 
   const table = useLiftgoTable<DamageRow>({

@@ -24,7 +24,7 @@ import {
 } from "@/components/ui/sheet";
 import { useAuth } from "@/contexts/AuthContext";
 import { useCurrentVersion } from "@/features/changelog";
-import { PLATFORM_PROFILE_LABELS } from "@/lib/platformAccess.types";
+import { PLATFORM_PROFILE_LABELS } from "@/lib/auth/platformAccess.types";
 import { useLocation } from "@/lib/router-compat";
 import { Link, Outlet } from "@/lib/router-compat-ui";
 import { setAppVersion } from "@/lib/ui/errorReport";

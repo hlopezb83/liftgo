@@ -16,13 +16,13 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import type { CreateOrganizationResult } from "@/lib/platformAdmin.functions";
+import { useCreateOrganization } from "../hooks/usePlatformOnboarding";
 import {
   platformOnboardingInputSchema,
   type PlatformOnboardingInput,
-} from "@/lib/platformOnboarding.types";
-import { useCreateOrganization } from "../hooks/usePlatformOnboarding";
+} from "../lib/platformOnboarding.types";
 import { PlatformOrganizationFormFields } from "./PlatformOrganizationFormFields";
+import type { CreateOrganizationResult } from "../lib/platformAdmin.functions";
 
 const EMPTY_FORM = {
   name: "",

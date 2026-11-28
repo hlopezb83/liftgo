@@ -8,65 +8,66 @@ import { MobileCardList } from "@/components/layout/MobileCardList";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { usePortalInvoicesPage, type PortalInvoiceRow } from "@/features/customers";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import { formatDateMty } from "@/lib/format/dateFormats";
 import { formatCurrencyWithCode } from "@/lib/format/formatCurrency";
 import { Link } from "@/lib/router-compat-ui";
+import { usePortalInvoicesPage, type PortalInvoiceRow } from "../hooks/useCustomerPortal";
 
 type Invoice = PortalInvoiceRow;
 
 const PAGE_SIZE = 25;
+const EMPTY_INVOICES: Invoice[] = [];
+
+const PORTAL_INVOICE_COLUMNS: ColumnDef<Invoice>[] = [
+  {
+    id: "invoice_number",
+    header: "Factura #",
+    accessorKey: "invoice_number",
+    cell: ({ row }) => <span className="font-medium">{row.original.invoice_number}</span>,
+  },
+  {
+    id: "issued_at",
+    header: "Fecha",
+    accessorKey: "issued_at",
+    meta: { kind: "date" },
+    cell: ({ row }) => formatDateMty(row.original.issued_at),
+  },
+  {
+    id: "due_date",
+    header: "Vencimiento",
+    accessorKey: "due_date",
+    meta: { kind: "date" },
+    cell: ({ row }) => formatDateMty(row.original.due_date),
+  },
+  {
+    id: "total",
+    header: "Total",
+    accessorFn: (i) => Number(i.total),
+    meta: { kind: "money" },
+    cell: ({ row }) => <span className="font-mono">{formatCurrencyWithCode(Number(row.original.total), row.original.moneda ?? "MXN")}</span>,
+  },
+  {
+    id: "status",
+    header: "Estado",
+    accessorKey: "status",
+    meta: { kind: "badge" },
+    cell: ({ row }) => <StatusBadge status={row.original.status} />,
+  },
+];
 
 export default function PortalInvoices() {
   const [page, setPage] = useState(1);
   const { data: result, isLoading, isError, refetch } = usePortalInvoicesPage(page, PAGE_SIZE);
-  const invoices = result?.rows ?? [];
+  const invoices = result?.rows ?? EMPTY_INVOICES;
   const totalPages = Math.max(1, Math.ceil((result?.totalCount ?? 0) / PAGE_SIZE));
   const navigate = useNavigateTransition();
   const isMobile = useIsMobile();
 
-  const columns: ColumnDef<Invoice>[] = [
-      {
-        id: "invoice_number",
-        header: "Factura #",
-        accessorKey: "invoice_number",
-        cell: ({ row }) => <span className="font-medium">{row.original.invoice_number}</span>,
-      },
-      {
-        id: "issued_at",
-        header: "Fecha",
-        accessorKey: "issued_at",
-        meta: { kind: "date" },
-        cell: ({ row }) => formatDateMty(row.original.issued_at),
-      },
-      {
-        id: "due_date",
-        header: "Vencimiento",
-        accessorKey: "due_date",
-        meta: { kind: "date" },
-        cell: ({ row }) => formatDateMty(row.original.due_date),
-      },
-      {
-        id: "total",
-        header: "Total",
-        accessorFn: (i) => Number(i.total),
-        meta: { kind: "money" },
-        cell: ({ row }) => <span className="font-mono">{formatCurrencyWithCode(Number(row.original.total), row.original.moneda ?? "MXN")}</span>,
-      },
-      {
-        id: "status",
-        header: "Estado",
-        accessorKey: "status",
-        meta: { kind: "badge" },
-        cell: ({ row }) => <StatusBadge status={row.original.status} />,
-      },
-    ];
-
   const table = useLiftgoTable<Invoice>({
     data: invoices,
-    columns,
+    columns: PORTAL_INVOICE_COLUMNS,
     getRowId: (i) => i.id,
     initialSorting: [{ id: "issued_at", desc: true }],
     enableSorting: false,

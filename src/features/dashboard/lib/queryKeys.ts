@@ -1,22 +1,10 @@
 /**
- * Query keys y contratos de queries del módulo Dashboard.
+ * Query keys y tipos puros del módulo Dashboard.
  *
- * `dashboardKeys` provee el namespace raíz para invalidaciones amplias.
- * Cada fuente de datos del tablero (MRR, KPIs financieros, stats generales,
- * feed de actividad) define su propio contrato con `defineEntityQueries`
- * porque cada una tiene una forma de dato distinta.
+ * Las query definitions con I/O viven en `./dashboardQueries`.
  */
-import { supabase } from "@/integrations/supabase/client";
 import type { Database } from "@/integrations/supabase/types";
 import { todayKeyMty } from "@/lib/format/dateFormats";
-import { roundMoney } from "@/lib/money";
-import { defineEntityQueries } from "@/lib/query/defineEntityQueries";
-import { operationSummaryKeys } from "@/lib/query/operationSummaryKeys";
-import { callRpc } from "@/lib/rpc";
-
-// ---------------------------------------------------------------------------
-// MRR detail
-// ---------------------------------------------------------------------------
 
 interface MrrItem {
   forklift_id: string;
@@ -41,25 +29,6 @@ export interface MrrDetail {
   fx_missing_count: number;
 }
 
-export const mrrDetailQueries = defineEntityQueries<"dashboard-mrr-detail", MrrDetail>(
-  "dashboard-mrr-detail",
-  {
-    list: () => async () => {
-      const result = await callRpc<MrrDetail>("get_mrr_detail");
-      return {
-        items: result?.items ?? [],
-        total_mrr: roundMoney(result?.total_mrr ?? 0),
-        fx_missing_count: Number(result?.fx_missing_count ?? 0),
-      };
-    },
-
-  },
-);
-
-// ---------------------------------------------------------------------------
-// Financial KPIs
-// ---------------------------------------------------------------------------
-
 export interface FinancialKpis {
   mrr: number;
   dso: number;
@@ -70,7 +39,6 @@ export interface FinancialKpis {
   mrr_fx_missing_count?: number;
   /** A2-7: idem para el MRR del mes previo. */
   mrr_prev_fx_missing_count?: number;
-
   expiring_contracts: Array<{
     id: string;
     contract_number: string;
@@ -80,18 +48,6 @@ export interface FinancialKpis {
     days_remaining: number;
   }>;
 }
-
-export const financialKpisQueries = defineEntityQueries<"dashboard-financial-kpis", FinancialKpis>(
-  "dashboard-financial-kpis",
-  {
-    list: () => () => callRpc<FinancialKpis>("get_financial_kpis"),
-    staleTime: 30_000,
-  },
-);
-
-// ---------------------------------------------------------------------------
-// Dashboard stats
-// ---------------------------------------------------------------------------
 
 export interface DashboardStats {
   pending_deliveries_count: number;
@@ -112,9 +68,7 @@ export interface DashboardStats {
     invoice_number: string;
     customer_name: string | null;
     total: number;
-    /** Saldo pendiente en moneda del documento. */
     balance: number | null;
-    /** Saldo pendiente ya convertido a MXN (usa tipo_cambio de la factura). */
     balance_mxn: number | null;
     due_date: string;
     status: string;
@@ -159,20 +113,6 @@ export interface DashboardStats {
   }>;
 }
 
-export const dashboardStatsQueries = defineEntityQueries<"dashboard-stats", DashboardStats>(
-  operationSummaryKeys.dashboardStats.all[0],
-  {
-    list: () => async () => {
-      return callRpc<DashboardStats>("get_dashboard_stats");
-    },
-    staleTime: 30_000,
-  },
-);
-
-// ---------------------------------------------------------------------------
-// Activity feed
-// ---------------------------------------------------------------------------
-
 export interface ActivityFilters {
   from?: Date;
   to?: Date;
@@ -183,71 +123,6 @@ export interface ActivityFilters {
 }
 
 export type ActivityFeedRow = Database["public"]["Tables"]["activity_feed"]["Row"];
-
-function isRecord(value: unknown): value is Readonly<Record<string, unknown>> {
-  return typeof value === "object" && value !== null;
-}
-
-function readActivityFeedFilter(filter: Readonly<Record<string, unknown>> | undefined): {
-  limit: number;
-  filters: ActivityFilters;
-} {
-  const limitRaw = filter?.limit;
-  const filtersRaw = filter?.filters;
-  const limit = typeof limitRaw === "number" ? limitRaw : 50;
-  const filters: ActivityFilters = {};
-  if (isRecord(filtersRaw)) {
-    if (filtersRaw.from instanceof Date) filters.from = filtersRaw.from;
-    if (filtersRaw.to instanceof Date) filters.to = filtersRaw.to;
-    if (typeof filtersRaw.actorId === "string") filters.actorId = filtersRaw.actorId;
-    if (typeof filtersRaw.entityType === "string") filters.entityType = filtersRaw.entityType;
-    if (typeof filtersRaw.eventType === "string") filters.eventType = filtersRaw.eventType;
-    if (typeof filtersRaw.search === "string") filters.search = filtersRaw.search;
-  }
-  return { limit, filters };
-}
-
-export const activityFeedQueries = defineEntityQueries<"dashboard-activity-feed", ActivityFeedRow[]>(
-  "dashboard-activity-feed",
-  {
-    list: (filter) => async () => {
-      const { limit, filters } = readActivityFeedFilter(filter);
-
-      // v7.216.0 (C6): columnas explícitas.
-      const sel = (s: string): string => s;
-      const ACTIVITY_COLUMNS = sel(
-        "id, actor_id, actor_name, actor_role, entity_type, entity_id, event_type, title, description, created_at, is_e2e",
-      );
-      let query = supabase
-        .from("activity_feed")
-        .select(ACTIVITY_COLUMNS)
-        .order("created_at", { ascending: false })
-        .limit(limit)
-        .or("is_e2e.is.null,is_e2e.eq.false");
-
-      if (filters.from) query = query.gte("created_at", filters.from.toISOString());
-      if (filters.to) query = query.lte("created_at", filters.to.toISOString());
-      if (filters.actorId) {
-        query = filters.actorId === "system"
-          ? query.is("actor_id", null)
-          : query.eq("actor_id", filters.actorId);
-      }
-      if (filters.entityType) query = query.eq("entity_type", filters.entityType);
-      if (filters.eventType) query = query.eq("event_type", filters.eventType);
-      // M-10: `%`/`_` actúan como wildcards de ILIKE y `\` es el escape de
-      // PostgREST; se escapan para que la búsqueda sea literal.
-      if (filters.search) {
-        const term = filters.search.replace(/[\\%_]/g, (ch) => `\\${ch}`);
-        query = query.ilike("description", `%${term}%`);
-      }
-
-      const { data, error } = await query.returns<ActivityFeedRow[]>();
-      if (error) throw error;
-      return data ?? [];
-    },
-    staleTime: 60_000,
-  },
-);
 
 export function dateKeyToday(): string {
   return todayKeyMty();

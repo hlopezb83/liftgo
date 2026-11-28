@@ -1,0 +1,242 @@
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useVerifiedOrganizationId } from "@/contexts/OrganizationContext";
+import { forkliftKeys, quoteAssignedForkliftKeys, statusLogKeys } from "@/features/fleet";
+import { supabase } from "@/integrations/supabase/client";
+import type { TablesInsert, TablesUpdate } from "@/integrations/supabase/types";
+import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
+import { defineEntityQueries } from "@/lib/query/defineEntityQueries";
+import { useVerifiedIdentityScope } from "@/lib/query/useVerifiedIdentityScope";
+import { callRpc } from "@/lib/rpc";
+import { LIST_FETCH_LIMIT } from "@/lib/supabase/constants";
+import type { Quote } from "@/types/rental";
+import { quoteCreateErrorMessage } from "../lib/quoteErrors";
+
+export type { Quote } from "@/types/rental";
+
+const sel = (s: string): string => s;
+
+const QUOTE_COLUMNS = sel(
+  "id, quote_number, customer_id, customer_name, forklift_id, start_date, end_date, line_items, subtotal, tax_rate, tax_amount, total, status, valid_until, notes, created_at, updated_at, quote_type, equipment_model_id, rental_meta, currency, tipo_cambio, accepted_at, accepted_ip, accepted_by_user_id, rejected_at, rejection_reason, is_e2e, e2e_scope, version"
+);
+
+const QUOTE_LIST_FIELDS = [
+  "id", "quote_number", "customer_id", "customer_name", "forklift_id", "start_date",
+  "end_date", "subtotal", "tax_rate", "tax_amount", "total", "status",
+  "valid_until", "quote_type", "currency", "tipo_cambio",
+] as const satisfies readonly (keyof Quote)[];
+const QUOTE_LIST_COLUMNS = QUOTE_LIST_FIELDS.join(", ");
+
+/** Exact list projection. Load detail before reading document-only fields. */
+export type QuoteListItem = Pick<Quote, (typeof QUOTE_LIST_FIELDS)[number]>;
+
+type QuoteRow = Quote | null;
+
+export const quoteQueries = defineEntityQueries<"quotes", QuoteListItem[], QuoteRow>(
+  "quotes",
+  {
+    list: () => async () => {
+      // RLS can return [] for an anonymous request. That is a missing session,
+      // not evidence that this organization has no quotes.
+      const { data: auth, error: authError } = await supabase.auth.getSession();
+      if (authError) throw authError;
+      if (!auth.session) throw Object.assign(new Error("Tu sesión expiró. Inicia sesión para consultar las cotizaciones."), { status: 401 });
+      const { data, error } = await supabase
+        .from("quotes")
+        .select(QUOTE_LIST_COLUMNS)
+        .or("is_e2e.is.null,is_e2e.eq.false")
+        .order("created_at", { ascending: false })
+        .limit(LIST_FETCH_LIMIT)
+        .returns<QuoteListItem[]>();
+      if (error) throw error;
+      return data ?? [];
+    },
+    detail: (id: string) => async () => {
+      if (!id) throw new Error("Quote ID is required");
+      // R9-P2: `maybeSingle` en lugar de `single`. Tras borrar una cotización, un
+      // refetch en vuelo devolvía 0 filas y PostgREST respondía 406 (error crudo +
+      // toasts). Ahora "no existe" es `null` y la pantalla muestra "no encontrada".
+      const { data, error } = await supabase
+        .from("quotes")
+        .select(QUOTE_COLUMNS)
+        .eq("id", id)
+        .maybeSingle()
+        .returns<QuoteRow | null>();
+      if (error) throw error;
+      return data;
+    },
+  },
+);
+
+// Alias retro-compat + extensiones.
+export const quoteKeys = {
+  ...quoteQueries.keys,
+  /** Lote C · DIFF 9c: query key para el siguiente folio de cotización. */
+  nextNumber: () => [...quoteQueries.keys.all, "next-number"] as const,
+} as const;
+
+export function useQuotes() {
+  return useQuery(quoteQueries.list());
+}
+
+export function useQuote(id?: string) {
+  return useQuery({
+    ...quoteQueries.detail(id ?? ""),
+    enabled: !!id,
+  });
+}
+
+/** Trae una lista puntual de cotizaciones por sus IDs. */
+export function useQuotesByIds(ids: string[] | undefined) {
+  const organizationId = useVerifiedOrganizationId();
+  const identity = useVerifiedIdentityScope();
+  const queryClient = useQueryClient();
+  const options = (requested: string[]) => {
+    const selected = [...new Set(requested)].sort();
+    return {
+      queryKey: quoteKeys.byFilter({ byIds: selected.join(","), identity }),
+      enabled: !!organizationId && !!identity && selected.length > 0,
+      staleTime: 60_000,
+      queryFn: async ({ signal }: { signal: AbortSignal }) => {
+        if (!selected.length) return [];
+        if (!organizationId || !identity) throw new Error("Empresa no verificada");
+        const query = (batch: string[]) => supabase.from("quotes")
+          .select("id, organization_id, currency, line_items, rental_meta, start_date, end_date")
+          .eq("organization_id", organizationId).in("id", batch).abortSignal(signal);
+        type Row = NonNullable<Awaited<ReturnType<typeof query>>["data"]>[number];
+        const rows: Row[] = [];
+        for (let index = 0; index < selected.length; index += 50) {
+          signal.throwIfAborted();
+          const { data, error } = await query(selected.slice(index, index + 50));
+          signal.throwIfAborted();
+          if (error) throw error;
+          rows.push(...(data ?? []));
+        }
+        return rows;
+      },
+    };
+  };
+  const result = useQuery(options(ids ?? []));
+  return { ...result, loadForIds: (requested: string[]) => queryClient.fetchQuery(options(requested)) };
+}
+
+export function useCreateQuote() {
+  const queryClient = useQueryClient();
+  return useEntityMutation({
+    // Multi-organización: organization_id lo resuelve la base, el cliente no lo envía.
+    mutationFn: async (quote: Omit<TablesInsert<"quotes">, "organization_id">) => {
+      // R6-FE-08 (A.1/A.3/N6-ADM-03): para cotizaciones NUEVAS no se envía
+      // quote_number — el trigger `trg_assign_quote_number` (20260730135422)
+      // lo asigna server-side, sin quemar folio por display ni depender del
+      // cache de useNextQuoteNumber. Retry defensivo: hasta 3 intentos con
+      // folio fresco explícito si la secuencia está desfasada (23505).
+      const MAX_ATTEMPTS = 3;
+      let lastError: { code?: string; message?: string } | null = null;
+      for (let attempt = 0; attempt < MAX_ATTEMPTS; attempt++) {
+        const payload =
+          attempt === 0 || quote.quote_number
+            ? quote
+            : { ...quote, quote_number: "" };
+        const { data, error } = await supabase.from("quotes").insert(payload as TablesInsert<"quotes">).select().single();
+        if (!error) return data;
+        lastError = error;
+        const isFolioConflict =
+          error.code === "23505" && /quote_number/i.test(error.message ?? "");
+        if (!isFolioConflict) throw error;
+        // Secuencia desfasada: pedir folio fresco explícito y reintentar.
+        await queryClient.invalidateQueries({ queryKey: quoteKeys.nextNumber() });
+        const { data: freshNumber, error: folioError } = await supabase.rpc("next_quote_number");
+        if (folioError || !freshNumber) throw error;
+        quote = { ...quote, quote_number: freshNumber };
+      }
+      throw lastError;
+    },
+    // R17-D: invalidar `nextNumber` para que el siguiente folio se recalcule.
+    invalidateKeys: [quoteKeys.lists(), quoteKeys.nextNumber()],
+    errorTitle: "Error al crear cotización",
+    // R14: el mensaje de folio sólo aplica a conflictos de folio (23505 sobre
+    // quote_number). Para el resto (validaciones de la BD, RLS, etc.) se
+    // muestra el mensaje real en lugar de un texto engañoso.
+    errorMessage: quoteCreateErrorMessage,
+  });
+}
+
+export function useUpdateQuote() {
+  return useEntityMutation({
+    // A5-05: bloqueo optimista opt-in. Si quien edita conoce la `version` que
+    // leyó, el UPDATE sólo aplica sobre esa versión; si otro usuario guardó
+    // antes, no se sobrescribe su cambio y se avisa en lugar de perderlo.
+    mutationFn: async ({ id, version, ...updates }: TablesUpdate<"quotes"> & { id: string; version?: number | null }) => {
+      let query = supabase.from("quotes").update(updates).eq("id", id);
+      if (typeof version === "number") query = query.eq("version", version);
+      const { data, error } = await query.select().maybeSingle();
+      if (error) throw error;
+      if (!data) {
+        throw new Error(
+          "Otro usuario modificó esta cotización mientras la editabas. Recarga la página para ver los cambios más recientes.",
+        );
+      }
+      return data;
+    },
+    invalidateKeys: [quoteKeys.lists()],
+    invalidateKeysFn: (_data, vars) => [quoteKeys.detail(vars.id)],
+    errorTitle: "Error al actualizar cotización",
+  });
+}
+
+export function useDeleteQuote() {
+  const queryClient = useQueryClient();
+  return useEntityMutation({
+    mutationFn: async (id: string) => {
+      await callRpc<void>("delete_quote_with_unassign", { p_quote_id: id });
+      return id;
+    },
+    invalidateKeys: [
+      quoteKeys.lists(),
+      forkliftKeys.lists(),
+      quoteAssignedForkliftKeys.lists(),
+      statusLogKeys.lists(),
+    ],
+
+    errorTitle: "Error al eliminar cotización",
+    onSuccess: (deletedId) => {
+      queryClient.setQueryData<Quote[]>(quoteKeys.lists(), (old) =>
+        old ? old.filter((q) => q.id !== deletedId) : []
+      );
+      queryClient.removeQueries({ queryKey: quoteKeys.detail(deletedId) });
+    },
+  });
+}
+
+
+// v-FE12: la lista completa de `useQuotes()` trae >25 columnas; el CRM sólo
+// necesita `quote_number` por id. Query dedicada, más liviana y con
+// `staleTime` largo (el mapa folio↔id cambia poco).
+const QUOTE_LITE_COLUMNS = sel("id, quote_number");
+
+type QuoteLiteRow = Pick<Quote, "id" | "quote_number">;
+
+const QUOTES_LITE_STALE_MS = 5 * 60_000;
+
+async function fetchQuotesLite() {
+  const { data, error } = await supabase
+    .from("quotes")
+    .select(QUOTE_LITE_COLUMNS)
+    .or("is_e2e.is.null,is_e2e.eq.false")
+    .order("created_at", { ascending: false })
+    .limit(LIST_FETCH_LIMIT)
+    .returns<QuoteLiteRow[]>();
+  if (error) throw error;
+  return data ?? [];
+}
+
+/** Query key dedicada: vive bajo el mismo namespace que `quoteKeys`. */
+const quotesLiteKey = [...quoteKeys.all, "lite"] as const;
+
+/** Lista liviana (`id`, `quote_number`) para mapas folio↔id (p. ej. CRM). */
+export function useQuotesLite() {
+  return useQuery({
+    queryKey: quotesLiteKey,
+    queryFn: fetchQuotesLite,
+    staleTime: QUOTES_LITE_STALE_MS,
+  });
+}

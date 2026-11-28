@@ -11,7 +11,7 @@ const state = vi.hoisted(() => ({ mobile: false, error: false, loading: false, r
 vi.mock("@/hooks/use-mobile", () => ({ useIsMobile: () => state.mobile, useIsTabletOrBelow: () => state.mobile }));
 vi.mock("@/features/users", () => ({ useHasModuleAccess: () => true }));
 vi.mock("@/features/fleet", () => ({ useForkliftMap: () => { throw new Error("Overdue page must not load the whole fleet"); } }));
-vi.mock("../../components/deliveries/DeliveryFormDialog", () => ({ DeliveryFormDialog: () => null }));
+vi.mock("../../components/DeliveryFormDialog", () => ({ DeliveryFormDialog: () => null }));
 vi.mock("../../hooks/useDeliveries", () => ({
   useDeliveries: () => { throw new Error("Overdue page must not load the capped legacy list"); },
   deliveryQueries: { detail: vi.fn() },

@@ -7,11 +7,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { NativeSelect } from "@/components/ui/native-select";
 import { Textarea } from "@/components/ui/textarea";
-import { PLATFORM_PROFILE_LABELS } from "@/lib/platformAccess.types";
-import { setPlatformOperatorProfileFn } from "@/lib/platformOperators.functions";
+import { PLATFORM_PROFILE_LABELS } from "@/lib/auth/platformAccess.types";
+import { useSetPlatformOperatorProfile } from "../hooks/usePlatformOperator";
 import {
   PLATFORM_PROFILE_SUMMARIES, platformProfileSchema, type PlatformOperatorRow,
-} from "@/lib/platformOperators.types";
+} from "../lib/platformOperators.types";
 
 function allowedChange(account: PlatformOperatorRow, revoke: boolean, profile: string) {
   return revoke ? !!account.profile : account.eligible && profile!==account.profile;
@@ -32,28 +32,23 @@ export function PlatformOperatorDialog({ account, onClose, onSaved }: {
   const [revoke, setRevoke] = useState(initial.revoke);
   const [reason, setReason] = useState("");
   const [password, setPassword] = useState("");
-  const [saving, setSaving] = useState(false);
-  const [error, setError] = useState<unknown>(null);
+  const { saving, error, submit } = useSetPlatformOperatorProfile();
   const changeAllowed = allowedChange(account, revoke, profile);
   const canSave = !saving && password.length>0 && reason.trim().length>=5 && changeAllowed;
 
   async function save(event: React.FormEvent) {
     event.preventDefault();
     if (!canSave) return;
-    setSaving(true);
-    setError(null);
     const confirmation = password;
     setPassword("");
-    try {
-      // Llamada directa: la contraseña no entra en variables del MutationCache.
-      await setPlatformOperatorProfileFn({ data: {
-        userId: account.id, profile: revoke ? null : profile,
-        expectedRevision: account.revision, reason, password: confirmation,
-      } });
-      onSaved();
-    } catch (failure) {
-      setError(failure);
-    } finally { setSaving(false); }
+    const ok = await submit({
+      userId: account.id,
+      profile: revoke ? null : profile,
+      expectedRevision: account.revision,
+      reason,
+      password: confirmation,
+    });
+    if (ok) onSaved();
   }
 
   function close() { setPassword(""); onClose(); }

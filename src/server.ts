@@ -1,7 +1,7 @@
-import "./lib/error-capture";
+import "./lib/observability/error-capture";
 
-import { consumeLastCapturedError, runWithRequestErrorCapture } from "./lib/error-capture";
-import { renderErrorPage } from "./lib/error-page";
+import { consumeLastCapturedError, runWithRequestErrorCapture } from "./lib/observability/error-capture";
+import { renderErrorPage } from "./lib/observability/error-page";
 import { captureServerError, withServerSentry } from "./lib/observability/serverSentry.server";
 
 type ServerEntry = {

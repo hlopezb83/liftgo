@@ -8,58 +8,59 @@ import { MobileCardList } from "@/components/layout/MobileCardList";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { usePortalBookingsPage, type PortalBookingRow } from "@/features/customers";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { formatDateMty } from "@/lib/format/dateFormats";
+import { usePortalBookingsPage, type PortalBookingRow } from "../hooks/useCustomerPortal";
 
 type Booking = PortalBookingRow;
 
 const PAGE_SIZE = 25;
+const EMPTY_BOOKINGS: Booking[] = [];
+
+const PORTAL_RENTAL_COLUMNS: ColumnDef<Booking>[] = [
+  {
+    id: "equipo",
+    header: "Equipo",
+    accessorFn: (b) => `${b.forklifts?.name ?? ""} ${b.forklifts?.model ?? ""}`.trim(),
+    cell: ({ row }) => (
+      <span className="font-medium">
+        {row.original.forklifts?.name || "—"} — {row.original.forklifts?.model || ""}
+      </span>
+    ),
+  },
+  {
+    id: "start_date",
+    header: "Fecha Inicio",
+    accessorKey: "start_date",
+    meta: { kind: "date" },
+    cell: ({ row }) => formatDateMty(row.original.start_date),
+  },
+  {
+    id: "end_date",
+    header: "Fecha Fin",
+    accessorKey: "end_date",
+    meta: { kind: "date" },
+    cell: ({ row }) => formatDateMty(row.original.end_date),
+  },
+  {
+    id: "status",
+    header: "Estado",
+    accessorKey: "status",
+    meta: { kind: "badge" },
+    cell: ({ row }) => <StatusBadge status={row.original.status} />,
+  },
+];
 
 export default function PortalRentals() {
   const [page, setPage] = useState(1);
   const { data: result, isLoading, isError, refetch } = usePortalBookingsPage(page, PAGE_SIZE);
-  const bookings = result?.rows ?? [];
+  const bookings = result?.rows ?? EMPTY_BOOKINGS;
   const totalPages = Math.max(1, Math.ceil((result?.totalCount ?? 0) / PAGE_SIZE));
   const isMobile = useIsMobile();
 
-  const columns: ColumnDef<Booking>[] = [
-      {
-        id: "equipo",
-        header: "Equipo",
-        accessorFn: (b) => `${b.forklifts?.name ?? ""} ${b.forklifts?.model ?? ""}`.trim(),
-        cell: ({ row }) => (
-          <span className="font-medium">
-            {row.original.forklifts?.name || "—"} — {row.original.forklifts?.model || ""}
-          </span>
-        ),
-      },
-      {
-        id: "start_date",
-        header: "Fecha Inicio",
-        accessorKey: "start_date",
-        meta: { kind: "date" },
-        cell: ({ row }) => formatDateMty(row.original.start_date),
-      },
-      {
-        id: "end_date",
-        header: "Fecha Fin",
-        accessorKey: "end_date",
-        meta: { kind: "date" },
-        cell: ({ row }) => formatDateMty(row.original.end_date),
-      },
-      {
-        id: "status",
-        header: "Estado",
-        accessorKey: "status",
-        meta: { kind: "badge" },
-        cell: ({ row }) => <StatusBadge status={row.original.status} />,
-      },
-    ];
-
   const table = useLiftgoTable<Booking>({
     data: bookings,
-    columns,
+    columns: PORTAL_RENTAL_COLUMNS,
     getRowId: (b) => b.id,
     initialSorting: [{ id: "start_date", desc: true }],
     enableSorting: false,

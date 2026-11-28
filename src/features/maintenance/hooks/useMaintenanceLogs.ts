@@ -1,0 +1,108 @@
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import type { Tables, TablesInsert } from "@/integrations/supabase/types";
+import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
+import {
+  stripOrganizationId,
+  type WithoutOrganization,
+} from "@/lib/organization/writeContext";
+import { defineEntityQueries } from "@/lib/query/defineEntityQueries";
+import { e2eVisibilityFilter, LIST_FETCH_LIMIT } from "@/lib/supabase/constants";
+import { maintenanceInvalidationKeys } from "../lib/maintenanceInvalidationKeys";
+
+export type MaintenanceLog = Tables<"maintenance_logs">;
+
+// v7.216.0 (C6): columnas explícitas.
+const sel = (s: string): string => s;
+const MAINTENANCE_LOG_COLUMNS = sel(
+  "id, forklift_id, supplier_id, service_type, description, cost, manual_cost, " +
+  "performed_at, performed_by, next_service_date, work_status, " +
+  "deleted_at, deleted_by, created_at, updated_at",
+);
+
+export const maintenanceLogQueries = defineEntityQueries<"maintenance_logs", MaintenanceLog[], never>(
+  "maintenance_logs",
+  {
+    list: (filter) => async () => {
+      const forkliftId = filter?.forkliftId as string | undefined;
+      // R5-A6: vista de archivados para poder restaurar OTs archivadas por error.
+      const archived = filter?.archived === true;
+      let q = supabase
+        .from("maintenance_logs")
+        .select(MAINTENANCE_LOG_COLUMNS)
+        .or(e2eVisibilityFilter())
+        .order("performed_at", { ascending: false })
+        .limit(LIST_FETCH_LIMIT);
+      q = archived ? q.not("deleted_at", "is", null) : q.is("deleted_at", null);
+      if (forkliftId) q = q.eq("forklift_id", forkliftId);
+      const { data, error } = await q.returns<MaintenanceLog[]>();
+      if (error) throw error;
+      return data;
+    },
+  },
+);
+
+export function useMaintenanceLogs(forkliftId?: string, archived = false) {
+  return useQuery(maintenanceLogQueries.list({ forkliftId: forkliftId ?? null, archived }));
+}
+
+export function useCreateMaintenanceLog() {
+  return useEntityMutation({
+    // Tramo 4: la empresa la asigna el trigger de contexto, nunca el formulario.
+    mutationFn: async (log: WithoutOrganization<TablesInsert<"maintenance_logs">>) => {
+      const { data, error } = await supabase
+        .from("maintenance_logs")
+        .insert(stripOrganizationId(log) as TablesInsert<"maintenance_logs">)
+        .select()
+        .single();
+      if (error) throw error;
+      return data;
+    },
+    invalidateKeys: maintenanceInvalidationKeys,
+    errorTitle: "Error al crear registro de mantenimiento",
+  });
+}
+
+export function useUpdateMaintenanceLog() {
+  return useEntityMutation({
+    mutationFn: async (
+      { id, ...updates }: { id: string } & Partial<WithoutOrganization<MaintenanceLog>>,
+    ) => {
+      const { data, error } = await supabase
+        .from("maintenance_logs")
+        .update(stripOrganizationId(updates))
+        .eq("id", id)
+        .select()
+        .single();
+      if (error) throw error;
+      return data;
+    },
+    invalidateKeys: maintenanceInvalidationKeys,
+    errorTitle: "Error al actualizar registro de mantenimiento",
+  });
+}
+
+export function useDeleteMaintenanceLog() {
+  return useEntityMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.rpc("soft_delete_maintenance_log", { p_log_id: id });
+      if (error) throw error;
+    },
+    invalidateKeys: maintenanceInvalidationKeys,
+    errorTitle: "Error al archivar registro de mantenimiento",
+  });
+}
+
+/** R5-A6: restaura una OT archivada (solo admin; la RPC revalida el rol). */
+export function useRestoreMaintenanceLog() {
+  return useEntityMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.rpc("restore_maintenance_log", { p_log_id: id });
+      if (error) throw error;
+      return id;
+    },
+    invalidateKeys: maintenanceInvalidationKeys,
+    successMsg: "Orden de trabajo restaurada",
+    errorTitle: "No se pudo restaurar la orden de trabajo",
+  });
+}

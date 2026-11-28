@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
-import { activityFeedQueries, type ActivityFilters } from "../lib/queryKeys";
+import { activityFeedQueries } from "../lib/dashboardQueries";
+import type { ActivityFilters } from "../lib/queryKeys";
 
 export type { ActivityFilters } from "../lib/queryKeys";
 

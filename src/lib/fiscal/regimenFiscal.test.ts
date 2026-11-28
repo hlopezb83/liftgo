@@ -1,7 +1,15 @@
 import { describe, expect, it } from "vitest";
 import { REGIMEN_FISCAL } from "@/lib/domain/satCatalogs";
-import { REGIMEN_FISCAL_CATALOG, regimenAplicaPersona, tipoPersonaFromRfc } from "@/lib/fiscal/regimenFiscal";
-import { REGIMEN_FISCAL_CODES } from "../../../supabase/functions/_shared/regimenFiscal.ts";
+import {
+  isValidRegimenFiscalCode,
+  REGIMEN_FISCAL_CATALOG,
+  regimenAplicaPersona,
+  tipoPersonaFromRfc,
+} from "@/lib/fiscal/regimenFiscal";
+import {
+  isValidRegimenFiscalCode as edgeIsValidRegimenFiscalCode,
+  REGIMEN_FISCAL_CODES,
+} from "../../../supabase/functions/_shared/regimenFiscal.ts";
 
 describe("R8-09: matriz de aplicabilidad de regímenes fiscales", () => {
   it("cubre explícitamente todos los códigos del catálogo (sin fallback permisivo)", () => {
@@ -52,5 +60,26 @@ describe("paridad de catálogos cliente/servidor", () => {
     const client = REGIMEN_FISCAL.map((r) => r.code).sort();
     const server = [...REGIMEN_FISCAL_CODES].sort();
     expect(client).toEqual(server);
+  });
+
+  it("isValidRegimenFiscalCode coincide entre cliente y servidor en bordes y trimming", () => {
+    const samples: Array<string | null | undefined> = [
+      ...REGIMEN_FISCAL.map((r) => r.code),
+      " 601 ",
+      "\t626\n",
+      "601 - General de Ley Personas Morales",
+      "999",
+      "60",
+      "6010",
+      "",
+      "   ",
+      null,
+      undefined,
+    ];
+    for (const sample of samples) {
+      expect(isValidRegimenFiscalCode(sample)).toBe(
+        edgeIsValidRegimenFiscalCode(sample),
+      );
+    }
   });
 });

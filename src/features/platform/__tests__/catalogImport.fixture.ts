@@ -1,4 +1,4 @@
-import type { CatalogImportPreview } from "@/lib/platformCatalogImport.types";
+import type { CatalogImportPreview } from "../lib/platformCatalogImport.types";
 export const SOURCE_ID = "90000000-0000-4000-8000-000000000010";
 export const ACTOR_ID = "90000000-0000-4000-8000-000000000001";
 export function importPreview(): Extract<CatalogImportPreview, { kind: "model" }> {

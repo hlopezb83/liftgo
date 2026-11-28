@@ -14,7 +14,7 @@ afterEach(cleanup);
 
 // Transport hooks are unused; the real payload builder and Select stay mounted.
 vi.mock("@/features/quotes", () => ({ useUpdateQuote: () => ({}) }));
-vi.mock("../../../hooks/invoices/useInvoices", () => ({
+vi.mock("../../../hooks/useInvoices", () => ({
   useSaveInvoiceWithBookings: () => ({ isPending: false }),
 }));
 

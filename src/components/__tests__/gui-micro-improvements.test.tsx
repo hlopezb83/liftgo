@@ -7,7 +7,7 @@ import { NativeSelect } from "@/components/ui/native-select";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { AuditLogMobileCard } from "@/features/audit/components/auditTrail/AuditLogMobileCard";
-import { DamageEvidenceSection } from "@/features/damage/components/damage/DamageEvidenceSection";
+import { DamageEvidenceSection } from "@/features/damage/components/DamageEvidenceSection";
 import { OfflineBanner } from "@/layouts/OfflineBanner";
 
 describe("GUI & UX micro-improvements", () => {

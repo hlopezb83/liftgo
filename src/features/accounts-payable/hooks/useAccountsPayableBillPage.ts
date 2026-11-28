@@ -2,8 +2,6 @@ import { useQuery } from "@tanstack/react-query";
 import { callAccountsPayableBillPageRpc, parseAccountsPayableBillPage } from "../lib/accountsPayableRpc";
 import { supplierBillKeys } from "./useSupplierBills";
 
-export type { AccountsPayableBillPage } from "../lib/accountsPayableRpc";
-
 export interface AccountsPayableBillPageRequest {
   search: string;
   status: string;

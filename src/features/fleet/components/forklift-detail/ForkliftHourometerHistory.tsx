@@ -10,41 +10,42 @@ interface ForkliftHourometerHistoryProps {
 }
 
 type Entry = ForkliftFinancials["hourometer_history"][number];
+const EMPTY_HISTORY: Entry[] = [];
+
+const HOUROMETER_COLUMNS: ColumnDef<Entry>[] = [
+  {
+    id: "date",
+    header: "Fecha",
+    accessorKey: "date",
+    cell: ({ row }) => <span className="text-sm">{formatDateMty(row.original.date)}</span>,
+  },
+  {
+    id: "delivery_number",
+    header: "Entrega",
+    accessorKey: "delivery_number",
+    cell: ({ row }) => <span className="text-sm font-mono">{row.original.delivery_number}</span>,
+  },
+  {
+    id: "type",
+    header: "Tipo",
+    accessorKey: "type",
+    cell: ({ row }) => (
+      <span className="text-sm">{row.original.type === "delivery" ? "Entrega" : "Recolección"}</span>
+    ),
+  },
+  {
+    id: "hours_reading",
+    header: "Lectura (hrs)",
+    accessorKey: "hours_reading",
+    meta: { kind: "number" },
+    cell: ({ row }) => <span className="font-mono font-semibold">{row.original.hours_reading}</span>,
+  },
+];
 
 export function ForkliftHourometerHistory({ history }: ForkliftHourometerHistoryProps) {
-  const columns: ColumnDef<Entry>[] = [
-      {
-        id: "date",
-        header: "Fecha",
-        accessorKey: "date",
-        cell: ({ row }) => <span className="text-sm">{formatDateMty(row.original.date)}</span>,
-      },
-      {
-        id: "delivery_number",
-        header: "Entrega",
-        accessorKey: "delivery_number",
-        cell: ({ row }) => <span className="text-sm font-mono">{row.original.delivery_number}</span>,
-      },
-      {
-        id: "type",
-        header: "Tipo",
-        accessorKey: "type",
-        cell: ({ row }) => (
-          <span className="text-sm">{row.original.type === "delivery" ? "Entrega" : "Recolección"}</span>
-        ),
-      },
-      {
-        id: "hours_reading",
-        header: "Lectura (hrs)",
-        accessorKey: "hours_reading",
-        meta: { kind: "number" },
-        cell: ({ row }) => <span className="font-mono font-semibold">{row.original.hours_reading}</span>,
-      },
-    ];
-
   const table = useLiftgoTable<Entry>({
-    data: history,
-    columns,
+    data: history ?? EMPTY_HISTORY,
+    columns: HOUROMETER_COLUMNS,
     getRowId: (e) => e.delivery_id,
     initialSorting: [{ id: "date", desc: true }],
     paginated: false,

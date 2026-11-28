@@ -6,7 +6,7 @@ import { formatCurrencyWithCode } from "@/lib/format/formatCurrency";
 import { Link } from "@/lib/router-compat-ui";
 import { recurringLineKey } from "../../lib/recurringSelection";
 import { recurringCurrency } from "./recurringPreviewPresentation";
-import type { RecurringPreviewLine } from "../../hooks/invoices/recurring/usePreviewRecurringInvoices";
+import type { RecurringPreviewLine } from "../../hooks/recurring/usePreviewRecurringInvoices";
 
 export function SummaryBar({
   eligibleCount,

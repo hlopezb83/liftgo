@@ -9,7 +9,6 @@ import importPlugin from "eslint-plugin-import-x";
 import playwright from "eslint-plugin-playwright";
 import tseslint from "typescript-eslint";
 
-
 // Flat config reemplaza opciones de una regla; no acumula restricciones entre
 // bloques. Aliases independientes de las reglas core conservan cada ámbito,
 // severidad y excepción, y permiten que todos los guardrails se ejecuten juntos.
@@ -28,6 +27,56 @@ const guardrails = {
   },
 };
 
+const UNUSED_VARS_OPTIONS = {
+  argsIgnorePattern: "^_",
+  varsIgnorePattern: "^_",
+  caughtErrorsIgnorePattern: "^_",
+  destructuredArrayIgnorePattern: "^_",
+  ignoreRestSiblings: true,
+};
+
+const LEGACY_EDGE_FUNCTIONS_COMPLEXITY_BASELINE = [
+  "supabase/functions/_shared/ai.ts",
+  "supabase/functions/_shared/authWithDeps.ts",
+  "supabase/functions/_shared/creditNoteSourceValidation.ts",
+  "supabase/functions/_shared/edgeSentry.ts",
+  "supabase/functions/_shared/edgeSentryError.ts",
+  "supabase/functions/_shared/edgeSentryPrivacy.ts",
+  "supabase/functions/_shared/facturapi/client.ts",
+  "supabase/functions/_shared/facturapi/invoiceRecovery.ts",
+  "supabase/functions/_shared/facturapi/retryContext.ts",
+  "supabase/functions/_shared/facturapi/validateTaxId.ts",
+  "supabase/functions/_shared/orgContext.ts",
+  "supabase/functions/_shared/stampOutcome.ts",
+  "supabase/functions/_shared/storageMigrationPlan.ts",
+  "supabase/functions/_shared/storageOrphanReconciliation.ts",
+  "supabase/functions/_shared/storageQuarantine.ts",
+  "supabase/functions/_shared/supabaseClients.ts",
+  "supabase/functions/_shared/supplierRepXmlCore.ts",
+  "supabase/functions/cancel-cfdi/handler.ts",
+  "supabase/functions/cancel-credit-note/handler.ts",
+  "supabase/functions/cancel-payment-complement/handler.ts",
+  "supabase/functions/classify-feedback-report/handler.ts",
+  "supabase/functions/generate-manual/manual.ts",
+  "supabase/functions/generate-recurring-invoices/coverage.ts",
+  "supabase/functions/generate-recurring-invoices/handler.ts",
+  "supabase/functions/generate-recurring-invoices/invoiceHistory.ts",
+  "supabase/functions/generate-recurring-invoices/optimizationFixtures.ts",
+  "supabase/functions/generate-recurring-invoices/performance.ts",
+  "supabase/functions/generate-recurring-invoices/planner.ts",
+  "supabase/functions/generate-recurring-invoices/planningData.ts",
+  "supabase/functions/generate-recurring-invoices/quoteCharges.ts",
+  "supabase/functions/generate-recurring-maintenance/logic.ts",
+  "supabase/functions/reconcile-stamping-invoices/creditNoteProcessor.ts",
+  "supabase/functions/reconcile-stamping-invoices/invoiceProcessor.ts",
+  "supabase/functions/reconcile-stamping-invoices/paymentProcessor.ts",
+  "supabase/functions/reconcile-stamping-invoices/recoverCreditNotePdf.ts",
+  "supabase/functions/refresh-cancellation-status/handler.ts",
+  "supabase/functions/validate-customers-tax-info/handler.ts",
+  "supabase/functions/validate-receptor-tax-info/handler.ts",
+  "supabase/functions/validate-supplier-rep/handler.ts",
+];
+
 export default tseslint.config(
   {
     ignores: [
@@ -38,7 +87,6 @@ export default tseslint.config(
       ".output",
       ".vinxi",
       ".nitro",
-      "src/components/ui/**",
       "src/integrations/supabase/types.ts",
       // Árbol de rutas generado por TanStack Router.
       "src/routeTree.gen.ts",
@@ -48,7 +96,6 @@ export default tseslint.config(
       "src/integrations/supabase/client.server.ts",
       "src/integrations/supabase/auth-middleware.ts",
       "src/integrations/supabase/auth-attacher.ts",
-      "supabase/functions/**",
       "qa/facturapi6-sandbox-candidate/snapshot/**",
       // Código Deno de QA Facturapi 6 (copias revisadas y sondas); no es parte de la app web.
       "qa/facturapi6-sandbox-candidate/runner/**",
@@ -60,14 +107,14 @@ export default tseslint.config(
       "scripts/**",
       // Scripts locales de auditoría visual (no forman parte del bundle).
       "audit_*.ts",
-      // tests/** se excluye por bloque (no global) para poder aplicar
-      // eslint-plugin-playwright a tests/e2e/** desde un bloque específico.
+      // tests/**, src/components/ui/** y supabase/functions/** tienen sus
+      // propios bloques dedicados más abajo.
     ],
   },
   {
     extends: [js.configs.recommended, ...tseslint.configs.recommended],
     files: ["**/*.{ts,tsx}"],
-    ignores: ["tests/**"],
+    ignores: ["tests/**", "src/components/ui/**", "supabase/functions/**"],
     languageOptions: {
       ecmaVersion: 2022,
     },
@@ -82,12 +129,10 @@ export default tseslint.config(
     rules: {
       ...reactHooks.configs.recommended.rules,
       ...jsxA11y.configs.recommended.rules,
-      // a11y calibrado como warn: no bloquea la build mientras migramos.
-      "jsx-a11y/no-autofocus": "warn",
-      "jsx-a11y/click-events-have-key-events": "warn",
-      "jsx-a11y/no-static-element-interactions": "warn",
-      "jsx-a11y/label-has-associated-control": "warn",
-      // Orden de imports consistente (autofix con `bun run lint --fix`).
+      "jsx-a11y/no-autofocus": "error",
+      "jsx-a11y/click-events-have-key-events": "error",
+      "jsx-a11y/no-static-element-interactions": "error",
+      "jsx-a11y/label-has-associated-control": "error",
       "import-x/order": ["warn", {
         groups: ["builtin", "external", "internal", "parent", "sibling", "index", "type"],
         "newlines-between": "never",
@@ -97,30 +142,15 @@ export default tseslint.config(
         ],
         pathGroupsExcludedImportTypes: ["builtin"],
       }],
-      // React Compiler ESLint checks — activado como `warn` para análisis
-      // estático (detecta mutaciones de state, refs mal usadas, hooks fuera
-      // de spec) SIN necesidad de correr el compilador todavía. La activación
-      // completa (babel-plugin-react-compiler + @vitejs/plugin-react) queda
-      // como paso opcional siguiente; hoy sólo cosechamos los diagnósticos.
       "react-compiler/react-compiler": "warn",
       "react-refresh/only-export-components": ["warn", {
         allowConstantExport: true,
         allowExportNames: ["meta", "loader", "action", "links", "headers", "handle"],
       }],
-
-
-      "@typescript-eslint/no-unused-vars": "off",
-      // === Power of 10 (LiftGo) — enforced ===
-      // Tipado fuerte (regla 5/10): prohibido `any` y non-null assertion.
+      "@typescript-eslint/no-unused-vars": ["error", UNUSED_VARS_OPTIONS],
       "@typescript-eslint/no-explicit-any": "error",
       "@typescript-eslint/no-non-null-assertion": "error",
-      // Cleanup obligatorio en useEffect (regla 3).
       "react-hooks/exhaustive-deps": "error",
-      // Reglas nuevas de eslint-plugin-react-hooks@7 (experimentales / React
-      // Compiler). Desactivadas para no bloquear la build; migración
-      // incremental por lote separado. Ver plan de deps.
-      // Reglas experimentales de react-hooks@7 activadas como `warn` para
-      // cosechar diagnósticos sin bloquear CI. Triaje incremental por lote.
       "react-hooks/refs": "warn",
       "react-hooks/set-state-in-effect": "warn",
       "react-hooks/incompatible-library": "warn",
@@ -131,28 +161,49 @@ export default tseslint.config(
       "react-hooks/preserve-manual-memoization": "warn",
       "react-hooks/set-state-in-render": "warn",
       "react-hooks/gating": "warn",
-      // Reglas meta/infra que no aportan señal accionable aún.
       "react-hooks/globals": "off",
       "react-hooks/config": "off",
       "react-hooks/component-hook-factories": "off",
       "react-hooks/error-boundaries": "off",
       "react-hooks/unsupported-syntax": "off",
       "react-hooks/fbt": "off",
-      // Compilación impecable (regla 10): nada de console.log en commits.
       "no-console": ["warn", { allow: ["warn", "error"] }],
-      // === Power of 10 (LiftGo) — calibradas como warning ===
-      // Micro-componentes (regla 4): 150 LOC componentes, 80 LOC hooks/funciones.
       "max-lines": ["warn", { max: 300, skipBlankLines: true, skipComments: true }],
       "max-lines-per-function": ["warn", { max: 150, skipBlankLines: true, skipComments: true, IIFEs: true }],
-      // Flujo de control simple (regla 1). 15 permite headroom para dialogs
-      // y hooks con branching de UI ya probados.
       complexity: ["warn", 15],
+    },
+  },
+  {
+    // Bloque acotado de seguridad, accesibilidad e íconos sobre primitivas UI.
+    extends: [js.configs.recommended, ...tseslint.configs.recommended],
+    files: ["src/components/ui/**/*.{ts,tsx}"],
+    languageOptions: {
+      ecmaVersion: 2022,
+      globals: globals.browser,
+    },
+    plugins: {
+      "jsx-a11y": jsxA11y,
+      liftgo: guardrails,
+    },
+    rules: {
+      ...jsxA11y.configs.recommended.rules,
+      "@typescript-eslint/no-unused-vars": ["error", UNUSED_VARS_OPTIONS],
+      "@typescript-eslint/no-explicit-any": "error",
+      "@typescript-eslint/no-non-null-assertion": "error",
+      "liftgo/no-ui-supabase": ["error", {
+        paths: [
+          {
+            name: "@/integrations/supabase/client",
+            message: "Las primitivas UI no deben importar el cliente Supabase.",
+          },
+        ],
+      }],
     },
   },
   {
     // Los globales del navegador solo aplican al cliente, no a funciones SSR.
     files: ["src/**/*.{ts,tsx}"],
-    ignores: ["src/server.ts", "src/**/*.server.{ts,tsx}", "src/**/*.functions.{ts,tsx}"],
+    ignores: ["src/components/ui/**", "src/server.ts", "src/**/*.server.{ts,tsx}", "src/**/*.functions.{ts,tsx}"],
     languageOptions: { globals: globals.browser },
   },
   {
@@ -165,42 +216,40 @@ export default tseslint.config(
     languageOptions: { globals: globals.nodeBuiltin },
   },
   {
-    // Tests pueden usar `any` y funciones largas.
     // Tests pueden usar `any`, funciones largas y patrón vi.mock entre imports.
     files: ["**/*.test.{ts,tsx}", "src/test/**", "**/__tests__/**"],
+    ignores: ["supabase/functions/**"],
     rules: {
       "@typescript-eslint/no-explicit-any": "off",
       "@typescript-eslint/no-non-null-assertion": "off",
       "max-lines-per-function": "off",
-      // vi.mock() debe ir antes de imports que dependen del módulo mockeado,
-      // lo que rompe el orden alfabético estricto de import-x/order.
       "import-x/order": "off",
     },
   },
   {
-    // Guardrail: matemática monetaria SOLO en src/lib/domain/invoiceTotals.ts
-    // (re-exportado vía invoiceHelpers.ts) o rentalCalculation.ts.
+    // Guardrail: matemática monetaria fuera de UI/formularios críticos.
     files: [
-      "src/features/quotes/components/quotes/*LineHelpers.ts",
+      "src/features/quotes/components/*LineHelpers.ts",
       "src/features/invoices/hooks/invoiceForm/*.ts",
+      "src/features/accounts-payable/components/SupplierBillDetailContent.tsx",
+      "src/features/accounts-payable/pages/AgingReportPage.tsx",
+      "src/features/reports/components/AgingReport.tsx",
     ],
     rules: {
       "liftgo/no-inline-money": ["error",
         {
           selector: "BinaryExpression[operator='*']",
-          message: "Aritmética monetaria prohibida fuera de src/lib/domain/invoiceTotals.ts. Usar lineItemTotal / applyDiscountToBase / saleLineTotal.",
+          message: "Aritmética monetaria prohibida fuera de helpers monetarios (invoiceTotals / sumMoney / money).",
         },
         {
           selector: "BinaryExpression[operator='/']",
-          message: "Aritmética monetaria prohibida fuera de src/lib/domain/invoiceTotals.ts. Usar lineItemTotal / applyDiscountToBase / saleLineTotal.",
+          message: "Aritmética monetaria prohibida fuera de helpers monetarios (invoiceTotals / sumMoney / money).",
         },
       ],
     },
   },
   {
-    // Paso 8 auditoría: las páginas y componentes no deben hablar con Supabase
-    // directamente. Toda I/O debe pasar por un hook bajo features/*/hooks.
-    // Excepción: src/features/auth/pages/AuthPage.tsx (login flow, pre-sesión).
+    // Las páginas y componentes no deben hablar con Supabase directamente.
     files: ["src/features/**/pages/**/*.{ts,tsx}", "src/features/**/components/**/*.{ts,tsx}", "src/components/**/*.{ts,tsx}"],
     ignores: ["src/features/auth/pages/AuthPage.tsx", "src/components/ui/**"],
     rules: {
@@ -215,11 +264,7 @@ export default tseslint.config(
     },
   },
   {
-    // Registry de íconos: NADIE fuera de src/components/icons/** puede
-    // importar de `lucide-react`. Consumir siempre `@/components/icons`
-    // para poder consolidar duplicados semánticos, renombrar y auditar
-    // en un solo lugar. Además, dentro del registry desincentivamos los
-    // nombres crudos de lucide cuando existe un alias semántico canónico.
+    // Registry de íconos: consumir siempre `@/components/icons` con aliases semánticos.
     files: ["src/**/*.{ts,tsx}"],
     ignores: ["src/components/icons/**"],
     rules: {
@@ -227,7 +272,7 @@ export default tseslint.config(
         paths: [
           {
             name: "lucide-react",
-            message: "Importa desde '@/components/icons' (registry). Ver src/components/icons/index.ts para aliases semánticos (DeleteIcon, EditIcon, SuccessIcon, etc.).",
+            message: "Importa desde '@/components/icons' (registry). Ver src/components/icons/index.ts para aliases semánticos.",
           },
           {
             name: "@/components/icons",
@@ -244,28 +289,20 @@ export default tseslint.config(
               "Target", "Trophy", "Activity", "Star", "HelpCircle",
               "KeyRound", "ArrowLeft", "ChevronRight", "ChevronLeft",
               "ChevronUp", "ChevronDown",
-              // Aliases nuevos v7.11 — bloquear nombres crudos:
               "Send", "FileSignature", "HandCoins", "Banknote", "Factory",
               "PackageSearch", "FileCheck2", "Wallet", "CalendarX",
-              // v7.11.1 — nuevos aliases (RevenueIcon, FilterIcon, EmailIcon, OpenLinkIcon):
               "CircleDollarSign", "SlidersHorizontal", "Mail", "ExternalLink",
-              // TruckIcon fue eliminado del uso: Truck ya cubre FleetIcon,
-              // y Entregas ahora usa DeliveryIcon (Send).
               "TruckIcon",
             ],
-            message: "Usa el alias semántico del registry (DeleteIcon, EditIcon, DeliveryIcon, PaymentIcon, CostIcon, SignIcon, SupplierIcon, ...). Ver JSDoc en src/components/icons/index.ts.",
+            message: "Usa el alias semántico del registry (DeleteIcon, EditIcon, CheckIcon, DeliveryIcon, PaymentIcon, ...).",
           },
         ],
       }],
     },
   },
-
   {
-    // El wrapper canónico es el único consumidor de sonner fuera de las
-    // excepciones originales (ui/** global e icons/**). La excepción sólo
-    // afecta a sonner: appFeedback sigue sujeto al registry de iconos.
     files: ["src/**/*.{ts,tsx}"],
-    ignores: ["src/components/icons/**", "src/lib/ui/appFeedback.ts"],
+    ignores: ["src/components/icons/**", "src/components/ui/sonner.tsx", "src/lib/ui/appFeedback.ts"],
     rules: {
       "liftgo/no-direct-sonner": ["error", {
         paths: [{
@@ -275,20 +312,7 @@ export default tseslint.config(
       }],
     },
   },
-
   {
-    // Auditoría arquitectura — paso 2: desincentivar imports profundos
-    // cross-feature. Cada feature debería exponer su API pública vía
-    // `src/features/<feature>/index.ts`. Importar rutas internas de OTRA
-    // feature acopla refactors internos con consumidores remotos.
-    //
-    // Se conserva el scope original de hooks/ y lib/. El alias independiente
-    // evita sobreescribir las restricciones de imports de otros bloques.
-    //
-    // v7.218.0 · ARQ2-A4: se mantiene `warn` — el patrón `@/features/*/…`
-    // también matchea la MISMA feature (los deep imports intra-feature son
-    // legítimos). El guardrail duro bloqueante vive en scripts/arch-check.sh
-    // (G5 con umbral 0), que sí distingue src vs. target por feature.
     files: ["src/features/**/hooks/**/*.{ts,tsx}", "src/features/**/lib/**/*.{ts,tsx}"],
     ignores: ["**/__tests__/**", "**/*.test.{ts,tsx}"],
     rules: {
@@ -302,23 +326,7 @@ export default tseslint.config(
       }],
     },
   },
-
   {
-    // Guardrail date-fns: features/**, hooks/**, components/** deben usar los
-    // helpers de `@/lib/format/dateFormats` (formatDateMty, formatDateTimeMty,
-    // todayKeyMty, APP_LOCALE) o `@/lib/date/toYMD`, en lugar de importar
-    // `format` desde `date-fns` o el locale `es` directamente. Así se garantiza
-    // TZ America/Monterrey y locale es-MX en toda la UI.
-    //
-    // Nivel `warn` (no `error`) durante la migración incremental — los archivos
-    // nuevos deben respetarlo; los ~30 sitios legacy con `format(...)` inline
-    // se migran por lotes en cambios sucesivos.
-    //
-    // Excepciones legítimas (siguen pudiendo importar `date-fns` puro):
-    //  - src/lib/** (los propios helpers y capa de PDFs)
-    //  - src/components/ui/calendar.tsx (react-day-picker requiere el objeto locale)
-    //  - src/features/calendar/** y src/features/cash-flow/** (aritmética de fechas: addDays, differenceInDays, startOfWeek, etc.)
-    //  - tests
     files: ["src/features/**/*.{ts,tsx}", "src/components/**/*.{ts,tsx}"],
     ignores: [
       "src/lib/**",
@@ -329,12 +337,12 @@ export default tseslint.config(
       "**/*.test.{ts,tsx}",
     ],
     rules: {
-      "liftgo/no-unlocalized-dates": ["warn", {
+      "liftgo/no-unlocalized-dates": ["error", {
         paths: [
           {
             name: "date-fns",
             importNames: ["format"],
-            message: "Usa formatDateMty / formatDateTimeMty / formatDateLongMty / formatDayMonthShortMty / formatDateTimeShortMty / todayKeyMty desde '@/lib/format/dateFormats', o toYMD desde '@/lib/date/toYMD'. Aplican TZ America/Monterrey y locale es-MX.",
+            message: "Usa formatDateMty / formatDateTimeMty / formatDateLongMty / formatDayMonthShortMty / formatDateTimeShortMty / todayKeyMty desde '@/lib/format/dateFormats', o toYMD desde '@/lib/date/toYMD'.",
           },
           {
             name: "date-fns/locale",
@@ -345,32 +353,37 @@ export default tseslint.config(
       }],
     },
   },
-
   {
-    // Guardrail react-router: `useNavigate` crudo se salta el envoltorio
-    // `startTransition` de React 19 que aplica `useNavigateTransition`,
-    // haciendo que las navegaciones a rutas lazy congelen la UI mientras
-    // Suspense resuelve. Usar siempre `@/hooks/useNavigateTransition`.
-    //
-    // Excepciones: el propio hook, el flujo de auth (pre-sesión, sin lazy
-    // chunks pesados) y tests.
     files: ["src/**/*.{ts,tsx}"],
     ignores: [
       "src/hooks/useNavigateTransition.ts",
+      "src/lib/router-compat.ts",
+      "src/lib/router-compat-ui.tsx",
+      "src/components/ui/**",
       "src/features/auth/**",
       "**/__tests__/**",
       "**/*.test.{ts,tsx}",
     ],
     rules: {
-      "liftgo/no-unwrapped-navigation": ["warn", {
+      "liftgo/no-unwrapped-navigation": ["error", {
         paths: [
           {
             name: "react-router-dom",
             importNames: ["useNavigate"],
-            message: "Usa `useNavigateTransition` desde '@/hooks/useNavigateTransition'. Envuelve la navegación en startTransition y evita bloquear la UI cuando la ruta destino es lazy.",
+            message: "Usa `useNavigateTransition` desde '@/hooks/useNavigateTransition'.",
           },
           {
             name: "react-router",
+            importNames: ["useNavigate"],
+            message: "Usa `useNavigateTransition` desde '@/hooks/useNavigateTransition'.",
+          },
+          {
+            name: "@tanstack/react-router",
+            importNames: ["useNavigate", "Link"],
+            message: "Usa `useNavigateTransition` desde '@/hooks/useNavigateTransition' y `Link` desde '@/lib/router-compat-ui'.",
+          },
+          {
+            name: "@/lib/router-compat",
             importNames: ["useNavigate"],
             message: "Usa `useNavigateTransition` desde '@/hooks/useNavigateTransition'.",
           },
@@ -378,16 +391,7 @@ export default tseslint.config(
       }],
     },
   },
-
   {
-    // Guardrail Tailwind: prohibido usar utilities de color crudas de la
-    // paleta por defecto (bg-white, text-gray-500, border-slate-200…) fuera
-    // de src/components/ui/**. Toda superficie de la app se debe pintar con
-    // tokens semánticos (background, foreground, muted, primary, warning,
-    // success, status-*, gantt-*, etc.) declarados en src/index.css @theme.
-    //
-    // Excepciones: primitives shadcn en components/ui/**, PDFs (usan estilos
-    // inline de react-pdf) y tests.
     files: ["src/**/*.{ts,tsx}"],
     ignores: [
       "src/components/ui/**",
@@ -396,25 +400,53 @@ export default tseslint.config(
       "**/*.test.{ts,tsx}",
     ],
     rules: {
-      "liftgo/no-raw-colors": ["warn",
+      "liftgo/no-raw-colors": ["error",
         {
           selector: "Literal[value=/\\b(bg|text|border|from|to|via|ring|divide|outline|placeholder|caret|fill|stroke|shadow|decoration|accent)-(white|black|slate|gray|zinc|neutral|stone|red|orange|amber|yellow|lime|green|emerald|teal|cyan|sky|blue|indigo|violet|purple|fuchsia|pink|rose)-\\d{2,3}\\b/]",
-          message: "Usa un token semántico (bg-primary, text-muted-foreground, border-warning/40, bg-status-*, bg-gantt-*, …) en lugar de la paleta cruda de Tailwind. Los tokens están en src/index.css.",
+          message: "Usa un token semántico (bg-primary, text-muted-foreground, border-warning/40, bg-status-*, bg-gantt-*, …) en lugar de la paleta cruda de Tailwind.",
         },
       ],
     },
   },
   {
-    // v7.72.2 — Playwright linting sobre tests/e2e/**. El `ignores` global
-    // de `tests/**` corta el resto de reglas TS/React, pero flat-config
-    // permite volver a incluir un subset con reglas específicas de test
-    // runner. Aquí solo aplican reglas de eslint-plugin-playwright.
-    //
-    // Niveles calibrados:
-    //  - `no-wait-for-timeout`: warn (queda 1 residual justificado en helpers)
-    //  - `no-focused-test`, `no-skipped-test` (warn), `valid-expect`: on
-    //  - `no-conditional-in-test`: off (usamos condicionales para tolerar
-    //    UI opcional en flujos legacy; migración explícita, no bloqueo).
+    // Bloque dedicado para Edge Functions Deno (complejidad, tamaño y tipado).
+    extends: [js.configs.recommended, ...tseslint.configs.recommended],
+    files: ["supabase/functions/**/*.ts"],
+    ignores: [
+      "supabase/functions/**/*_test.ts",
+      "supabase/functions/_shared/test/**",
+      "supabase/functions/_shared/test-helpers.ts",
+    ],
+    languageOptions: {
+      ecmaVersion: 2022,
+      sourceType: "module",
+      globals: {
+        ...globals.es2024,
+        Deno: "readonly",
+      },
+    },
+    rules: {
+      "@typescript-eslint/no-unused-vars": ["error", UNUSED_VARS_OPTIONS],
+      "@typescript-eslint/no-explicit-any": "error",
+      "@typescript-eslint/no-non-null-assertion": "error",
+      "max-lines": ["error", { max: 300, skipBlankLines: true, skipComments: true }],
+      "max-lines-per-function": ["error", { max: 150, skipBlankLines: true, skipComments: true, IIFEs: true }],
+      complexity: ["error", 15],
+    },
+  },
+  {
+    // Línea base explícita para módulos legacy o fijados por hash en Fase 3/4.
+    files: LEGACY_EDGE_FUNCTIONS_COMPLEXITY_BASELINE,
+    rules: {
+      "@typescript-eslint/no-explicit-any": "off",
+      "@typescript-eslint/no-non-null-assertion": "off",
+      "no-useless-assignment": "off",
+      "max-lines": "off",
+      "max-lines-per-function": "off",
+      complexity: "off",
+    },
+  },
+  {
     files: ["tests/inventory-design/**/*.{ts,tsx}", "tests/e2e/**/*.{ts,tsx}", "tests/multi-tenant-ab/**/*.{ts,tsx}", "tests/mobile/**/*.{ts,tsx}"],
     plugins: { playwright, "react-hooks": reactHooks },
     languageOptions: {
@@ -427,23 +459,16 @@ export default tseslint.config(
       "playwright/no-skipped-test": "warn",
       "playwright/no-conditional-in-test": "off",
       "playwright/no-networkidle": "warn",
-      // Registrado para que los `eslint-disable react-hooks/rules-of-hooks`
-      // en fixtures (Playwright confunde `use()` con un React Hook) no
-      // exploten como "Definition for rule not found".
       "react-hooks/rules-of-hooks": "off",
     },
   },
   {
-    // TanStack Router gestiona el HMR de Route y sus componentes de página.
-    // La regla de React Refresh 0.5 no reconoce createFileRoute(...)(...).
     files: ["src/routes/**/*.{ts,tsx}"],
     rules: {
       "react-refresh/only-export-components": "off",
     },
   },
   {
-    // API de componentes compuestos: Object.assign(Root, { Search, ... }).
-    // React Refresh 0.5 no reconoce sus miembros como exports del componente.
     files: ["src/components/filters/FiltersToolbar.tsx"],
     rules: {
       "react-refresh/only-export-components": "off",

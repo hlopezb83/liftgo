@@ -5,11 +5,11 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { NativeSelect } from "@/components/ui/native-select";
-import type { CatalogImportKind, CatalogImportSummary } from "@/lib/platformCatalogImport.types";
 import { usePlatformCapabilities } from "../../hooks/usePlatformAccess";
 import { useCatalogImportCandidates } from "../../hooks/usePlatformCatalogImport";
 import { CATALOG_IMPORT_STATUS } from "../../lib/catalogImportPresentation";
 import { CatalogImportReviewDialog } from "./CatalogImportReviewDialog";
+import type { CatalogImportKind, CatalogImportSummary } from "../../lib/platformCatalogImport.types";
 
 function CatalogImportCandidates({ kind }: { kind: CatalogImportKind }) {
   const [offset, setOffset] = useState(0);

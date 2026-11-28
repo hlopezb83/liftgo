@@ -2,10 +2,8 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import type { TablesInsert } from "@/integrations/supabase/types";
 import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
-import {
-  COMPANY_SETTINGS_INVALIDATION_KEYS,
-  companySettingsQueries,
-} from "../lib/queryKeys";
+import { companySettingsQueries } from "../lib/companySettingsQueries";
+import { COMPANY_SETTINGS_INVALIDATION_KEYS } from "../lib/queryKeys";
 
 export function useCompanySettings() {
   return useQuery(companySettingsQueries.list());

@@ -19,9 +19,9 @@ vi.mock("@/lib/ui/appFeedback", () => ({ notifySuccess: vi.fn() }));
 vi.mock("../../components/list/InvoicesToolbar", () => ({ InvoicesActionsBar: () => null, InvoicesFiltersBar: () => null }));
 vi.mock("../../components/recurring/RecurringInvoicesPreviewDialog", () => ({ RecurringInvoicesPreviewDialog: () => null }));
 vi.mock("../../components/recurring/RecurringInvoicesResultDialog", () => ({ RecurringInvoicesResultDialog: () => null }));
-vi.mock("../../hooks/invoices/recurring/useGenerateRecurringInvoices", () => ({ useGenerateRecurringInvoices: () => ({ mutate: vi.fn() }) }));
-vi.mock("../../hooks/invoices/recurring/usePreviewRecurringInvoices", () => ({ usePreviewRecurringInvoices: () => ({ mutate: vi.fn() }) }));
-vi.mock("../../hooks/invoices/useInvoices", () => ({
+vi.mock("../../hooks/recurring/useGenerateRecurringInvoices", () => ({ useGenerateRecurringInvoices: () => ({ mutate: vi.fn() }) }));
+vi.mock("../../hooks/recurring/usePreviewRecurringInvoices", () => ({ usePreviewRecurringInvoices: () => ({ mutate: vi.fn() }) }));
+vi.mock("../../hooks/useInvoices", () => ({
   useInvoicesInfinite: () => ({ data: { pages: [{ rows: [invoice] }] }, isLoading: false, isError: false }),
   invoiceQueries: { detail: vi.fn() }, fetchInvoicesForExport: vi.fn(),
 }));

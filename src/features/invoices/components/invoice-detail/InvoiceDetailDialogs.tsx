@@ -1,7 +1,7 @@
 import { NotesCard } from "@/components/domain/NotesCard";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { useHasModuleAccess } from "@/features/users";
-import { RecordPaymentDialog } from "../invoices/RecordPaymentDialog";
+import { RecordPaymentDialog } from "../RecordPaymentDialog";
 import { CancelCfdiDialog } from "./CancelCfdiDialog";
 import { CollectionNotesCard } from "./CollectionNotesCard";
 

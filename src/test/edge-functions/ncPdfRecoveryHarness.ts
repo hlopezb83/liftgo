@@ -59,7 +59,7 @@ vi.mock("../../../supabase/functions/_shared/facturapi/client.ts", () => ({
 }));
 // Dynamic path keeps Deno-only dependencies outside the browser tsc graph.
 const handlerPath =
-  "../../../supabase/functions/reconcile-stamping-invoices/index.ts";
+  "../../../supabase/functions/reconcile-stamping-invoices/handler.ts";
 export const { handleRequest } = (await import(handlerPath)) as {
   handleRequest: (request: Request) => Promise<Response>;
 };

@@ -8,21 +8,17 @@ arquitectónica intencional.
 
 Archivos actuales en la allowlist:
 
-- `activityTranslations.ts`
 - `bookingRates.ts`
 - `contractTypes.ts`
 - `customerTypes.ts`
 - `errorCatalog.ts`
-- `firstBillingPeriod.ts`
 - `invoiceHelpers.ts`
 - `invoiceStatus.ts`
 - `invoiceTotals.ts`
 - `lineItems.ts`
-- `nonRentalLines.ts`
 - `rentalCalculation.ts`
 - `roles.ts`
 - `satCatalogs.ts`
-- `stateMachines.ts`
 - `templateUtils.ts`
 
 La allowlist de `scripts/arch-check.sh` es la fuente de verdad y debe

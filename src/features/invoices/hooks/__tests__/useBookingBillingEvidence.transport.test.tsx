@@ -13,7 +13,7 @@ vi.mock("@/integrations/supabase/client", async () => {
     global: { fetch: transport },
   }) };
 });
-import { useBookingBillingEvidence } from "../invoices/useBookingBillingEvidence";
+import { useBookingBillingEvidence } from "../useBookingBillingEvidence";
 import { useInvoiceBookingPeriods } from "../invoiceForm/useInvoiceBookingPeriods";
 
 const invoice = (id: number) => ({

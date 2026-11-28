@@ -9,6 +9,7 @@ import {
   SUPPLIER_BILL_STATUS_LABELS,
   EXPENSE_CATEGORY_LABELS,
 } from "../lib/supplierBillConstants";
+import { computeSupplierBillBalance } from "../lib/supplierBillMath";
 import { BillApprovalSection } from "./BillApprovalSection";
 import { CancelSupplierBillDialog } from "./CancelSupplierBillDialog";
 import { RegisterSupplierPaymentDialog } from "./RegisterSupplierPaymentDialog";
@@ -139,8 +140,7 @@ export function SupplierBillDetailContent({ bill, perms, isAdmin, dialogs, onClo
   const paymentTriggerRef = useRef<HTMLButtonElement>(null);
   const paymentSummaryRef = useRef<HTMLDivElement>(null);
   // Preserve the existing read-only balance: historical total minus applied payments.
-  const paidSum = (bill.payments ?? []).reduce((sum, payment) => sum + Number(payment.amount), 0);
-  const computedBalance = Math.max(0, Number(bill.total) - paidSum);
+  const { computedBalance } = computeSupplierBillBalance(bill.total, bill.payments);
   return (
     <div className="flex min-h-0 flex-1 flex-col">
       <div className="min-h-0 flex-1 overflow-y-auto px-6 py-4 space-y-4">

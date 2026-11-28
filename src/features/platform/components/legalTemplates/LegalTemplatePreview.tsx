@@ -1,5 +1,5 @@
-import type { LegalTemplateContent } from "@/lib/platformLegalTemplates.types";
 import { legalTemplateDifferences, legalTemplateSections } from "../../lib/legalTemplateReview";
+import type { LegalTemplateContent } from "../../lib/platformLegalTemplates.types";
 
 export function LegalTemplatePreview({ content }: { content: LegalTemplateContent }) {
   return <div className="space-y-5">{legalTemplateSections(content).filter((section) => section.text).map((section) =>

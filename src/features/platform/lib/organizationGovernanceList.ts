@@ -1,5 +1,5 @@
-import type { PlatformOrganizationRow } from "@/lib/platformAdmin.types";
-import type { OrganizationClassification, OrganizationGovernanceSummary } from "@/lib/platformOrganizationGovernance.types";
+import type { PlatformOrganizationRow } from "./platformAdmin.types";
+import type { OrganizationClassification, OrganizationGovernanceSummary } from "./platformOrganizationGovernance.types";
 
 export type OrganizationWithGovernance = PlatformOrganizationRow & { governance?: OrganizationGovernanceSummary };
 const normalize = (value: string) => value.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();

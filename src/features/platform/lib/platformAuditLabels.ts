@@ -1,4 +1,4 @@
-import type { PlatformAuditEvent } from "@/lib/platformAudit.types";
+import type { PlatformAuditEvent } from "./platformAudit.types";
 
 export const PLATFORM_AUDIT_LABELS: Record<
   PlatformAuditEvent["target_type"],

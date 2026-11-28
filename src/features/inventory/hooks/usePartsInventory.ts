@@ -33,23 +33,6 @@ export function usePartsInventory() {
   return useQuery(partsInventoryQueries.list());
 }
 
-export function usePartsCatalog() {
-  return useQuery({
-    queryKey: ["parts_catalog", "active"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("parts_catalog")
-        .select("*")
-        .eq("is_active", true)
-        .order("sku")
-        .limit(LIST_FETCH_LIMIT)
-        .returns<PartCatalog[]>();
-      if (error) throw error;
-      return data;
-    },
-  });
-}
-
 export function useMaintenanceParts(maintenanceLogId?: string) {
   return useQuery({
     queryKey: maintenancePartKeys.byLog(maintenanceLogId ?? ""),

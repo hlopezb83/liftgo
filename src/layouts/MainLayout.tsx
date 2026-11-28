@@ -5,7 +5,7 @@ import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { usePageActionsContext } from "@/contexts/pageActions";
 import { PageActionsProvider } from "@/contexts/PageActionsContext";
 import { FeedbackFab } from "@/features/feedback";
-import { GlobalSearch } from "@/features/system/components/GlobalSearch";
+import { GlobalSearch } from "@/features/system";
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import { AppSidebar } from "@/layouts/AppSidebar";
 import { ErrorBoundary } from "@/layouts/ErrorBoundary";

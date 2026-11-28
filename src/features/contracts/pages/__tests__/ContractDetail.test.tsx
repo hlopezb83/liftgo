@@ -13,12 +13,12 @@ const useContractDetailLogicMock = vi.fn();
 vi.mock("../../hooks/contractDetail/useContractDetailLogic", () => ({
   useContractDetailLogic: () => useContractDetailLogicMock(),
 }));
-vi.mock("../../components/contracts/ContractDetailActions", () => ({ ContractDetailActions: () => null }));
+vi.mock("../../components/ContractDetailActions", () => ({ ContractDetailActions: () => null }));
 vi.mock("@/hooks/useNavigateTransition", () => ({ useNavigateTransition: () => vi.fn() }));
 vi.mock("@/components/layout/DetailPageHeader", () => ({ DetailPageHeader: () => null }));
-vi.mock("../../components/contracts/ContractConditionsCard", () => ({ ContractConditionsCard: () => null }));
-vi.mock("../../components/contracts/ContractDetailCards", () => ({ ContractDetailsCard: () => null, ContractTextCard: () => null }));
-vi.mock("../../components/contracts/ContractDepositCard", () => ({
+vi.mock("../../components/ContractConditionsCard", () => ({ ContractConditionsCard: () => null }));
+vi.mock("../../components/ContractDetailCards", () => ({ ContractDetailsCard: () => null, ContractTextCard: () => null }));
+vi.mock("../../components/ContractDepositCard", () => ({
   ContractDepositCard: () => <input aria-label="Borrador del depósito" defaultValue="" />,
 }));
 

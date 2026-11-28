@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
-import { dateKeyToday, mrrDetailQueries } from "../lib/queryKeys";
+import { mrrDetailQueries } from "../lib/dashboardQueries";
+import { dateKeyToday } from "../lib/queryKeys";
 
 export function useMrrDetail() {
   const dateKey = dateKeyToday();

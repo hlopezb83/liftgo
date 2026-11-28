@@ -6,7 +6,7 @@ import { PaymentIntentsSection } from "../PaymentIntentsSection";
 
 const mocks = vi.hoisted(() => ({ load: vi.fn(), review: vi.fn(), canWrite: true }));
 vi.mock("@/features/users", () => ({ useHasModuleAccess: () => mocks.canWrite }));
-vi.mock("@/features/invoices/hooks/paymentIntents", () => ({
+vi.mock("../../../hooks/paymentIntents", () => ({
   useAdminPaymentIntents: (invoiceId: string) => useQuery<AdminPaymentIntentRow[]>({
     queryKey: ["payment-intents-test", invoiceId], queryFn: mocks.load, retry: false,
   }),

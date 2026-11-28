@@ -6,17 +6,17 @@ import { PageContainer } from "@/components/layout/PageContainer";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import type {
-  PortalInvoiceRow,
-  PortalPaymentRow,
-  usePortalCustomer,
-} from "@/features/customers";
 import { formatDateMty } from "@/lib/format/dateFormats";
 import { formatCurrency } from "@/lib/format/formatCurrency";
 import { describeBusinessBlock, type BusinessBlock } from "@/lib/rules/businessBlocks";
 import { ReportTransferDialog } from "../components/ReportTransferDialog";
 import { StpTransferCard } from "../components/StpTransferCard";
 import { computeInvoiceTotals } from "./PortalInvoicePayment.helpers";
+import type {
+  PortalInvoiceRow,
+  PortalPaymentRow,
+  usePortalCustomer,
+} from "../hooks/useCustomerPortal";
 
 export type Intent = {
   id: string;

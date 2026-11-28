@@ -1,11 +1,11 @@
 import { useState } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useParams } from "@/lib/router-compat";
 import {
   usePortalInvoice,
   usePortalInvoicePayments,
   usePortalCustomer,
-} from "@/features/customers";
-import { useParams } from "@/lib/router-compat";
+} from "../hooks/useCustomerPortal";
 import { usePortalPaymentIntents } from "../hooks/usePortalExtras";
 import { InvoiceNotFound, PaymentBody, PaymentQueryError } from "./PortalInvoicePaymentParts";
 

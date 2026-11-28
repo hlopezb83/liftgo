@@ -1,4 +1,4 @@
-import type { LegalTemplateContent } from "@/lib/platformLegalTemplates.types";
+import type { LegalTemplateContent } from "./platformLegalTemplates.types";
 
 export function legalTemplateSections(content: LegalTemplateContent) {
   return [

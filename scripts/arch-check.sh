@@ -53,21 +53,17 @@ echo "-- G2: freeze de src/lib/domain/ (solo archivos allowlisted)"
 allowed=$(cat <<'EOF'
 README.md
 __tests__
-activityTranslations.ts
 bookingRates.ts
 contractTypes.ts
 customerTypes.ts
 errorCatalog.ts
-firstBillingPeriod.ts
 invoiceHelpers.ts
 invoiceStatus.ts
 invoiceTotals.ts
 lineItems.ts
-nonRentalLines.ts
 rentalCalculation.ts
 roles.ts
 satCatalogs.ts
-stateMachines.ts
 templateUtils.ts
 EOF
 )

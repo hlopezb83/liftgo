@@ -7,8 +7,8 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import type { PlatformOrganizationDetail } from "@/lib/platformOrganizationDetail.types";
 import { organizationReadiness } from "../lib/organizationReadiness";
+import type { PlatformOrganizationDetail } from "../lib/platformOrganizationDetail.types";
 
 export function OrganizationReadinessCard({
   detail,

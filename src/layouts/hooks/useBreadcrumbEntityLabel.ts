@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
-import { breadcrumbLabelQueries, type BreadcrumbResolver, type BreadcrumbFilter } from "../lib/queryKeys";
+import { breadcrumbLabelQueries } from "../lib/breadcrumbLabelQueries";
+import type { BreadcrumbFilter, BreadcrumbResolver } from "../lib/queryKeys";
 
 const ID_REGEX = /^[0-9a-f-]{20,}$/i;
 

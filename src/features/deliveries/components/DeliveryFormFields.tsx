@@ -1,0 +1,321 @@
+import { useEffect, useRef, useState } from "react";
+import { useWatch } from "react-hook-form";
+import {
+  TextField, TextareaField, DateField, SelectField, CheckboxField, type SelectOption,
+} from "@/components/forms/fields";
+import { FormSection } from "@/components/forms/FormSection";
+import { Button } from "@/components/ui/button";
+import { Form } from "@/components/ui/form";
+import { toYMD } from "@/lib/format/dateFormats";
+import { formatDateRange, nowMty, parseDateLocal } from "@/lib/utils";
+import { suggestedDateAfterTransportTypeChange, suggestedScheduledTransportDate } from "../lib/deliveryBookingDate";
+import { selectableBookings, type SelectableBooking } from "./selectableBookings";
+import type { UseFormReturn } from "react-hook-form";
+
+export type DeliveryFormValues = {
+  forkliftId: string; bookingId: string; type: string;
+  alreadyCompleted: boolean;
+  scheduledDate: Date; scheduledTime: string;
+  address: string; driverName: string; driverPhone: string; notes: string;
+  /** Bug 3: justificación si se registra completada sin operador. */
+  noEvidenceReason: string;
+};
+
+type Forklift = { id: string; name: string; model: string };
+type Booking = SelectableBooking;
+type Driver = { id: string; name: string; phone?: string | null };
+
+interface Props {
+  form: UseFormReturn<DeliveryFormValues>;
+  forklifts: Forklift[] | undefined;
+  bookings: Booking[] | undefined;
+  activeDrivers: Driver[] | undefined;
+  bookingsLoading?: boolean;
+  bookingsError?: boolean;
+  onRetryBookings?: () => void;
+  driversLoading?: boolean;
+  driversError?: boolean;
+  driversCached?: boolean;
+  onRetryDrivers?: () => void;
+  hasMoreBookings?: boolean;
+  onLoadMoreBookings?: () => void;
+  contextLocked?: boolean;
+}
+
+const TYPE_OPTIONS: SelectOption[] = [
+  { value: "delivery", label: "Entrega" },
+  { value: "pickup", label: "Recolección" },
+];
+
+export function DeliveryFormFields({
+  form, forklifts, bookings, activeDrivers,
+  bookingsLoading, bookingsError, onRetryBookings, hasMoreBookings, onLoadMoreBookings, contextLocked,
+  driversLoading, driversError, driversCached, onRetryDrivers,
+}: Props) {
+  const bookingId = useWatch({ control: form.control, name: "bookingId" });
+  const transportType = useWatch({ control: form.control, name: "type" });
+  const [clearedBooking, setClearedBooking] = useState(false);
+  // Bug 3: histórico sin operador → pedir justificación de evidencia.
+  const alreadyCompleted = useWatch({ control: form.control, name: "alreadyCompleted" });
+
+  const visibleBookings = selectableBookings(bookings, undefined);
+
+  const forkliftOptions: SelectOption[] =
+    forklifts?.map((f) => ({ value: f.id, label: `${f.name} — ${f.model}` })) ?? [];
+
+  const bookingOptions: SelectOption[] =
+    visibleBookings?.map((b) => ({
+      value: b.id,
+      label: `${b.booking_number || "Reserva sin folio"} · ${b.customer_name || "Sin cliente"} · ${b.forklifts?.name || forklifts?.find((f) => f.id === b.forklift_id)?.name || "Equipo sin nombre"} · ${formatDateRange(b.start_date, b.end_date)}`,
+    })) ?? [];
+
+  const driverName = useWatch({ control: form.control, name: "driverName" });
+
+  const selectBooking = (id: string) => {
+    const booking = bookings?.find((b) => b.id === id);
+    if (booking) {
+      form.setValue("forkliftId", booking.forklift_id, { shouldDirty: true });
+      setClearedBooking(false);
+    }
+  };
+  const selectForklift = (id: string) => {
+    const booking = bookings?.find((b) => b.id === form.getValues("bookingId"));
+    if (booking && booking.forklift_id !== id) {
+      form.setValue("bookingId", "", { shouldDirty: true, shouldValidate: true });
+      setClearedBooking(true);
+    }
+  };
+
+  useTransportDateSuggestion(form, bookings, bookingId, transportType);
+
+  return (
+    <Form {...form}>
+      <FormSection title="Detalles" first>
+        <SelectField
+          control={form.control}
+          name="bookingId"
+          label="Reserva Vinculada"
+          disabled={contextLocked}
+          options={bookingOptions}
+          onValueChange={selectBooking}
+          // GUI-FE-11a (G-DIS-03): la regla exige reserva; el placeholder
+          // "Opcional" contradecía la validación.
+          required
+          placeholder="Seleccionar reserva"
+        />
+        <DeliveryBookingStatus
+          cleared={clearedBooking && !bookingId}
+          bookingsLoading={bookingsLoading}
+          bookingsError={bookingsError}
+          onRetryBookings={onRetryBookings}
+          hasMoreBookings={hasMoreBookings}
+          onLoadMoreBookings={onLoadMoreBookings}
+        />
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <SelectField control={form.control} name="type" label="Tipo" required options={TYPE_OPTIONS} disabled={contextLocked} />
+          <SelectField
+            control={form.control}
+            name="forkliftId"
+            label="Montacargas"
+            disabled={contextLocked}
+            description="Se completa al elegir la reserva."
+            required
+            options={forkliftOptions}
+            onValueChange={selectForklift}
+            placeholder="Seleccionar"
+          />
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <DateField control={form.control} name="scheduledDate" label={transportType === "pickup" ? "Fecha de recolección" : "Fecha de entrega"} required />
+          <TextField control={form.control} name="scheduledTime" label="Hora" type="time" />
+        </div>
+
+        <CheckboxField
+          control={form.control}
+          name="alreadyCompleted"
+          label="Ya se realizó (registrar histórico)"
+          description="Permite fecha pasada; el transporte se registra directamente como completado."
+        />
+
+        <TextField
+          control={form.control}
+          name="address"
+          label={transportType === "pickup" ? "Dirección de recolección" : "Dirección de entrega"}
+          placeholder="Calle, número, colonia y ciudad"
+        />
+
+        <DeliveryOperatorFields
+          form={form}
+          activeDrivers={activeDrivers}
+          driversLoading={driversLoading}
+          driversError={driversError}
+          driversCached={driversCached}
+          onRetryDrivers={onRetryDrivers}
+        />
+
+        {/* Bug 3: histórico sin operador ni firma → justificación obligatoria. */}
+        {alreadyCompleted && !driverName?.trim() && (
+          <TextareaField
+            control={form.control}
+            name="noEvidenceReason"
+            label="Justificación (sin conductor ni firma)"
+            required
+            rows={2}
+            placeholder="Ej: Autorizó el supervisor Juan Pérez por teléfono"
+            description="El transporte quedará completado sin evidencia operativa; registra quién lo autorizó."
+          />
+        )}
+
+        <TextareaField
+          control={form.control}
+          name="notes"
+          label="Notas"
+          rows={2}
+          placeholder="Instrucciones especiales…"
+        />
+      </FormSection>
+    </Form>
+  );
+}
+
+function useTransportDateSuggestion(
+  form: UseFormReturn<DeliveryFormValues>,
+  bookings: Booking[] | undefined,
+  bookingId: string,
+  transportType: string,
+) {
+  const previousBookingId = useRef("");
+  const lastTransportType = useRef(transportType);
+  const lastSuggestedDate = useRef<string | null>(null);
+
+  // Al elegir otra reserva, proponer una fecha válida sin pisar una fecha ya válida.
+  useEffect(() => {
+    if (!bookingId) {
+      previousBookingId.current = "";
+      lastSuggestedDate.current = null;
+      return;
+    }
+    if (previousBookingId.current === bookingId) return;
+    const booking = bookings?.find((b) => b.id === bookingId);
+    if (!booking) return;
+    previousBookingId.current = bookingId;
+
+    const suggestedDate = suggestedScheduledTransportDate(
+      form.getValues("type"),
+      toYMD(form.getValues("scheduledDate")),
+      booking,
+      toYMD(nowMty()),
+      form.getValues("alreadyCompleted"),
+    );
+    lastSuggestedDate.current = suggestedDate;
+    if (suggestedDate) {
+      form.setValue("scheduledDate", parseDateLocal(suggestedDate), {
+        shouldDirty: true,
+        shouldValidate: true,
+      });
+    }
+  }, [bookingId, bookings, form]);
+
+  // Si cambia el tipo, mover sólo la fecha propuesta por este formulario.
+  useEffect(() => {
+    if (lastTransportType.current === transportType) return;
+    lastTransportType.current = transportType;
+    const booking = bookings?.find((b) => b.id === bookingId);
+    if (!booking) return;
+
+    const currentDate = toYMD(form.getValues("scheduledDate"));
+    const suggestedDate = suggestedDateAfterTransportTypeChange(
+      transportType,
+      currentDate,
+      lastSuggestedDate.current,
+      booking,
+      toYMD(nowMty()),
+      form.getValues("alreadyCompleted"),
+    );
+    if (currentDate !== lastSuggestedDate.current) lastSuggestedDate.current = null;
+    if (suggestedDate) {
+      lastSuggestedDate.current = suggestedDate;
+      form.setValue("scheduledDate", parseDateLocal(suggestedDate), {
+        shouldDirty: true,
+        shouldValidate: true,
+      });
+    }
+  }, [transportType, bookingId, bookings, form]);
+
+}
+
+function DeliveryBookingStatus({ cleared, bookingsLoading, bookingsError, onRetryBookings, hasMoreBookings, onLoadMoreBookings }: Pick<
+  Props, "bookingsLoading" | "bookingsError" | "onRetryBookings" | "hasMoreBookings" | "onLoadMoreBookings"
+> & { cleared: boolean }) {
+  return <>
+    {cleared && (
+      <p role="status" className="text-xs text-muted-foreground">
+        El cambio de equipo desvinculó la reserva. Elige una reserva del equipo que quieres transportar.
+      </p>
+    )}
+    {bookingsLoading && <p role="status" className="text-xs text-muted-foreground">Cargando reservas confirmadas…</p>}
+    {bookingsError && (
+      <div className="flex flex-wrap items-center gap-2">
+        <p role="alert" className="text-xs text-destructive">No se pudieron cargar las reservas.</p>
+        <Button type="button" variant="outline" size="sm" onClick={onRetryBookings} disabled={bookingsLoading}>
+          Reintentar reservas
+        </Button>
+      </div>
+    )}
+    {hasMoreBookings && (
+      <Button type="button" variant="outline" size="sm" onClick={onLoadMoreBookings} disabled={bookingsLoading}>
+        Cargar más reservas
+      </Button>
+    )}
+  </>;
+}
+
+function DeliveryOperatorFields({ form, activeDrivers, driversLoading, driversError, driversCached, onRetryDrivers }: Pick<
+  Props, "form" | "activeDrivers" | "driversLoading" | "driversError" | "driversCached" | "onRetryDrivers"
+>) {
+  const noDrivers = activeDrivers?.length === 0;
+  const drivers = activeDrivers ?? [];
+  const canSelect = drivers.length > 0 && (driversCached || (!driversLoading && !driversError));
+  const driverOptions = drivers.map((d) => ({ value: d.name, label: d.name }));
+  const selectDriver = (name: string) => {
+    const driver = drivers.find((d) => d.name === name);
+    form.setValue("driverPhone", driver?.phone ?? "", { shouldDirty: true, shouldValidate: true });
+  };
+
+  return (
+    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <SelectField
+        control={form.control}
+        name="driverName"
+        label="Conductor"
+        options={driverOptions}
+        onValueChange={selectDriver}
+        disabled={!canSelect}
+        placeholder={noDrivers ? "Sin conductores activos" : "Seleccionar conductor"}
+        description={noDrivers && !driversLoading && !driversError ? "No hay conductores activos registrados." : undefined}
+      />
+      <TextField
+        control={form.control}
+        name="driverPhone"
+        label="Teléfono del conductor"
+        type="tel"
+        placeholder="+52 55 1234 5678"
+      />
+      {driversLoading && <p role="status" className="text-xs text-muted-foreground sm:col-span-2">Cargando conductores activos…</p>}
+      {driversError && (
+        <div className="flex flex-wrap items-center gap-2 sm:col-span-2">
+          <p role="alert" className="text-xs text-destructive">
+            {driversCached && canSelect
+              ? "No se actualizaron los conductores. Se muestra la última lista disponible."
+              : "No se pudieron cargar los conductores."}
+          </p>
+          <Button type="button" variant="outline" size="sm" onClick={onRetryDrivers} disabled={driversLoading}>
+            Reintentar conductores
+          </Button>
+        </div>
+      )}
+    </div>
+  );
+}

@@ -2,7 +2,7 @@ import { fireEvent, render, screen, within } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { TestRouter } from "@/test/router";
-import type { SatValidationRow } from "../../hooks/customers/useSatValidation";
+import type { SatValidationRow } from "../../hooks/useSatValidation";
 import CustomersSatValidationPage from "../CustomersSatValidationPage";
 
 const state = vi.hoisted(() => ({
@@ -11,7 +11,7 @@ const state = vi.hoisted(() => ({
   isPending: false,
 }));
 
-vi.mock("../../hooks/customers/useSatValidation", () => ({
+vi.mock("../../hooks/useSatValidation", () => ({
   SAT_VALIDATION_PAGE_SIZE: 25,
   useSatValidationOverview: (page = 1) => ({
     data: {

@@ -10,7 +10,7 @@ import { Switch } from "@/components/ui/switch";
 import { toYMD } from "@/lib/format/dateFormats";
 import { formatMonthLongEs } from "@/lib/format/formatMonthEs";
 import { nowMty } from "@/lib/utils";
-import { IncomeStatementReport } from "../components/reports/IncomeStatementReport";
+import { IncomeStatementReport } from "../components/IncomeStatementReport";
 
 function generateMonthOptions(count: number) {
   const now = nowMty();

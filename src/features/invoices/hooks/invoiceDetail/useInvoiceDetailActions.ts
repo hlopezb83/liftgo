@@ -3,7 +3,7 @@ import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import type { Tables } from "@/integrations/supabase/types";
 import { STATUS_LABELS } from "@/lib/constants";
 import { notifySuccess } from "@/lib/ui/appFeedback";
-import { useUpdateInvoice, useDeleteInvoice } from "../invoices/useInvoices";
+import { useUpdateInvoice, useDeleteInvoice } from "../useInvoices";
 import { useDownloadInvoiceXml } from "./useDownloadInvoiceXml";
 import { useStampInvoiceFlow } from "./useStampInvoiceFlow";
 

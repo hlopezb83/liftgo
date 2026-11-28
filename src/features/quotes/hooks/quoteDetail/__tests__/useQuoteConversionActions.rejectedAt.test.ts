@@ -9,7 +9,7 @@ const mutate = vi.fn();
 
 vi.mock("@/hooks/useNavigateTransition", () => ({ useNavigateTransition: () => vi.fn() }));
 vi.mock("@/lib/ui/appFeedback", () => ({ notifyError: vi.fn(), notifySuccess: vi.fn() }));
-vi.mock("../../quotes/useQuotes", () => ({
+vi.mock("../../useQuotes", () => ({
   useUpdateQuote: () => ({ mutate }),
   useDeleteQuote: () => ({ mutate: vi.fn() }),
 }));

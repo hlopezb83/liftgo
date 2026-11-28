@@ -7,28 +7,28 @@ import {
 } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { afterEach, expect, it, vi } from "vitest";
-import { BankReconciliationWorkspace } from "@/features/bank-reconciliation/components/BankReconciliationWorkspace";
+import { BankReconciliationWorkspace } from "../BankReconciliationWorkspace";
 const m = vi.hoisted(() => ({
   ignore: vi.fn(),
   confirm: vi.fn(),
   single: vi.fn(),
 }));
 vi.mock(
-  "@/features/bank-reconciliation/hooks/mutations/useBankBulkActions",
+  "../../hooks/mutations/useBankBulkActions",
   () => ({
     useConfirmBankMatches: () => ({ mutate: m.confirm, isPending: false }),
     useIgnoreBankLines: () => ({ mutate: m.ignore, isPending: false }),
   }),
 );
 vi.mock(
-  "@/features/bank-reconciliation/hooks/useBankReconciliationMutations",
+  "../../hooks/useBankReconciliationMutations",
   () => ({
     useConfirmBankMatch: () => ({ mutate: vi.fn(), isPending: false }),
     useIgnoreBankLine: () => ({ mutate: m.single, isPending: false }),
     useUnmatchBankLine: () => ({ mutate: vi.fn(), isPending: false }),
   }),
 );
-vi.mock("@/features/bank-reconciliation/hooks/useBankMatchCandidates", () => ({
+vi.mock("../../hooks/useBankMatchCandidates", () => ({
   DATE_WINDOW_OPTIONS: [7, 15, 30],
   useBankMatchCandidates: () => ({
     data: [],

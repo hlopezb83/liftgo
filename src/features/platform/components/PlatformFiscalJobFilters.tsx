@@ -3,8 +3,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { NativeSelect } from "@/components/ui/native-select";
-import { FISCAL_OPERATIONS, FISCAL_QUEUE_STATUSES, type FiscalJobsInput } from "@/lib/platformFiscalJobs.types";
 import { usePlatformOrganizations } from "../hooks/usePlatformOperator";
+import { FISCAL_OPERATIONS, FISCAL_QUEUE_STATUSES, type FiscalJobsInput } from "../lib/platformFiscalJobs.types";
 
 export function PlatformFiscalJobFilters({ filters, search, onSearch, onChange }: {
   filters: FiscalJobsInput; search: string; onSearch: (value: string) => void; onChange: (value: FiscalJobsInput) => void;

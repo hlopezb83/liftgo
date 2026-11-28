@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useLiftgoTable, type ColumnDef } from "@/components/dataTable/v2";
 import { ListTruncationNotice } from "@/components/feedback/ListTruncationNotice";
 import { StatusBadge } from "@/components/feedback/StatusBadge";
@@ -19,6 +19,46 @@ import { useReturnableBookings } from "../hooks/useReturnableBookings";
 import { useReturnInspections } from "../hooks/useReturnInspections";
 
 type Inspection = NonNullable<ReturnType<typeof useReturnInspections>["data"]>[number];
+const EMPTY_INSPECTIONS: Inspection[] = [];
+
+const RETURN_INSPECTION_COLUMNS: ColumnDef<Inspection>[] = [
+  {
+    id: "inspection_number",
+    header: "Devolución #",
+    accessorKey: "inspection_number",
+    cell: ({ row }) => <span className="font-mono text-sm text-primary">{row.original.inspection_number}</span>,
+  },
+  {
+    id: "inspected_at",
+    header: "Fecha",
+    accessorKey: "inspected_at",
+    cell: ({ row }) => <span className="font-mono text-sm">{formatDateMty(row.original.inspected_at)}</span>,
+  },
+  {
+    id: "forklift_name",
+    header: "Montacargas",
+    accessorFn: (i) => i.forklifts?.name || "",
+    cell: ({ row }) => <span className="font-medium">{row.original.forklifts?.name || "—"}</span>,
+  },
+  {
+    id: "customer_name",
+    header: "Cliente",
+    accessorFn: (i) => i.bookings?.customer_name || "",
+    cell: ({ row }) => row.original.bookings?.customer_name || "—",
+  },
+  {
+    id: "condition",
+    header: "Condición",
+    accessorKey: "condition",
+    cell: ({ row }) => <StatusBadge status={row.original.condition} />,
+  },
+  {
+    id: "inspected_by",
+    header: "Inspector",
+    accessorFn: (i) => i.inspected_by || "",
+    cell: ({ row }) => row.original.inspected_by || "—",
+  },
+];
 
 export default function ReturnInspectionPage() {
   const canWrite = useHasModuleAccess("Entregas", "full");
@@ -26,7 +66,7 @@ export default function ReturnInspectionPage() {
   const [searchParams] = useSearchParams();
   const { forkliftMap } = useForkliftMap();
   const { data: inspectionsRaw, isLoading, isError, error, refetch } = useReturnInspections();
-  const inspections = visibleListRows(inspectionsRaw);
+  const inspections = useMemo(() => visibleListRows(inspectionsRaw), [inspectionsRaw]);
 
   const [filterDate, setFilterDate] = useState<Date | undefined>();
 
@@ -37,7 +77,7 @@ export default function ReturnInspectionPage() {
     bookingId: requestedBookingId,
     enabled: canWrite,
   });
-  const activeBookings = visibleListRows(returnable.data);
+  const activeBookings = useMemo(() => visibleListRows(returnable.data), [returnable.data]);
   const { dialogOpen, setDialogOpen, form, openNew, handleSubmit, isPending, inspectorLocked } =
     useReturnInspectionDialog(activeBookings, canWrite);
   const openNewInspection = () => {
@@ -45,62 +85,20 @@ export default function ReturnInspectionPage() {
     openNew();
   };
 
-  const filteredInspections = !inspections
-    ? []
-    : !filterDate
-      ? inspections
-      : inspections.filter((i) => {
-          // B-12: `inspected_at` es timestamptz — su día calendario se deriva
-          // en TZ Monterrey (misma fuente de "hoy" que el filtro de rentas,
-          // líneas 37-41), no en la TZ del navegador. El día del picker ya
-          // viene como fecha local elegida por el usuario.
-          return (
-            formatDateMty(i.inspected_at) === formatDateMty(toYMD(filterDate))
-          );
-        });
-
-  const columns: ColumnDef<Inspection>[] = [
-    {
-      id: "inspection_number",
-      header: "Devolución #",
-      accessorKey: "inspection_number",
-      cell: ({ row }) => <span className="font-mono text-sm text-primary">{row.original.inspection_number}</span>,
-    },
-    {
-      id: "inspected_at",
-      header: "Fecha",
-      accessorKey: "inspected_at",
-      cell: ({ row }) => <span className="font-mono text-sm">{formatDateMty(row.original.inspected_at)}</span>,
-    },
-    {
-      id: "forklift_name",
-      header: "Montacargas",
-      accessorFn: (i) => i.forklifts?.name || "",
-      cell: ({ row }) => <span className="font-medium">{row.original.forklifts?.name || "—"}</span>,
-    },
-    {
-      id: "customer_name",
-      header: "Cliente",
-      accessorFn: (i) => i.bookings?.customer_name || "",
-      cell: ({ row }) => row.original.bookings?.customer_name || "—",
-    },
-    {
-      id: "condition",
-      header: "Condición",
-      accessorKey: "condition",
-      cell: ({ row }) => <StatusBadge status={row.original.condition} />,
-    },
-    {
-      id: "inspected_by",
-      header: "Inspector",
-      accessorFn: (i) => i.inspected_by || "",
-      cell: ({ row }) => row.original.inspected_by || "—",
-    },
-  ];
+  const filteredInspections = useMemo(() => {
+    if (!inspections) return EMPTY_INSPECTIONS;
+    if (!filterDate) return inspections;
+    const targetDay = formatDateMty(toYMD(filterDate));
+    // B-12: `inspected_at` es timestamptz — su día calendario se deriva
+    // en TZ Monterrey (misma fuente de "hoy" que el filtro de rentas,
+    // líneas 37-41), no en la TZ del navegador. El día del picker ya
+    // viene como fecha local elegida por el usuario.
+    return inspections.filter((i) => formatDateMty(i.inspected_at) === targetDay);
+  }, [inspections, filterDate]);
 
   const table = useLiftgoTable<Inspection>({
     data: filteredInspections,
-    columns,
+    columns: RETURN_INSPECTION_COLUMNS,
     getRowId: (i) => i.id,
   });
 

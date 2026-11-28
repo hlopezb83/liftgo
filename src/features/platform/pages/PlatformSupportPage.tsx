@@ -1,4 +1,3 @@
-import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { QueryErrorState } from "@/components/feedback/QueryErrorState";
 import { PageHeader } from "@/components/layout/PageHeader";
@@ -9,13 +8,12 @@ import { Label } from "@/components/ui/label";
 import { NativeSelect } from "@/components/ui/native-select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { countLabel } from "@/lib/format/countLabel";
-import { listPlatformSupportFn } from "@/lib/platformSupport.functions";
-import { SUPPORT_SEVERITIES, SUPPORT_STATUSES, supportListInputSchema, type SupportListInput } from "@/lib/platformSupport.types";
 import { useLocation } from "@/lib/router-compat";
-import { withSupportRequest } from "@/lib/supportRequest";
+import { SUPPORT_SEVERITIES, SUPPORT_STATUSES, supportListInputSchema, type SupportListInput } from "@/lib/support/platformSupport.types";
 import { PlatformSupportDetail } from "../components/PlatformSupportDetail";
 import { healthDate } from "../hooks/usePlatformHealth";
 import { usePlatformOrganizations } from "../hooks/usePlatformOperator";
+import { usePlatformSupportList } from "../hooks/usePlatformSupport";
 
 export default function PlatformSupportPage() {
   const location = useLocation();
@@ -26,8 +24,7 @@ export default function PlatformSupportPage() {
   const [search, setSearch] = useState("");
   const [selected, setSelected] = useState<string | null>(null);
   const companies = usePlatformOrganizations(true);
-  const query = useQuery({ queryKey: ["platform", "support", "list", filters],
-    queryFn: ({ signal }) => withSupportRequest((requestSignal) => listPlatformSupportFn({ data: filters, signal: requestSignal }), signal), staleTime: 30_000, retry: false });
+  const query = usePlatformSupportList(filters);
   return <>
     <PageHeader title="Soporte de plataforma" subtitle="Diagnósticos compartidos por usuarios internos de cada empresa."
       actions={<Button variant="outline" disabled={query.isFetching} onClick={() => void query.refetch()}>Actualizar bandeja</Button>} />

@@ -14,7 +14,7 @@ import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import { RoleGuard } from "@/layouts/RoleGuard";
 import { formatDateMty } from "@/lib/format/dateFormats";
 import { LIST_PAGE_LIMIT } from "@/lib/supabase/constants";
-import { ContractMobileCard } from "../components/contracts/ContractMobileCard";
+import { ContractMobileCard } from "../components/ContractMobileCard";
 import { useContracts, useContractsIncremental, contractQueries } from "../hooks/useContracts";
 import { getContractExpiryLabel, getContractExpiryState } from "../lib/contractExpiry";
 import { CONTRACT_STATUS_LABELS } from "../lib/contractStatusLabels";
@@ -27,103 +27,104 @@ const CONTRACT_STATUS_OPTIONS = [
 ];
 
 type Contract = NonNullable<ReturnType<typeof useContracts>["data"]>[number];
+const EMPTY_CONTRACTS: Contract[] = [];
+const CONTRACT_FACETS = {
+  q: { type: "text" as const, fields: ["contract_number", "customer_name"] as (keyof Contract)[] },
+  status: { type: "enum" as const, field: "status" as keyof Contract, options: ["all", ...CONTRACT_STATUSES] as const },
+};
+
+const CONTRACT_COLUMNS: ColumnDef<Contract>[] = [
+  {
+    id: "contract_number",
+    header: "Contrato #",
+    accessorKey: "contract_number",
+    cell: ({ row }) => <Untranslated className="font-medium">{row.original.contract_number}</Untranslated>,
+  },
+  {
+    id: "customer_name",
+    header: "Cliente",
+    accessorFn: (c) => c.customer_name,
+    // Oleada 1 (A-7): nombres largos truncan con tooltip completo
+    meta: { cellClassName: "max-w-[240px]" },
+    cell: ({ row }) => {
+      const name = row.original.customer_name || "—";
+      return (
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Untranslated className="block truncate">{name}</Untranslated>
+          </TooltipTrigger>
+          <TooltipContent><Untranslated>{name}</Untranslated></TooltipContent>
+        </Tooltip>
+      );
+    },
+  },
+  {
+    id: "forklift_name",
+    header: "Equipo",
+    accessorFn: (c) => c.forklift_name,
+    cell: ({ row }) => row.original.forklift_name ? <Untranslated>{row.original.forklift_name}</Untranslated> : "—",
+  },
+  {
+    id: "start_date",
+    header: "Inicio",
+    accessorFn: (c) => c.start_date,
+    cell: ({ row }) => <span className="text-sm text-muted-foreground">{formatDateMty(row.original.start_date)}</span>,
+  },
+  {
+    id: "end_date",
+    header: "Fin",
+    accessorFn: (c) => c.end_date,
+    cell: ({ row }) => {
+      const expiry = getContractExpiryState(row.original.end_date, row.original.status);
+      const label = getContractExpiryLabel(expiry);
+      return (
+        <div className="flex items-center gap-2">
+          <span className="text-sm text-muted-foreground">{formatDateMty(row.original.end_date)}</span>
+          {label && (
+            <Badge
+              variant={expiry === "expired" ? "destructive" : "outline"}
+              className={expiry === "expiring_soon" ? "border-warning/40 text-warning-text" : ""}
+            >
+              {label}
+            </Badge>
+          )}
+        </div>
+      );
+    },
+  },
+  {
+    id: "status",
+    header: "Estado",
+    accessorKey: "status",
+    cell: ({ row }) => <StatusBadge status={row.original.status} label={CONTRACT_STATUS_LABELS[row.original.status]} />,
+  },
+  {
+    id: "view",
+    header: "",
+    enableSorting: false,
+    meta: { cellClassName: "w-12" },
+    cell: () => <ViewIcon className="h-4 w-4 text-muted-foreground" />,
+  },
+];
 
 export default function ContractsPage() {
   const canWrite = useHasModuleAccess("Contratos", "full");
   const contractPages = useContractsIncremental();
   const { isLoading, isError, refetch } = contractPages;
-  const contracts = useMemo(() => contractPages.data?.pages.flatMap((page) => page.slice(0, LIST_PAGE_LIMIT)) ?? [], [contractPages.data]);
+  const contracts = useMemo(
+    () => contractPages.data?.pages.flatMap((page) => page.slice(0, LIST_PAGE_LIMIT)) ?? EMPTY_CONTRACTS,
+    [contractPages.data],
+  );
   const navigate = useNavigateTransition();
 
-  const { values, set, reset, hasActive, filtered } = useTableFilters<Contract, {
-    q: { type: "text"; fields: (keyof Contract)[] };
-    status: { type: "enum"; field: keyof Contract; options: readonly (ContractStatus | "all")[] };
-  }>({
-    items: contracts ?? [],
-    facets: {
-      q: { type: "text", fields: ["contract_number", "customer_name"] as (keyof Contract)[] },
-      status: { type: "enum", field: "status", options: ["all", ...CONTRACT_STATUSES] as const },
-    },
+  const { values, set, reset, hasActive, filtered } = useTableFilters<Contract, typeof CONTRACT_FACETS>({
+    items: contracts,
+    facets: CONTRACT_FACETS,
   });
-
-
-  const columns: ColumnDef<Contract>[] = [
-      {
-        id: "contract_number",
-        header: "Contrato #",
-        accessorKey: "contract_number",
-        cell: ({ row }) => <Untranslated className="font-medium">{row.original.contract_number}</Untranslated>,
-      },
-      {
-        id: "customer_name",
-        header: "Cliente",
-        accessorFn: (c) => c.customer_name,
-        // Oleada 1 (A-7): nombres largos truncan con tooltip completo
-        meta: { cellClassName: "max-w-[240px]" },
-        cell: ({ row }) => {
-          const name = row.original.customer_name || "—";
-          return (
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Untranslated className="block truncate">{name}</Untranslated>
-              </TooltipTrigger>
-              <TooltipContent><Untranslated>{name}</Untranslated></TooltipContent>
-            </Tooltip>
-          );
-        },
-      },
-      {
-        id: "forklift_name",
-        header: "Equipo",
-        accessorFn: (c) => c.forklift_name,
-        cell: ({ row }) => row.original.forklift_name ? <Untranslated>{row.original.forklift_name}</Untranslated> : "—",
-      },
-      {
-        id: "start_date",
-        header: "Inicio",
-        accessorFn: (c) => c.start_date,
-        cell: ({ row }) => <span className="text-sm text-muted-foreground">{formatDateMty(row.original.start_date)}</span>,
-      },
-      {
-        id: "end_date",
-        header: "Fin",
-        accessorFn: (c) => c.end_date,
-        cell: ({ row }) => {
-          const expiry = getContractExpiryState(row.original.end_date, row.original.status);
-          const label = getContractExpiryLabel(expiry);
-          return (
-            <div className="flex items-center gap-2">
-              <span className="text-sm text-muted-foreground">{formatDateMty(row.original.end_date)}</span>
-              {label && (
-                <Badge
-                  variant={expiry === "expired" ? "destructive" : "outline"}
-                  className={expiry === "expiring_soon" ? "border-warning/40 text-warning-text" : ""}
-                >
-                  {label}
-                </Badge>
-              )}
-            </div>
-          );
-        },
-      },
-      {
-        id: "status",
-        header: "Estado",
-        accessorKey: "status",
-        cell: ({ row }) => <StatusBadge status={row.original.status} label={CONTRACT_STATUS_LABELS[row.original.status]} />,
-      },
-      {
-        id: "view",
-        header: "",
-        enableSorting: false,
-        meta: { cellClassName: "w-12" },
-        cell: () => <ViewIcon className="h-4 w-4 text-muted-foreground" />,
-      },
-    ];
 
   const table = useLiftgoTable<Contract>({
     data: filtered,
-    columns,
+    columns: CONTRACT_COLUMNS,
     getRowId: (c) => c.id,
   });
 

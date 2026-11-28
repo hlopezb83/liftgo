@@ -5,7 +5,7 @@ import { deliveryQueries } from "@/features/deliveries/hooks/useDeliveries";
 import { createEntityKeys } from "@/lib/query/createEntityKeys";
 import { createQueryWrapper } from "@/test/helpers/queryClient";
 import { bookingKeys } from "../../lib/queryKeys";
-import { useCancelBooking } from "../bookings/useBookingMutations";
+import { useCancelBooking } from "../useBookingMutations";
 
 const server = vi.hoisted(() => ({
   booking: "confirmed",

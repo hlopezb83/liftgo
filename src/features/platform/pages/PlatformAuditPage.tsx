@@ -6,17 +6,17 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { NativeSelect } from "@/components/ui/native-select";
 import { Skeleton } from "@/components/ui/skeleton";
-import {
-  PLATFORM_AUDIT_TARGETS,
-  platformAuditInputSchema,
-  type PlatformAuditInput,
-  type PlatformAuditEvent,
-} from "@/lib/platformAudit.types";
 import { useSearchParams } from "@/lib/router-compat";
 import { PlatformAuditEventDialog } from "../components/PlatformAuditEventDialog";
 import { PlatformAuditEventList } from "../components/PlatformAuditEventList";
 import { usePlatformOrganizations } from "../hooks/usePlatformOperator";
 import { usePlatformAudit } from "../hooks/usePlatformReadModels";
+import {
+  PLATFORM_AUDIT_TARGETS,
+  platformAuditInputSchema,
+  type PlatformAuditEvent,
+  type PlatformAuditInput,
+} from "../lib/platformAudit.types";
 import { PLATFORM_AUDIT_LABELS } from "../lib/platformAuditLabels";
 
 function eventCountLabel(count: number) {
@@ -115,7 +115,7 @@ function AuditContent({
     <div className="space-y-6">
       <PageHeader
         title="Bitácora global"
-        subtitle="Cambios administrativos del ecosistema LiftGo. Hora local del navegador."
+        subtitle="Cambios administrativos del ecosistema LiftGo. Hora de Monterrey."
         actions={
           <Button
             variant="outline"

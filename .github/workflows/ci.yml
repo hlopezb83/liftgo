@@ -108,7 +108,7 @@ jobs:
               - src/features/deliveries/hooks/useOverdueDeliveriesPage.ts
               - src/features/deliveries/pages/OverdueDeliveriesPage.tsx
               - src/features/deliveries/pages/DeliveriesPage.tsx
-              - src/features/dashboard/components/dashboard/AlertsRow.tsx
+              - src/features/dashboard/components/AlertsRow.tsx
               - .github/workflows/ci.yml
               - scripts/tests/quotes/atomic-conversion.*
               - scripts/tests/recurring-future-coverage.test.cjs
@@ -118,7 +118,7 @@ jobs:
               - scripts/tests/quotes/**
               - drizzle/migrations/**/*quote*.sql
               - drizzle/migrations/0031_multi_org_audit_hardening.sql
-              - src/features/quotes/hooks/quotes/useQuotesPage.ts
+              - src/features/quotes/hooks/useQuotesPage.ts
               - src/features/quotes/lib/quotesPageRpc.ts
               - src/features/quotes/pages/QuotesPage.tsx
               - src/features/quotes/pages/quotesColumns.tsx

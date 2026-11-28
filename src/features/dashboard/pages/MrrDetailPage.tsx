@@ -14,11 +14,13 @@ import { MrrMobileList } from "../components/MrrMobileList";
 import { useMrrColumns, type MrrItem } from "../hooks/useMrrColumns";
 import { useMrrDetail } from "../hooks/useMrrDetail";
 
+const EMPTY_MRR_ITEMS: MrrItem[] = [];
+
 export default function MrrDetailPage() {
   const { data, isLoading, isError, refetch } = useMrrDetail();
   const isTabletOrBelow = useIsTabletOrBelow();
   const columns = useMrrColumns();
-  const items = data?.items ?? [];
+  const items = data?.items ?? EMPTY_MRR_ITEMS;
   const totalMrr = data?.total_mrr ?? 0;
   const fxMissingCount = data?.fx_missing_count ?? 0;
 

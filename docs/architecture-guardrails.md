@@ -23,32 +23,20 @@ configuración y este documento en el mismo cambio.
 | G1 | No crear `src/features/*/api/`; la I/O de feature se organiza en `hooks/`. |
 | G2 | `src/lib/domain/` sólo puede contener archivos permitidos por el script. |
 | G3 | No crear `src/api/` en la raíz de `src/`. |
-| G4 | No importar el cliente Supabase desde páginas o componentes de features, salvo Auth. |
-| G5 | Cero imports profundos entre features; usar el barrel público `@/features/<feature>`. El render PDF compartido recibe DTOs y no depende de features. |
+| G4 | No importar el cliente Supabase desde páginas o componentes de features ni desde `src/components/**`, salvo `AuthPage.tsx`. |
+| G5 | Cero imports profundos entre features (incluyendo desde `layouts`, `contexts`, `components` y `hooks`); usar el barrel público `@/features/<feature>`. Las capas compartidas (`src/lib/**` y `src/integrations/**`) no dependen de `src/features/**`. Las tablas de rutas (`src/routes/**`, `src/app-routes/**`) sólo pueden referenciar `pages/*` para *code-splitting* por ruta. |
 
-G4/G5 usan el AST de TypeScript (`scripts/check-feature-imports.mjs`), no una
-lista de subcarpetas ni regex de líneas. Detectan import/export-from, import de
-tipos y cargas dinámicas/require con specifier literal, tanto `@/` como rutas
-relativas normalizadas. Sólo el barrel raíz (`<feature>` o `<feature>/index`)
-se permite entre features; los imports dentro de la misma feature son válidos.
-Las únicas excepciones del escaneo son archivos de tests/fixtures y, para G4,
-`src/features/auth/pages/AuthPage.tsx`. Los specifiers computados en ejecución
-no se resuelven: este control no afirma analizar dependencias dinámicas
-arbitrarias. Sus fixtures negativas y excepciones corren en el job `quality`.
+G4/G5 usan el AST de TypeScript (`scripts/check-feature-imports.mjs`) sobre todo `src/`. Detectan import/export-from, import de tipos y cargas dinámicas/require con specifier literal, tanto `@/` como rutas relativas normalizadas. Sólo el barrel raíz (`<feature>` o `<feature>/index`) se permite entre features; los imports dentro de la misma feature usan rutas relativas. Las únicas excepciones del escaneo son archivos de tests/fixtures, archivos generados (`types.ts`, `routeTree.gen.ts`), el bootstrap temprano `src/instrument-client.ts` para `recoverySession` y, para G4, `src/features/auth/pages/AuthPage.tsx`. Los specifiers computados en ejecución no se resuelven. Sus fixtures negativas y excepciones corren en el job `quality`.
 
 
-El script escanea los archivos actuales y falla si detecta una violación. La
-allowlist de `src/lib/domain/` de `scripts/arch-check.sh` es la fuente de
-verdad para G2.
+El script escanea los archivos actuales y falla si detecta una violación. La allowlist de `src/lib/domain/` de `scripts/arch-check.sh` es la fuente de verdad para G2.
 
-## ESLint y CI
+## ESLint, TypeScript y CI
 
-- ESLint se ejecuta con cero warnings permitidos en el job `quality`.
-- `arch:check` y el typecheck también forman parte de CI. Ver
-  [docs/ci.md](./ci.md) para la matriz vigente.
-- `knip` está disponible como revisión local con `bun run knip`; no es un gate
-  de CI.
-- Algunos escaneos excluyen tests co-localizados según el patrón del script.
+- ESLint se ejecuta con cero warnings permitidos (`--max-warnings=0`) en el job `quality`, incluyendo bloques dedicados para `src/components/ui/**` (seguridad, accesibilidad e íconos) y `supabase/functions/**/*.ts` (`max-lines: 300`, `max-lines-per-function: 150`, `complexity: 15`, tipado sin `any` ni `!`).
+- `tsconfig.json` exige `strict: true`, `noUnusedLocals: true`, `noUnusedParameters: true` y `noFallthroughCasesInSwitch: true`.
+- `arch:check` y el typecheck también forman parte de CI. Ver [docs/ci.md](./ci.md) para la matriz vigente.
+- `knip` se mantiene en verde (`bun run knip` código `0`, sin efectos laterales sobre `public/version.json`).
 
 Comandos locales:
 
@@ -56,6 +44,7 @@ Comandos locales:
 bun run lint --max-warnings=0
 bun run typecheck
 bun run arch:check
+bun run knip
 ```
 
 ## Revisión de código sin uso con Knip

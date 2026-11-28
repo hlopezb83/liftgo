@@ -3,7 +3,7 @@ import { notifyError, notifyValidation } from "@/lib/ui/appFeedback";
 import { backfillStampSnapshot } from "../../lib/backfillStampSnapshot";
 import { getMissingStampFields, type InvoiceForStamping } from "../../lib/cfdiPrechecks";
 import { classifyFacturapiError, type FacturapiErrorKind } from "../../lib/facturapiErrors";
-import { useStampCfdi } from "../invoices/cfdi/useStampCfdi";
+import { useStampCfdi } from "../cfdi/useStampCfdi";
 
 // R10 Bloque 8.4: errores benignos ("already stamped", "in progress") ya se
 // muestran como toast info desde useStampCfdi.onError; NO debemos abrir el

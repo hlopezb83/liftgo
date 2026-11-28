@@ -1,5 +1,4 @@
-const BANK_LINE_STATUSES = ["unmatched", "suggested", "matched", "ignored"] as const;
-export type BankLineStatus = (typeof BANK_LINE_STATUSES)[number];
+export type BankLineStatus = "unmatched" | "suggested" | "matched" | "ignored";
 
 export const BANK_LINE_STATUS_LABELS: Record<BankLineStatus, string> = {
   unmatched: "Sin emparejar",

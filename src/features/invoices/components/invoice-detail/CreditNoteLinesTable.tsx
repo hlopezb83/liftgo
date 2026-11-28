@@ -1,9 +1,9 @@
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { creditNoteDiscountForSelection } from "@/features/invoices/lib/creditNoteDiscount";
 import { applyDiscountToBase, lineItemTotal } from "@/lib/domain/invoiceHelpers";
 import { formatCurrencyWithCode } from "@/lib/format/formatCurrency";
+import { creditNoteDiscountForSelection } from "../../lib/creditNoteDiscount";
 import type { EditableCreditNoteLine } from "../../hooks/creditNotes/useCreditNoteForm";
 
 interface Props {

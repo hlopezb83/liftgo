@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Form } from "@/components/ui/form";
 import { CANCELLATION_REASONS } from "@/lib/domain/satCatalogs";
 import { zodResolver } from "@/lib/forms/zodResolver";
-import { useCancelPaymentComplement } from "../../hooks/invoices/cfdi/usePaymentComplement";
+import { useCancelPaymentComplement } from "../../hooks/cfdi/usePaymentComplement";
 
 // Motivos válidos para REP. Omitimos "01" porque exigiría un REP sustituto ya
 // timbrado; ese flujo no existe hoy en la app.

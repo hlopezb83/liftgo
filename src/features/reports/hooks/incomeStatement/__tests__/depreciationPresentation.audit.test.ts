@@ -4,7 +4,7 @@ import { buildComparisonCsvRows } from "../statementRowFactories";
 import { useStatementRows, useComparisonRows } from "../useStatementRows";
 import { useStatementTotals } from "../useStatementTotals";
 import { computeDerivedTotals, emptyExpenses, type MonthData, type StatementRow } from "../types";
-import { formatCell } from "../../../components/reports/incomeStatement/incomeStatementHelpers";
+import { formatCell } from "../../../components/incomeStatement/incomeStatementHelpers";
 
 const adjustmentLabel = "Ajuste de redondeo de depreciación";
 

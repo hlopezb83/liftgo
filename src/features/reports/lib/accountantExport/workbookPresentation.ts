@@ -84,7 +84,7 @@ export async function styleAccountantXlsx(bytes: Uint8Array): Promise<Uint8Array
     if (!/<sheetViews\b[^>]*>[\s\S]*?<\/sheetViews>/.test(xml)) throw new Error("No fue posible congelar el encabezado del Excel.");
     xml = xml.replace(/<sheetViews\b[^>]*>[\s\S]*?<\/sheetViews>/,
       '<sheetViews><sheetView workbookViewId="0"><pane ySplit="1" topLeftCell="A2" activePane="bottomLeft" state="frozen"/><selection pane="bottomLeft" activeCell="A2" sqref="A2"/></sheetView></sheetViews>');
-    xml = xml.replace(/<c\b([^>]*)>/g, (cell, attributes: string) => {
+    xml = xml.replace(/<c\b([^>]*)>/g, (_cell, attributes: string) => {
       const row = Number(attributes.match(/\br="[A-Z]+(\d+)"/)?.[1]);
       const current = Number(attributes.match(/\bs="(\d+)"/)?.[1] ?? "0");
       if (!row || current >= base) throw new Error("Formato de celda inesperado en Excel.");

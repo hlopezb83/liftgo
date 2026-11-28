@@ -1,13 +1,12 @@
-import { useInfiniteQuery } from "@tanstack/react-query";
 import { QueryErrorState } from "@/components/feedback/QueryErrorState";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Skeleton } from "@/components/ui/skeleton";
-import { getPlatformFiscalJobFn } from "@/lib/platformFiscalJobs.functions";
-import { FISCAL_OPERATIONS, FISCAL_QUEUE_STATUSES, type FiscalJobDetail } from "@/lib/platformFiscalJobs.types";
+import { usePlatformFiscalJobDetail } from "../hooks/usePlatformFiscalJobs";
 import { healthDate } from "../hooks/usePlatformHealth";
 import { fiscalJobGuidance, fiscalJobMode, fiscalJobStatus } from "../lib/fiscalJobPresentation";
+import { FISCAL_OPERATIONS, FISCAL_QUEUE_STATUSES, type FiscalJobDetail } from "../lib/platformFiscalJobs.types";
 import { PlatformFiscalJobActions } from "./PlatformFiscalJobActions";
 
 const eventLabels = { snapshot: "Instantánea inicial del trabajo existente", queued: "Trabajo registrado", changed: "Estado de cola actualizado", removed: "Trabajo retirado de cola" } as const;
@@ -22,9 +21,7 @@ function JobHistory({ events }: { events: FiscalJobDetail["events"] }) {
   </section>;
 }
 export function PlatformFiscalJobDetail({ jobId, onClose }: { jobId: string; onClose: () => void }) {
-  const query = useInfiniteQuery({ queryKey: ["platform", "fiscal-jobs", "detail", jobId], initialPageParam: null as string | null,
-    queryFn: ({ pageParam, signal }) => getPlatformFiscalJobFn({ data: { jobId, before: pageParam }, signal }),
-    getNextPageParam: (page) => page.nextCursor, retry: false, staleTime: 0 });
+  const query = usePlatformFiscalJobDetail(jobId);
   const job = query.data?.pages[0]?.job;
   return <Sheet open onOpenChange={(open) => { if (!open) onClose(); }}>
     <SheetContent className="w-full overflow-y-auto sm:max-w-2xl">

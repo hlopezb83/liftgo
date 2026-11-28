@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
-import { dashboardStatsQueries, dateKeyToday } from "../lib/queryKeys";
+import { dashboardStatsQueries } from "../lib/dashboardQueries";
+import { dateKeyToday } from "../lib/queryKeys";
 
 export function useDashboardStats() {
   const dateKey = dateKeyToday();

@@ -14,17 +14,17 @@ const mocks = vi.hoisted(() => ({
   detail: undefined as Record<string, unknown> | undefined,
 }));
 vi.mock("@/features/customers", async () => ({
-  CustomerSelector: (await import("@/features/customers/components/customers/CustomerSelector")).CustomerSelector,
+  CustomerSelector: (await import("@/features/customers/components/CustomerSelector")).CustomerSelector,
   customerTaxRate: (await import("@/features/customers/lib/customerTaxRate")).customerTaxRate,
 }));
-vi.mock("@/features/customers/hooks/customers/customerQueries", () => ({
+vi.mock("@/features/customers/hooks/customerQueries", () => ({
   useCustomer: () => ({ data: mocks.detail }),
   useCustomerSelectorSearch: (term: string, open: boolean) => ({
     data: open && term.length >= 2 ? { customers: [mocks.remote], isTruncated: false } : undefined,
     isSearchPending: false, isFetching: false, isError: false,
   }),
 }));
-vi.mock("../../../hooks/invoices/useNextInvoiceNumber", () => ({ useNextInvoiceNumber: () => ({ data: "TEST" }) }));
+vi.mock("../../../hooks/useNextInvoiceNumber", () => ({ useNextInvoiceNumber: () => ({ data: "TEST" }) }));
 
 const initial: Customer = { id: "a", name: "Cliente anterior", rfc: "AAA010101AAA", razon_social: "Anterior SA",
   regimen_fiscal: "601", domicilio_fiscal_cp: "64000", uso_cfdi: "I03", tax_rate: 8 };

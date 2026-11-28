@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
-import { dateKeyToday, financialKpisQueries } from "../lib/queryKeys";
+import { financialKpisQueries } from "../lib/dashboardQueries";
+import { dateKeyToday } from "../lib/queryKeys";
 
 // R14-L: `enabled` permite gatear por rol — el RPC solo admite admin/
 // administrativo/auditor; sin esto ventas/dispatcher/mechanic ven "Forbidden".

@@ -21,7 +21,7 @@ vi.mock("@/features/users", async () => {
   };
 });
 
-vi.mock("../../../hooks/bookings/useBookingMutations", () => ({
+vi.mock("../../../hooks/useBookingMutations", () => ({
   useUpdateBooking: () => ({ mutate: vi.fn(), isPending: false }),
 }));
 

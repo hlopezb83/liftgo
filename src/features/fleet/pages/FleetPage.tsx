@@ -12,13 +12,13 @@ import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import { FORKLIFT_STATUSES, STATUS_LABELS } from "@/lib/constants";
 import { exportToCsv } from "@/lib/exportCsv";
 import { LIST_PAGE_LIMIT } from "@/lib/supabase/constants";
-import { EquipmentAvailabilityLookup } from "../components/fleet/EquipmentAvailabilityLookup";
-import { FleetExportAction, FleetPageActions, FleetPrimaryAction } from "../components/fleet/FleetPageActions";
-import { FleetMobileCard } from "../components/fleet/FleetRowAndCard";
-import { useFleetColumns } from "../hooks/fleet/useFleetColumns";
+import { EquipmentAvailabilityLookup } from "../components/EquipmentAvailabilityLookup";
+import { FleetExportAction, FleetPageActions, FleetPrimaryAction } from "../components/FleetPageActions";
+import { FleetMobileCard } from "../components/FleetRowAndCard";
 import { useFleetLocations } from "../hooks/forklifts/useFleetLocations";
 import { useForkliftsIncremental } from "../hooks/forklifts/useForklifts";
 import { useOccupiedForkliftIdsToday } from "../hooks/forklifts/useOccupiedForkliftIdsToday";
+import { useFleetColumns } from "../hooks/useFleetColumns";
 import type { Forklift } from "../hooks/forklifts/useForklifts";
 
 const STATUS_OPTIONS = [
@@ -26,13 +26,21 @@ const STATUS_OPTIONS = [
   ...FORKLIFT_STATUSES.map((s) => ({ value: s, label: STATUS_LABELS[s] || s })),
 ];
 
+const EMPTY_FORKLIFTS: Forklift[] = [];
 const EMPTY_MAP: Map<string, string> = new Map();
 const EMPTY_SET: Set<string> = new Set();
+const FLEET_FACETS = {
+  q: { type: "text" as const, fields: ["name", "model", "manufacturer", "serial_number"] as (keyof Forklift)[] },
+  status: { type: "enum" as const, field: "status" as keyof Forklift, options: FORKLIFT_STATUSES },
+};
 
 export default function FleetPage() {
   const forkliftPages = useForkliftsIncremental();
   const { isLoading, isError, refetch } = forkliftPages;
-  const forklifts = useMemo(() => forkliftPages.data?.pages.flatMap((page) => page.slice(0, LIST_PAGE_LIMIT)) ?? [], [forkliftPages.data]);
+  const forklifts = useMemo(
+    () => forkliftPages.data?.pages.flatMap((page) => page.slice(0, LIST_PAGE_LIMIT)) ?? EMPTY_FORKLIFTS,
+    [forkliftPages.data],
+  );
   // Ocupación operativa compartida con Panel y Calendario: una reserva
   // confirmada vigente ocupa una unidad available; una completada no lo hace.
   const { data: rentedIds, isLoading: occupiedLoading, isError: occupiedError, error: occupiedErrorValue, refetch: refetchOccupied } = useOccupiedForkliftIdsToday();
@@ -43,7 +51,7 @@ export default function FleetPage() {
   // tabla reiniciaba la paginación a la página 1.
   const forkliftsForFilter = useMemo(
     () =>
-      (forklifts ?? []).map((f) => {
+      forklifts.map((f) => {
         if (!rentedIds || f.status !== "available") return f;
         const derived = rentedIds.has(f.id) ? ("rented" as const) : ("available" as const);
         return derived === f.status ? f : { ...f, status: derived };
@@ -64,19 +72,9 @@ export default function FleetPage() {
 
   const columns = useFleetColumns(activePolicyForkliftIds, locationMap);
 
-
-  const { values, set, filtered, filterKey, hasActive, reset } = useTableFilters<
-    Forklift,
-    {
-      q: { type: "text"; fields: (keyof Forklift)[] };
-      status: { type: "enum"; field: keyof Forklift; options: readonly string[] };
-    }
-  >({
+  const { values, set, filtered, filterKey, hasActive, reset } = useTableFilters<Forklift, typeof FLEET_FACETS>({
     items: forkliftsForFilter,
-    facets: {
-      q: { type: "text", fields: ["name", "model", "manufacturer", "serial_number"] },
-      status: { type: "enum", field: "status", options: FORKLIFT_STATUSES },
-    },
+    facets: FLEET_FACETS,
   });
 
   const tableViewState = useTableViewState(filtered.length, [{ id: "name", desc: false }]);

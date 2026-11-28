@@ -1,11 +1,11 @@
-vi.mock("../../hooks/invoices/useInvoiceCsvExport", () => ({ useInvoiceCsvExport: () => ({ download: vi.fn(), busy: false, allowed: true }) }));
+vi.mock("../../hooks/useInvoiceCsvExport", () => ({ useInvoiceCsvExport: () => ({ download: vi.fn(), busy: false, allowed: true }) }));
 import type { ReactNode } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { fireEvent, render, screen, within } from "@testing-library/react";
 import { useIsMobile, useIsTabletOrBelow } from "@/hooks/use-mobile";
 import { TestRouter } from "@/test/router";
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import * as hooks from "../../hooks/invoices/useInvoices";
+import * as hooks from "../../hooks/useInvoices";
 import InvoicesPage from "../InvoicesPage";
 
 const mockInvoices = [
@@ -47,7 +47,7 @@ function buildInfiniteReturn(rows: typeof mockInvoices) {
   } as unknown as ReturnType<typeof hooks.useInvoicesInfinite>;
 }
 
-vi.mock("../../hooks/invoices/useInvoices", () => ({
+vi.mock("../../hooks/useInvoices", () => ({
   useInvoicesInfinite: vi.fn(),
   invoiceQueries: {
     keys: { all: ["invoices"], detail: (id: string) => ["invoices", "detail", id] },
@@ -57,11 +57,11 @@ vi.mock("../../hooks/invoices/useInvoices", () => ({
   INVOICE_PAGE_SIZE: 100,
 }));
 
-vi.mock("../../hooks/invoices/recurring/useGenerateRecurringInvoices", () => ({
+vi.mock("../../hooks/recurring/useGenerateRecurringInvoices", () => ({
   useGenerateRecurringInvoices: () => ({ mutate: vi.fn(), isPending: false }),
 }));
 
-vi.mock("../../hooks/invoices/recurring/usePreviewRecurringInvoices", () => ({
+vi.mock("../../hooks/recurring/usePreviewRecurringInvoices", () => ({
   usePreviewRecurringInvoices: () => ({ mutate: vi.fn(), isPending: false, data: undefined }),
 }));
 

@@ -4,7 +4,7 @@ import { bookingKeys } from "@/features/bookings";
 import { forkliftKeys } from "@/features/fleet";
 import { countLabel } from "@/lib/format/countLabel";
 import { notifyError, notifySuccess, notifyValidation } from "@/lib/ui/appFeedback";
-import { quoteKeys } from "../quotes/useQuotes";
+import { quoteKeys } from "../useQuotes";
 import {
   buildDeliveryInfos,
   resolveLegacyForkliftIds,

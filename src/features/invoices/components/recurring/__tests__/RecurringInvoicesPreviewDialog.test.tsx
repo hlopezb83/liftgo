@@ -6,7 +6,7 @@ import { RecurringInvoicesPreviewDialog } from "../RecurringInvoicesPreviewDialo
 import type {
   RecurringPreviewLine,
   RecurringPreviewResponse,
-} from "../../../hooks/invoices/recurring/usePreviewRecurringInvoices";
+} from "../../../hooks/recurring/usePreviewRecurringInvoices";
 
 afterEach(cleanup);
 

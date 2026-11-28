@@ -37,7 +37,7 @@ export type PivotRow = {
  */
 function attributedSubtotal(
   invoice: PivotInvoice,
-  lineIndex: number | null | undefined,
+  _lineIndex: number | null | undefined,
   bookingsInInvoice: number,
 ): number | null {
   // The database stores booking selection order in line_index. It does not

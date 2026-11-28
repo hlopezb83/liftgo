@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import {
   DataTableV2,
@@ -14,64 +13,65 @@ import { PageHeader } from "@/components/layout/PageHeader";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { CONTRACT_STATUS_LABELS } from "@/features/contracts";
-import { usePortalContractsPage, type PortalContractRow } from "@/features/customers";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { formatDateMty } from "@/lib/format/dateFormats";
+import { usePortalContractsPage, type PortalContractRow } from "../hooks/useCustomerPortal";
 
 type Contract = PortalContractRow;
 
 const PAGE_SIZE = 25;
+const EMPTY_CONTRACTS: Contract[] = [];
+
+const PORTAL_CONTRACT_COLUMNS: ColumnDef<Contract>[] = [
+  {
+    id: "contract_number",
+    accessorKey: "contract_number",
+    header: "Contrato #",
+    cell: ({ row }) => <span className="font-medium">{row.original.contract_number}</span>,
+  },
+  {
+    id: "equipo",
+    header: "Equipo",
+    accessorFn: (c) => `${c.forklifts?.name ?? ""} ${c.forklifts?.model ?? ""}`.trim(),
+    cell: ({ row }) => (
+      <>
+        {/* R7-FE-09b (N7-POR-05): contratos sin equipo asignado mostraban "—". */}
+        {row.original.forklifts?.name
+          ? `${row.original.forklifts.name} — ${row.original.forklifts.model ?? ""}`
+          : "Equipo por asignar"}
+      </>
+    ),
+  },
+  {
+    id: "start_date",
+    accessorKey: "start_date",
+    header: "Inicio",
+    cell: ({ row }) => formatDateMty(row.original.start_date),
+  },
+  {
+    id: "end_date",
+    accessorKey: "end_date",
+    header: "Fin",
+    cell: ({ row }) => formatDateMty(row.original.end_date),
+  },
+  {
+    id: "status",
+    accessorKey: "status",
+    header: "Estado",
+    cell: ({ row }) => <StatusBadge status={row.original.status} label={CONTRACT_STATUS_LABELS[row.original.status]} />,
+  },
+];
 
 export default function PortalContracts() {
   const [page, setPage] = useState(1);
   const { data: result, isLoading, isError, refetch } = usePortalContractsPage(page, PAGE_SIZE);
-  const contracts = result?.rows ?? [];
+  const contracts = result?.rows ?? EMPTY_CONTRACTS;
   const totalPages = Math.max(1, Math.ceil((result?.totalCount ?? 0) / PAGE_SIZE));
   const isMobile = useIsMobile();
 
-  const columns: ColumnDef<Contract>[] = [
-      {
-        id: "contract_number",
-        accessorKey: "contract_number",
-        header: "Contrato #",
-        cell: ({ row }) => <span className="font-medium">{row.original.contract_number}</span>,
-      },
-      {
-        id: "equipo",
-        header: "Equipo",
-        accessorFn: (c) => `${c.forklifts?.name ?? ""} ${c.forklifts?.model ?? ""}`.trim(),
-        cell: ({ row }) => (
-          <>
-            {/* R7-FE-09b (N7-POR-05): contratos sin equipo asignado mostraban "—". */}
-            {row.original.forklifts?.name
-              ? `${row.original.forklifts.name} — ${row.original.forklifts.model ?? ""}`
-              : "Equipo por asignar"}
-          </>
-        ),
-      },
-      {
-        id: "start_date",
-        accessorKey: "start_date",
-        header: "Inicio",
-        cell: ({ row }) => formatDateMty(row.original.start_date),
-      },
-      {
-        id: "end_date",
-        accessorKey: "end_date",
-        header: "Fin",
-        cell: ({ row }) => formatDateMty(row.original.end_date),
-      },
-      {
-        id: "status",
-        accessorKey: "status",
-        header: "Estado",
-        cell: ({ row }) => <StatusBadge status={row.original.status} label={CONTRACT_STATUS_LABELS[row.original.status]} />,
-      },
-    ];
-
   const table = useLiftgoTable<Contract>({
     data: contracts,
-    columns,
+    columns: PORTAL_CONTRACT_COLUMNS,
     getRowId: (c) => c.id,
     initialSorting: [{ id: "start_date", desc: true }],
     enableSorting: false,

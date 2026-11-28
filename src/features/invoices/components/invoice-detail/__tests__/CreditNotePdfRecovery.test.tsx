@@ -28,7 +28,7 @@ vi.mock("../../../hooks/creditNotes/useCreditNotes", () => ({
 vi.mock("../../../hooks/usePayments", () => ({
   usePayments: () => ({ data: [] }),
 }));
-vi.mock("../../../hooks/invoices/cfdi/useRefreshCancellationStatus", () => ({
+vi.mock("../../../hooks/cfdi/useRefreshCancellationStatus", () => ({
   useRefreshCreditNoteCancellationStatus: () => ({
     mutate: vi.fn(),
     isPending: false,

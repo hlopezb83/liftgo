@@ -16,12 +16,12 @@ vi.mock("../../hooks/useUserManagement", () => ({
   }),
   useToggleStatus: () => ({ mutate: vi.fn(), isPending: false }),
 }));
-vi.mock("../../components/users/CredentialsDialog", () => ({ CredentialsDialog: () => null }));
-vi.mock("../../components/users/DeleteUserDialog", () => ({ DeleteUserDialog: () => null }));
-vi.mock("../../components/users/EditNameDialog", () => ({ EditNameDialog: () => null }));
-vi.mock("../../components/users/InviteUserDialog", () => ({ InviteUserDialog: () => null }));
-vi.mock("../../components/users/RoleChangeDialog", () => ({ RoleChangeDialog: () => null }));
-vi.mock("../../components/users/SetPasswordDialog", () => ({ SetPasswordDialog: () => null }));
+vi.mock("../../components/CredentialsDialog", () => ({ CredentialsDialog: () => null }));
+vi.mock("../../components/DeleteUserDialog", () => ({ DeleteUserDialog: () => null }));
+vi.mock("../../components/EditNameDialog", () => ({ EditNameDialog: () => null }));
+vi.mock("../../components/InviteUserDialog", () => ({ InviteUserDialog: () => null }));
+vi.mock("../../components/RoleChangeDialog", () => ({ RoleChangeDialog: () => null }));
+vi.mock("../../components/SetPasswordDialog", () => ({ SetPasswordDialog: () => null }));
 
 beforeEach(() => { state.empty = false; });
 afterEach(() => { cleanup(); vi.useRealTimers(); });

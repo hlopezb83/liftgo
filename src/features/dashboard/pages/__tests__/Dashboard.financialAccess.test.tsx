@@ -4,9 +4,9 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import Dashboard from "../Dashboard";
 
 const state = vi.hoisted(() => ({ loading: false, canSeeFinancials: false, priority: "overview" }));
-vi.mock("@/features/invoices", () => ({ DemoTour: () => null }));
+vi.mock("../../components/demo/DemoTour", () => ({ DemoTour: () => null }));
 vi.mock("@/features/users", () => ({ useHasModuleAccess: () => false }));
-vi.mock("../../hooks/dashboard/useDashboardSections", () => ({ useDashboardSections: () => ({
+vi.mock("../../hooks/useDashboardSections", () => ({ useDashboardSections: () => ({
   isLoading: state.loading,
   priority: state.priority,
   canSeeFinancials: state.canSeeFinancials,
@@ -15,12 +15,12 @@ vi.mock("../../hooks/dashboard/useDashboardSections", () => ({ useDashboardSecti
   alertsProps: {},
 }) }));
 vi.mock("@/components/layout/PageTransition", () => ({ PageTransition: ({ children }: { children: ReactNode }) => <>{children}</> }));
-vi.mock("../../components/dashboard/DashboardAlertsSection", () => ({ DashboardAlertsSection: () => null }));
-vi.mock("../../components/dashboard/FinancialKpiCards", () => ({ FinancialKpiCards: () => <div>Financial KPIs</div> }));
-vi.mock("../../components/dashboard/StatCards", () => ({ StatCards: () => <div>Operational KPIs</div> }));
-vi.mock("../../components/dashboard/FleetStatusChart", () => ({ FleetStatusChart: () => <div>Fleet operation</div> }));
-vi.mock("../../components/dashboard/UtilizationCharts", () => ({ UtilizationCharts: () => <div>Utilization operation</div> }));
-vi.mock("../../components/dashboard/CashFlowChart", () => ({ CashFlowChart: () => <div>Facturación y cobros</div> }));
+vi.mock("../../components/DashboardAlertsSection", () => ({ DashboardAlertsSection: () => null }));
+vi.mock("../../components/FinancialKpiCards", () => ({ FinancialKpiCards: () => <div>Financial KPIs</div> }));
+vi.mock("../../components/StatCards", () => ({ StatCards: () => <div>Operational KPIs</div> }));
+vi.mock("../../components/FleetStatusChart", () => ({ FleetStatusChart: () => <div>Fleet operation</div> }));
+vi.mock("../../components/UtilizationCharts", () => ({ UtilizationCharts: () => <div>Utilization operation</div> }));
+vi.mock("../../components/CashFlowChart", () => ({ CashFlowChart: () => <div>Facturación y cobros</div> }));
 
 beforeEach(() => {
   state.loading = false;

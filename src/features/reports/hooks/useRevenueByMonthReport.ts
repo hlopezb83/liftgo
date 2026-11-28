@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toYMD } from "@/lib/date/toYMD";
+import { reportKeys } from "../lib/queryKeys";
 import type { DrilldownInvoice } from "../lib/drilldown";
 
 export interface RevenueMonthRow {
@@ -28,7 +29,7 @@ export function useRevenueByMonthReport(startDate: Date, endDate: Date) {
   const start = toYMD(startDate);
   const end = toYMD(endDate);
   return useQuery({
-    queryKey: ["report", "revenue-by-month", start, end],
+    queryKey: reportKeys.revenueByMonth(start, end),
     queryFn: async (): Promise<RevenueMonthRow[]> => {
       const { data, error } = await supabase.rpc("report_revenue_by_month", {
         _start: start,
@@ -53,7 +54,7 @@ export function useRevenueByMonthReport(startDate: Date, endDate: Date) {
  */
 export function useRevenueMonthInvoices(monthKey: string | null) {
   return useQuery({
-    queryKey: ["report", "revenue-month-invoices", monthKey],
+    queryKey: reportKeys.revenueMonthInvoices(monthKey),
     enabled: monthKey !== null,
     queryFn: async (): Promise<DrilldownInvoice[]> => {
       const { data, error } = await supabase.rpc("report_revenue_month_invoices_with_credits", {

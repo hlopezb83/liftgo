@@ -20,30 +20,33 @@ import type { PortalQuoteListRow } from "../lib/queryKeys";
 type Quote = PortalQuoteListRow;
 
 const PAGE_SIZE = 25;
+const EMPTY_QUOTES: Quote[] = [];
+
+const PORTAL_QUOTE_COLUMNS: ColumnDef<Quote>[] = [
+  { id: "quote_number", header: "Cotización #", accessorKey: "quote_number",
+    cell: ({ row }) => <span className="font-medium">{row.original.quote_number}</span> },
+  { id: "created_at", header: "Fecha", accessorKey: "created_at", meta: { kind: "date" },
+    cell: ({ row }) => formatDateMty(row.original.created_at) },
+  { id: "valid_until", header: "Válida hasta", accessorKey: "valid_until", meta: { kind: "date" },
+    cell: ({ row }) => row.original.valid_until ? formatDateMty(row.original.valid_until) : "—" },
+  { id: "total", header: "Total", accessorFn: (q) => Number(q.total), meta: { kind: "money" },
+    cell: ({ row }) => <span className="font-mono">{formatCurrencyWithCode(Number(row.original.total), row.original.currency ?? "MXN")}</span> },
+  { id: "status", header: "Estado", accessorKey: "status", meta: { kind: "badge" },
+    cell: ({ row }) => <StatusBadge status={row.original.status} label={quoteStatusLabel(row.original.status)} /> },
+];
 
 export default function PortalQuotes() {
   const [page, setPage] = useState(1);
   const { data: result, isLoading, isError, refetch } = usePortalQuotesPage(page, PAGE_SIZE);
-  const data = result?.rows ?? [];
+  const data = result?.rows ?? EMPTY_QUOTES;
   const totalPages = Math.max(1, Math.ceil((result?.totalCount ?? 0) / PAGE_SIZE));
   const navigate = useNavigateTransition();
   const isMobile = useIsMobile();
 
-  const columns: ColumnDef<Quote>[] = [
-    { id: "quote_number", header: "Cotización #", accessorKey: "quote_number",
-      cell: ({ row }) => <span className="font-medium">{row.original.quote_number}</span> },
-    { id: "created_at", header: "Fecha", accessorKey: "created_at", meta: { kind: "date" },
-      cell: ({ row }) => formatDateMty(row.original.created_at) },
-    { id: "valid_until", header: "Válida hasta", accessorKey: "valid_until", meta: { kind: "date" },
-      cell: ({ row }) => row.original.valid_until ? formatDateMty(row.original.valid_until) : "—" },
-    { id: "total", header: "Total", accessorFn: (q) => Number(q.total), meta: { kind: "money" },
-      cell: ({ row }) => <span className="font-mono">{formatCurrencyWithCode(Number(row.original.total), row.original.currency ?? "MXN")}</span> },
-    { id: "status", header: "Estado", accessorKey: "status", meta: { kind: "badge" },
-      cell: ({ row }) => <StatusBadge status={row.original.status} label={quoteStatusLabel(row.original.status)} /> },
-  ];
-
   const table = useLiftgoTable<Quote>({
-    data, columns, getRowId: (q) => q.id,
+    data,
+    columns: PORTAL_QUOTE_COLUMNS,
+    getRowId: (q) => q.id,
     initialSorting: [{ id: "created_at", desc: true }],
     enableSorting: false,
     paginated: false,

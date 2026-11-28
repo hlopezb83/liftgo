@@ -4,7 +4,7 @@ import { NativeSelect } from "@/components/ui/native-select";
 import { Textarea } from "@/components/ui/textarea";
 import {
   ORGANIZATION_CLASSIFICATION_LABELS, type OrganizationGovernanceFields as GovernanceFieldsValues,
-} from "@/lib/platformOrganizationGovernance.types";
+} from "../lib/platformOrganizationGovernance.types";
 
 const fields = [
   ["city", "Ciudad", 100, "text"], ["territory", "Territorio", 120, "text"],

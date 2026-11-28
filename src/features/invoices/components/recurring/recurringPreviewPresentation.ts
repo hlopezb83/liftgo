@@ -1,6 +1,6 @@
 import { formatCurrencyWithCode } from "@/lib/format/formatCurrency";
 import { applyVat, resolveVatRatePercent, sumMoney } from "@/lib/money";
-import type { RecurringPreviewLine } from "../../hooks/invoices/recurring/usePreviewRecurringInvoices";
+import type { RecurringPreviewLine } from "../../hooks/recurring/usePreviewRecurringInvoices";
 
 export interface RecurringCustomerGroup {
   key: string;

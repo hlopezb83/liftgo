@@ -1,352 +1,112 @@
-import { useEffect, useRef, useState } from "react";
-import { customerTaxRate } from "@/features/customers";
-import { hasQuotedDiscount, type QuotedRentalBooking } from "@/features/quotes";
-import { resolveBookingRates } from "@/lib/domain/bookingRates";
-import { firstBillingPeriod, prorateMonthlyLine } from "@/lib/domain/firstBillingPeriod";
-import { generateLineItems } from "@/lib/domain/invoiceHelpers";
-import { proratedMonthlyAmount } from "@/lib/domain/invoiceTotals";
-import { notifyValidation } from "@/lib/ui/appFeedback";
-import { nowMty } from "@/lib/utils";
+import type { QuotedRentalBooking } from "@/features/quotes";
 import { prefillBillingPeriod } from "../../lib/bookingCompatibility";
-import { applyQuoteChargeAvailability, buildAvailableQuoteChargeLines, preserveEnteredQuoteChargeLines, type QuoteChargeAvailability } from "../../lib/quoteChargeAvailability";
-import { buildQuotedBookingLines, type BookingQuoteSource } from "../../lib/quotedBookingLines";
-import { cfdiFromCustomer, type Customer } from "./invoiceFormBuilders";
+import {
+  applyInitialBillingPeriod,
+  applyPrimaryCurrency,
+  applyPrimaryCustomer,
+  buildLinesForBooking,
+  type InvoiceHandlerBooking,
+} from "./bookingRentalLines";
 import { preserveInvoiceReceiverEdits } from "./preserveInvoiceReceiverEdits";
-import { requireInvoiceEquipment, type InvoiceRentalEquipment } from "./useInvoiceRentalEquipment";
-import type { InvoiceFormValues, LineItemValues } from "../../lib/invoiceFormSchema";
+import { loadBookingSelectionBundle } from "./resolveBookingSelectionData";
+import { useDetachedCustomerSelection } from "./useDetachedCustomerSelection";
+import type { Customer } from "./invoiceFormBuilders";
+import type { InvoiceRentalEquipment } from "./useInvoiceRentalEquipment";
+import type { InvoiceFormValues } from "../../lib/invoiceFormSchema";
+import type { QuoteChargeAvailability } from "../../lib/quoteChargeAvailability";
+import type { BookingQuoteSource } from "../../lib/quotedBookingLines";
 import type { UseFormReturn } from "react-hook-form";
 
 // Regla canónica del periodo pre-llenado: vive en `lib/bookingCompatibility`
 // porque también la usan el selector multi-reserva y la validación al guardar.
-export { prefillBillingPeriod };
-
-
-type Booking = {
-  id: string; customer_name?: string | null; customer_id?: string | null;
-  forklift_id: string; start_date: string; end_date: string;
-  quote_id?: string | null;
-  /** Tarifas pactadas en la reserva; null si no se capturaron (caen al montacargas). */
-  daily_rate?: number | null;
-  weekly_rate?: number | null;
-  monthly_rate?: number | null;
-  /** A1-2: moneda/TC pactados en la reserva; se heredan si no son MXN para no
-   *  facturar en MXN montos cotizados/rentados en USD. */
-  currency?: string | null;
-  tipo_cambio?: number | string | null;
-  recurring_billing?: boolean | null;
-  pending_billing_period?: { start: string; end: string };
-};
-
-type QuoteSource = BookingQuoteSource;
+export { prefillBillingPeriod, buildLinesForBooking, applyPrimaryCurrency };
 
 interface Props {
   form: UseFormReturn<InvoiceFormValues>;
   customers: Customer[] | undefined;
-  bookings: Booking[] | undefined;
+  bookings: InvoiceHandlerBooking[] | undefined;
   forklifts?: InvoiceRentalEquipment[];
   loadEquipment?: (ids: readonly string[]) => Promise<InvoiceRentalEquipment[]>;
   loadCustomer?: (id: string) => Promise<Customer>;
   /** Cotizaciones origen de las reservas cargadas; se usan para arrastrar
    *  partidas no-renta (logística/entrega) a la factura. */
-  quotes?: QuoteSource[] | undefined;
-  loadQuoteSources?: (quoteIds: string[]) => Promise<QuoteSource[]>;
+  quotes?: BookingQuoteSource[] | undefined;
+  loadQuoteSources?: (quoteIds: string[]) => Promise<BookingQuoteSource[]>;
   loadQuotedBookings?: (quoteIds: string[]) => Promise<QuotedRentalBooking[]>;
   loadQuoteCharges: (quoteIds: string[]) => Promise<QuoteChargeAvailability>;
 }
 
-function applyCfdiPatch(form: UseFormReturn<InvoiceFormValues>, customer: Customer) {
-  const patch = cfdiFromCustomer(customer);
-  (Object.keys(patch) as (keyof typeof patch)[]).forEach((k) => {
-    const v = patch[k];
-    if (v !== undefined) form.setValue(`cfdi.${k}`, v, { shouldDirty: true });
-  });
-  // FIX-3: la tasa de IVA del cliente (p. ej. frontera 8%) manda sobre el 16%
-  // por defecto. Sólo se aplica si está capturada y es un número válido.
-  const rate = customerTaxRate(customer.tax_rate);
-  if (rate !== undefined) {
-    form.setValue("taxRate", rate, { shouldDirty: true });
-  }
-}
-
-
-const SAT_LINE_DEFAULTS = {
-  clave_prod_serv: "78181500",
-  clave_unidad: "DAY",
-  objeto_imp: "02",
-  line_kind: "rental",
-} as const;
-
-function monthLabel(ymd: string): string {
-  const [y, m] = ymd.split("-").map(Number);
-  const name = new Date(y, (m ?? 1) - 1, 1).toLocaleDateString("es-MX", { month: "long" });
-  return `${name} ${y}`;
-}
-
-export function buildLinesForBooking(booking: Booking, forklifts: InvoiceRentalEquipment[] | undefined): LineItemValues[] {
-  const forklift = forklifts?.find((f) => f.id === booking.forklift_id);
-  if (!forklift) return [];
-  // FIX-2: misma regla canónica que las extensiones (`resolveBookingRates`):
-  // la tarifa pactada gana SÓLO si es > 0; en 0/null cae a la del catálogo.
-  const resolved = resolveBookingRates(forklift, booking);
-  const rated = {
-    ...forklift,
-    daily_rate: resolved.daily,
-    weekly_rate: resolved.weekly,
-    monthly_rate: resolved.monthly,
-  };
-
-
-  // El corte al primer mes sólo pertenece al flujo recurrente. Una reserva no
-  // recurrente se factura completa para no dejar meses fuera silenciosamente.
-  if (booking.pending_billing_period) {
-    const cycle = firstBillingPeriod(booking.pending_billing_period.start, booking.pending_billing_period.end);
-    if (!cycle) return [];
-    const monthly = booking.monthly_rate ?? forklift.monthly_rate;
-    if (monthly == null || !Number.isFinite(monthly) || monthly < 0) throw new Error("La reserva recurrente no tiene una tarifa mensual válida. Revisa la tarifa pactada antes de facturar.");
-    const amount = proratedMonthlyAmount(monthly, cycle.billedDays, cycle.daysInMonth);
-    return [{ description: `${forklift.name} — Renta mensual ${monthLabel(cycle.start)} (${cycle.billedDays} días)`,
-      quantity: 1, unit_price: amount, total: amount, ...SAT_LINE_DEFAULTS, clave_unidad: "E48" }];
-  }
-  const period = firstBillingPeriod(booking.start_date, booking.end_date);
-  if (booking.recurring_billing === true && period?.truncated) {
-    const monthly = rated.monthly_rate ?? 0;
-    const prorated = period.isProrated ? prorateMonthlyLine(monthly, period.billedDays, period.daysInMonth) : null;
-    if (prorated) {
-      return [{
-        description:
-          `${forklift.name} — Renta ${monthLabel(period.start)} (${prorated.quantity} días al precio diario)`,
-        quantity: prorated.quantity,
-        unit_price: prorated.unitPrice,
-        total: prorated.total,
-        ...SAT_LINE_DEFAULTS,
-      }];
-    }
-    return generateLineItems(rated, period.start, period.end).map((item) => ({
-      ...item,
-      ...SAT_LINE_DEFAULTS,
-    }));
-  }
-
-  const items = generateLineItems(rated, booking.start_date, booking.end_date);
-  return items.map((item) => ({
-    ...item,
-    ...SAT_LINE_DEFAULTS,
-  }));
-}
-
-function applyPrimaryCustomer(
-  form: UseFormReturn<InvoiceFormValues>,
-  first: Booking,
-  customer: Customer | undefined,
-) {
-  form.setValue("customerName", first.customer_name || "", { shouldDirty: true });
-  form.setValue("customerId", first.customer_id || "", { shouldDirty: true });
-  if (customer && customer.id === first.customer_id) applyCfdiPatch(form, customer);
-}
-
-/** Replace both fields whenever the primary booking changes; otherwise an
- * earlier manual USD choice survives a later MXN selection. */
-export function applyPrimaryCurrency<T extends Pick<Booking, "currency" | "tipo_cambio">>(
-  form: UseFormReturn<InvoiceFormValues>,
-  first: T,
-) {
-  const currency = first.currency?.trim().toUpperCase() || "MXN";
-  form.setValue("cfdi.moneda", currency, { shouldDirty: true });
-  const fx = Number(first.tipo_cambio);
-  form.setValue("cfdi.tipoCambio", currency === "MXN" ? 1 : Number.isFinite(fx) && fx > 0 ? fx : 0,
-    { shouldDirty: true });
-}
-
-async function availableChargesForBookings(
-  quoteIds: string[], quotes: QuoteSource[] | undefined, loadQuoteCharges: Props["loadQuoteCharges"],
-): Promise<LineItemValues[]> {
-  const availability = quoteIds.length ? await loadQuoteCharges(quoteIds) : undefined;
-  for (const quoteId of quoteIds) {
-    const source = quotes?.find((quote) => quote.id === quoteId);
-    if (!Array.isArray(source?.line_items)) throw new Error("No se pudieron verificar las partidas de la cotización. Recarga y reintenta.");
-    applyQuoteChargeAvailability(quoteId, source.line_items as LineItemValues[], availability);
-  }
-  return buildAvailableQuoteChargeLines(quoteIds, availability);
-}
-
-function discountSiblings(sources: QuoteSource[] | undefined, bookings: Booking[] | undefined, load: Props["loadQuotedBookings"]) {
-  const quoteIds = new Set(sources?.filter(hasQuotedDiscount).map((quote) => quote.id));
-  if (quoteIds.size === 0) return [];
-  return load ? load([...quoteIds]) : (bookings ?? []).filter((booking) => booking.quote_id && quoteIds.has(booking.quote_id));
-}
-
-function selectedBookingRows(bookings: Booking[] | undefined, selectedIds: string[]) {
-  const byId = new Map(bookings?.map((booking) => [booking.id, booking]));
-  const selected = selectedIds.flatMap((id) => byId.get(id) ?? []);
-  if (selected.length !== new Set(selectedIds).size) throw new Error("No se pudieron cargar todas las reservas seleccionadas. Recarga las reservas y reintenta.");
-  return selected;
-}
-
-async function equipmentForSelection(selected: Booking[], siblings: QuotedRentalBooking[], load: Props["loadEquipment"], fallback: Props["forklifts"]) {
-  const ids = [...new Set([...selected, ...siblings].map((booking) => booking.forklift_id))];
-  const equipment = load ? await load(ids) : fallback ?? [];
-  requireInvoiceEquipment(ids, equipment);
-  return equipment;
-}
-
-function applySelectedCustomer(
-  form: UseFormReturn<InvoiceFormValues>, customers: Customer[] | undefined,
-  selectedCustomerId: string, selectedCustomer?: Customer,
-) {
-    form.setValue("customerId", selectedCustomerId, { shouldDirty: true });
-    const customer = selectedCustomer?.id === selectedCustomerId
-      ? selectedCustomer : customers?.find((c) => c.id === selectedCustomerId);
-    // Explicit selection replaces receiver-owned fields; never retain another
-    // customer's fiscal snapshot, even when the new customer has missing data.
-    const receiver = customer ?? { id: selectedCustomerId, name: "" };
-    form.setValue("customerName", receiver.name, { shouldDirty: true });
-    form.setValue("cfdi.usoCfdi", receiver.uso_cfdi || "G03", { shouldDirty: true });
-    form.setValue("taxRate", 16, { shouldDirty: true });
-    applyCfdiPatch(form, receiver);
-}
-
-function incompatibleCustomerBookings(form: UseFormReturn<InvoiceFormValues>, bookings: Booking[] | undefined, customerId: string) {
-  if (customerId === form.getValues("customerId")) return false;
-  const ids = [...(form.getValues("bookingIds") ?? []), form.getValues("bookingId")].filter(Boolean);
-  return ids.some((id) => {
-    const booking = bookings?.find((candidate) => candidate.id === id);
-    return !booking || booking.customer_id !== customerId;
-  });
-}
-
-function applyInitialBillingPeriod(form: UseFormReturn<InvoiceFormValues>, first?: Booking) {
-  if (!first || form.getValues("billingPeriodStart")) return;
-  const { start, end } = prefillBillingPeriod(first, form.getValues("issueDate") ?? nowMty());
-  form.setValue("billingPeriodStart", start, { shouldDirty: true });
-  form.setValue("billingPeriodEnd", end, { shouldDirty: true });
-}
-
-function customerForBooking(booking: Booking | undefined, load: Props["loadCustomer"], customers: Props["customers"]) {
-  const id = booking?.customer_id;
-  if (!id) return undefined;
-  return load ? load(id) : customers?.find((customer) => customer.id === id);
-}
-
-export function useInvoiceFormHandlers({ form, customers, bookings, forklifts, quotes, loadEquipment, loadCustomer, loadQuoteSources, loadQuotedBookings, loadQuoteCharges }: Props) {
-
-  const selectionRequest = useRef(0);
-  const [isLoadingCharges, setIsLoadingCharges] = useState(false);
-  const [chargeSelectionError, setChargeSelectionError] = useState<string | null>(null);
-  const lastSelection = useRef<string[]>([]);
-  const pendingSelection = useRef(false);
-  const selectionNeedsReview = useRef(false);
-  const detachedSelection = useRef<{ customerId: string; ids: string[]; primary: string } | null>(null);
-  useEffect(() => () => { ++selectionRequest.current; }, []);
-
-  const handleCustomerSelect = (selectedCustomerId: string, selectedCustomer?: Customer) => {
-    // A manual receiver choice supersedes a pending booking request. Do not
-    // permit Retry to resurrect that request or silently reassign the receiver.
-    const canceled = pendingSelection.current || (chargeSelectionError !== null && lastSelection.current.length > 0);
-    ++selectionRequest.current;
-    pendingSelection.current = false;
-    setIsLoadingCharges(false);
-    lastSelection.current = [];
-    const previousCustomerId = form.getValues("customerId");
-    const restore = detachedSelection.current?.customerId === selectedCustomerId ? detachedSelection.current : null;
-    if (restore) {
-      form.setValue("bookingIds", restore.ids, { shouldDirty: true });
-      form.setValue("bookingId", restore.primary, { shouldDirty: true });
-      detachedSelection.current = null;
-      selectionNeedsReview.current = false;
-      setChargeSelectionError(null);
-    }
-    const linked = form.getValues("bookingIds") ?? [];
-    const primary = form.getValues("bookingId");
-    const incompatible = !restore && incompatibleCustomerBookings(form, bookings, selectedCustomerId);
-    if (incompatible) {
-      detachedSelection.current ??= { customerId: previousCustomerId, ids: linked, primary };
-      form.setValue("bookingIds", [], { shouldDirty: true });
-      form.setValue("bookingId", "", { shouldDirty: true });
-    }
-    if (!restore && (canceled || incompatible)) {
-      selectionNeedsReview.current = true;
-      const recovery = detachedSelection.current
-        ? "Selecciona el cliente anterior o vuelve a seleccionar reservas compatibles"
-        : "Vuelve a seleccionar reservas compatibles";
-      const message = `Cambiaste el cliente. ${recovery} y revisa las partidas antes de guardar.`;
-      setChargeSelectionError(message);
-      notifyValidation({ message });
-    }
-    applySelectedCustomer(form, customers, selectedCustomerId, selectedCustomer);
-  };
+export function useInvoiceFormHandlers({
+  form,
+  customers,
+  bookings,
+  forklifts,
+  quotes,
+  loadEquipment,
+  loadCustomer,
+  loadQuoteSources,
+  loadQuotedBookings,
+  loadQuoteCharges,
+}: Props) {
+  const state = useDetachedCustomerSelection(form, customers, bookings);
 
   const handleBookingsChange = async (selectedIds: string[]) => {
-    if (selectionNeedsReview.current && selectedIds.length === 0) {
-      ++selectionRequest.current;
-      pendingSelection.current = false;
-      lastSelection.current = [];
-      setIsLoadingCharges(false);
-      return;
-    }
-    const request = ++selectionRequest.current;
-    if (!selectionNeedsReview.current) setChargeSelectionError(null);
-    lastSelection.current = selectedIds;
+    const request = state.beginSelectionRequest(selectedIds);
+    if (request === null) return;
     const defaults = preserveInvoiceReceiverEdits(form);
-    let selected: Booking[];
-    let primaryCustomer: Customer | undefined;
-    let rentalLines: LineItemValues[];
-    let extraLines: LineItemValues[];
-    pendingSelection.current = true;
-    setIsLoadingCharges(true);
+    let bundle: Awaited<ReturnType<typeof loadBookingSelectionBundle>>;
     try {
-      selected = selectedBookingRows(bookings, selectedIds);
-      const quoteIds = [...new Set(selected.flatMap((booking) => booking.quote_id ? [booking.quote_id] : []))];
-      const sources = loadQuoteSources && quoteIds.length ? await loadQuoteSources(quoteIds) : quotes;
-      if (request !== selectionRequest.current) return;
-      const [siblings, available] = await Promise.all([
-        discountSiblings(sources, bookings, loadQuotedBookings),
-        availableChargesForBookings(quoteIds, sources, loadQuoteCharges),
-      ]);
-      if (request !== selectionRequest.current) return;
-      const [equipment, customer] = await Promise.all([
-        equipmentForSelection(selected, siblings, loadEquipment, forklifts),
-        customerForBooking(selected[0], loadCustomer, customers),
-      ]);
-      if (request !== selectionRequest.current) return;
-      primaryCustomer = customer;
-      rentalLines = buildQuotedBookingLines(selected, siblings, equipment, sources,
-        (booking) => buildLinesForBooking(booking, equipment));
-      const current = form.getValues("lineItems");
-      extraLines = preserveEnteredQuoteChargeLines(available, current);
+      bundle = await loadBookingSelectionBundle(
+        {
+          selectedIds,
+          bookings,
+          customers,
+          forklifts,
+          quotes,
+          loadEquipment,
+          loadCustomer,
+          loadQuoteSources,
+          loadQuotedBookings,
+          loadQuoteCharges,
+          getCurrentLineItems: () => form.getValues("lineItems"),
+        },
+        () => state.isCurrentRequest(request),
+      );
+      if (!bundle) return;
     } catch (error) {
-      if (request !== selectionRequest.current) return;
-      const message = error instanceof Error ? error.message : "No se pudieron recuperar los precios pactados.";
-      setChargeSelectionError(message);
-      notifyValidation({ message });
+      state.failSelectionRequest(request, error);
       return;
     } finally {
       defaults.dispose();
-      if (request === selectionRequest.current) {
-        pendingSelection.current = false;
-        setIsLoadingCharges(false);
-      }
+      state.finishSelectionRequest(request);
     }
 
     form.setValue("bookingIds", selectedIds, { shouldDirty: true });
     form.setValue("bookingId", selectedIds[0] ?? "", { shouldDirty: true });
+    applyInitialBillingPeriod(form, bundle.selected[0]);
 
-    applyInitialBillingPeriod(form, selected[0]);
+    if (bundle.selected.length === 0) return;
 
-    if (selected.length === 0) return;
-
-    applyPrimaryCustomer(defaults.form, selected[0], primaryCustomer);
-    applyPrimaryCurrency(defaults.form, selected[0]);
-
-    form.setValue("lineItems", [...rentalLines, ...extraLines], { shouldDirty: true });
-    selectionNeedsReview.current = false;
-    detachedSelection.current = null;
-    setChargeSelectionError(null);
+    applyPrimaryCustomer(defaults.form, bundle.selected[0], bundle.primaryCustomer);
+    applyPrimaryCurrency(defaults.form, bundle.selected[0]);
+    form.setValue("lineItems", [...bundle.rentalLines, ...bundle.extraLines], { shouldDirty: true });
+    state.completeSelectionSuccess();
   };
 
   // Compat: handler antiguo single-select (delega al multi).
   const handleBookingSelect = (id: string) => {
-    handleBookingsChange(id ? [id] : []);
+    void handleBookingsChange(id ? [id] : []);
   };
 
-  return { handleCustomerSelect, handleBookingSelect, handleBookingsChange, isLoadingCharges, chargeSelectionError, retryChargeSelection: () => lastSelection.current.length ? handleBookingsChange(lastSelection.current) : Promise.resolve() };
+  return {
+    handleCustomerSelect: state.handleCustomerSelect,
+    handleBookingSelect,
+    handleBookingsChange,
+    isLoadingCharges: state.isLoadingCharges,
+    chargeSelectionError: state.chargeSelectionError,
+    retryChargeSelection: () => {
+      const retryIds = state.getRetrySelectionIds();
+      return retryIds.length ? handleBookingsChange(retryIds) : Promise.resolve();
+    },
+  };
 }

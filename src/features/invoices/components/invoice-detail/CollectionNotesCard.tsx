@@ -9,7 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useHasModuleAccess } from "@/features/users";
 import { toYMD } from "@/lib/date/toYMD";
 import { formatDateMty, formatDateTimeMty } from "@/lib/format/dateFormats";
-import { useCollectionNotes, useCreateCollectionNote } from "../../hooks/invoices/collections/useCollectionNotes";
+import { useCollectionNotes, useCreateCollectionNote } from "../../hooks/collections/useCollectionNotes";
 
 interface CollectionNotesCardProps {
   invoiceId: string;

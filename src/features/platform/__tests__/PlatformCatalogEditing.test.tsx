@@ -1,13 +1,18 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import type { PlatformEquipmentModelRow, PlatformPartCatalogRow } from "@/lib/platformCatalog.types";
-const m = vi.hoisted(() => ({ modelSave: vi.fn(), partSave: vi.fn(), models: vi.fn(), parts: vi.fn() }));
-vi.mock("@/lib/platformCatalog.functions", () => ({ savePlatformEquipmentModelFn: m.modelSave, savePlatformPartCatalogFn: m.partSave,
-  listPlatformEquipmentModelsFn: m.models, listPlatformPartsCatalogFn: m.parts }));
-vi.mock("@/lib/ui/appFeedback", () => ({ notifySuccess: vi.fn(), notifyError: vi.fn(), notifyValidation: vi.fn() }));
 import { PlatformEquipmentModelDialog } from "../components/PlatformEquipmentModelDialog";
 import { PlatformPartCatalogDialog } from "../components/PlatformPartCatalogDialog";
+import type { PlatformEquipmentModelRow, PlatformPartCatalogRow } from "../lib/platformCatalog.types";
+
+const m = vi.hoisted(() => ({ modelSave: vi.fn(), partSave: vi.fn(), modelGet: vi.fn(), partGet: vi.fn() }));
+vi.mock("../lib/platformCatalog.functions", () => ({
+  savePlatformEquipmentModelFn: m.modelSave,
+  savePlatformPartCatalogFn: m.partSave,
+  getPlatformEquipmentModelFn: m.modelGet,
+  getPlatformPartCatalogFn: m.partGet,
+}));
+vi.mock("@/lib/ui/appFeedback", () => ({ notifySuccess: vi.fn(), notifyError: vi.fn(), notifyValidation: vi.fn() }));
 const model: PlatformEquipmentModelRow = { id: "10100000-0000-4000-8000-000000000011", manufacturer: "Toyota", model: "8FGU25",
   capacity_kg: 2500, mast_height_m: 4.5, fuel_type: "Diesel", specifications: { transmission: "automática" }, image_url: null, spec_sheet_url: null,
   is_active: true, organization_count: 2, created_at: "2026-10-03T10:00:00Z", updated_at: "2026-10-03T10:00:00.123456Z" };
@@ -38,8 +43,8 @@ describe("captura global: accesibilidad, descarte y conflicto", () => {
   it.each([["model", "Modelo *", "8FGU30"], ["part", "Nombre *", "Filtro de transmisión"]] as const)("revisa una nueva base sin reemplazar borrador de %s", async (kind, label, value) => {
     const save = kind === "model" ? m.modelSave : m.partSave;
     const token = "2026-10-03T11:00:00.654321Z";
-    m.models.mockResolvedValue([{ ...model, model: "8FGU32", specifications: { transmission: "manual" }, updated_at: token }]);
-    m.parts.mockResolvedValue([{ ...part, name: "Filtro actual", updated_at: token }]);
+    m.modelGet.mockResolvedValue({ ...model, model: "8FGU32", specifications: { transmission: "manual" }, updated_at: token });
+    m.partGet.mockResolvedValue({ ...part, name: "Filtro actual", updated_at: token });
     save.mockRejectedValueOnce(Object.assign(new Error("Los datos cambiaron"), { status: 409 }));
     const { close, cache } = setup(kind);
     fireEvent.change(screen.getByLabelText(label), { target: { value } });
@@ -49,6 +54,7 @@ describe("captura global: accesibilidad, descarte y conflicto", () => {
     expect(screen.getByRole("button", { name: "Guardar" })).toBeDisabled();
     fireEvent.click(screen.getByRole("button", { name: "Revisar contenido actual" }));
     await screen.findByText(kind === "model" ? "8FGU32" : "Filtro actual");
+    expect(kind === "model" ? m.modelGet : m.partGet).toHaveBeenCalledExactlyOnceWith({ data: { id: model.id } });
     expect(screen.getByRole("button", { name: "Guardar" })).toBeDisabled();
     fireEvent.click(screen.getByRole("button", { name: "Conservar mi captura y usar esta revisión" }));
     expect(screen.getByLabelText(label)).toHaveValue(value);

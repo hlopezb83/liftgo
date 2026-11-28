@@ -1,7 +1,7 @@
 import { onlineManager, useQueryClient } from "@tanstack/react-query";
 import { deliveryBookingDateError, deliveryQueries, type DeliveryBookingContext } from "@/features/deliveries";
 import { todayKeyMty, toYMD } from "@/lib/format/dateFormats";
-import { bookingQueries, type BookingWithForklift } from "../bookings/useBookings";
+import { bookingQueries, type BookingWithForklift } from "../useBookings";
 import { bookingNextStep } from "./bookingNextStep";
 
 /** Context is created on demand and its facts are rechecked only on submit. */

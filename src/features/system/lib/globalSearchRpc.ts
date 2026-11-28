@@ -18,13 +18,6 @@ export const EMPTY_SEARCH_RESULTS: EntityResults = {
   quotes: [], invoices: [], customers: [], bookings: [], deliveries: [], returns: [],
 };
 
-type SearchRequest = PromiseLike<{ data: unknown; error: { message: string; code?: string } | null }> & {
-  abortSignal(signal: AbortSignal): SearchRequest;
-};
-type SearchRpc = (name: "get_global_search", args: {
-  p_expected_organization_id: string; p_query: string; p_sections: string[];
-}) => SearchRequest;
-
 export function normalizeEntitySearchTerm(query: string): string {
   return query.trim().toLowerCase();
 }
@@ -36,9 +29,7 @@ export async function searchEntities(
   const sections = sectionSchema.options.filter((section) => permissions?.[section]);
   if (term.length < 2 || !organizationId || sections.length === 0) return EMPTY_SEARCH_RESULTS;
   signal?.throwIfAborted();
-  // The local name contract keeps preview compilation independent of migration rollout.
-  const rpc = supabase.rpc.bind(supabase) as unknown as SearchRpc;
-  const request = rpc("get_global_search", {
+  const request = supabase.rpc("get_global_search", {
     p_expected_organization_id: organizationId, p_query: term, p_sections: sections,
   });
   const { data, error } = await (signal ? request.abortSignal(signal) : request);

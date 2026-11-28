@@ -1,6 +1,6 @@
 import * as Sentry from "@sentry/react";
-import { recoverFromStaleChunk } from "../staleChunkReload";
 import { createPrivacyOptions, PUBLIC_SENTRY_DSN, scrubData } from "./privacyOptions";
+import { recoverFromStaleChunk } from "./staleChunkReload";
 
 /** Llamada explícita desde instrument-client.ts, antes de hidratar la aplicación. */
 export function initClientSentry(): void {

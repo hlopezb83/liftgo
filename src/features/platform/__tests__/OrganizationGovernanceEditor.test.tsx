@@ -1,13 +1,15 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import type { OrganizationGovernance } from "@/lib/platformOrganizationGovernance.types";
+import { OrganizationGovernanceEditor } from "../components/OrganizationGovernanceEditor";
+import { platformKeys } from "../lib/queryKeys";
+import type { OrganizationGovernance } from "../lib/platformOrganizationGovernance.types";
+
 const m = vi.hoisted(() => ({ save: vi.fn(), error: vi.fn(), success: vi.fn(), info: vi.fn(), validation: vi.fn() }));
-vi.mock("@/lib/platformOrganizationGovernance.functions", () => ({
+vi.mock("../lib/platformOrganizationGovernance.functions", () => ({
   setPlatformOrganizationGovernanceFn: m.save, getPlatformOrganizationGovernanceFn: vi.fn(), listPlatformOrganizationGovernanceFn: vi.fn(),
 }));
 vi.mock("@/lib/ui/appFeedback", () => ({ notifyError: m.error, notifySuccess: m.success, notifyInfo: m.info, notifyValidation: m.validation }));
-import { OrganizationGovernanceEditor } from "../components/OrganizationGovernanceEditor";
 const initial: OrganizationGovernance = { organizationId: "10100000-0000-4000-8000-000000000011",
   classification: "unclassified", city: null, territory: null, contactName: null, contactEmail: null, contactPhone: null, revision: "0", updatedAt: null };
 function setup(reload = vi.fn().mockResolvedValue({ ...initial, revision: "1", city: "Saltillo" })) {
@@ -57,7 +59,7 @@ describe("ficha concurrente: conservar captura y revisar antes de sobrescribir",
     fireEvent.click(screen.getByRole("button", { name: "Guardar datos" }));
     await waitFor(() => expect(close).toHaveBeenCalledTimes(1));
     expect(m.save.mock.calls[1][0].data).toMatchObject({ city: "Monterrey", revision: "1" });
-    expect(cache.getQueryData<OrganizationGovernance>(["platform", "organization-governance", initial.organizationId])?.revision).toBe("2");
+    expect(cache.getQueryData<OrganizationGovernance>(platformKeys.organizationGovernance.detail(initial.organizationId))?.revision).toBe("2");
     expect(m.error).toHaveBeenCalledWith(expect.objectContaining({ phase: "mutation" })); cache.clear();
   });
   it("consultar la revisión fallida no habilita guardar ni borra la captura", async () => {

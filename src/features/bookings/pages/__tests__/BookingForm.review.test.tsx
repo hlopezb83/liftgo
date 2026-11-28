@@ -17,8 +17,8 @@ vi.mock("@/lib/format/dateFormats", async (importOriginal) => ({
 }));
 vi.mock("@/features/customers", () => ({ CustomerSelector: () => <div>Selector de cliente</div> }));
 vi.mock("@/features/fleet", () => ({ ForkliftSelector: () => <div>Selector de equipo</div>, ForkliftAvailabilityHelp: () => null }));
-vi.mock("../../components/bookings/BookingDraftNotice", () => ({ BookingDraftNotice: () => null }));
-vi.mock("../../components/bookings/BookingPostDialogs", () => ({ BookingPostDialogs: () => null }));
+vi.mock("../../components/BookingDraftNotice", () => ({ BookingDraftNotice: () => null }));
+vi.mock("../../components/BookingPostDialogs", () => ({ BookingPostDialogs: () => null }));
 vi.mock("../../hooks/bookingForm/useBookingFormLogic", () => ({
   useBookingFormLogic: () => {
     const dateRange = { from: new Date(2026, 10, 1), to: new Date(2026, 10, 7) };

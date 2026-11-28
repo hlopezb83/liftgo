@@ -12,7 +12,7 @@ vi.mock("../../../hooks/creditNotes/useCreditNotes", () => ({
   useDeleteCreditNote: () => ({ mutate: mocks.remove, isPending: false }),
 }));
 vi.mock("../../../hooks/usePayments", () => ({ usePayments: () => ({ data: [] }) }));
-vi.mock("../../../hooks/invoices/cfdi/useRefreshCancellationStatus", () => ({
+vi.mock("../../../hooks/cfdi/useRefreshCancellationStatus", () => ({
   useRefreshCreditNoteCancellationStatus: () => ({ mutate: mocks.refresh, isPending: false }),
 }));
 vi.mock("../CreateCreditNoteDialog", () => ({ CreateCreditNoteDialog: () => <div role="dialog">Nueva NC abierta</div> }));

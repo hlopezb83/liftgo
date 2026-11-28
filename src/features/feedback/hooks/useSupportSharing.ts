@@ -1,8 +1,8 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
-import { supportCaseSchema } from "@/lib/platformSupport.types";
 import { callRpc } from "@/lib/rpc";
-import { withSupportRequest } from "@/lib/supportRequest";
+import { supportCaseSchema } from "@/lib/support/platformSupport.types";
+import { withSupportRequest } from "@/lib/support/supportRequest";
 
 export function useSupportSharing(reportId: string) {
   const cache = useQueryClient();

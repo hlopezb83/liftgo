@@ -165,8 +165,6 @@ export function useSetSentContractSigner() {
   });
 }
 
-export type { DepositStatus } from "../lib/contractDepositRpc";
-
 /**
  * A6R2-4: registra el destino del depósito en garantía (retenido/aplicado/
  * devuelto). La validación real (rol, monto ≤ depósito) vive en la RPC

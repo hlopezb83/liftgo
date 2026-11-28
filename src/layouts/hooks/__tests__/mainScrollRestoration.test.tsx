@@ -11,8 +11,8 @@ import {
 import { useRef } from "react";
 import { beforeEach, describe, expect, it } from "vitest";
 import { useMainScrollRestoration } from "@/layouts/hooks/useMainScrollRestoration";
-import { SCROLL_TO_TOP_SELECTORS } from "@/lib/routerScroll";
-import { parseSearch, stringifySearch } from "@/lib/searchSerialization";
+import { SCROLL_TO_TOP_SELECTORS } from "@/lib/navigation/routerScroll";
+import { parseSearch, stringifySearch } from "@/lib/navigation/searchSerialization";
 
 /**
  * TS-04 (navegación NUEVA): con el <main> persistente de MainLayout, la

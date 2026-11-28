@@ -7,7 +7,7 @@ import { useRecurringPreviewModel } from "./useRecurringPreviewModel";
 import type {
   RecurringPreviewResponse,
   RecurringPreviewScope,
-} from "../../hooks/invoices/recurring/usePreviewRecurringInvoices";
+} from "../../hooks/recurring/usePreviewRecurringInvoices";
 
 interface Props {
   open: boolean;

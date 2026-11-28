@@ -10,7 +10,7 @@ vi.mock("@/hooks/use-mobile", () => ({ useIsMobile: () => false, useIsTabletOrBe
 vi.mock("../../hooks/usePartsInventory", () => ({
   usePartsInventory: () => ({ data: [{ id: "p-1", name: "Filtro de aceite", sku: "FLT-001", category: "Filtros", stock_quantity: 12, min_stock_level: 3, unit_cost: 480 }], isLoading: false, isError: false, refetch: vi.fn() }),
 }));
-vi.mock("../../components/inventory/PartDetailSheet", () => ({
+vi.mock("../../components/PartDetailSheet", () => ({
   PartDetailSheet: ({ part, open }: { part?: { name: string }; open: boolean }) => open ? <div role="dialog" aria-label="Detalle de refacción">{part?.name}</div> : null,
 }));
 vi.mock("../../hooks/useInventoryPage", async () => {
@@ -25,8 +25,8 @@ vi.mock("../../hooks/useInventoryPart", async () => {
   const { usePartsInventory } = await import("../../hooks/usePartsInventory");
   return { useInventoryPart: (id: string | null) => ({ ...usePartsInventory(), data: usePartsInventory().data?.find((p) => p.id === id) ?? null }) };
 });
-vi.mock("../../components/inventory/PartFormDialog", () => ({ PartFormDialog: () => null }));
-vi.mock("../../components/inventory/ActivatePartDialog", () => ({ ActivatePartDialog: () => null }));
+vi.mock("../../components/PartFormDialog", () => ({ PartFormDialog: () => null }));
+vi.mock("../../components/ActivatePartDialog", () => ({ ActivatePartDialog: () => null }));
 
 beforeEach(() => { mocks.canWrite = true; });
 

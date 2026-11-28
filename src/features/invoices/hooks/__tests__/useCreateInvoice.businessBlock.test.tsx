@@ -38,7 +38,7 @@ vi.mock("@/lib/ui/appFeedback", () => ({
   notifyAsync: vi.fn(),
 }));
 
-import { useCreateInvoice } from "../invoices/useInvoices";
+import { useCreateInvoice } from "../useInvoices";
 
 const P0001_MESSAGE =
   "No se puede facturar: la cotización de venta tiene 2 equipo(s) sin asignar";

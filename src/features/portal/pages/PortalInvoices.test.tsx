@@ -4,11 +4,11 @@ import { TestRouter } from "@/test/router";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import PortalInvoices from "./PortalInvoices";
 
-vi.mock("@/features/customers", () => ({
+vi.mock("../hooks/useCustomerPortal", () => ({
   usePortalInvoicesPage: vi.fn(),
 }));
 
-import { usePortalInvoicesPage } from "@/features/customers";
+import { usePortalInvoicesPage } from "../hooks/useCustomerPortal";
 
 function createTestQueryClient() {
   return new QueryClient({

@@ -1,20 +1,20 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
-import { createOrganizationFn } from "@/lib/platformAdmin.functions";
+import { notifySuccess } from "@/lib/ui/appFeedback";
+import { createOrganizationFn } from "../lib/platformAdmin.functions";
 import {
   listPendingOnboardingFn,
   resumePlatformOnboardingFn,
-} from "@/lib/platformOnboarding.functions";
+} from "../lib/platformOnboarding.functions";
+import { platformKeys } from "../lib/queryKeys";
 import type {
   PlatformOnboardingInput,
   PlatformOnboardingResult,
-} from "@/lib/platformOnboarding.types";
-import { notifySuccess } from "@/lib/ui/appFeedback";
-import { platformKeys } from "./usePlatformOperator";
+} from "../lib/platformOnboarding.types";
 
 export function usePendingPlatformOnboarding(offset: number) {
   return useQuery({
-    queryKey: [...platformKeys.all, "pending-onboarding", offset],
+    queryKey: platformKeys.pendingOnboarding(offset),
     staleTime: 15_000,
     refetchOnWindowFocus: true,
     queryFn: () => listPendingOnboardingFn({ data: { offset } }),
@@ -47,6 +47,7 @@ export function useCreateOrganization() {
     createOrganizationFn({ data: input }),
   );
 }
+
 export function useResumePlatformOnboarding() {
   return useOnboardingMutation<{ request_id: string }>((input) =>
     resumePlatformOnboardingFn({ data: input }),

@@ -1,7 +1,7 @@
 import { Badge } from "@/components/ui/badge";
 import {
   ORGANIZATION_CLASSIFICATION_LABELS, type OrganizationClassification, type OrganizationGovernance,
-} from "@/lib/platformOrganizationGovernance.types";
+} from "../lib/platformOrganizationGovernance.types";
 
 export function OrganizationClassificationBadge({ classification }: { classification?: OrganizationClassification }) {
   return <Badge variant={classification === "test" ? "secondary" : "outline"}>

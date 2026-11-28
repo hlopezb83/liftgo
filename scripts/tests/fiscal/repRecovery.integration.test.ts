@@ -21,7 +21,7 @@ vi.mock("../../../supabase/functions/_shared/facturapi/client.ts", () => ({
   retryOnFacturapi5xx: (fn: () => unknown) => fn(),
   describeFacturapiError: (error: Error) => ({ message: error.message }),
 }));
-const handlerPath = "../../../supabase/functions/reconcile-stamping-invoices/index.ts";
+const handlerPath = "../../../supabase/functions/reconcile-stamping-invoices/handler.ts";
 const { handleRequest } = await import(handlerPath);
 const PAYMENT = "11900000-0000-4000-8000-000000000001";
 const ORGANIZATION = "11900000-0000-4000-8000-000000000002";

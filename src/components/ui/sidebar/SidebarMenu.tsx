@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useId, useMemo } from "react";
 import type { CSSProperties, ComponentProps, Ref } from "react";
 import { Slot } from "@radix-ui/react-slot";
 import { VariantProps } from "class-variance-authority";
@@ -101,7 +101,14 @@ export const SidebarMenuBadge = ({ className, ref, ...props }: ComponentProps<"d
 SidebarMenuBadge.displayName = "SidebarMenuBadge";
 
 export const SidebarMenuSkeleton = ({ className, showIcon = false, ref, ...props }: ComponentProps<"div"> & { showIcon?: boolean } & { ref?: Ref<HTMLDivElement> }) => {
-  const width = useMemo(() => `${Math.floor(Math.random() * 40) + 50}%`, []);
+  const skeletonId = useId();
+  const width = useMemo(() => {
+    let hash = 0;
+    for (let i = 0; i < skeletonId.length; i++) {
+      hash = (hash * 31 + skeletonId.charCodeAt(i)) | 0;
+    }
+    return `${(Math.abs(hash) % 40) + 50}%`;
+  }, [skeletonId]);
   return (
     <div
       ref={ref}

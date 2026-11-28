@@ -3,8 +3,8 @@
  * Extraído del componente para mantenerlo simple y poder probarlo aparte.
  */
 import { sumMoney } from "@/lib/money";
+import { sumPaymentsInInvoiceCurrency } from "@/lib/money/paymentCurrency";
 import { computeMaxCreditable } from "./computeMaxCreditable";
-import { sumPaymentsInInvoiceCurrency } from "./paymentCurrency";
 import { isRepBacked, repBackedPayments, sumRepBackedPaymentsInInvoiceCurrency } from "./repBackedPayments";
 import type { CreditNote } from "../hooks/creditNotes/useCreditNotes";
 import type { Payment } from "../hooks/usePayments";

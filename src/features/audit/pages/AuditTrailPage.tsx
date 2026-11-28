@@ -1,4 +1,4 @@
-import { useCallback, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { useLiftgoTable } from "@/components/dataTable/v2";
 import { ListTruncationNotice } from "@/components/feedback/ListTruncationNotice";
 import { FiltersToolbar } from "@/components/filters/FiltersToolbar";
@@ -23,6 +23,14 @@ const ORIGIN_OPTIONS: { value: string; label: string }[] = [
   { value: "e2e", label: "Solo pruebas" },
   { value: "any", label: "Todos los orígenes" },
 ];
+const TABLE_SELECT_OPTIONS = TABLES.map((t) => ({ value: t.value, label: t.label }));
+const TABLE_FILTER_VALUES = TABLES.map((t) => t.value).filter((v) => v !== "all") as string[];
+const ORIGIN_FILTER_VALUES = ORIGIN_OPTIONS.map((o) => o.value);
+const AUDIT_FACETS = {
+  q: { type: "text" as const },
+  table_name: { type: "enum" as const, options: TABLE_FILTER_VALUES, ui: "select" as const },
+  origin: { type: "enum" as const, options: ORIGIN_FILTER_VALUES, ui: "select" as const },
+};
 
 export default function AuditTrailPage() {
   const [selectedLog, setSelectedLog] = useState<AuditLog | null>(null);
@@ -33,18 +41,8 @@ export default function AuditTrailPage() {
   const { mutate: revertAuditLog, isPending: isReverting } = useRevertAuditLog();
   const { mutate: purgeE2eLogs, isPending: isPurging } = usePurgeE2eAuditLogs();
 
-  const tableOptions = TABLES.map((t) => t.value).filter((v) => v !== "all") as string[];
-
-  const { values, set, reset, hasActive } = useTableFilters<AuditLog, {
-    q: { type: "text" };
-    table_name: { type: "enum"; options: string[]; ui: "select" };
-    origin: { type: "enum"; options: string[]; ui: "select" };
-  }>({
-    facets: {
-      q: { type: "text" },
-      table_name: { type: "enum", options: tableOptions, ui: "select" },
-      origin: { type: "enum", options: ORIGIN_OPTIONS.map((o) => o.value), ui: "select" },
-    },
+  const { values, set, reset, hasActive } = useTableFilters<AuditLog, typeof AUDIT_FACETS>({
+    facets: AUDIT_FACETS,
   });
 
   // `useTableFilters` usa "all" como "sin filtro"; ahí aplica el default
@@ -63,15 +61,19 @@ export default function AuditTrailPage() {
   const search = values.q.toLowerCase();
   // N3-01: recortar la fila extra del limit+1 antes de renderizar/buscar;
   // el crudo (`logs`) queda solo para ListTruncationNotice.
-  const visibleLogs = visibleListRows(logs);
-  const displayed = !search
-    ? visibleLogs
-    : visibleLogs.filter((log) =>
-        [log.table_name, log.action, log.user_email ?? "", getRecordLabel(log)]
-          .join(" ")
-          .toLowerCase()
-          .includes(search),
-      );
+  const visibleLogs = useMemo(() => visibleListRows(logs), [logs]);
+  const displayed = useMemo(
+    () =>
+      !search
+        ? visibleLogs
+        : visibleLogs.filter((log) =>
+            [log.table_name, log.action, log.user_email ?? "", getRecordLabel(log)]
+              .join(" ")
+              .toLowerCase()
+              .includes(search),
+          ),
+    [visibleLogs, search],
+  );
 
   const onDeleteRequest = useCallback((log: AuditLog) => setLogToDelete(log), []);
   const columns = useAuditTrailColumns(isAdmin, onDeleteRequest);
@@ -101,7 +103,7 @@ export default function AuditTrailPage() {
             <FiltersToolbar.StatusSelect
               value={values.table_name}
               onChange={(v) => set("table_name", v)}
-              options={TABLES.map((t) => ({ value: t.value, label: t.label }))}
+              options={TABLE_SELECT_OPTIONS}
               placeholder="Tabla"
             />
             <FiltersToolbar.StatusSelect

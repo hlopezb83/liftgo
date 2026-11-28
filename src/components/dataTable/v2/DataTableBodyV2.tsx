@@ -1,6 +1,4 @@
-import { useQueryClient, type QueryClient } from "@tanstack/react-query";
 import { flexRender, type RowData } from "@tanstack/react-table";
-import { useCallback, useEffect, useRef, type ReactNode } from "react";
 import type { TableRowAction } from "@/components/dataTable/v2/types";
 import { EmptyRow } from "@/components/feedback/EmptyRow";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -10,9 +8,9 @@ import { resolveColumnKind } from "./columnKind";
 import { DataTableRowAction } from "./DataTableRowAction";
 import { canActivateTableRow } from "./rowInteraction";
 import { alignClass } from "./sorting";
+import { useRowHoverIntent } from "./useRowHoverIntent";
 import type { LiftgoRow } from "./types";
-
-const PREFETCH_DELAY_MS = 120;
+import type { MouseEvent, ReactNode } from "react";
 
 interface Props<T extends RowData> {
   rows: LiftgoRow<T>[];
@@ -29,66 +27,34 @@ interface Props<T extends RowData> {
   onRowClick?: (item: T) => void;
   rowAction?: TableRowAction<T>;
   rowClassName?: (item: T) => string | undefined;
-  onRowPrefetch?: (item: T) => unknown;
-}
-
-
-/**
- * Tanda 3 P1-6: extraído a hook para que `DataTableBodyV2` no toque refs en
- * render y deje de hacer bail-out del React Compiler (afectaba a las 25
- * filas × N celdas de TODAS las tablas). Los timers viven dentro del hook,
- * el body sólo recibe callbacks estables.
- */
-function useRowPrefetchArm<T extends RowData>(onRowPrefetch: Props<T>["onRowPrefetch"]) {
-  const queryClient = useQueryClient();
-  const timerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
-
-  const arm = useCallback((item: T) => {
-    if (!onRowPrefetch) return;
-    if (timerRef.current) clearTimeout(timerRef.current);
-    timerRef.current = setTimeout(() => {
-      void queryClient.prefetchQuery(onRowPrefetch(item) as Parameters<QueryClient["prefetchQuery"]>[0]);
-    }, PREFETCH_DELAY_MS);
-  }, [onRowPrefetch, queryClient]);
-
-  const disarm = useCallback(() => {
-    if (timerRef.current) clearTimeout(timerRef.current);
-    timerRef.current = undefined;
-  }, []);
-
-  // Cleanup on unmount / handler change para evitar prefetches fantasma.
-  useEffect(() => () => {
-    if (timerRef.current) clearTimeout(timerRef.current);
-  }, []);
-
-  return { arm, disarm };
+  onRowHover?: (item: T) => void;
 }
 
 interface RowHandlerCtx<T> {
   onRowClick?: (item: T) => void;
-  onRowPrefetch?: (item: T) => unknown;
-  armPrefetch: (item: T) => void;
-  disarmPrefetch: () => void;
+  onRowHover?: (item: T) => void;
+  armHover: (item: T) => void;
+  disarmHover: () => void;
 }
 
 function buildRowHandlers<T>(item: T, ctx: RowHandlerCtx<T>) {
-  const { onRowClick, onRowPrefetch, armPrefetch, disarmPrefetch } = ctx;
+  const { onRowClick, onRowHover, armHover, disarmHover } = ctx;
   const clickHandlers = onRowClick
     ? {
-        onClick: (event: import("react").MouseEvent<HTMLTableRowElement>) => {
+        onClick: (event: MouseEvent<HTMLTableRowElement>) => {
           if (canActivateTableRow(event)) onRowClick(item);
         },
       }
     : {};
-  const prefetchHandlers = onRowPrefetch
+  const hoverHandlers = onRowHover
     ? {
-        onMouseEnter: () => armPrefetch(item),
-        onMouseLeave: disarmPrefetch,
-        onFocus: () => armPrefetch(item),
-        onBlur: disarmPrefetch,
+        onMouseEnter: () => armHover(item),
+        onMouseLeave: disarmHover,
+        onFocus: () => armHover(item),
+        onBlur: disarmHover,
       }
     : {};
-  return { ...clickHandlers, ...prefetchHandlers };
+  return { ...clickHandlers, ...hoverHandlers };
 }
 
 export function DataTableBodyV2<T extends RowData>({
@@ -100,9 +66,9 @@ export function DataTableBodyV2<T extends RowData>({
   onRowClick,
   rowAction,
   rowClassName,
-  onRowPrefetch,
+  onRowHover,
 }: Props<T>): ReactNode {
-  const { arm: armPrefetch, disarm: disarmPrefetch } = useRowPrefetchArm(onRowPrefetch);
+  const { arm: armHover, disarm: disarmHover } = useRowHoverIntent(onRowHover);
   const selectedIds = new Set(selectionKey ? selectionKey.split(",") : []);
 
   if (rows.length === 0) {
@@ -129,7 +95,7 @@ export function DataTableBodyV2<T extends RowData>({
               onRowClick && "cursor-pointer",
               rowClassName?.(item),
             )}
-            {...buildRowHandlers(item, { onRowClick, onRowPrefetch, armPrefetch, disarmPrefetch })}
+            {...buildRowHandlers(item, { onRowClick, onRowHover, armHover, disarmHover })}
           >
             {showSelection && (
               <TableCell className="w-10 px-3" onClick={(e) => e.stopPropagation()}>

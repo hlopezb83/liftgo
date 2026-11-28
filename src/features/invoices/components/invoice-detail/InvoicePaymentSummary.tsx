@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import type { Tables } from "@/integrations/supabase/types";
 import { formatDateMty } from "@/lib/format/dateFormats";
 import { formatCurrencyWithCode } from "@/lib/format/formatCurrency";
-import { usePaymentHistoryColumns } from "../../hooks/invoices/usePaymentHistoryColumns";
+import { usePaymentHistoryColumns } from "../../hooks/usePaymentHistoryColumns";
 import { canStampPaymentRep } from "../../lib/canStampPaymentRep";
 import { CancelRepDialog } from "./CancelRepDialog";
 import { EditPaymentDialog } from "./EditPaymentDialog";

@@ -1,4 +1,3 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { ErrorDiagnostic } from "@/components/feedback/ErrorDiagnostic";
 import { QueryErrorState } from "@/components/feedback/QueryErrorState";
@@ -7,24 +6,19 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
-import { checkPlatformIntegrationFn, listPlatformIntegrationsFn } from "@/lib/platformHealth.functions";
-import { INTEGRATION_STATUS_LABELS } from "@/lib/platformHealth.types";
 import { Link } from "@/lib/router-compat-ui";
 import { PlatformIntegrationCard } from "../components/PlatformIntegrationCard";
 import { usePlatformCapabilities } from "../hooks/usePlatformAccess";
-import { healthDate } from "../hooks/usePlatformHealth";
+import { healthDate, useCheckPlatformIntegration, usePlatformIntegrations } from "../hooks/usePlatformHealth";
+import { INTEGRATION_STATUS_LABELS } from "../lib/platformHealth.types";
 
 export default function PlatformIntegrationsPage() {
   const { can } = usePlatformCapabilities();
-  const cache = useQueryClient();
   const [search, setSearch] = useState("");
   const [draft, setDraft] = useState("");
   const [offset, setOffset] = useState(0);
-  const query = useQuery({ queryKey: ["platform", "health", "integrations", search, offset], staleTime: 30_000,
-    queryFn: () => listPlatformIntegrationsFn({ data: { search, offset } }) });
-  const check = useMutation({ retry: false, meta: { silent: true }, mutationFn: (organizationId: string) => checkPlatformIntegrationFn({
-    data: { organizationId, requestId: crypto.randomUUID() },
-  }), onSettled: () => void cache.invalidateQueries({ queryKey: ["platform", "health"] }) });
+  const query = usePlatformIntegrations(search, offset);
+  const check = useCheckPlatformIntegration();
   return <>
     <PageHeader title="Integraciones por empresa" subtitle="Facturapi: configuración, conexión y cola fiscal."
       actions={<><Button asChild variant="outline"><Link to="/platform/fiscal-jobs">Ver trabajos fiscales</Link></Button>

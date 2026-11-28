@@ -23,7 +23,7 @@ vi.mock("@/integrations/supabase/client", () => {
 });
 
 const { fetchDefaultContractTemplate } = await import(
-  "@/features/contracts/hooks/useContractTemplates"
+  "../useContractTemplates"
 );
 
 const row = (id: string) => ({

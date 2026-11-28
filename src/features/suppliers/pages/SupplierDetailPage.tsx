@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { DataTableV2, useLiftgoTable, type ColumnDef } from "@/components/dataTable/v2";
 import { NotesCard } from "@/components/domain/NotesCard";
 import { QueryErrorState } from "@/components/feedback/QueryErrorState";
@@ -18,15 +18,22 @@ import { formatCurrency } from "@/lib/format/formatCurrency";
 import { isFxMissing, sumMoney, toMxn } from "@/lib/money";
 import { getSupplierListBackTo } from "@/lib/navigation/customerInvoiceOrigins";
 import { useLocation, useParams } from "@/lib/router-compat";
-import { SupplierBankAccountsSection } from "../components/suppliers/SupplierBankAccountsSection";
-import { SupplierContactCard } from "../components/suppliers/SupplierContactCard";
-import { SupplierContactsSection } from "../components/suppliers/SupplierContactsSection";
-import { SupplierFormDialog } from "../components/suppliers/SupplierFormDialog";
-import { SupplierLinkedExpenses, type LinkedExpense } from "../components/suppliers/SupplierLinkedExpenses";
+import { SupplierBankAccountsSection } from "../components/SupplierBankAccountsSection";
+import { SupplierContactCard } from "../components/SupplierContactCard";
+import { SupplierContactsSection } from "../components/SupplierContactsSection";
+import { SupplierFormDialog } from "../components/SupplierFormDialog";
+import { SupplierLinkedExpenses, type LinkedExpense } from "../components/SupplierLinkedExpenses";
 import { useSupplierLinkedBills, useSupplierLinkedMaintenance, type SupplierLinkedMaintenance } from "../hooks/useSupplierLinkedActivity";
 import { useSupplier, SUPPLIER_CATEGORIES } from "../hooks/useSuppliers";
 
 type LinkedMaintenance = SupplierLinkedMaintenance;
+
+const MAINTENANCE_COLUMNS: ColumnDef<LinkedMaintenance>[] = [
+  { id: "performed_at", header: "Fecha", accessorKey: "performed_at", cell: ({ row }) => <span className="font-mono text-sm">{formatDateMty(row.original.performed_at)}</span> },
+  { id: "forklift", header: "Montacargas", accessorFn: (m) => m.forklifts?.name ?? "", cell: ({ row }) => row.original.forklifts?.name || "—" },
+  { id: "service_type", header: "Tipo de Servicio", accessorKey: "service_type", cell: ({ row }) => serviceTypeLabel(row.original.service_type) },
+  { id: "cost", header: "Costo", accessorFn: (m) => m.cost ?? 0, meta: { kind: "money" }, cell: ({ row }) => formatCurrency(row.original.cost || 0) },
+];
 
 function LinkedTotal({ loading, error, total, count, entity, excluded = 0 }: {
   loading: boolean; error: boolean; total: number; count: number; entity: string; excluded?: number;
@@ -64,34 +71,34 @@ export default function SupplierDetailPage() {
   // FIX B1: el total de gastos sumaba `total` en crudo, mezclando facturas en
   // USD con las de MXN (como sumar dólares y pesos en la misma cuenta).
   // Ahora cada factura se convierte a MXN con su tipo de cambio.
-  const linkedExpenses: LinkedExpense[] = (bills || [])
-    .filter((b) => b.supplier_id === id && b.status !== "cancelled")
-    .map((b) => ({
-      id: b.id,
-      expense_date: b.issue_date,
-      category: b.category ?? "—",
-      description: b.description,
-      amount: isFxMissing(b.currency, b.exchange_rate) ? null : toMxn(Number(b.total), b.currency, b.exchange_rate),
-      originalAmount: Number(b.total),
-      currency: (b.currency ?? "MXN").toUpperCase(),
-    }));
+  const linkedExpenses = useMemo<LinkedExpense[]>(
+    () =>
+      (bills || [])
+        .filter((b) => b.supplier_id === id && b.status !== "cancelled")
+        .map((b) => ({
+          id: b.id,
+          expense_date: b.issue_date,
+          category: b.category ?? "—",
+          description: b.description,
+          amount: isFxMissing(b.currency, b.exchange_rate) ? null : toMxn(Number(b.total), b.currency, b.exchange_rate),
+          originalAmount: Number(b.total),
+          currency: (b.currency ?? "MXN").toUpperCase(),
+        })),
+    [bills, id],
+  );
 
-  const linkedMaintenance = (maintenanceLogs || []).filter((m) => m.supplier_id === id);
+  const linkedMaintenance = useMemo(
+    () => (maintenanceLogs || []).filter((m) => m.supplier_id === id),
+    [maintenanceLogs, id],
+  );
 
-  const totalExpenses = sumMoney(linkedExpenses.map(e => e.amount));
-  const missingFxCount = linkedExpenses.filter(e => e.amount === null).length;
-  const totalMaintenance = linkedMaintenance.reduce((sum, m) => sum + (m.cost || 0), 0);
-
-  const maintenanceColumns: ColumnDef<LinkedMaintenance>[] = [
-    { id: "performed_at", header: "Fecha", accessorKey: "performed_at", cell: ({ row }) => <span className="font-mono text-sm">{formatDateMty(row.original.performed_at)}</span> },
-    { id: "forklift", header: "Montacargas", accessorFn: (m) => m.forklifts?.name ?? "", cell: ({ row }) => row.original.forklifts?.name || "—" },
-    { id: "service_type", header: "Tipo de Servicio", accessorKey: "service_type", cell: ({ row }) => serviceTypeLabel(row.original.service_type) },
-    { id: "cost", header: "Costo", accessorFn: (m) => m.cost ?? 0, meta: { kind: "money" }, cell: ({ row }) => formatCurrency(row.original.cost || 0) },
-  ];
+  const totalExpenses = sumMoney(linkedExpenses.map((e) => e.amount));
+  const missingFxCount = linkedExpenses.filter((e) => e.amount === null).length;
+  const totalMaintenance = sumMoney(linkedMaintenance.map((m) => m.cost));
 
   const maintenanceTable = useLiftgoTable<LinkedMaintenance>({
     data: linkedMaintenance,
-    columns: maintenanceColumns,
+    columns: MAINTENANCE_COLUMNS,
     getRowId: (m) => m.id,
     initialSorting: [{ id: "performed_at", desc: true }],
     paginated: false,

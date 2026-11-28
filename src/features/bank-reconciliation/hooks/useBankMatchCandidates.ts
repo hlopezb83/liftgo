@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { bankMatchCandidateKeys } from "../lib/queryKeys";
 
 /**
  * Candidatos de emparejamiento para un movimiento bancario.
@@ -33,7 +34,7 @@ interface Params {
 
 export function useBankMatchCandidates({ lineId, search, dateWindow, enabled = true }: Params) {
   return useQuery({
-    queryKey: ["bank_match_candidates", lineId, search.trim().toLowerCase(), dateWindow] as const,
+    queryKey: bankMatchCandidateKeys.search(lineId, search.trim().toLowerCase(), dateWindow),
     staleTime: 15_000,
     enabled: enabled && !!lineId,
     queryFn: async (): Promise<BankMatchCandidate[]> => {

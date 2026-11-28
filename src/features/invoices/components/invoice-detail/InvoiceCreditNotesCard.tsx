@@ -5,13 +5,13 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useHasModuleAccess } from "@/features/users";
 import type { Tables } from "@/integrations/supabase/types";
+import { useRefreshCreditNoteCancellationStatus } from "../../hooks/cfdi/useRefreshCancellationStatus";
 import {
   useCreditNotesForInvoice,
   useStampCreditNote,
   useDeleteCreditNote,
   type CreditNote,
 } from "../../hooks/creditNotes/useCreditNotes";
-import { useRefreshCreditNoteCancellationStatus } from "../../hooks/invoices/cfdi/useRefreshCancellationStatus";
 import { usePayments } from "../../hooks/usePayments";
 import { computeCreditNoteLimits } from "../../lib/creditNoteLimits";
 import { CancelCreditNoteDialog } from "./CancelCreditNoteDialog";

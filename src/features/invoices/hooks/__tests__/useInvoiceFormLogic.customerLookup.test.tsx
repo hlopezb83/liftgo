@@ -36,7 +36,7 @@ vi.mock("@/features/quotes", () => ({
   useQuotesByIds: () => ({ data: state.empty }), hasQuotedDiscount: () => false,
   useQuoteSaleAssignmentStatus: () => ({ isComplete: true }),
 }));
-vi.mock("../invoices/useInvoiceBookingCandidates", () => ({ useInvoiceBookingCandidates: () => ({
+vi.mock("../useInvoiceBookingCandidates", () => ({ useInvoiceBookingCandidates: () => ({
   data: state.bookings, isSuccess: true, isError: false, refetch: state.refetch,
 }) }));
 vi.mock("../invoiceForm/useInvoiceBookingPeriods", () => ({ useInvoiceBookingPeriods: () => ({
@@ -52,8 +52,8 @@ vi.mock("../invoiceForm/useInvoiceQuoteCharges", async (original) => ({
     chargeAvailability: { data: state.charges, loadForQuotes: async () => state.charges, refetch: state.refetch },
   }),
 }));
-vi.mock("../invoices/useInvoices", () => ({ useInvoice: () => ({ data: undefined }) }));
-vi.mock("../invoices/useInvoiceBookings", () => ({ useInvoiceBookings: () => ({ data: state.empty }) }));
+vi.mock("../useInvoices", () => ({ useInvoice: () => ({ data: undefined }) }));
+vi.mock("../useInvoiceBookings", () => ({ useInvoiceBookings: () => ({ data: state.empty }) }));
 vi.mock("../invoiceForm/useInvoiceFormSubmit", () => ({ useInvoiceFormSubmit: () => ({ buildPayload: vi.fn() }) }));
 vi.mock("../useExtensionPrefill", () => ({ useExtensionPrefill: () => ({ extension: null, interruptPrefill: vi.fn() }) }));
 vi.mock("@/lib/ui/appFeedback", () => ({ notifyValidation: vi.fn(), notifyWarning: vi.fn() }));

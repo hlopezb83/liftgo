@@ -1,6 +1,6 @@
 import { createRoot } from "react-dom/client";
-import { HistoricalReconciliationCard } from "../../src/features/deliveries/components/deliveries/HistoricalReconciliationCard";
-import { DeliveryMobileCard } from "../../src/features/deliveries/components/deliveries/DeliveryMobileCard";
+import { HistoricalReconciliationCard } from "../../src/features/deliveries/components/HistoricalReconciliationCard";
+import { DeliveryMobileCard } from "../../src/features/deliveries/components/DeliveryMobileCard";
 import { reconciliation } from "../../src/features/deliveries/lib/__tests__/historicalReconciliation.fixture";
 import "../../src/styles.css";
 

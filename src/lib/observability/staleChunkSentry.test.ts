@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import * as Sentry from "@sentry/react";
-import { clearStaleChunkReloadGuard } from "@/lib/staleChunkReload";
+import { clearStaleChunkReloadGuard } from "@/lib/observability/staleChunkReload";
 import { createClientSentryOptions } from "./sentry";
 
 type Envelope = Parameters<ReturnType<NonNullable<Sentry.BrowserOptions["transport"]>>["send"]>[0];

@@ -2,7 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { act, renderHook, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createQueryWrapper } from "@/test/helpers/queryClient";
-import { cashFlowProjectionQueries } from "@/features/cash-flow";
+import { cashFlowProjectionKeys } from "@/features/cash-flow";
 import { exportablePayableQueries } from "../useExportablePayables";
 import { useDeleteSupplierPayment } from "../useDeleteSupplierPayment";
 
@@ -32,7 +32,7 @@ describe("supplier payment deletion with fresh cached projections", () => {
         queryFn: async () => persistedBalance, staleTime: 30_000,
       }),
       flowBalance: useQuery({
-        queryKey: cashFlowProjectionQueries.list({ weeks: 8, initialBalance: 0, safetyBuffer: 0 }).queryKey,
+        queryKey: cashFlowProjectionKeys.byFilter({ weeks: 8, initialBalance: 0, safetyBuffer: 0 }),
         queryFn: async () => 2_000 + persistedBalance, staleTime: 60_000,
       }),
     }), { wrapper: Wrapper });

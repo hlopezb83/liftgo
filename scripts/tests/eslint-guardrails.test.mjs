@@ -12,7 +12,7 @@ const rule = (name) => `liftgo/${name}`;
 const page = 'src/features/invoices/pages/GuardrailSentinel.tsx';
 const hook = 'src/features/invoices/hooks/useGuardrailSentinel.ts';
 const form = 'src/features/invoices/hooks/invoiceForm/guardrailSentinel.ts';
-const lines = 'src/features/quotes/components/quotes/guardrailLineHelpers.ts';
+const lines = 'src/features/quotes/components/guardrailLineHelpers.ts';
 
 async function messages(code, filePath) {
   const [result] = await eslint.lintText(code, { filePath });
@@ -30,9 +30,9 @@ function guardrailSeverities(config) {
 const common = {
   [rule('no-direct-ui-imports')]: 2,
   [rule('no-direct-sonner')]: 2,
-  [rule('no-unlocalized-dates')]: 1,
-  [rule('no-unwrapped-navigation')]: 1,
-  [rule('no-raw-colors')]: 1,
+  [rule('no-unlocalized-dates')]: 2,
+  [rule('no-unwrapped-navigation')]: 2,
+  [rule('no-raw-colors')]: 2,
 };
 for (const [filePath, expected] of [
   [page, { ...common, [rule('no-ui-supabase')]: 2 }],
@@ -50,24 +50,27 @@ for (const [filePath, expected] of [
 const rejected = [
   ['UI Supabase', page, 'import { supabase } from "@/integrations/supabase/client";', 'no-ui-supabase', 2],
   ['component Supabase', 'src/components/GuardrailSentinel.tsx', 'import { supabase } from "@/integrations/supabase/client";', 'no-ui-supabase', 2],
+  ['UI primitive Supabase', 'src/components/ui/checkbox.tsx', 'import { supabase } from "@/integrations/supabase/client";', 'no-ui-supabase', 2],
   ['direct lucide', page, 'import { Plus } from "lucide-react";', 'no-direct-ui-imports', 2],
   ['raw registry name', page, 'import { Trash2 } from "@/components/icons";', 'no-direct-ui-imports', 2],
   ['direct sonner', page, 'import { toast } from "sonner";', 'no-direct-sonner', 2],
   ['deep feature hook', hook, 'import { value } from "@/features/quotes/hooks/useValue";', 'no-deep-feature-imports', 1],
   ['deep feature lib', 'src/features/invoices/lib/guardrail.ts', 'import { value } from "@/features/quotes/lib/value";', 'no-deep-feature-imports', 1],
-  ['date format', page, 'import { format } from "date-fns";', 'no-unlocalized-dates', 1],
-  ['date locale', page, 'import { es } from "date-fns/locale";', 'no-unlocalized-dates', 1],
-  ['router DOM navigation', page, 'import { useNavigate } from "react-router-dom";', 'no-unwrapped-navigation', 1],
-  ['router navigation', page, 'import { useNavigate } from "react-router";', 'no-unwrapped-navigation', 1],
+  ['date format', page, 'import { format } from "date-fns";', 'no-unlocalized-dates', 2],
+  ['date locale', page, 'import { es } from "date-fns/locale";', 'no-unlocalized-dates', 2],
+  ['router DOM navigation', page, 'import { useNavigate } from "react-router-dom";', 'no-unwrapped-navigation', 2],
+  ['router navigation', page, 'import { useNavigate } from "react-router";', 'no-unwrapped-navigation', 2],
+  ['TanStack raw useNavigate', page, 'import { useNavigate } from "@tanstack/react-router";', 'no-unwrapped-navigation', 2],
+  ['TanStack raw Link', page, 'import { Link } from "@tanstack/react-router";', 'no-unwrapped-navigation', 2],
   ['money multiply', form, 'export const total = 2 * 3;', 'no-inline-money', 2],
   ['money divide', lines, 'export const total = 2 / 3;', 'no-inline-money', 2],
-  ['raw Tailwind literal', page, 'export const className = "bg-gray-500";', 'no-raw-colors', 1],
-  ['raw Tailwind JSX attribute', page, 'const element = <div className="border-slate-200" />;', 'no-raw-colors', 1],
+  ['raw Tailwind literal', page, 'export const className = "bg-gray-500";', 'no-raw-colors', 2],
+  ['raw Tailwind JSX attribute', page, 'const element = <div className="border-slate-200" />;', 'no-raw-colors', 2],
   ['sonner neighboring helper is not exempt', 'src/lib/ui/anotherFeedback.ts', 'import { toast } from "sonner";', 'no-direct-sonner', 2],
   ['wrapper still uses semantic icons', 'src/lib/ui/appFeedback.ts', 'import { Plus } from "lucide-react";', 'no-direct-ui-imports', 2],
 ];
 for (const [label, filePath, code, expectedRule, severity] of rejected) {
-  test(`rejects ${label} at the original severity`, async () => {
+  test(`rejects ${label} at the configured severity`, async () => {
     const actual = await messages(code, filePath);
     assert.deepEqual(actual.map(({ ruleId, severity }) => ({ ruleId, severity })), [{ ruleId: rule(expectedRule), severity }]);
   });
@@ -91,17 +94,19 @@ test('money and Tailwind syntax restrictions run simultaneously', async () => {
   const actual = await messages('export const total = 2 * 3; export const className = "text-gray-500";', form);
   assert.deepEqual(actual.map(({ ruleId, severity }) => ({ ruleId, severity })), [
     { ruleId: rule('no-inline-money'), severity: 2 },
-    { ruleId: rule('no-raw-colors'), severity: 1 },
+    { ruleId: rule('no-raw-colors'), severity: 2 },
   ]);
 });
 
 const allowed = [
   ['semantic icons', page, 'import { DeleteIcon } from "@/components/icons";'],
   ['feedback wrapper', page, 'import { notifySuccess } from "@/lib/ui/appFeedback";'],
+  ['sonner UI Toaster primitive', 'src/components/ui/sonner.tsx', 'import { Toaster } from "sonner";'],
   ['public feature barrel', hook, 'import { value } from "@/features/quotes";'],
   ['Monterrey date helper', page, 'import { formatDateMty } from "@/lib/format/dateFormats";'],
   ['date arithmetic imports', page, 'import { addDays } from "date-fns";'],
   ['navigation wrapper', page, 'import { useNavigateTransition } from "@/hooks/useNavigateTransition";'],
+  ['router-compat-ui Link', page, 'import { Link } from "@/lib/router-compat-ui";'],
   ['non-navigation router imports', page, 'import { Link } from "react-router-dom";'],
   ['domain money helpers', form, 'import { lineItemTotal } from "@/lib/domain/invoiceTotals";'],
   ['semantic colors', page, 'export const className = "bg-primary text-muted-foreground border-warning/40";'],
@@ -114,6 +119,8 @@ const allowed = [
   ['calendar exception', 'src/features/calendar/lib/guardrail.ts', 'import { format } from "date-fns";'],
   ['cash-flow exception', 'src/features/cash-flow/lib/guardrail.ts', 'import { es } from "date-fns/locale";'],
   ['navigation implementation', 'src/hooks/useNavigateTransition.ts', 'import { useNavigate } from "react-router-dom";'],
+  ['router compat implementation', 'src/lib/router-compat.ts', 'import { useNavigate } from "@tanstack/react-router";'],
+  ['router compat UI implementation', 'src/lib/router-compat-ui.tsx', 'import { Link } from "@tanstack/react-router";'],
   ['auth navigation', 'src/features/auth/hooks/useGuardrailSentinel.ts', 'import { useNavigate } from "react-router";'],
   ['monetary domain', 'src/lib/domain/invoiceTotals.ts', 'export const total = 2 * 3;'],
   ['unprotected nested form scope stays unchanged', 'src/features/invoices/hooks/invoiceForm/nested/sentinel.ts', 'export const total = 2 * 3;'],
@@ -138,13 +145,11 @@ for (const [label, filePath, code] of allowed) {
 }
 
 for (const filePath of [
-  'src/components/ui/calendar.tsx',
-  'src/components/ui/sonner.tsx',
   'src/integrations/supabase/client.ts',
   'src/integrations/supabase/types.ts',
   'src/routeTree.gen.ts',
 ]) {
-  test(`preserves the global generated/UI ignore: ${filePath}`, async () => {
+  test(`preserves the global generated ignore: ${filePath}`, async () => {
     assert.equal(await eslint.calculateConfigForFile(path.join(root, filePath)), undefined);
   });
 }

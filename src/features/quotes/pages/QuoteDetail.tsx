@@ -10,12 +10,12 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { QuoteChargeLegacyReview } from "@/features/invoices";
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import { useParams } from "@/lib/router-compat";
-import { AssignForkliftsCard } from "../components/quotes/AssignForkliftsCard";
-import { QuoteConversionDialogs } from "../components/quotes/QuoteConversionDialogs";
-import { QuoteCustomerCard } from "../components/quotes/QuoteCustomerCard";
-import { QuoteDatesCard } from "../components/quotes/QuoteDatesCard";
-import { QuoteDetailActions } from "../components/quotes/QuoteDetailActions";
-import { QuoteHeaderBadges } from "../components/quotes/QuoteHeaderBadges";
+import { AssignForkliftsCard } from "../components/AssignForkliftsCard";
+import { QuoteConversionDialogs } from "../components/QuoteConversionDialogs";
+import { QuoteCustomerCard } from "../components/QuoteCustomerCard";
+import { QuoteDatesCard } from "../components/QuoteDatesCard";
+import { QuoteDetailActions } from "../components/QuoteDetailActions";
+import { QuoteHeaderBadges } from "../components/QuoteHeaderBadges";
 import { useQuoteDetailLogic } from "../hooks/quoteDetail/useQuoteDetailLogic";
 import { useQuoteSaleAssignmentStatus } from "../hooks/quoteDetail/useQuoteSaleAssignmentStatus";
 

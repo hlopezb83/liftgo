@@ -1,7 +1,17 @@
-import { useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import { useCRMMetrics } from "./useCRMMetrics";
 import type { Prospect } from "./useProspects";
+
+function filterProspectRows(rows: Prospect[], rawSearch: string): Prospect[] {
+  const q = rawSearch.trim().toLowerCase();
+  if (!q) return rows;
+  return rows.filter(
+    (p) =>
+      p.companyName.toLowerCase().includes(q) ||
+      (p.contactPerson ?? "").toLowerCase().includes(q),
+  );
+}
 
 /**
  * Orquesta el estado de la página `CRMClosedPage`: búsqueda local,
@@ -15,20 +25,10 @@ export function useClosedProspects() {
   const navigate = useNavigateTransition();
   const [search, setSearch] = useState("");
 
-  const filterRows = (rows: Prospect[]) => {
-    const q = search.trim().toLowerCase();
-    if (!q) return rows;
-    return rows.filter(
-      (p) =>
-        p.companyName.toLowerCase().includes(q) ||
-        (p.contactPerson ?? "").toLowerCase().includes(q),
-    );
-  };
+  const wonRows = useMemo(() => filterProspectRows(metrics.won, search), [metrics.won, search]);
+  const lostRows = useMemo(() => filterProspectRows(metrics.lost, search), [metrics.lost, search]);
 
-  const wonRows = filterRows(metrics.won);
-  const lostRows = filterRows(metrics.lost);
-
-  const handleConvert = (p: Prospect) => {
+  const handleConvert = useCallback((p: Prospect) => {
     // R18-C1: /customers/new no existe (cae en `/customers/:id` con id="new").
     // La ruta correcta es /customers?from_prospect=true&prospect_id=… (ver
     // CustomersPage: consume estos query params para abrir el form de alta).
@@ -41,7 +41,7 @@ export function useClosedProspects() {
       phone: p.phone ?? "",
     });
     navigate(`/customers?${params.toString()}`);
-  };
+  }, [navigate]);
 
   return {
     metrics,

@@ -1,6 +1,6 @@
 import { useWatch } from "react-hook-form";
 import { CHARGE_AVAILABILITY_UNAVAILABLE, collectInvoiceChargeQuoteIds, quoteChargeSelectionError } from "../../lib/quoteChargeAvailability";
-import { useQuoteChargeAvailability } from "../invoices/useQuoteChargeAvailability";
+import { useQuoteChargeAvailability } from "../useQuoteChargeAvailability";
 import type { InvoiceFormValues } from "../../lib/invoiceFormSchema";
 import type { UseFormReturn } from "react-hook-form";
 

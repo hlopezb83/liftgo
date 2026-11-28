@@ -2,12 +2,12 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 const m = vi.hoisted(() => ({ list: vi.fn(), act: vi.fn(), error: vi.fn(), success: vi.fn(), validation: vi.fn(), warning: vi.fn() }));
-vi.mock("@/lib/platformFiscalActions.functions", () => ({ listPlatformFiscalActionsFn: m.list, performPlatformFiscalActionFn: m.act }));
+vi.mock("../lib/platformFiscalActions.functions", () => ({ listPlatformFiscalActionsFn: m.list, performPlatformFiscalActionFn: m.act }));
 vi.mock("@/lib/ui/appFeedback", () => ({ notifyError: m.error, notifySuccess: m.success, notifyValidation: m.validation, notifyWarning: m.warning }));
 import { PlatformFiscalJobActions } from "../components/PlatformFiscalJobActions";
 import { PlatformAccessContext } from "../hooks/usePlatformAccess";
 import { fiscalJob } from "./fiscalJob.fixture";
-import type { FiscalJob } from "@/lib/platformFiscalJobs.types";
+import type { FiscalJob } from "../lib/platformFiscalJobs.types";
 const job = { ...fiscalJob, configurationVerified: true, modeAtEnqueue: "test" as const, state: { ...fiscalJob.state, status: "exhausted" as const } };
 function setup(canAct = true, currentJob: FiscalJob = job) {
   const cache = new QueryClient({ defaultOptions: { queries: { retry: false } } });

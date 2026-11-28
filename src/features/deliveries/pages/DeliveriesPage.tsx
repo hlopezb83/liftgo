@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import { useLiftgoTable } from "@/components/dataTable/v2";
 import { FiltersToolbar } from "@/components/filters/FiltersToolbar";
 import { WarnIcon } from "@/components/icons";
@@ -11,8 +11,8 @@ import { useTableViewState } from "@/hooks/filters/useTableViewState";
 import { useToggleDialog } from "@/hooks/useDialogState";
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import { useSearchParams } from "@/lib/router-compat";
-import { DeliveryFormDialog } from "../components/deliveries/DeliveryFormDialog";
-import { DeliveryMobileCard } from "../components/deliveries/DeliveryMobileCard";
+import { DeliveryFormDialog } from "../components/DeliveryFormDialog";
+import { DeliveryMobileCard } from "../components/DeliveryMobileCard";
 import { deliveryQueries } from "../hooks/useDeliveries";
 import { useDeliveriesPage } from "../hooks/useDeliveriesPage";
 import { deliveryTypeLabel } from "../lib/deliveryTypeLabel";
@@ -22,6 +22,7 @@ import type { DeliveryPageItem } from "../lib/deliveriesPageRpc";
 
 
 type Delivery = DeliveryPageItem;
+const EMPTY_DELIVERIES: Delivery[] = [];
 const EMPTY_FLEET = new Map<string, { name?: string | null }>();
 
 const DELIVERY_STATUSES = ["scheduled", "in_transit", "completed", "cancelled"] as const;
@@ -39,6 +40,12 @@ const TYPE_OPTIONS = [
   { value: "pickup", label: "Recolección" },
   { value: "return", label: "Devolución" },
 ];
+const DELIVERY_FACETS = {
+  q: { type: "text" as const, fields: ["delivery_number", "driver_name", "address"] as (keyof Delivery)[] },
+  status: { type: "enum" as const, field: "status" as keyof Delivery, options: ["all", ...DELIVERY_STATUSES] },
+  history: { type: "enum" as const, options: ["all", "history", "reconciled"] },
+  type: { type: "enum" as const, field: "type" as keyof Delivery, options: ["all", ...DELIVERY_TYPES] },
+};
 
 function deliveryFilterLabels(values: { q: string; status: string; type: string; history: string }) {
   const labels: string[] = [];
@@ -75,19 +82,9 @@ function DeliveriesList() {
 
   // Ronda C (C2): filtros estándar por estado y tipo — antes la lista mezclaba
   // entregas, recolecciones y completadas sin manera de separarlas.
-  const { values, set, reset, hasActive } = useTableFilters<Delivery, {
-    q: { type: "text"; fields: (keyof Delivery)[] };
-    status: { type: "enum"; field: keyof Delivery; options: readonly string[] };
-    history: { type: "enum"; options: readonly string[] };
-    type: { type: "enum"; field: keyof Delivery; options: readonly string[] };
-  }>({
+  const { values, set, reset, hasActive } = useTableFilters<Delivery, typeof DELIVERY_FACETS>({
     mode: "server",
-    facets: {
-      q: { type: "text", fields: ["delivery_number", "driver_name", "address"] as (keyof Delivery)[] },
-      status: { type: "enum", field: "status", options: ["all", ...DELIVERY_STATUSES] },
-      history: { type: "enum", options: ["all", "history", "reconciled"] },
-      type: { type: "enum", field: "type", options: ["all", ...DELIVERY_TYPES] },
-    },
+    facets: DELIVERY_FACETS,
   });
 
   const view = useTableViewState(undefined, [{ id: "scheduled_date", desc: false }]);
@@ -100,10 +97,12 @@ function DeliveriesList() {
       onControlledPaginationChange({ ...pagination, pageIndex: data.pageIndex });
     }
   }, [data, pagination, onControlledPaginationChange]);
+  const today = data?.today;
+  const columns = useMemo(() => buildDeliveryColumns<Delivery>(EMPTY_FLEET, today), [today]);
   const table = useLiftgoTable<Delivery>({
     ...view,
-    data: data?.items,
-    columns: buildDeliveryColumns<Delivery>(EMPTY_FLEET, data?.today),
+    data: data?.items ?? EMPTY_DELIVERIES,
+    columns,
     getRowId: (d) => d.id,
     pageCount: Math.ceil((data?.totalCount ?? 0) / pagination.pageSize),
     manualSorting: true,

@@ -1,0 +1,129 @@
+import { useState } from "react";
+import { QueryErrorState } from "@/components/feedback/QueryErrorState";
+import { useConfirm } from "@/components/feedback/useConfirm";
+import { AddIcon, EditIcon, DeleteIcon, BankIcon, StarIcon } from "@/components/icons";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
+} from "@/components/ui/table";
+import { RoleGuard } from "@/layouts/RoleGuard";
+import {
+  useSupplierBankAccounts,
+  useDeleteSupplierBankAccount,
+  maskClabe,
+  type SupplierBankAccount,
+} from "../hooks/useSupplierBankAccounts";
+import { SupplierBankAccountFormDialog } from "./SupplierBankAccountFormDialog";
+
+function accountIdentifier({ clabe, account_number }: SupplierBankAccount) {
+  const trimmedClabe = clabe?.trim() ?? "";
+  if (trimmedClabe.length > 4) return maskClabe(trimmedClabe);
+
+  const accountNumber = account_number?.trim() ?? "";
+  return accountNumber.length > 4 ? `Cuenta ${maskClabe(accountNumber)}` : "—";
+}
+
+function accountReference(account: SupplierBankAccount) {
+  const identifier = accountIdentifier(account);
+  if (identifier === "—") return `titular: ${account.account_holder}`;
+  return identifier.startsWith("Cuenta") ? identifier : `CLABE ${identifier}`;
+}
+
+function accountActionLabel(action: "Editar" | "Eliminar", account: SupplierBankAccount) {
+  return `${action} cuenta bancaria de ${account.bank_name}, ${account.currency}, ${accountReference(account)}`;
+}
+
+export function SupplierBankAccountsSection({ supplierId }: { supplierId: string }) {
+  const { data: accounts = [], isLoading, isError, isFetching, error, refetch } = useSupplierBankAccounts(supplierId);
+  const del = useDeleteSupplierBankAccount();
+  const confirm = useConfirm();
+  const [open, setOpen] = useState(false);
+  const [editing, setEditing] = useState<SupplierBankAccount | null>(null);
+
+  const onAdd = () => { setEditing(null); setOpen(true); };
+  const onEdit = (a: SupplierBankAccount) => { setEditing(a); setOpen(true); };
+  const onDelete = async (a: SupplierBankAccount) => {
+
+    const ok = await confirm({
+      title: "Eliminar cuenta bancaria",
+      description: `¿Eliminar la cuenta de "${a.bank_name}" (${a.currency}, ${accountReference(a)})? Esta acción no se puede deshacer.`,
+      confirmLabel: "Eliminar",
+      destructive: true,
+    });
+    if (ok) del.mutate({ id: a.id, supplier_id: supplierId });
+  };
+
+  return (
+    <Card>
+      <CardHeader className="flex flex-row items-center justify-between space-y-0">
+        <CardTitle className="text-base flex items-center gap-2">
+          <BankIcon className="h-4 w-4" />
+          Cuentas Bancarias {!isLoading && !isError && <span className="text-muted-foreground font-normal">({accounts.length})</span>}
+        </CardTitle>
+        <RoleGuard module="Proveedores" minAccess="full" fallback={null}>
+          <Button size="sm" variant="outline" onClick={onAdd}>
+            <AddIcon className="h-4 w-4 mr-1" />Agregar
+          </Button>
+        </RoleGuard>
+      </CardHeader>
+      <CardContent className="p-0">
+        {isLoading ? (
+          <div role="status" className="p-4 text-sm text-muted-foreground">Cargando cuentas bancarias…</div>
+        ) : isError ? (
+          <QueryErrorState bare entity="las cuentas bancarias" error={error} onRetry={() => { void refetch(); }} isRetrying={isFetching} />
+        ) : accounts.length === 0 ? (
+          <div className="p-4 text-sm text-muted-foreground">Sin cuentas bancarias registradas.</div>
+        ) : (
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Banco</TableHead>
+                <TableHead>Titular</TableHead>
+                <TableHead className="font-mono">CLABE / cuenta</TableHead>
+                <TableHead>Moneda</TableHead>
+                <TableHead className="w-24 text-right">Acciones</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {accounts.map((a) => (
+                <TableRow key={a.id} className="odd:bg-muted/30">
+                  <TableCell className="font-medium">
+                    <div className="flex items-center gap-2">
+                      {a.bank_name}
+                      {a.is_primary && (
+                        <Badge variant="secondary" className="gap-1">
+                          <StarIcon className="h-3 w-3" />Primaria
+                        </Badge>
+                      )}
+                    </div>
+                  </TableCell>
+                  <TableCell className="text-sm">{a.account_holder}</TableCell>
+                  <TableCell className="font-mono text-sm whitespace-nowrap">{accountIdentifier(a)}</TableCell>
+                  <TableCell className="text-sm">{a.currency}</TableCell>
+                  <TableCell className="text-right">
+                    <RoleGuard module="Proveedores" minAccess="full" fallback={null}>
+                      <Button size="icon" variant="ghost" aria-label={accountActionLabel("Editar", a)} title="Editar cuenta bancaria" onClick={() => onEdit(a)}>
+                        <EditIcon className="h-4 w-4" />
+                      </Button>
+                      <Button size="icon" variant="ghost" aria-label={accountActionLabel("Eliminar", a)} title="Eliminar cuenta bancaria" onClick={() => onDelete(a)}>
+                        <DeleteIcon className="h-4 w-4" />
+                      </Button>
+                    </RoleGuard>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        )}
+      </CardContent>
+      <SupplierBankAccountFormDialog
+        open={open}
+        onOpenChange={setOpen}
+        supplierId={supplierId}
+        account={editing}
+      />
+    </Card>
+  );
+}

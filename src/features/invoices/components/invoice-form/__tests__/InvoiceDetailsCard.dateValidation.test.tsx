@@ -8,7 +8,7 @@ import { buildEmptyInvoiceValues, invoiceFormSchema, type InvoiceFormValues } fr
 import { InvoiceDetailsCard } from "../InvoiceDetailsCard";
 
 vi.mock("@/features/customers", () => ({ CustomerSelector: () => null }));
-vi.mock("../../../hooks/invoices/useNextInvoiceNumber", () => ({ useNextInvoiceNumber: () => ({ data: "QA-1", isLoading: false }) }));
+vi.mock("../../../hooks/useNextInvoiceNumber", () => ({ useNextInvoiceNumber: () => ({ data: "QA-1", isLoading: false }) }));
 vi.mock("../MultiBookingSelector", () => ({ MultiBookingSelector: () => null }));
 
 function Harness({ submit }: { submit: (values: InvoiceFormValues) => void }) {

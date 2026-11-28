@@ -1,6 +1,6 @@
 import type { ComponentPropsWithoutRef, ElementRef, Ref } from "react";
 import * as SelectPrimitive from "@radix-ui/react-select";
-import { Check, ChevronDownIcon, ChevronUpIcon } from "@/components/icons";
+import { CheckIcon, ChevronDownIcon, ChevronUpIcon } from "@/components/icons";
 
 import { cn } from "@/lib/utils";
 
@@ -105,7 +105,7 @@ const SelectItem = ({ className, children, ref, ...props }: ComponentPropsWithou
   >
     <span className="absolute left-2 flex h-3.5 w-3.5 items-center justify-center">
       <SelectPrimitive.ItemIndicator>
-        <Check className="h-4 w-4" />
+        <CheckIcon className="h-4 w-4" />
       </SelectPrimitive.ItemIndicator>
     </span>
 

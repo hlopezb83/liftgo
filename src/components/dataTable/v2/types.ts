@@ -27,6 +27,7 @@ export interface TableRowAction<T> {
 }
 
 declare module "@tanstack/react-table" {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars -- TS2428 requires identical generic parameters for module augmentation.
   interface ColumnMeta<TFeatures extends TableFeatures, TData extends RowData, TValue> {
     align?: ColumnAlign;
     /** Tipo semántico; DataTableV2 aplica align + font-mono/tabular-nums automáticamente. */

@@ -7,7 +7,7 @@ import {
   RouterProvider,
 } from "@tanstack/react-router";
 import { type ReactNode, useMemo } from "react";
-import { parseSearch, stringifySearch } from "@/lib/searchSerialization";
+import { parseSearch, stringifySearch } from "@/lib/navigation/searchSerialization";
 
 interface TestRouterProps {
   children: ReactNode;

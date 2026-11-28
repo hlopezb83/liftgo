@@ -3,7 +3,7 @@ import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import { canConvertQuote } from "@/lib/rules/quotes";
 import { notifyError, notifySuccess } from "@/lib/ui/appFeedback";
 import { quoteStatusLabel } from "../../constants";
-import { useUpdateQuote, useDeleteQuote } from "../quotes/useQuotes";
+import { useUpdateQuote, useDeleteQuote } from "../useQuotes";
 import { useQuoteBookingCreator, type Assignment } from "./useQuoteBookingCreator";
 import { isPublicoGeneral } from "./useQuoteDetailData";
 import type { useQuoteConversionState } from "./useQuoteConversionState";

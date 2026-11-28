@@ -17,7 +17,7 @@ vi.mock("@/features/platform", () => ({
 vi.mock("@/features/users", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@/features/users")>();
   const fullAccess = Object.fromEntries(
-    Array.from(new Set(Object.values(actual.ROUTE_TO_MODULE))).map((module) => [module, "full"]),
+    actual.MODULES.map((module) => [module, "full"]),
   );
   return {
     ...actual,

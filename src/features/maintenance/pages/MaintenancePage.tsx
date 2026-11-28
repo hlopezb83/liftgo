@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useLiftgoTable } from "@/components/dataTable/v2";
 import { ListTruncationNotice } from "@/components/feedback/ListTruncationNotice";
 import { MaintenanceIcon } from "@/components/icons";
@@ -11,27 +11,35 @@ import { useDialogState } from "@/hooks/useDialogState";
 import { exportToCsv } from "@/lib/exportCsv";
 import { formatCurrency } from "@/lib/format/formatCurrency";
 import { visibleListRows } from "@/lib/supabase/constants";
-import { MaintenanceDetailSheet } from "../components/maintenance/MaintenanceDetailSheet";
-import { MaintenanceFiltersBar } from "../components/maintenance/MaintenanceFiltersBar";
-import { MaintenanceFormDialog } from "../components/maintenance/MaintenanceFormDialog";
-import { MaintenanceGenerationResultDialog } from "../components/maintenance/MaintenanceGenerationResultDialog";
-import { MaintenanceKanban } from "../components/maintenance/MaintenanceKanban";
-import { MaintenancePageActions } from "../components/maintenance/MaintenancePageActions";
-import { MaintenanceMobileCard } from "../components/maintenance/MaintenanceRow";
-import { useGenerateRecurringMaintenance } from "../hooks/maintenance/useGenerateRecurringMaintenance";
-import { useMaintenanceForm } from "../hooks/maintenance/useMaintenanceForm";
-import { useMaintenanceLogs, type MaintenanceLog } from "../hooks/maintenance/useMaintenanceLogs";
-import { useActiveMechanics } from "../hooks/maintenance/useMechanics";
+import { MaintenanceDetailSheet } from "../components/MaintenanceDetailSheet";
+import { MaintenanceFiltersBar } from "../components/MaintenanceFiltersBar";
+import { MaintenanceFormDialog } from "../components/MaintenanceFormDialog";
+import { MaintenanceGenerationResultDialog } from "../components/MaintenanceGenerationResultDialog";
+import { MaintenanceKanban } from "../components/MaintenanceKanban";
+import { MaintenancePageActions } from "../components/MaintenancePageActions";
+import { MaintenanceMobileCard } from "../components/MaintenanceRow";
+import { useGenerateRecurringMaintenance } from "../hooks/useGenerateRecurringMaintenance";
+import { useMaintenanceForm } from "../hooks/useMaintenanceForm";
+import { useMaintenanceLogs, type MaintenanceLog } from "../hooks/useMaintenanceLogs";
+import { useActiveMechanics } from "../hooks/useMechanics";
 import { enrichLogs, maintenanceCsvRows, sumCost, type EnrichedMaintenanceLog } from "../lib/maintenancePageHelpers";
 import { maintenanceColumns } from "./maintenanceColumns";
 import type { GenerateMaintenanceResponse } from "../lib/maintenanceGenerationFeedback";
+
+const MAINTENANCE_FACETS = {
+  q: {
+    type: "text" as const,
+    fields: ["service_type", "performed_by", "description", "forklift_name"] as (keyof EnrichedMaintenanceLog)[],
+  },
+  forklift: { type: "entityRef" as const, field: "forklift_id" as keyof EnrichedMaintenanceLog },
+};
 
 export default function MaintenancePage() {
   const { forkliftMap, forklifts } = useForkliftMap();
   // R5-A6: vista de archivados para restaurar OTs archivadas por error.
   const [showArchived, setShowArchived] = useState(false);
   const { data: logsRaw, isLoading, isError, error, refetch } = useMaintenanceLogs(undefined, showArchived);
-  const logs = visibleListRows(logsRaw);
+  const logs = useMemo(() => visibleListRows(logsRaw), [logsRaw]);
   const { data: activeMechanics } = useActiveMechanics();
   const [generationResult, setGenerationResult] = useState<GenerateMaintenanceResponse | null>(null);
   const generateRecurring = useGenerateRecurringMaintenance(setGenerationResult);
@@ -46,7 +54,7 @@ export default function MaintenancePage() {
     newLabel: canWrite ? "Nuevo servicio" : undefined,
   });
 
-  const enrichedLogs = enrichLogs(logs, forkliftMap);
+  const enrichedLogs = useMemo(() => enrichLogs(logs, forkliftMap), [logs, forkliftMap]);
 
   const {
     values,
@@ -55,18 +63,9 @@ export default function MaintenancePage() {
     hasActive,
     filtered,
     filterKey,
-  } = useTableFilters<EnrichedMaintenanceLog, {
-    q: { type: "text"; fields: (keyof EnrichedMaintenanceLog)[] };
-    forklift: { type: "entityRef"; field: keyof EnrichedMaintenanceLog };
-  }>({
+  } = useTableFilters<EnrichedMaintenanceLog, typeof MAINTENANCE_FACETS>({
     items: enrichedLogs,
-    facets: {
-      q: {
-        type: "text",
-        fields: ["service_type", "performed_by", "description", "forklift_name"] as (keyof EnrichedMaintenanceLog)[],
-      },
-      forklift: { type: "entityRef", field: "forklift_id" },
-    },
+    facets: MAINTENANCE_FACETS,
   });
 
 

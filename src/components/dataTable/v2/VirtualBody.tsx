@@ -1,7 +1,6 @@
-import { useQueryClient, type QueryClient } from "@tanstack/react-query";
 import { flexRender, type RowData } from "@tanstack/react-table";
 import { useVirtualizer } from "@tanstack/react-virtual";
-import { useEffect, useRef, type ReactNode, type Ref } from "react";
+import { useRef, type ReactNode, type Ref } from "react";
 import type { TableRowAction } from "@/components/dataTable/v2/types";
 import { EmptyRow } from "@/components/feedback/EmptyRow";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -11,9 +10,8 @@ import { resolveColumnKind } from "./columnKind";
 import { DataTableRowAction } from "./DataTableRowAction";
 import { canActivateTableRow } from "./rowInteraction";
 import { alignClass } from "./sorting";
+import { useRowHoverIntent } from "./useRowHoverIntent";
 import type { LiftgoRow } from "./types";
-
-const PREFETCH_DELAY_MS = 120;
 
 interface Props<T extends RowData> {
   rows: LiftgoRow<T>[];
@@ -25,7 +23,7 @@ interface Props<T extends RowData> {
   onRowClick?: (item: T) => void;
   rowAction?: TableRowAction<T>;
   rowClassName?: (item: T) => string | undefined;
-  onRowPrefetch?: (item: T) => unknown;
+  onRowHover?: (item: T) => void;
   estimateRowHeight?: number;
   maxHeight?: number;
 }
@@ -39,30 +37,13 @@ export function VirtualBody<T extends RowData>({
   onRowClick,
   rowAction,
   rowClassName,
-  onRowPrefetch,
+  onRowHover,
   estimateRowHeight = 44,
   maxHeight = 600,
 }: Props<T>): ReactNode {
   const selectedIds = new Set(selectionKey ? selectionKey.split(",") : []);
   const parentRef = useRef<HTMLDivElement>(null);
-
-  const queryClient = useQueryClient();
-  const timerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
-  const armPrefetch = (item: T) => {
-    if (!onRowPrefetch) return;
-    if (timerRef.current) clearTimeout(timerRef.current);
-    timerRef.current = setTimeout(() => {
-      void queryClient.prefetchQuery(onRowPrefetch(item) as Parameters<QueryClient["prefetchQuery"]>[0]);
-    }, PREFETCH_DELAY_MS);
-  };
-  const disarmPrefetch = () => {
-    if (timerRef.current) clearTimeout(timerRef.current);
-    timerRef.current = undefined;
-  };
-  // FIX-FE-11: cleanup al desmontar — sin esto un timer armado por hover/focus
-  // podía disparar un prefetchQuery fantasma sobre un componente ya muerto
-  // (cambio de página, filtro que vacía la tabla, dentro de los 120ms).
-  useEffect(() => () => disarmPrefetch(), []);
+  const { arm: armHover, disarm: disarmHover } = useRowHoverIntent(onRowHover);
   // `useVirtualizer` retorna una API imperativa que muta internamente y no puede
   // memoizarse por el React Compiler. Es un patrón oficial de TanStack Virtual.
   // eslint-disable-next-line react-hooks/incompatible-library
@@ -112,10 +93,10 @@ export function VirtualBody<T extends RowData>({
             )}
             style={{ display: "table", width: "100%" }}
             onClick={onRowClick ? (event) => { if (canActivateTableRow(event)) onRowClick(item); } : undefined}
-            onMouseEnter={onRowPrefetch ? () => armPrefetch(item) : undefined}
-            onMouseLeave={onRowPrefetch ? disarmPrefetch : undefined}
-            onFocus={onRowPrefetch ? () => armPrefetch(item) : undefined}
-            onBlur={onRowPrefetch ? disarmPrefetch : undefined}
+            onMouseEnter={onRowHover ? () => armHover(item) : undefined}
+            onMouseLeave={onRowHover ? disarmHover : undefined}
+            onFocus={onRowHover ? () => armHover(item) : undefined}
+            onBlur={onRowHover ? disarmHover : undefined}
           >
             {showSelection && (
               <TableCell className="w-10 px-3" onClick={(e) => e.stopPropagation()}>

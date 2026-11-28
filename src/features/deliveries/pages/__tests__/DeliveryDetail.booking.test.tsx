@@ -31,14 +31,14 @@ vi.mock("../../hooks/useDeliveries", () => ({
 vi.mock("../../hooks/useDeliveryCompletion", () => ({
   useDeliveryCompletion: (...args: unknown[]) => { mocks.completion(...args); return {}; },
 }));
-vi.mock("../../components/deliveries/DeliveryActions", () => ({
+vi.mock("../../components/DeliveryActions", () => ({
   DeliveryActions: () => <button>Reprogramar</button>,
 }));
-vi.mock("../../components/deliveries/DeliveryDetailBody", () => ({
+vi.mock("../../components/DeliveryDetailBody", () => ({
   DeliveryDetailBody: ({ linkedBooking }: { linkedBooking: { booking_number: string } }) => <p>{linkedBooking.booking_number}</p>,
 }));
-vi.mock("../../components/deliveries/DeliveryDetailDialogs", () => ({ DeliveryDetailDialogs: () => null }));
-vi.mock("../../components/deliveries/RescheduleDeliveryDialog", () => ({ RescheduleDeliveryDialog: () => null }));
+vi.mock("../../components/DeliveryDetailDialogs", () => ({ DeliveryDetailDialogs: () => null }));
+vi.mock("../../components/RescheduleDeliveryDialog", () => ({ RescheduleDeliveryDialog: () => null }));
 
 function renderPage() {
   return render(

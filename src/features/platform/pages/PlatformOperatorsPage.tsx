@@ -1,4 +1,3 @@
-import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { QueryErrorState } from "@/components/feedback/QueryErrorState";
 import { PageHeader } from "@/components/layout/PageHeader";
@@ -8,29 +7,26 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAuth } from "@/contexts/AuthContext";
-import { PLATFORM_PROFILE_LABELS } from "@/lib/platformAccess.types";
-import { listPlatformOperatorsFn } from "@/lib/platformOperators.functions";
-import type { PlatformOperatorRow } from "@/lib/platformOperators.types";
+import { PLATFORM_PROFILE_LABELS } from "@/lib/auth/platformAccess.types";
 import { PlatformOperatorDialog } from "../components/PlatformOperatorDialog";
 import { usePlatformCapabilities } from "../hooks/usePlatformAccess";
+import { usePlatformOperatorsList } from "../hooks/usePlatformOperator";
+import type { PlatformOperatorRow } from "../lib/platformOperators.types";
 
 export default function PlatformOperatorsPage() {
   const { user } = useAuth();
   const { can } = usePlatformCapabilities();
-  const cache = useQueryClient();
   const [scope, setScope] = useState<"operators" | "eligible">("operators");
   const [search, setSearch] = useState("");
   const [draftSearch, setDraftSearch] = useState("");
   const [offset, setOffset] = useState(0);
   const [selected, setSelected] = useState<PlatformOperatorRow | null>(null);
   const [saved, setSaved] = useState(false);
-  const query = useQuery({ queryKey: ["platform", "operators", scope, search, offset],
-    queryFn: () => listPlatformOperatorsFn({ data: { scope, search, offset } }), staleTime: 0 });
+  const query = usePlatformOperatorsList({ scope, search, offset });
 
   function onSaved() {
-    setSelected(null); setSaved(true);
-    void cache.invalidateQueries({ queryKey: ["platform", "operators"] });
-    void cache.invalidateQueries({ queryKey: ["platform", "audit"] });
+    setSelected(null);
+    setSaved(true);
   }
   return (
     <>

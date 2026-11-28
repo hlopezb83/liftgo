@@ -2,12 +2,12 @@ import { describe, expect, it } from "vitest";
 import {
   platformAuditInputSchema,
   platformAuditPageSchema,
-} from "@/lib/platformAudit.types";
-import { platformOrganizationDetailSchema } from "@/lib/platformOrganizationDetail.types";
+} from "../lib/platformAudit.types";
+import { platformOrganizationDetailSchema } from "../lib/platformOrganizationDetail.types";
 import {
   organizationStatusReasonSchema,
   platformOrganizationStatusInputSchema,
-} from "@/lib/platformOrganizationStatus.types";
+} from "../lib/platformOrganizationStatus.types";
 import { organizationReadiness } from "../lib/organizationReadiness";
 import { auditEvent, organizationDetail, ORG_ID } from "./readModels.fixture";
 

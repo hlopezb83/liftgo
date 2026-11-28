@@ -1,8 +1,8 @@
+import { getIssuerBranding } from "@/lib/branding/issuerBranding.functions";
 import {
   ISSUER_BRANDING_MESSAGES,
   type IssuerDocumentRef,
 } from "@/lib/branding/resolveIssuerBranding";
-import { getIssuerBranding } from "@/lib/issuerBranding.functions";
 import { loadGlobalBrandLogo } from "@/lib/pdf/assets/logo";
 
 // ─── Types ────────────────────────────────────────────

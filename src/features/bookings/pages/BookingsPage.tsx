@@ -8,19 +8,23 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Untranslated } from "@/components/ui/Untranslated";
 import { usePageActions } from "@/contexts/pageActions";
-import { useUserRole } from "@/features/users";
+import { useHasModuleAccess, useUserRole } from "@/features/users";
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import { BOOKING_STATUSES, STATUS_LABELS } from "@/lib/constants";
 import { Link } from "@/lib/router-compat-ui";
+import { canCreateDirectBooking } from "@/lib/rules/bookings";
 import { formatMtyDate } from "@/lib/utils";
-import { RecurringBillingBadge } from "../components/bookings/RecurringBillingBadge";
-import { useBookingListView } from "../hooks/bookings/useBookingListView";
-import { useBookings, bookingQueries } from "../hooks/bookings/useBookings";
+import { RecurringBillingBadge } from "../components/RecurringBillingBadge";
+import { useBookingListView } from "../hooks/useBookingListView";
+import { useBookings, bookingQueries } from "../hooks/useBookings";
 import { rentalDaysInclusive } from "../lib/rentalDays";
 
 const STATUSES = ["all", ...BOOKING_STATUSES] as const;
 type BookingStatus = (typeof STATUSES)[number];
 const STATUS_OPTIONS = STATUSES.map((s) => ({ value: s, label: STATUS_LABELS[s] || s }));
+const UPCOMING_STATUS_OPTIONS = STATUS_OPTIONS.filter(
+  (option) => option.value === "all" || option.value === "confirmed",
+);
 
 type Booking = NonNullable<ReturnType<typeof useBookings>["data"]>[number];
 
@@ -31,7 +35,55 @@ const getDuration = (start: string, end: string) => {
   return `${days} día${days !== 1 ? "s" : ""}`;
 };
 
-
+const BOOKING_COLUMNS: ColumnDef<Booking>[] = [
+  {
+    id: "booking_number",
+    header: "Reserva #",
+    accessorKey: "booking_number",
+    cell: ({ row }) => <Untranslated className="font-mono font-medium">{row.original.booking_number}</Untranslated>,
+  },
+  {
+    id: "forklift_name",
+    header: "Equipo",
+    accessorFn: (b) => b.forklifts?.name || "",
+    cell: ({ row }) => row.original.forklifts?.name ? <Untranslated className="font-medium">{row.original.forklifts.name}</Untranslated> : <span className="font-medium">—</span>,
+  },
+  {
+    id: "customer_name",
+    header: "Cliente",
+    accessorFn: (b) => b.customer_name || "",
+    cell: ({ row }) => (
+      <div className="flex items-center gap-2">
+        {row.original.customer_name ? <Untranslated>{row.original.customer_name}</Untranslated> : "—"}
+        <RecurringBillingBadge booking={row.original} />
+      </div>
+    ),
+  },
+  {
+    id: "start_date",
+    header: "Inicio",
+    accessorKey: "start_date",
+    cell: ({ row }) => <span className="text-sm text-muted-foreground">{formatDate(row.original.start_date)}</span>,
+  },
+  {
+    id: "end_date",
+    header: "Fin",
+    accessorKey: "end_date",
+    cell: ({ row }) => <span className="text-sm text-muted-foreground">{formatDate(row.original.end_date)}</span>,
+  },
+  {
+    id: "duration",
+    header: "Duración",
+    enableSorting: false,
+    cell: ({ row }) => <span className="text-sm text-muted-foreground">{getDuration(row.original.start_date, row.original.end_date)}</span>,
+  },
+  {
+    id: "status",
+    header: "Estado",
+    accessorKey: "status",
+    cell: ({ row }) => <StatusBadge status={row.original.status} />,
+  },
+];
 
 function activeBookingFilters(values: { q: string; status: string; view: string }): string[] {
   return [
@@ -46,65 +98,19 @@ export default function BookingsPage() {
   const { data: page, isLoading, isError, refetch } = query;
   const navigate = useNavigateTransition();
   const { data: role } = useUserRole();
-  const isAdmin = role === "admin";
-  usePageActions({ onNew: isAdmin ? () => navigate("/bookings/new") : undefined, onRefresh: refetch, newLabel: "Nueva reserva" });
-
-  const columns: ColumnDef<Booking>[] = [
-    {
-      id: "booking_number",
-      header: "Reserva #",
-      accessorKey: "booking_number",
-      cell: ({ row }) => <Untranslated className="font-mono font-medium">{row.original.booking_number}</Untranslated>,
-    },
-    {
-      id: "forklift_name",
-      header: "Equipo",
-      accessorFn: (b) => b.forklifts?.name || "",
-      cell: ({ row }) => row.original.forklifts?.name ? <Untranslated className="font-medium">{row.original.forklifts.name}</Untranslated> : <span className="font-medium">—</span>,
-    },
-    {
-      id: "customer_name",
-      header: "Cliente",
-      accessorFn: (b) => b.customer_name || "",
-      cell: ({ row }) => (
-        <div className="flex items-center gap-2">
-          {row.original.customer_name ? <Untranslated>{row.original.customer_name}</Untranslated> : "—"}
-          <RecurringBillingBadge booking={row.original} />
-        </div>
-      ),
-    },
-    {
-      id: "start_date",
-      header: "Inicio",
-      accessorKey: "start_date",
-      cell: ({ row }) => <span className="text-sm text-muted-foreground">{formatDate(row.original.start_date)}</span>,
-    },
-    {
-      id: "end_date",
-      header: "Fin",
-      accessorKey: "end_date",
-      cell: ({ row }) => <span className="text-sm text-muted-foreground">{formatDate(row.original.end_date)}</span>,
-    },
-    {
-      id: "duration",
-      header: "Duración",
-      enableSorting: false,
-      cell: ({ row }) => <span className="text-sm text-muted-foreground">{getDuration(row.original.start_date, row.original.end_date)}</span>,
-    },
-    {
-      id: "status",
-      header: "Estado",
-      accessorKey: "status",
-      cell: ({ row }) => <StatusBadge status={row.original.status} />,
-    },
-  ];
+  const canCreateDirect = useHasModuleAccess("Reservas", "full") && canCreateDirectBooking(role);
+  usePageActions({
+    onNew: canCreateDirect ? () => navigate("/bookings/new") : undefined,
+    onRefresh: refetch,
+    newLabel: "Nueva reserva",
+  });
 
   const table = useLiftgoTable<Booking>({
     ...viewState,
     pageCount: Math.ceil((page?.totalCount ?? 0) / viewState.controlledPagination.pageSize),
     manualSorting: true,
     data: filtered,
-    columns,
+    columns: BOOKING_COLUMNS,
     getRowId: (b: Booking) => b.id,
   });
 
@@ -115,7 +121,7 @@ export default function BookingsPage() {
       subtitle="Administrar reservas de equipos"
       totalCount={page?.totalCount}
       rowCount={page?.totalCount}
-      actions={isAdmin ? <Button size="sm" onClick={() => navigate("/bookings/new")}><AddIcon className="h-4 w-4 mr-1" />Nueva reserva</Button> : undefined}
+      actions={canCreateDirect ? <Button size="sm" onClick={() => navigate("/bookings/new")}><AddIcon className="h-4 w-4 mr-1" />Nueva reserva</Button> : undefined}
       notice={
         <div className="space-y-3">
           <div role="group" aria-label="Vista de reservas" className="flex flex-wrap gap-2">
@@ -139,7 +145,7 @@ export default function BookingsPage() {
             <FiltersToolbar.StatusTabs<BookingStatus>
               value={values.status as BookingStatus}
               onChange={(v) => set("status", v)}
-              options={upcoming ? STATUS_OPTIONS.filter((option) => option.value === "all" || option.value === "confirmed") : STATUS_OPTIONS}
+              options={upcoming ? UPCOMING_STATUS_OPTIONS : STATUS_OPTIONS}
             />
             <FiltersToolbar.ClearAll visible={hasActive} onClick={reset} />
           </FiltersToolbar>
@@ -156,10 +162,10 @@ export default function BookingsPage() {
       activeFilterLabels={activeBookingFilters(values)}
       hasActiveFilters={hasActive}
       onClearFilters={reset}
-      emptyMessage={isAdmin ? "No se encontraron reservas" : "No se encontraron reservas. Las reservas se crean convirtiendo una cotización aceptada."}
+      emptyMessage={canCreateDirect ? "No se encontraron reservas" : "No se encontraron reservas. Las reservas se crean convirtiendo una cotización aceptada."}
       emptyIcon={CalendarDays}
-      emptyActionLabel={isAdmin ? "Nueva reserva" : undefined}
-      onEmptyAction={isAdmin ? () => navigate("/bookings/new") : undefined}
+      emptyActionLabel={canCreateDirect ? "Nueva reserva" : undefined}
+      onEmptyAction={canCreateDirect ? () => navigate("/bookings/new") : undefined}
       skeletonColumns={7}
       mobileCardRender={(b) => (
         // V27-04: la tarjeta es un Link real (Tab/Enter y foco visible),
@@ -190,7 +196,6 @@ export default function BookingsPage() {
           </Card>
         </Link>
       )}
-
     />
   );
 }

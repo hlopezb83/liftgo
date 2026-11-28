@@ -9,7 +9,7 @@ import type { Json } from "@/integrations/supabase/types";
 import type { LineItem } from "@/lib/domain/invoiceHelpers";
 import { isIssuedInvoiceStatus } from "@/lib/domain/invoiceStatus";
 import { parseLineItems, parseRentalMeta } from "@/lib/domain/lineItems";
-import { useQuote } from "../quotes/useQuotes";
+import { useQuote } from "../useQuotes";
 import { resolveLegacyForkliftIds } from "./quoteBookingBuilders";
 import type { useQuoteConversionState } from "./useQuoteConversionState";
 

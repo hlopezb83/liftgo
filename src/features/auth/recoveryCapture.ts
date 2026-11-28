@@ -1,15 +1,16 @@
-import { supabase } from "@/integrations/supabase/client";
-import { rememberedRecoveryPhase, rememberRecoverySession, recoverySessionIdentity, type RecoveryAuthSession } from "./recoveryPersistence";
-import {
+import { // eslint-disable-line import-x/order -- ./recoverySession debe evaluarse antes de crear el cliente Supabase
   detectRecoveryCodeFromHref,
   getRecoveryStatus,
   hasRecoveryCallbackToken,
+  initRecoveryFromLocation,
   markRecoveryActive,
   markRecoveryError,
   matchesRecoveryCallback,
   stripRecoveryCodeFromUrl,
   syncRecoverySessionUser,
 } from "./recoverySession";
+import { supabase } from "@/integrations/supabase/client";
+import { rememberedRecoveryPhase, rememberRecoverySession, recoverySessionIdentity, type RecoveryAuthSession } from "./recoveryPersistence";
 
 /**
  * AUTH-REC-01 / P1 — captura TEMPRANA del evento `PASSWORD_RECOVERY`.
@@ -55,13 +56,12 @@ export function exchangeRecoveryCodeFromUrl(): void {
   if (typeof window === "undefined") return;
   const code = detectRecoveryCodeFromHref(window.location.href);
   if (!code) return;
-  const exchange = (
-    supabase.auth as unknown as {
-      exchangeCodeForSession?: (
-        code: string,
-      ) => Promise<{ data?: { session?: RecoveryAuthSession }; error?: unknown }>;
-    }
-  ).exchangeCodeForSession;
+  const auth = supabase.auth as unknown as {
+    exchangeCodeForSession?: (
+      code: string,
+    ) => Promise<{ data?: { session?: RecoveryAuthSession }; error?: unknown }>;
+  } | undefined;
+  const exchange = auth?.exchangeCodeForSession;
   if (typeof exchange !== "function") return;
   stripRecoveryCodeFromUrl();
   void exchange
@@ -119,7 +119,8 @@ function handleAuthStateChange(event: AuthChangeEvent, session: AuthSession): vo
 export function startRecoveryCapture(): void {
   if (started || typeof window === "undefined") return;
   started = true;
-  supabase.auth.onAuthStateChange(handleAuthStateChange);
+  initRecoveryFromLocation();
+  supabase.auth?.onAuthStateChange?.(handleAuthStateChange);
   exchangeRecoveryCodeFromUrl();
 }
 

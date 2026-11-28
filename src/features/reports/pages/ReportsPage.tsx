@@ -16,13 +16,13 @@ import type { DateRange } from "react-day-picker";
 interface ReportProps { startDate: Date; endDate: Date }
 
 const REPORT_COMPONENTS: Record<string, ComponentType<ReportProps>> = {
-  utilization: lazy(() => import("../components/reports/UtilizationReport").then((m) => ({ default: m.UtilizationReport }))),
-  "utilization-model": lazy(() => import("../components/reports/UtilizationByModelReport").then((m) => ({ default: m.UtilizationByModelReport }))),
-  revenue: lazy(() => import("../components/reports/RevenueReport").then((m) => ({ default: m.RevenueReport }))),
-  maintenance: lazy(() => import("../components/reports/MaintenanceCostReport").then((m) => ({ default: m.MaintenanceCostReport }))),
-  profitability: lazy(() => import("../components/reports/ProfitabilityByModelReport").then((m) => ({ default: m.ProfitabilityByModelReport }))),
-  "income-statement": lazy(() => import("../components/reports/IncomeStatementReport").then((m) => ({ default: m.IncomeStatementReport }))),
-  aging: lazy(() => import("../components/reports/AgingReport").then((m) => ({ default: m.AgingReport }))),
+  utilization: lazy(() => import("../components/UtilizationReport").then((m) => ({ default: m.UtilizationReport }))),
+  "utilization-model": lazy(() => import("../components/UtilizationByModelReport").then((m) => ({ default: m.UtilizationByModelReport }))),
+  revenue: lazy(() => import("../components/RevenueReport").then((m) => ({ default: m.RevenueReport }))),
+  maintenance: lazy(() => import("../components/MaintenanceCostReport").then((m) => ({ default: m.MaintenanceCostReport }))),
+  profitability: lazy(() => import("../components/ProfitabilityByModelReport").then((m) => ({ default: m.ProfitabilityByModelReport }))),
+  "income-statement": lazy(() => import("../components/IncomeStatementReport").then((m) => ({ default: m.IncomeStatementReport }))),
+  aging: lazy(() => import("../components/AgingReport").then((m) => ({ default: m.AgingReport }))),
   "accountant-export": lazy(() => import("../components/accountantExport/AccountantExportReport").then((m) => ({ default: m.AccountantExportReport }))),
 };
 

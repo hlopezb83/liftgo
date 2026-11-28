@@ -34,7 +34,7 @@ vi.mock("@/integrations/supabase/client", () => ({
   }),
 }));
 
-import { useSaveInvoiceWithBookings } from "../invoices/useInvoices";
+import { useSaveInvoiceWithBookings } from "../useInvoices";
 
 const payload = {
   booking_id: "b-1",

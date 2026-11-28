@@ -17,14 +17,14 @@ vi.mock("@/features/quotes", () => ({
   useQuote: () => ({ data: undefined, refetch: state.refetch }),
   useQuotesByIds: () => ({ data: state.empty }), useQuoteSaleAssignmentStatus: () => ({ isComplete: true }),
 }));
-vi.mock("../../hooks/invoices/useInvoices", async () => {
+vi.mock("../../hooks/useInvoices", async () => {
   const { useQuery } = await import("@tanstack/react-query");
   return { useInvoice: (id?: string) => useQuery({
     queryKey: ["invoice-load-state", id], queryFn: () => state.read(id), enabled: !!id,
   }) };
 });
-vi.mock("../../hooks/invoices/useInvoiceBookings", () => ({ useInvoiceBookings: () => ({ data: state.empty }) }));
-vi.mock("../../hooks/invoices/useInvoiceBookingCandidates", () => ({ useInvoiceBookingCandidates: () => ({
+vi.mock("../../hooks/useInvoiceBookings", () => ({ useInvoiceBookings: () => ({ data: state.empty }) }));
+vi.mock("../../hooks/useInvoiceBookingCandidates", () => ({ useInvoiceBookingCandidates: () => ({
   data: state.empty, isSuccess: true, isError: false, isPending: false, refetch: state.refetch,
 }) }));
 vi.mock("../../hooks/invoiceForm/useInvoiceBookingPeriods", () => ({ useInvoiceBookingPeriods: () => ({

@@ -3,6 +3,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useVerifiedOrganizationId } from "@/contexts/OrganizationContext";
 import { useUserRole } from "@/features/users";
 import { supabase } from "@/integrations/supabase/client";
+import { operationSummaryKeys } from "@/lib/query/operationSummaryKeys";
 import type { SidebarBadgeKey } from "./navConfig";
 
 // El RPC excluye al auditor y al cliente del portal de métricas internas.
@@ -16,7 +17,7 @@ export function useSidebarBadgeCounts() {
   const { data: role } = useUserRole();
 
   return useQuery({
-    queryKey: ["sidebar-badge-counts", user?.id, organizationId],
+    queryKey: operationSummaryKeys.sidebarBadgeCounts.byScope(user?.id, organizationId),
     enabled: !!user && !!organizationId && !!role && BADGE_ROLES.has(role),
     queryFn: async () => {
       const { data, error } = await supabase.rpc("get_sidebar_badge_counts");

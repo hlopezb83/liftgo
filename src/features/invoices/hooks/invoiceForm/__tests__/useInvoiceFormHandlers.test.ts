@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { buildLinesForBooking, prefillBillingPeriod } from "@/features/invoices/hooks/invoiceForm/useInvoiceFormHandlers";
+import { buildLinesForBooking, prefillBillingPeriod } from "../useInvoiceFormHandlers";
 import type { Forklift } from "@/features/fleet";
 
 const forklift: Forklift = {

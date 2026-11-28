@@ -15,7 +15,7 @@ vi.mock("@/features/customers", () => ({
 vi.mock("@/features/maintenance", () => ({ useMaintenancePolicies: () => ({ data: [] }) }));
 vi.mock("@/hooks/useIsMounted", () => ({ useIsMounted: () => () => h.mounted }));
 vi.mock("@/hooks/useNavigateTransition", () => ({ useNavigateTransition: () => vi.fn() }));
-vi.mock("../../bookings/useBookings", () => ({ useCreateBooking: () => ({ mutateAsync: h.mutateAsync }) }));
+vi.mock("../../useBookings", () => ({ useCreateBooking: () => ({ mutateAsync: h.mutateAsync }) }));
 vi.mock("@/lib/ui/appFeedback", () => ({ notifySuccess: vi.fn() }));
 const payload = () => ({ ...emptyBookingForm(), forklift_id: "equipment", customer_id: "customer", date_range: { from: new Date(2026, 9, 20), to: new Date(2026, 10, 20) }, recurring_billing: true });
 const setup = () => renderHook(() => useBookingFormSubmit({ canSubmit: h.canSubmit, captureCompletion: h.capture, revalidateAvailability: h.revalidate }));

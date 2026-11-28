@@ -1,6 +1,6 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
-import type { IntegrationRow } from "@/lib/platformHealth.types";
+import type { IntegrationRow } from "../lib/platformHealth.types";
 import { PlatformIntegrationCard } from "../components/PlatformIntegrationCard";
 const row: IntegrationRow = { id: "93930000-0000-4000-8000-000000000011", name: "Empresa CI", active: true,
   mode: "test", keyConfigured: true, lastCheck: null, queuedJobs: 0, exhaustedJobs: 0 };

@@ -5,11 +5,11 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import type { CompletedOnboarding } from "@/lib/platformOnboarding.types";
 import {
   usePendingPlatformOnboarding,
   useResumePlatformOnboarding,
 } from "../hooks/usePlatformOnboarding";
+import type { CompletedOnboarding } from "../lib/platformOnboarding.types";
 
 export function PendingPlatformOnboarding({
   onCompleted,

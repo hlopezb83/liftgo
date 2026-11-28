@@ -2,14 +2,14 @@ import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { beforeEach, expect, it, vi } from "vitest";
 import { createQueryWrapper } from "@/test/helpers/queryClient";
 import { TestRouter } from "@/test/router";
-import { REP_MAX_FILE_BYTES } from "@/lib/supplierRepXml";
+import { REP_MAX_FILE_BYTES } from "../../lib/supplierRepXml";
 import { UploadSupplierRepDialog } from "../UploadSupplierRepDialog";
 
 const { validate, success, warning } = vi.hoisted(() => ({
   validate: vi.fn(), success: vi.fn(), warning: vi.fn(),
 }));
 
-vi.mock("@/lib/supplierRep.functions", () => ({ validateSupplierRepFn: validate }));
+vi.mock("../../lib/supplierRep.functions", () => ({ validateSupplierRepFn: validate }));
 vi.mock("@/lib/ui/appFeedback", () => ({ notifySuccess: success, notifyWarning: warning, notifyError: vi.fn() }));
 vi.mock("../../hooks/useSupplierBills", () => ({
   supplierBillKeys: { all: ["bills"], detail: (id: string) => ["bills", id] },

@@ -3,11 +3,12 @@ import { act, fireEvent, render, screen, waitFor } from "@testing-library/react"
 import { useState } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { persistedCacheKey } from "@/lib/query/persister";
+import { PlatformSessionProvider } from "../components/PlatformSessionProvider";
+import { platformKeys } from "../lib/queryKeys";
 
 const state = vi.hoisted(() => ({ user: { id: "actor-a" } as { id: string } | null }));
 vi.mock("@/contexts/AuthContext", () => ({ useAuth: () => state }));
 vi.mock("@/lib/auth/sessionExpiry", () => ({ handleSessionExpired: async () => false }));
-import { PlatformSessionProvider } from "../components/PlatformSessionProvider";
 
 describe("caché de plataforma por actor", () => {
   beforeEach(() => { state.user = { id: "actor-a" }; localStorage.clear(); });
@@ -23,7 +24,7 @@ describe("caché de plataforma por actor", () => {
       const client = useQueryClient();
       if (!clients.includes(client)) clients.push(client);
       const [draft, setDraft] = useState("");
-      const query = useQuery({ queryKey: ["platform", "organizations"], queryFn: () => state.user?.id === "actor-a" ? lateA : Promise.resolve("Empresa B") });
+      const query = useQuery({ queryKey: platformKeys.organizations(), queryFn: () => state.user?.id === "actor-a" ? lateA : Promise.resolve("Empresa B") });
       return <><input aria-label="Borrador" value={draft} onChange={(e) => setDraft(e.target.value)} /><p>{query.data ?? "Cargando"}</p></>;
     }
     localStorage.setItem(persistedCacheKey("actor-a:org-a:internal"), "dato empresarial");

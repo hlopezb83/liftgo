@@ -86,8 +86,8 @@ vi.mock("../../components/quote-form/CustomerField", () => ({
 vi.mock("../../components/quote-form/QuoteTypeCard", () => ({ QuoteTypeCard: () => null }));
 vi.mock("../../components/quote-form/QuoteDetailsCard", () => ({ QuoteDetailsCard: () => null }));
 vi.mock("../../components/quote-form/LogisticsCard", () => ({ LogisticsCard: () => null }));
-vi.mock("../../components/quotes/RentalLineItems", () => ({ RentalLineItems: () => <div>Partidas de renta ficticias</div> }));
-vi.mock("../../components/quotes/SaleLineItems", () => ({ SaleLineItems: () => <div>Partidas de venta ficticias</div> }));
+vi.mock("../../components/RentalLineItems", () => ({ RentalLineItems: () => <div>Partidas de renta ficticias</div> }));
+vi.mock("../../components/SaleLineItems", () => ({ SaleLineItems: () => <div>Partidas de venta ficticias</div> }));
 
 beforeEach(() => {
   vi.useFakeTimers();

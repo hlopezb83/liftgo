@@ -4,6 +4,7 @@ import { useVerifiedOrganizationId } from "@/contexts/OrganizationContext";
 import { useCustomer } from "@/features/customers";
 import { chargeableDamageCost } from "@/features/damage";
 import { supabase } from "@/integrations/supabase/client";
+import { operationSummaryKeys } from "@/lib/query/operationSummaryKeys";
 import { useVerifiedIdentityScope } from "@/lib/query/useVerifiedIdentityScope";
 import { notifyWarning } from "@/lib/ui/appFeedback";
 import type { Customer } from "./invoiceForm/invoiceFormBuilders";
@@ -24,7 +25,7 @@ function useInvoiceDamage(damageId: string | null) {
   const organizationId = useVerifiedOrganizationId();
   const identity = useVerifiedIdentityScope();
   return useQuery({
-    queryKey: ["damage_records", "invoice-prefill", identity, damageId],
+    queryKey: operationSummaryKeys.damageRecords.invoicePrefill(identity, damageId),
     enabled: !!damageId && !!organizationId && !!identity,
     queryFn: async ({ signal }) => {
       if (!damageId || !organizationId || !identity) throw new Error(MISSING);

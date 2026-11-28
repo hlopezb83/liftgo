@@ -18,7 +18,7 @@ const values = {
 const historicalLines = [{ description: "Historic sale", quantity: 1, unit_price: 100, total: 100, archived_marker: "keep" }];
 vi.mock("../useQuotePrefill", () => ({ useQuotePrefillValues: () => values }));
 vi.mock("../quoteFormBuilders", () => ({ buildSaleItems: () => [{description:"Historic sale",quantity:1,unit_price:100,total:100}], buildRentalItems: () => [] }));
-vi.mock("../../quotes/useQuotes", () => ({
+vi.mock("../../useQuotes", () => ({
   useQuote: () => ({ data: { id: "historical", quote_number: "OLD", status: "draft", tax_rate: 11,
     line_items: historicalLines, subtotal: 100, tax_amount: 11, total: 111 }, isSuccess: true }),
   useCreateQuote: () => ({ mutate: state.create, isPending: false }),

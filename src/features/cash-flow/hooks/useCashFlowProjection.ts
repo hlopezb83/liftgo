@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
-import { cashFlowProjectionQueries, type CashFlowProjectionFilter } from "../lib/queryKeys";
+import { cashFlowProjectionQueries } from "../lib/cashFlowQueries";
+import type { CashFlowProjectionFilter } from "../lib/queryKeys";
 
 interface Args {
   weeks: number;

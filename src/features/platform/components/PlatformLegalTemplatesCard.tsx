@@ -5,12 +5,12 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import type { PlatformLegalTemplateRow } from "@/lib/platformLegalTemplates.functions";
 import { usePlatformCapabilities } from "../hooks/usePlatformAccess";
 import { usePlatformLegalTemplates } from "../hooks/usePlatformLegalTemplates";
 import { PlatformLegalTemplateAssignmentsDialog } from "./legalTemplates/PlatformLegalTemplateAssignmentsDialog";
 import { PlatformLegalTemplateHistoryDialog } from "./legalTemplates/PlatformLegalTemplateHistoryDialog";
 import { PlatformLegalTemplatePublishDialog } from "./legalTemplates/PlatformLegalTemplatePublishDialog";
+import type { PlatformLegalTemplateRow } from "../lib/platformLegalTemplates.functions";
 
 type DialogState = { kind: "publish" | "assign" | "history"; template: PlatformLegalTemplateRow } | null;
 

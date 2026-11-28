@@ -10,7 +10,7 @@ export default defineConfig({
   resolve: { alias: [
     { find: "@/features/users", replacement: fixtures },
     { find: "@/lib/router-compat-ui", replacement: fixtures },
-    { find: /^\.\.\/\.\.\/hooks\/invoices\/useQuoteChargeLegacyReview$/, replacement: fixtures },
+    { find: /^\.\.\/\.\.\/hooks\/useQuoteChargeLegacyReview$/, replacement: fixtures },
     { find: "@", replacement: resolve("src") },
   ] },
   build: {

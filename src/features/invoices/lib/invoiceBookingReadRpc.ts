@@ -19,18 +19,12 @@ type InvoiceBookingReads = {
   };
 };
 
-type ReadResult = { data: unknown; error: { message: string; code?: string } | null };
-type UntypedReadRpc = (fn: string, args: Record<string, unknown>) => {
-  abortSignal: (signal: AbortSignal) => PromiseLike<ReadResult>;
-};
-
-async function readRpc<K extends keyof InvoiceBookingReads>(
-  fn: K, args: InvoiceBookingReads[K], signal: AbortSignal,
+async function runAbortableRead(
+  signal: AbortSignal,
+  execute: () => PromiseLike<{ data: unknown; error: { message: string; code?: string } | null }>,
 ) {
   signal.throwIfAborted();
-  // These functions may reach the preview before the generated schema does.
-  const rpc = supabase.rpc.bind(supabase) as unknown as UntypedReadRpc;
-  const { data, error } = await rpc(fn, args).abortSignal(signal);
+  const { data, error } = await execute();
   signal.throwIfAborted();
   if (error) throw error;
   return data;
@@ -55,7 +49,13 @@ const candidatePage = z.object({
 export async function readInvoiceBookingCandidatePage(
   args: InvoiceBookingReads["get_invoice_booking_candidate_page"], signal: AbortSignal,
 ) {
-  const page = candidatePage.parse(await readRpc("get_invoice_booking_candidate_page", args, signal));
+  const raw = await runAbortableRead(signal, () =>
+    supabase.rpc("get_invoice_booking_candidate_page", {
+      ...args,
+      p_customer_id: args.p_customer_id ?? undefined,
+    }).abortSignal(signal),
+  );
+  const page = candidatePage.parse(raw);
   const linkedIds = new Set(page.linked.map((row) => row.id));
   if (page.pageIndex !== args.p_page || page.rows.length > args.p_page_size
     || page.rows.some((row) => row.status !== "confirmed" && row.status !== "completed")
@@ -85,7 +85,10 @@ const billingEvidence = z.object({
 export async function readInvoiceBookingBillingEvidence(
   args: InvoiceBookingReads["get_invoice_booking_billing_evidence_v2"], signal: AbortSignal,
 ) {
-  const value = billingEvidence.parse(await readRpc("get_invoice_booking_billing_evidence_v2", args, signal));
+  const raw = await runAbortableRead(signal, () =>
+    supabase.rpc("get_invoice_booking_billing_evidence_v2", args).abortSignal(signal),
+  );
+  const value = billingEvidence.parse(raw);
   const requested = new Set(args.p_booking_ids);
   const covered = new Set(value.bookingIds);
   const invoices = new Map(value.invoices.map(({ id, ...fields }) => [id, fields]));

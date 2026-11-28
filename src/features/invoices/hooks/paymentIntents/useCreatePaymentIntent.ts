@@ -1,7 +1,7 @@
 import { supabase } from "@/integrations/supabase/client";
 import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
 import { organizationStoragePathForSession } from "@/lib/storage/organizationPath";
-import { paymentIntentsQueries } from "../../lib/paymentIntentsQueryKeys";
+import { paymentIntentsKeys } from "../../lib/paymentIntentsQueryKeys";
 
 export interface PaymentIntentInput {
   invoice_id: string;
@@ -59,7 +59,7 @@ export function useCreatePaymentIntent() {
         throw error;
       }
     },
-    invalidateKeys: [paymentIntentsQueries.keys.all],
+    invalidateKeys: [paymentIntentsKeys.all],
     successMsg: "Reporte de pago enviado. Lo revisaremos a la brevedad.",
     errorTitle: "Error al enviar reporte de pago",
   });

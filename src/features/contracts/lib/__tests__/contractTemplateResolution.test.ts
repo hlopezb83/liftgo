@@ -3,7 +3,7 @@ import {
   CONTRACT_TEMPLATE_MESSAGES,
   ContractTemplateUnavailableError,
   resolveSingleDefaultTemplate,
-} from "@/features/contracts/lib/contractTemplateResolution";
+} from "../contractTemplateResolution";
 
 /**
  * Subtramo 6.1 — la plantilla predeterminada no se elige "la primera": con

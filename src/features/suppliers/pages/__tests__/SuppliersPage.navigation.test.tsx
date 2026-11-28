@@ -3,7 +3,7 @@ import { createMemoryHistory, createRootRoute, createRoute, createRouter, Outlet
 import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { getSupplierListBackTo } from "@/lib/navigation/customerInvoiceOrigins";
-import { parseSearch, stringifySearch } from "@/lib/searchSerialization";
+import { parseSearch, stringifySearch } from "@/lib/navigation/searchSerialization";
 import SupplierDetailPage from "../SupplierDetailPage";
 import SuppliersPage from "../SuppliersPage";
 import type { Supplier } from "../../hooks/useSuppliers";
@@ -39,9 +39,9 @@ vi.mock("../../hooks/useSupplierLinkedActivity", () => ({
   useSupplierLinkedMaintenance: () => ({ data: [], isLoading: false, isError: false }),
 }));
 vi.mock("@/features/fleet", () => ({ DocumentAttachments: () => null }));
-vi.mock("../../components/suppliers/SupplierContactsSection", () => ({ SupplierContactsSection: () => null }));
-vi.mock("../../components/suppliers/SupplierBankAccountsSection", () => ({ SupplierBankAccountsSection: () => null }));
-vi.mock("../../components/suppliers/SupplierFormDialog", () => ({ SupplierFormDialog: () => null }));
+vi.mock("../../components/SupplierContactsSection", () => ({ SupplierContactsSection: () => null }));
+vi.mock("../../components/SupplierBankAccountsSection", () => ({ SupplierBankAccountsSection: () => null }));
+vi.mock("../../components/SupplierFormDialog", () => ({ SupplierFormDialog: () => null }));
 
 const supplier = (index: number): Supplier => ({
   id: `supplier-${index}`, name: `Acero ${String(index).padStart(3, "0")}`, category: "mantenimiento",

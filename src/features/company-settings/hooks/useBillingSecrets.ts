@@ -1,10 +1,8 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
-import {
-  billingSecretsQueries,
-
-} from "../lib/queryKeys";
+import { billingSecretsQueries } from "../lib/companySettingsQueries";
+import { billingSecretsKeys } from "../lib/queryKeys";
 
 export function useBillingSecrets() {
   return useQuery(billingSecretsQueries.list());
@@ -29,7 +27,7 @@ export function useUpsertBillingSecrets() {
       if (error) throw error;
       return { id: data as string };
     },
-    invalidateKeys: [billingSecretsQueries.keys.all],
+    invalidateKeys: [billingSecretsKeys.all],
     errorTitle: "Error al guardar las llaves de facturación",
   });
 }

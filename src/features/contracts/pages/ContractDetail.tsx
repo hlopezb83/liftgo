@@ -6,11 +6,11 @@ import { PageContainer } from "@/components/layout/PageContainer";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";
-import { ContractConditionsCard } from "../components/contracts/ContractConditionsCard";
-import { ContractDepositCard } from "../components/contracts/ContractDepositCard";
-import { ContractDetailActions } from "../components/contracts/ContractDetailActions";
-import { ContractDetailsCard, ContractTextCard } from "../components/contracts/ContractDetailCards";
-import { RentalFinancialSummary } from "../components/contracts/RentalFinancialSummary";
+import { ContractConditionsCard } from "../components/ContractConditionsCard";
+import { ContractDepositCard } from "../components/ContractDepositCard";
+import { ContractDetailActions } from "../components/ContractDetailActions";
+import { ContractDetailsCard, ContractTextCard } from "../components/ContractDetailCards";
+import { RentalFinancialSummary } from "../components/RentalFinancialSummary";
 import { useContractDetailLogic } from "../hooks/contractDetail/useContractDetailLogic";
 import { CONTRACT_STATUS_LABELS } from "../lib/contractStatusLabels";
 

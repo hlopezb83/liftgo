@@ -6,7 +6,7 @@ const query = vi.hoisted(() => ({ data: undefined as { id: string; note: string;
   isLoading: false, isError: true, isSuccess: false, isFetching: false, refetch: vi.fn() }));
 const mutate = vi.hoisted(() => vi.fn());
 vi.mock("@/features/users", () => ({ useHasModuleAccess: () => true }));
-vi.mock("../../../hooks/invoices/collections/useCollectionNotes", () => ({
+vi.mock("../../../hooks/collections/useCollectionNotes", () => ({
   useCollectionNotes: () => query, useCreateCollectionNote: () => ({ mutate, isPending: false }),
 }));
 

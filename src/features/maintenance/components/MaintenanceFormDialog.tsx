@@ -1,0 +1,120 @@
+import {
+  TextareaField,
+  SelectField,
+  DateField,
+  CurrencyField,
+  type SelectOption,
+} from "@/components/forms/fields";
+import { FormActions } from "@/components/forms/FormActions";
+import { FormDialog, FormDialogFooter } from "@/components/forms/FormDialog";
+import { FormSection } from "@/components/forms/FormSection";
+import { Form } from "@/components/ui/form";
+import { SupplierField } from "@/features/suppliers";
+import { SERVICE_TYPES, serviceTypeLabel } from "@/lib/constants";
+import type { MaintenanceFormValues } from "../hooks/useMaintenanceForm";
+import type { FormEvent as ReactFormEvent } from "react";
+import type { UseFormReturn } from "react-hook-form";
+
+interface ForkliftOption { id: string; name: string; model: string }
+interface MechanicOption { id: string; name: string; specialization?: string | null }
+
+interface Props {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  isEdit: boolean;
+  isPending: boolean;
+  form: UseFormReturn<MaintenanceFormValues>;
+  onSubmit: (e: ReactFormEvent) => void;
+  forklifts: ForkliftOption[] | undefined;
+  mechanics: MechanicOption[] | undefined;
+}
+
+export function MaintenanceFormDialog({
+  open, onOpenChange, isEdit, isPending, form, onSubmit, forklifts, mechanics,
+}: Props) {
+  const forkliftOptions = (forklifts ?? []).map((f) => ({
+    value: f.id,
+    label: `${f.name} — ${f.model}`,
+  }));
+  const serviceTypeOptions: SelectOption[] = SERVICE_TYPES.map((s) => ({ value: s, label: s }));
+  const originalServiceType = form.formState.defaultValues?.serviceType;
+  if (isEdit && originalServiceType && !serviceTypeOptions.some((option) => option.value === originalServiceType)) {
+    serviceTypeOptions.unshift({ value: originalServiceType, label: serviceTypeLabel(originalServiceType) });
+  }
+  const mechanicOptions = (mechanics ?? []).map((m) => ({
+    value: m.name,
+    label: m.specialization ? `${m.name} (${m.specialization})` : m.name,
+  }));
+
+  return (
+    <FormDialog
+      isPending={isPending}
+      isDirty={form.formState.isDirty}
+      open={open}
+      onOpenChange={onOpenChange}
+      title={isEdit ? "Editar mantenimiento" : "Registrar mantenimiento"}
+    >
+      <Form {...form}>
+        <form onSubmit={onSubmit} className="space-y-4">
+          <FormSection title="Equipo y servicio" first>
+            <SelectField
+              control={form.control}
+              name="forkliftId"
+              label="Montacargas"
+              options={forkliftOptions}
+              placeholder="Seleccionar montacargas"
+              wrapOptions
+              required
+            />
+            <SelectField
+              control={form.control}
+              name="serviceType"
+              label="Tipo de Servicio"
+              options={serviceTypeOptions}
+              placeholder="Seleccionar tipo de servicio"
+              required
+            />
+            <TextareaField
+              control={form.control}
+              name="description"
+              label="Descripción"
+              placeholder="Detalles del servicio…"
+              rows={3}
+            />
+          </FormSection>
+
+          <FormSection title="Ejecución y costo">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <CurrencyField
+                control={form.control}
+                name="cost"
+                label="Costo manual"
+                description="Captura otros costos del servicio. Las refacciones y la mano de obra registradas se suman por separado."
+              />
+              <SelectField
+                control={form.control}
+                name="performedBy"
+                label="Realizado Por"
+                options={mechanicOptions}
+                placeholder="Seleccionar mecánico"
+              />
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <DateField control={form.control} name="performedAt" label="Fecha de Servicio" required />
+              <DateField control={form.control} name="nextServiceDate" label="Próximo Servicio" placeholder="Opcional" />
+            </div>
+            <SupplierField control={form.control} name="supplierId" allowEmpty />
+          </FormSection>
+
+          <FormDialogFooter>
+            <FormActions
+              submitLabel={isEdit ? "Guardar cambios" : "Agregar registro"}
+              isPending={isPending}
+              onCancel={() => onOpenChange(false)}
+            />
+          </FormDialogFooter>
+        </form>
+      </Form>
+    </FormDialog>
+  );
+}

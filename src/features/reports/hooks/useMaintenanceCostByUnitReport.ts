@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toYMD } from "@/lib/date/toYMD";
+import { reportKeys } from "../lib/queryKeys";
 
 export interface UnitCostRow {
   [key: string]: unknown;
@@ -18,7 +19,7 @@ export function useMaintenanceCostByUnitReport(startDate: Date, endDate: Date) {
   const start = toYMD(startDate);
   const end = toYMD(endDate);
   return useQuery({
-    queryKey: ["report", "maintenance-cost-by-unit", start, end],
+    queryKey: reportKeys.maintenanceCostByUnit(start, end),
     queryFn: async (): Promise<UnitCostRow[]> => {
       const { data, error } = await supabase.rpc("report_maintenance_cost_by_unit", {
         _start: start,

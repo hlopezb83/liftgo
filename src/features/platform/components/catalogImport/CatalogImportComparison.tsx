@@ -1,5 +1,5 @@
-import type { CatalogImportPreview } from "@/lib/platformCatalogImport.types";
 import { catalogComparisonRows, catalogLegalText } from "../../lib/catalogImportPresentation";
+import type { CatalogImportPreview } from "../../lib/platformCatalogImport.types";
 
 export function CatalogImportComparison({ preview }: { preview: CatalogImportPreview }) {
   if (preview.kind === "template") {

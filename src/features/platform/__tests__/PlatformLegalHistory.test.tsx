@@ -1,9 +1,9 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
-import type { PlatformLegalTemplateRow } from "@/lib/platformLegalTemplates.types";
+import type { PlatformLegalTemplateRow } from "../lib/platformLegalTemplates.types";
 const history = vi.hoisted(() => vi.fn());
-vi.mock("@/lib/platformLegalTemplates.functions", () => ({ listPlatformLegalTemplateVersionsFn: history }));
+vi.mock("../lib/platformLegalTemplates.functions", () => ({ listPlatformLegalTemplateVersionsFn: history }));
 import { PlatformLegalTemplateHistoryDialog } from "../components/legalTemplates/PlatformLegalTemplateHistoryDialog";
 const content = { intro_text: "Contrato {{folio}}", declarations_landlord: [], declarations_tenant: [],
   clauses: [{ title: "Pago", body: "Pago anticipado" }], checklist_sections: [], pagare_text: null };

@@ -1,6 +1,6 @@
 import type { ComponentPropsWithoutRef, ElementRef, Ref } from "react";
 import * as CheckboxPrimitive from "@radix-ui/react-checkbox";
-import { Check } from "@/components/icons";
+import { CheckIcon } from "@/components/icons";
 
 import { cn } from "@/lib/utils";
 
@@ -17,7 +17,7 @@ const Checkbox = ({ className, ref, ...props }: ComponentPropsWithoutRef<typeof 
     {...props}
   >
     <CheckboxPrimitive.Indicator className={cn("flex items-center justify-center text-current")}>
-      <Check className="h-4 w-4" />
+      <CheckIcon className="h-4 w-4" />
     </CheckboxPrimitive.Indicator>
   </CheckboxPrimitive.Root>
   );

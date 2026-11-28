@@ -16,9 +16,54 @@ import { exportToCsv } from "@/lib/exportCsv";
 import { useLocation } from "@/lib/router-compat";
 import { Link } from "@/lib/router-compat-ui";
 import { LIST_PAGE_LIMIT } from "@/lib/supabase/constants";
-import { SupplierFormDialog } from "../components/suppliers/SupplierFormDialog";
+import { SupplierFormDialog } from "../components/SupplierFormDialog";
 import { useSuppliersIncremental, SUPPLIER_CATEGORIES } from "../hooks/useSuppliers";
 import type { Supplier } from "../hooks/useSuppliers";
+
+const EMPTY_SUPPLIERS: Supplier[] = [];
+const SUPPLIER_FACETS = {
+  q: { type: "text" as const, fields: ["name", "rfc", "email", "contact_person"] as (keyof Supplier)[] },
+};
+
+const SUPPLIER_COLUMNS: ColumnDef<Supplier>[] = [
+  {
+    id: "name",
+    header: "Nombre",
+    accessorKey: "name",
+    cell: ({ row }) => <span className="font-medium">{row.original.name}</span>,
+  },
+  {
+    id: "rfc",
+    header: "RFC",
+    accessorFn: (s) => s.rfc || "",
+    cell: ({ row }) => <span className="font-mono text-sm">{row.original.rfc || "—"}</span>,
+  },
+  {
+    id: "category",
+    header: "Categoría",
+    accessorFn: (s) => s.category || "",
+    cell: ({ row }) =>
+      row.original.category ? (
+        <Badge variant="outline">
+          {SUPPLIER_CATEGORIES[row.original.category] || row.original.category}
+        </Badge>
+      ) : (
+        "—"
+      ),
+  },
+  {
+    id: "email",
+    header: "Correo",
+    accessorFn: (s) => s.email || "",
+    cell: ({ row }) => row.original.email || "—",
+  },
+  {
+    id: "phone",
+    header: "Teléfono",
+    accessorFn: (s) => s.phone || "",
+    cell: ({ row }) => row.original.phone || "—",
+  },
+];
 
 function renderSupplierActions(showExport: boolean, showCreate: boolean, onExport: () => void, onCreate: () => void) {
   if (!showExport && !showCreate) return null;
@@ -39,7 +84,10 @@ function renderSupplierActions(showExport: boolean, showCreate: boolean, onExpor
 export default function SuppliersPage() {
   const supplierPages = useSuppliersIncremental();
   const { isLoading, isError, refetch } = supplierPages;
-  const suppliers = useMemo(() => supplierPages.data?.pages.flatMap((page) => page.slice(0, LIST_PAGE_LIMIT)) ?? [], [supplierPages.data]);
+  const suppliers = useMemo(
+    () => supplierPages.data?.pages.flatMap((page) => page.slice(0, LIST_PAGE_LIMIT)) ?? EMPTY_SUPPLIERS,
+    [supplierPages.data],
+  );
   const navigate = useNavigateTransition();
   const location = useLocation();
   const detailState = { supplierListBackTo: `${location.pathname}${location.search}${location.hash}` };
@@ -47,61 +95,15 @@ export default function SuppliersPage() {
   const [editing, setEditing] = useState<Supplier | null>(null);
   const canWrite = useHasModuleAccess("Proveedores", "full");
 
-  const { values, set, reset, hasActive, filtered } = useTableFilters<
-    Supplier,
-    { q: { type: "text"; fields: (keyof Supplier)[] } }
-  >({
-    items: suppliers ?? [],
-    facets: {
-      q: { type: "text", fields: ["name", "rfc", "email", "contact_person"] },
-    },
+  const { values, set, reset, hasActive, filtered } = useTableFilters<Supplier, typeof SUPPLIER_FACETS>({
+    items: suppliers,
+    facets: SUPPLIER_FACETS,
   });
-
-
-  const columns: ColumnDef<Supplier>[] = [
-    {
-      id: "name",
-      header: "Nombre",
-      accessorKey: "name",
-      cell: ({ row }) => <span className="font-medium">{row.original.name}</span>,
-    },
-    {
-      id: "rfc",
-      header: "RFC",
-      accessorFn: (s) => s.rfc || "",
-      cell: ({ row }) => <span className="font-mono text-sm">{row.original.rfc || "—"}</span>,
-    },
-    {
-      id: "category",
-      header: "Categoría",
-      accessorFn: (s) => s.category || "",
-      cell: ({ row }) =>
-        row.original.category ? (
-          <Badge variant="outline">
-            {SUPPLIER_CATEGORIES[row.original.category] || row.original.category}
-          </Badge>
-        ) : (
-          "—"
-        ),
-    },
-    {
-      id: "email",
-      header: "Correo",
-      accessorFn: (s) => s.email || "",
-      cell: ({ row }) => row.original.email || "—",
-    },
-    {
-      id: "phone",
-      header: "Teléfono",
-      accessorFn: (s) => s.phone || "",
-      cell: ({ row }) => row.original.phone || "—",
-    },
-  ];
 
   const table = useLiftgoTable<Supplier>({
     ...useTableViewState(filtered.length),
     data: filtered,
-    columns,
+    columns: SUPPLIER_COLUMNS,
     getRowId: (s) => s.id,
   });
   const showEmptyCreate = !isLoading && !isError && suppliers.length === 0 && !hasActive;

@@ -1,0 +1,58 @@
+import { StatusBadge } from "@/components/feedback/StatusBadge";
+import { ChevronRightIcon, LocationIcon, SecurityIcon } from "@/components/icons";
+import { Card, CardContent } from "@/components/ui/card";
+import { Untranslated } from "@/components/ui/Untranslated";
+import { FUEL_TYPE_LABELS } from "@/lib/constants";
+import type { Forklift } from "../hooks/forklifts/useForklifts";
+
+interface CardProps {
+  forklift: Forklift;
+  hasActivePolicy: boolean;
+  location?: string;
+  onClick: () => void;
+}
+
+export function FleetMobileCard({ forklift: f, hasActivePolicy, location, onClick }: CardProps) {
+  return (
+    <Card
+      className="cursor-pointer active:scale-[0.98] transition-transform focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+      onClick={onClick}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          onClick();
+        }
+      }}
+      tabIndex={0}
+      role="button"
+    >
+      <CardContent className="p-4">
+        <div className="flex items-start justify-between gap-2 mb-2">
+          <Untranslated as="span" className="min-w-0 break-words font-mono font-semibold text-sm flex items-center gap-1.5">
+            {f.name}
+            {hasActivePolicy && <>
+              <SecurityIcon aria-hidden="true" className="h-3.5 w-3.5 text-success shrink-0" />
+              <span className="sr-only">Póliza de mantenimiento activa</span>
+            </>}
+          </Untranslated>
+          <StatusBadge status={f.status} />
+        </div>
+        <p className="text-sm text-muted-foreground">{f.model}</p>
+        {f.serial_number && <p className="text-xs text-muted-foreground font-mono">S/N: <Untranslated>{f.serial_number}</Untranslated></p>}
+        {location && <div className="mt-2 flex items-start gap-1.5 text-xs text-muted-foreground">
+          <LocationIcon className="mt-0.5 h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+          <div className="min-w-0 break-words">
+            <p className="font-medium">Ubicación registrada</p>
+            <p>{location}</p>
+          </div>
+        </div>}
+        <div className="flex items-center justify-between mt-3 pt-3 border-t">
+          <div className="flex gap-4 text-xs text-muted-foreground">
+            {f.fuel_type && <span>{FUEL_TYPE_LABELS[f.fuel_type] || f.fuel_type}</span>}
+          </div>
+          <ChevronRightIcon className="h-4 w-4 text-muted-foreground" />
+        </div>
+      </CardContent>
+    </Card>
+  );
+}

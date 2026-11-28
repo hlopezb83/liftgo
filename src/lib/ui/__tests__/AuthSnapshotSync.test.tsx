@@ -7,7 +7,7 @@ vi.mock("@/contexts/OrganizationContext", () => ({ useVerifiedOrganizationId: ()
 vi.mock("@/features/users/hooks/useUserRole", () => ({ useUserRole: () => ({ data: "admin" }) }));
 vi.mock("@/lib/observability/identity", () => ({ syncSentryIdentity: vi.fn().mockReturnValue(1), clearSentryIdentity: vi.fn().mockReturnValue(true) }));
 import { AuthSnapshotSync } from "@/features/users/components/AuthSnapshotSync";
-import { companySettingsQueries } from "@/features/company-settings/lib/queryKeys";
+import { companySettingsKeys } from "@/features/company-settings/lib/queryKeys";
 import { getAuthSnapshot } from "../authSnapshot";
 
 afterEach(() => { vi.unstubAllGlobals(); state.user = { id: "actor-a", email: "admin@example.com" }; state.org = "org-a"; });
@@ -23,7 +23,7 @@ describe("identidad del diagnóstico", () => {
     expect(getAuthSnapshot().organization?.name).toBe("");
     cache.setQueryData(["sidebar-organization-name", "org-a"], "ELOGISTIX SHIPPING");
     await waitFor(() => expect(getAuthSnapshot().organization?.name).toBe("ELOGISTIX SHIPPING"));
-    cache.setQueryData(companySettingsQueries.keys.lists(), { razon_social: "ELOGISTIX SHIPPING" });
+    cache.setQueryData(companySettingsKeys.lists(), { razon_social: "ELOGISTIX SHIPPING" });
     await waitFor(() => expect(getAuthSnapshot().organization?.name).toBe("ELOGISTIX SHIPPING"));
     expect(fetch).toHaveBeenCalledTimes(1);
     expect(fetch).toHaveBeenCalledWith("/version.json", { cache: "no-store" });

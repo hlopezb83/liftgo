@@ -9,12 +9,13 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import type { PlatformAuditEvent } from "@/lib/platformAudit.types";
+import { formatDateTimeMty } from "@/lib/format/dateFormats";
 import {
   AUDIT_ACTION_LABELS,
   auditTargetName,
   PLATFORM_AUDIT_LABELS,
 } from "../lib/platformAuditLabels";
+import type { PlatformAuditEvent } from "../lib/platformAudit.types";
 
 export function PlatformAuditEventList({
   events,
@@ -54,7 +55,7 @@ export function PlatformAuditEventList({
                 <TableRow key={event.id}>
                   <TableCell className="whitespace-nowrap text-sm">
                     <time dateTime={event.occurred_at}>
-                      {new Date(event.occurred_at).toLocaleString("es-MX")}
+                      {formatDateTimeMty(event.occurred_at)}
                     </time>
                   </TableCell>
                   <TableCell>
@@ -104,7 +105,7 @@ export function PlatformAuditEventList({
                   className="text-xs text-muted-foreground"
                   dateTime={event.occurred_at}
                 >
-                  {new Date(event.occurred_at).toLocaleString("es-MX")}
+                  {formatDateTimeMty(event.occurred_at)}
                 </time>
               </div>
               <div>

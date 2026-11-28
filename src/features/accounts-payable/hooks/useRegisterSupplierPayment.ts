@@ -1,8 +1,10 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { cashFlowProjectionQueries } from "@/features/cash-flow";
 import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
+import { operationSummaryKeys } from "@/lib/query/operationSummaryKeys";
 import { callRpc } from "@/lib/rpc";
 import { resolveBusinessBlock, type BusinessBlock } from "@/lib/rules/businessBlocks";
+import { accountsPayableKpisKeys } from "../lib/queryKeys";
 import { exportablePayableQueries } from "./useExportablePayables";
 import { PAYMENT_BATCHES_QK } from "./usePaymentBatches";
 import { supplierBillKeys } from "./useSupplierBills";
@@ -29,9 +31,9 @@ const paymentInvalidationKeys = (billId: string) => [
   supplierBillKeys.detail(billId),
   exportablePayableQueries.keys.all,
   cashFlowProjectionQueries.keys.all,
-  ["accounts_payable_kpis"],
-  ["dashboard-financial-kpis"],
-  ["cash-flow"],
+  accountsPayableKpisKeys.all,
+  operationSummaryKeys.dashboardFinancialKpis.all,
+  operationSummaryKeys.cashFlow.all,
   PAYMENT_BATCHES_QK,
 ];
 

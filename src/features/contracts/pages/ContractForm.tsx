@@ -13,7 +13,7 @@ import {
   UsageConditionsCard,
   TermsAndSignaturesCard,
 } from "../components/ContractFormSections";
-import { MissingLegalRepAlert } from "../components/contracts/MissingLegalRepAlert";
+import { MissingLegalRepAlert } from "../components/MissingLegalRepAlert";
 import { useContractFormLogic } from "../hooks/useContractFormLogic";
 import type { ContractFormValues } from "../lib/contractFormSchema";
 

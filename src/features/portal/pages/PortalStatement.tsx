@@ -1,4 +1,4 @@
-import { useEffect, useId, useState } from "react";
+import { useId, useState } from "react";
 import { QueryErrorState } from "@/components/feedback/QueryErrorState";
 import { TablePagination } from "@/components/feedback/TablePagination";
 import { DownloadIcon } from "@/components/icons";
@@ -9,10 +9,11 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useCustomerSummary, usePortalCustomer, usePortalInvoicesPage } from "@/features/customers";
+import { useCustomerSummary } from "@/features/customers";
 import { formatCurrency } from "@/lib/format/formatCurrency";
 import { notifyError } from "@/lib/ui/appFeedback";
 import { PortalInvoicesTable } from "../components/statement/PortalInvoicesTable";
+import { usePortalCustomer, usePortalInvoicesPage } from "../hooks/useCustomerPortal";
 import { buildStatementRows } from "../lib/statementRows";
 
 const PAGE_SIZE = 25;
@@ -48,12 +49,10 @@ export default function PortalStatement() {
     fxMissingCount: Number(summary?.totals.fx_missing_count ?? 0),
   };
 
-  useEffect(() => {
-    // Una página aún sin respuesta no confirma que el resultado se haya reducido.
-    if (il || ie || !invoicePage || page <= totalPages) return;
-    const timer = window.setTimeout(() => setPage(totalPages), 0);
-    return () => window.clearTimeout(timer);
-  }, [il, ie, invoicePage, page, totalPages]);
+  // Una página aún sin respuesta no confirma que el resultado se haya reducido.
+  if (!il && !ie && invoicePage && page > totalPages) {
+    setPage(totalPages);
+  }
 
 
 

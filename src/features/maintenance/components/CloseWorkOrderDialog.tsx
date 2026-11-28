@@ -1,0 +1,129 @@
+import { useForm } from "react-hook-form";
+import { ROUTES } from "@/app-routes/routes";
+import { BlockedActionNotice } from "@/components/feedback/BlockedActionNotice";
+import { DateField, TextareaField } from "@/components/forms/fields";
+import { FormActions } from "@/components/forms/FormActions";
+import { FormDialog, FormDialogFooter } from "@/components/forms/FormDialog";
+import { FormSection } from "@/components/forms/FormSection";
+import { Form } from "@/components/ui/form";
+import { serviceTypeLabel } from "@/lib/constants";
+import { toYMD } from "@/lib/date/toYMD";
+import { zodResolver } from "@/lib/forms/zodResolver";
+import { businessBlockSummary, describeBusinessBlock } from "@/lib/rules/businessBlocks";
+import { nowMty } from "@/lib/utils";
+import { useCloseWorkOrder, useOpenDamageForLog } from "../hooks/useWorkOrderClose";
+import { workOrderCloseSchema } from "../lib/workOrderCloseSchema";
+import { WorkOrderCloseSummary } from "./WorkOrderCloseSummary";
+import type { MaintenanceLog } from "../hooks/useMaintenanceLogs";
+import type { z } from "zod";
+
+const schema = workOrderCloseSchema;
+type FormData = z.infer<typeof schema>;
+
+interface Props {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  log: (MaintenanceLog & { forklift_name?: string }) | null;
+  onClosed?: () => void;
+  onCancel?: () => void;
+}
+
+/**
+ * Diálogo de cierre de Orden de Trabajo. Antes el cierre era un arrastre
+ * silencioso en el kanban: aquí el usuario ve el costo final, se le avisa
+ * que las secciones quedarán bloqueadas y puede sellar fecha y notas.
+ */
+export function CloseWorkOrderDialog(props: Props) {
+  return <CloseWorkOrderSession key={props.open ? props.log?.id ?? "empty" : "closed"} {...props} />;
+}
+
+function CloseWorkOrderSession({ open, onOpenChange, log, onClosed, onCancel }: Props) {
+  const close = useCloseWorkOrder();
+  const { data: openDamage } = useOpenDamageForLog(open ? log?.id : null);
+  const damageBlock = openDamage ? describeBusinessBlock("maintenance_open_damage") : null;
+
+  const form = useForm<FormData>({
+    resolver: zodResolver(schema),
+    defaultValues: { closed_at: nowMty(), closing_notes: "" },
+  });
+
+  const handleCancel = () => {
+    onCancel?.();
+    onOpenChange(false);
+  };
+
+  const onSubmit = form.handleSubmit((data) => {
+    if (!log) return;
+    // BL-R8-07: nunca enviar el cierre con daño abierto — el trigger R8-DB-02
+    // es la autoridad, pero no dependemos del error del servidor.
+    if (openDamage) return;
+    const note = data.closing_notes.trim();
+    const description = note
+      ? [log.description, `Cierre: ${note}`].filter(Boolean).join("\n")
+      : null;
+    close.mutate(
+      { id: log.id, performedAt: toYMD(data.closed_at) ?? "", description },
+      {
+        onSuccess: () => {
+          form.reset({ closed_at: nowMty(), closing_notes: "" });
+          onOpenChange(false);
+          onClosed?.();
+        },
+        onError: () => onCancel?.(),
+      },
+    );
+  });
+
+  return (
+    <FormDialog
+      open={open}
+      onOpenChange={(v) => (v ? onOpenChange(true) : handleCancel())}
+      isPending={close.isPending}
+      isDirty={form.formState.isDirty}
+      title="Cerrar orden de trabajo"
+      description={log ? `${serviceTypeLabel(log.service_type)} — ${log.forklift_name ?? "Equipo"}` : undefined}
+      testId="close-work-order-dialog"
+    >
+      <Form {...form}>
+        <form onSubmit={onSubmit} className="space-y-4">
+          <FormSection title="Resumen del servicio" first>
+            {/* R13-FE-02 (P1): `cost` es el total (manual + refacciones + MO).
+                Pasarlo como "costo manual" duplicaba refacciones y mano de obra. */}
+            {log && <WorkOrderCloseSummary maintenanceLogId={log.id} storedCost={Number(log.cost || 0)} manualCost={Number(log.manual_cost || 0)} />}
+            {damageBlock && openDamage && (
+              <BlockedActionNotice
+                block={damageBlock}
+                details={`Daño: ${openDamage.description}`}
+                link={{ label: "Resolver daño", to: ROUTES.damage }}
+              />
+            )}
+          </FormSection>
+
+          <FormSection title="Cierre">
+            <DateField control={form.control} name="closed_at" label="Fecha de cierre" required disabledMatcher={{ after: nowMty() }} />
+            <TextareaField
+              control={form.control}
+              name="closing_notes"
+              label="Notas de cierre"
+              rows={2}
+              placeholder="Opcional: trabajos realizados, pendientes, observaciones"
+            />
+            <p className="text-xs text-muted-foreground">
+              Al cerrar ya no podrás agregar refacciones ni mano de obra a esta orden.
+            </p>
+          </FormSection>
+
+          <FormDialogFooter>
+            <FormActions
+              submitLabel="Cerrar OT"
+              isPending={close.isPending}
+              onCancel={handleCancel}
+              submitDisabled={!!damageBlock}
+              submitDisabledReason={damageBlock ? businessBlockSummary(damageBlock) : undefined}
+            />
+          </FormDialogFooter>
+        </form>
+      </Form>
+    </FormDialog>
+  );
+}

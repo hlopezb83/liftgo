@@ -8,7 +8,7 @@ const sdk = vi.hoisted(() => ({
   callback: null as ((event: AuthChangeEvent, session: Session | null) => void) | null,
   getSession: vi.fn(), unsubscribe: vi.fn(), signOut: vi.fn(),
 }));
-vi.mock("@/features/auth/recoveryCapture", () => ({ startRecoveryCapture: vi.fn() }));
+vi.mock("../recoveryCapture", () => ({ startRecoveryCapture: vi.fn() }));
 vi.mock("@/integrations/supabase/client", () => ({ supabase: { auth: {
   getSession: sdk.getSession, signOut: sdk.signOut,
   onAuthStateChange: (callback: typeof sdk.callback) => {

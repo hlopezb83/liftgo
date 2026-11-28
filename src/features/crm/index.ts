@@ -1,5 +1,3 @@
 // Barrel público de la feature "crm".
-// Re-exporta la API consumida por otras features.
-// Generado automáticamente; ampliar manualmente si hace falta.
-export * from "./hooks/useProspects";
-export * from "./lib/constants";
+export { LOST_REASON_LABELS, STAGE_LABELS } from "./lib/constants";
+export { prospectKeys } from "./lib/queryKeys";

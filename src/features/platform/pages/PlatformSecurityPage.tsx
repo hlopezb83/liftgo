@@ -1,4 +1,3 @@
-import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { ErrorDiagnostic } from "@/components/feedback/ErrorDiagnostic";
 import { QueryErrorState } from "@/components/feedback/QueryErrorState";
@@ -7,9 +6,10 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAuth } from "@/contexts/AuthContext";
-import { PLATFORM_PROFILE_LABELS } from "@/lib/platformAccess.types";
-import { getPlatformSessionFn } from "@/lib/platformOperators.functions";
+import { PLATFORM_PROFILE_LABELS } from "@/lib/auth/platformAccess.types";
+import { formatDateTimeMty } from "@/lib/format/dateFormats";
 import { usePlatformCapabilities } from "../hooks/usePlatformAccess";
+import { usePlatformSession } from "../hooks/usePlatformOperator";
 
 export default function PlatformSecurityPage() {
   const { user, signOut, resetPassword } = useAuth();
@@ -17,8 +17,7 @@ export default function PlatformSecurityPage() {
   const [recoveryMessage, setRecoveryMessage] = useState("");
   const [recoveryError, setRecoveryError] = useState<unknown>(null);
   const { access } = usePlatformCapabilities();
-  const query = useQuery({ queryKey: ["platform", "session", user?.id], queryFn: () => getPlatformSessionFn(),
-    staleTime: 0, refetchOnWindowFocus: "always", refetchInterval: 30_000, meta: { silent: true } });
+  const query = usePlatformSession();
   async function recover() {
     if (!user?.email || sending || !query.isSuccess) return;
     setSending(true); setRecoveryMessage(""); setRecoveryError(null);
@@ -39,7 +38,7 @@ export default function PlatformSecurityPage() {
       {query.isError ? <QueryErrorState error={query.error} entity="tu sesión" onRetry={() => void query.refetch()} isRetrying={query.isFetching} />
         : query.isPending ? <Skeleton className="h-12 w-full" /> : <div className="space-y-2">
           <p role="status" className="text-sm font-medium">Tu sesión está activa</p>
-          <p className="text-sm text-muted-foreground">Inicio: {new Date(query.data.startedAt).toLocaleString("es-MX")}</p>
+          <p className="text-sm text-muted-foreground">Inicio: {formatDateTimeMty(query.data.startedAt)}</p>
         </div>}
       <p className="text-sm text-muted-foreground">Los cambios de acceso de operadores requieren tu contraseña actual.</p>
       <Button variant="outline" onClick={() => void signOut()}>Cerrar sesión</Button>

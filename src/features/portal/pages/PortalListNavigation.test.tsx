@@ -11,7 +11,7 @@ vi.mock("@/hooks/use-mobile", () => ({
   useIsMobile: () => viewport.mobile,
   useIsTabletOrBelow: () => viewport.mobile,
 }));
-vi.mock("@/features/customers", () => ({
+vi.mock("../hooks/useCustomerPortal", () => ({
   usePortalInvoicesPage: () => ({
     data: {
       rows: [{ id: "inv-1", invoice_number: "FAC-0001", issued_at: "2026-10-01", due_date: "2026-10-31", total: "12000.00", moneda: "MXN", status: "sent" }],

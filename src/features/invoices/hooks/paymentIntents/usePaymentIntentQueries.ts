@@ -2,7 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import {
   adminPaymentIntentsQueries,
   paymentIntentsQueries,
-} from "../../lib/paymentIntentsQueryKeys";
+} from "../../lib/paymentIntentsQueries";
 
 export function usePortalPaymentIntents(invoiceId: string | undefined) {
   return useQuery({

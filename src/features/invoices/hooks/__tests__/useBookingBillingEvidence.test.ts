@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { readAllBillingPages } from "../invoices/useBookingBillingEvidence";
+import { readAllBillingPages } from "../useBookingBillingEvidence";
 
 describe("complete billing evidence", () => {
   it("reads beyond one page and rejects errors or truncation instead of reopening periods", async () => {

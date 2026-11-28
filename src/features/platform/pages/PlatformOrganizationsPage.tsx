@@ -8,8 +8,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { NativeSelect } from "@/components/ui/native-select";
 import { Skeleton } from "@/components/ui/skeleton";
-import type { CreateOrganizationResult } from "@/lib/platformAdmin.types";
-import { ORGANIZATION_CLASSIFICATION_LABELS, type OrganizationClassification } from "@/lib/platformOrganizationGovernance.types";
 import { PendingPlatformOnboarding } from "../components/PendingPlatformOnboarding";
 import {
   CreateOrganizationDialog,
@@ -20,6 +18,8 @@ import { useOrganizationGovernanceList } from "../hooks/useOrganizationGovernanc
 import { usePlatformCapabilities } from "../hooks/usePlatformAccess";
 import { usePlatformOrganizations } from "../hooks/usePlatformOperator";
 import { filterOrganizationRegistry } from "../lib/organizationGovernanceList";
+import { ORGANIZATION_CLASSIFICATION_LABELS, type OrganizationClassification } from "../lib/platformOrganizationGovernance.types";
+import type { CreateOrganizationResult } from "../lib/platformAdmin.types";
 
 const PAGE_SIZE = 20;
 

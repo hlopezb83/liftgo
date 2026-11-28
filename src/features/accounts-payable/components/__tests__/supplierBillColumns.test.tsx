@@ -1,4 +1,4 @@
-import { render } from "@testing-library/react";
+import { render, renderHook } from "@testing-library/react";
 import { describe, it, expect } from "vitest";
 import { useSupplierBillColumns, renderSupplierBillMobileCard } from "../supplierBillColumns";
 import type { SupplierBillListItem } from "../../hooks/useSupplierBills";
@@ -19,7 +19,7 @@ const bill = {
 
 describe("supplierBillColumns Untranslated wrapping", () => {
   it("marks bill_number and supplier name in columns", () => {
-    const columns = useSupplierBillColumns();
+    const columns = renderHook(() => useSupplierBillColumns()).result.current;
     const billCol = columns.find((c) => c.id === "bill_number");
     const supplierCol = columns.find((c) => c.id === "supplier");
     if (typeof billCol?.cell !== "function" || typeof supplierCol?.cell !== "function") {

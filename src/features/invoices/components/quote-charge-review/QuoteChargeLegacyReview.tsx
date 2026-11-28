@@ -2,7 +2,7 @@ import { useRef, useState } from "react";
 import { FormDialog } from "@/components/forms/FormDialog";
 import { Button } from "@/components/ui/button";
 import { useUserRole } from "@/features/users";
-import { useQuoteChargeLegacyReview } from "../../hooks/invoices/useQuoteChargeLegacyReview";
+import { useQuoteChargeLegacyReview } from "../../hooks/useQuoteChargeLegacyReview";
 import { reviewErrorMessage, type LegacyReviewSelection } from "../../lib/quoteChargeLegacyReview";
 import { LegacyReviewForm } from "./LegacyReviewForm";
 import { LegacyReviewList } from "./LegacyReviewList";

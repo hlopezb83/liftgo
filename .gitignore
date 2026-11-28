@@ -57,3 +57,7 @@ playwright-report-multitenant/
 # Temporary byte-verified Drizzle replay for local CI only
 /.ci-drizzle-replay*/
 
+# Python bytecode caches
+__pycache__/
+*.py[cod]
+

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { DataTableV2, useLiftgoTable, type ColumnDef } from "@/components/dataTable/v2";
 import { QueryErrorState } from "@/components/feedback/QueryErrorState";
 import { TablePagination } from "@/components/feedback/TablePagination";
@@ -21,13 +21,14 @@ import { FEEDBACK_TYPE_LABELS } from "../lib/constants";
 type Report = FeedbackReport;
 
 const PAGE_SIZE = 25;
+const EMPTY_REPORTS: Report[] = [];
 
 export default function MyReportsPage() {
   const [page, setPage] = useState(1);
   const [sharing, setSharing] = useState<Report | null>(null);
   const { data: result, isLoading, isError, refetch } = useMyFeedbackReports(page, PAGE_SIZE);
   const pointsQuery = useMyFeedbackPointsTotal();
-  const reports = result?.rows ?? [];
+  const reports = result?.rows ?? EMPTY_REPORTS;
   const totalPages = Math.max(1, Math.ceil((result?.totalCount ?? 0) / PAGE_SIZE));
   const pointsLabel = pointsQuery.isLoading
     ? "Cargando puntos…"
@@ -35,7 +36,7 @@ export default function MyReportsPage() {
       ? "Puntos no disponibles"
       : `${pointsQuery.data ?? 0} puntos`;
 
-  const columns: ColumnDef<Report>[] = [
+  const columns = useMemo<ColumnDef<Report>[]>(() => [
     {
       id: "folio",
       header: "Folio",
@@ -84,7 +85,7 @@ export default function MyReportsPage() {
       header: "Soporte LiftGo",
       cell: ({ row }) => row.original.reporter_type === "internal" ? <Button variant="outline" size="sm" onClick={() => setSharing(row.original)}>Compartir / ver caso</Button> : null,
     },
-  ];
+  ], []);
 
   const table = useLiftgoTable<Report>({
     data: reports,

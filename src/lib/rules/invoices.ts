@@ -1,4 +1,5 @@
 import type { Tables } from "@/integrations/supabase/types";
+import type { AppRole } from "@/lib/domain/roles";
 import { computeInvoiceVisibility, type InvoiceVisibility } from "./invoiceVisibility";
 
 /**
@@ -6,6 +7,12 @@ import { computeInvoiceVisibility, type InvoiceVisibility } from "./invoiceVisib
  * con `computeInvoiceVisibility` en un solo objeto para consumidores del detalle.
  * Formula única para `isCancelled` / `isStamped`, evita divergencias entre módulos.
  */
+
+export const CFDI_FISCAL_ACTION_ROLES: readonly AppRole[] = ["admin", "administrativo"] as const;
+
+export function canExecuteFiscalInvoiceAction(role: string | null | undefined): boolean {
+  return Boolean(role && (CFDI_FISCAL_ACTION_ROLES as readonly string[]).includes(role));
+}
 
 type InvoiceLike = Tables<"invoices"> & {
   cancellation_status?: string | null;

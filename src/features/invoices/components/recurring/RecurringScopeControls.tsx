@@ -2,7 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import type { useRecurringPreviewModel } from "./useRecurringPreviewModel";
-import type { RecurringPreviewScope } from "../../hooks/invoices/recurring/usePreviewRecurringInvoices";
+import type { RecurringPreviewScope } from "../../hooks/recurring/usePreviewRecurringInvoices";
 
 type Model = ReturnType<typeof useRecurringPreviewModel>;
 interface Props {

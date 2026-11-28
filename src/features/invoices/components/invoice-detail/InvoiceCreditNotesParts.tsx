@@ -3,18 +3,18 @@ import { StampIcon, DocumentIcon, DownloadIcon, ErrorIcon, DeleteIcon, RefreshIc
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { CREDIT_NOTE_MOTIVE_LABELS as MOTIVE_LABELS } from "@/features/invoices/lib/creditNoteMotives";
 import { useHasModuleAccess } from "@/features/users";
 import { formatDateMty } from "@/lib/format/dateFormats";
 import { formatCurrencyWithCode } from "@/lib/format/formatCurrency";
+import { CREDIT_NOTE_MOTIVE_LABELS as MOTIVE_LABELS } from "../../lib/creditNoteMotives";
 import { CreditNoteRepLimitNotice } from "./CreditNoteRepLimitNotice";
 import { downloadCreditNote } from "./downloadCreditNote";
+import type { useRefreshCreditNoteCancellationStatus } from "../../hooks/cfdi/useRefreshCancellationStatus";
 import type {
   useStampCreditNote,
   useDeleteCreditNote,
   CreditNote,
 } from "../../hooks/creditNotes/useCreditNotes";
-import type { useRefreshCreditNoteCancellationStatus } from "../../hooks/invoices/cfdi/useRefreshCancellationStatus";
 import type { Payment } from "../../hooks/usePayments";
 
 function CnBadge({ cn }: { cn: CreditNote }) {

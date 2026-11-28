@@ -1,20 +1,17 @@
 import { useIsRestoring } from "@tanstack/react-query";
-import { Suspense, lazy, useEffect, useState, type ReactNode } from "react";
+import { Suspense, useEffect, useState, type ReactNode } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { OrganizationGate, useOrganizationContext } from "@/contexts/OrganizationContext";
-import { useRecoveryStatus } from "@/features/auth/hooks/useRecoveryStatus";
+import { AuthPage, useRecoveryStatus } from "@/features/auth";
 import { platformEntryDestination, usePlatformOperatorStatus } from "@/features/platform";
 import { useUserRole } from "@/features/users";
 import { OfflineBanner } from "@/layouts/OfflineBanner";
 import { useLocation } from "@/lib/router-compat";
 import { Navigate } from "@/lib/router-compat-ui";
 
-
 // R6-FE-10 (offline): sin red la carga de auth/rol nunca resuelve y el splash
 // era infinito. Tras ~8s se muestra pantalla de error con Reintentar.
 const LOADING_TIMEOUT_MS = 8_000;
-
-const AuthPage = lazy(() => import("@/features/auth/pages/AuthPage"));
 
 function AppLoader({ hint }: { hint?: string }) {
   return (

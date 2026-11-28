@@ -11,7 +11,7 @@ vi.mock("@/features/bookings", () => ({ useConfirmedBookingsForDelivery: (enable
   state.selector(enabled);
   return { data: { pages: [[]] }, isLoading: false, isError: false, hasNextPage: false };
 } }));
-vi.mock("../../../hooks/bookings/useBookings", () => ({ bookingQueries: { detail: (id: string) => ({ queryKey: ["bookings", "detail", id], queryFn: state.booking }) } }));
+vi.mock("../../../hooks/useBookings", () => ({ bookingQueries: { detail: (id: string) => ({ queryKey: ["bookings", "detail", id], queryFn: state.booking }) } }));
 vi.mock("@/features/fleet", () => ({
   useForkliftMap: (enabled: boolean) => { state.fleet(enabled); return { forklifts: [] }; }, useForklift: () => ({ data: null }), useActiveDrivers: () => ({ data: [] }),
 }));

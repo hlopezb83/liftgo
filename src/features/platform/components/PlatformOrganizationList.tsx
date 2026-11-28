@@ -9,11 +9,11 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import type { PlatformOrganizationRow } from "@/lib/platformAdmin.types";
 import { Link } from "@/lib/router-compat-ui";
 import { usePlatformCapabilities } from "../hooks/usePlatformAccess";
 import { OrganizationClassificationBadge } from "./OrganizationGovernanceSummary";
 import type { OrganizationWithGovernance } from "../lib/organizationGovernanceList";
+import type { PlatformOrganizationRow } from "../lib/platformAdmin.types";
 
 
 function CompanyIdentity({ row }: { row: OrganizationWithGovernance }) {

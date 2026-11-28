@@ -1,6 +1,6 @@
 import type { ComponentProps } from "react";
 import { useTheme } from "next-themes";
-// eslint-disable-next-line no-restricted-imports -- Toaster de shadcn: único componente autorizado a montar el <Toaster/> de sonner.
+// Toaster de shadcn: único componente UI autorizado a montar el <Toaster/> de sonner.
 import { Toaster as Sonner } from "sonner";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useToastDialogInset } from "@/lib/ui/useToastDialogInset";

@@ -57,7 +57,8 @@ export {
   Minus as RemoveIcon,
   Undo2 as UndoIcon,
   RotateCcw as ResetIcon,
-  // Estado / feedback (dedupe: Check/CheckCircle/CheckCircle2 → SuccessIcon)
+  // Estado / feedback (dedupe: CheckCircle/CheckCircle2 → SuccessIcon; Check → CheckIcon para controles de selección)
+  Check as CheckIcon,
   CheckCircle2 as SuccessIcon,
   AlertTriangle as WarnIcon,
   XCircle as ErrorIcon,

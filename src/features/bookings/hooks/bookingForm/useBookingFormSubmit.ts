@@ -8,7 +8,7 @@ import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import { toYMD } from "@/lib/format/dateFormats";
 import { notifySuccess } from "@/lib/ui/appFeedback";
 import { allowsRecurringBilling } from "../../lib/recurringBillingEligibility";
-import { useCreateBooking } from "../bookings/useBookings";
+import { useCreateBooking } from "../useBookings";
 import type { BookingFormData } from "../../lib/bookingFormSchema";
 
 interface PostBookingState {

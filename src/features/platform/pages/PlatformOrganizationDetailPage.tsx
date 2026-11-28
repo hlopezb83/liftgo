@@ -5,6 +5,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import { formatDateTimeMty } from "@/lib/format/dateFormats";
 import { useParams } from "@/lib/router-compat";
 import { Link } from "@/lib/router-compat-ui";
 import { OrganizationConfigurationCards } from "../components/OrganizationConfigurationCards";
@@ -113,9 +114,9 @@ export default function PlatformOrganizationDetailPage() {
       <p className="text-xs text-muted-foreground">
         Consulta:{" "}
         <time dateTime={detail.checked_at}>
-          {new Date(detail.checked_at).toLocaleString("es-MX")}
+          {formatDateTimeMty(detail.checked_at)}
         </time>
-        . Hora local del navegador. La ficha no concede acceso al ERP de otra
+        . Hora de Monterrey. La ficha no concede acceso al ERP de otra
         empresa.
       </p>
     </div>

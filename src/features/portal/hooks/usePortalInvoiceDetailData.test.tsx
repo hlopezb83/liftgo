@@ -6,7 +6,7 @@ const { usePortalInvoiceMock, usePortalInvoicePaymentsMock } = vi.hoisted(() => 
   usePortalInvoicePaymentsMock: vi.fn(),
 }));
 
-vi.mock("@/features/customers", () => ({
+vi.mock("./useCustomerPortal", () => ({
   usePortalInvoice: usePortalInvoiceMock,
   usePortalInvoicePayments: usePortalInvoicePaymentsMock,
 }));

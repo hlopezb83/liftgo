@@ -1,7 +1,7 @@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { INTEGRATION_STATUS_LABELS, type IntegrationRow } from "@/lib/platformHealth.types";
 import { healthDate } from "../hooks/usePlatformHealth";
+import { INTEGRATION_STATUS_LABELS, type IntegrationRow } from "../lib/platformHealth.types";
 
 function checkLabel(check: IntegrationRow["lastCheck"], observedAt: string) {
   if (!check) return "Sin comprobación vigente";

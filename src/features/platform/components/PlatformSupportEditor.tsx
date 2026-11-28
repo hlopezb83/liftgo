@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { NativeSelect } from "@/components/ui/native-select";
 import { Textarea } from "@/components/ui/textarea";
-import { SUPPORT_SEVERITIES, SUPPORT_STATUSES, type SupportCase } from "@/lib/platformSupport.types";
+import { SUPPORT_SEVERITIES, SUPPORT_STATUSES, type SupportCase } from "@/lib/support/platformSupport.types";
 import { usePlatformSupportEditor } from "../hooks/usePlatformSupportEditor";
 
 export function PlatformSupportEditor({ record, assignees, onRefresh, onEditStateChange }: {

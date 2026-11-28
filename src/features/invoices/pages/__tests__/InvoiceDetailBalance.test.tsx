@@ -11,8 +11,8 @@ vi.mock("@/hooks/useNavigateTransition", () => ({ useNavigateTransition: () => v
 vi.mock("@/features/users", () => ({ useUserRole: () => ({ data: "admin" }) }));
 vi.mock("@/features/company-settings", () => ({ useCompanySettings: () => ({ data: undefined }) }));
 vi.mock("@/features/quotes", () => ({ useQuote: () => ({ data: undefined }) }));
-vi.mock("../../hooks/invoices/useInvoiceBookings", () => ({ useInvoiceBookings: () => ({ data: [] }) }));
-vi.mock("../../hooks/invoices/useInvoices", () => ({ useInvoice: mocks.invoice }));
+vi.mock("../../hooks/useInvoiceBookings", () => ({ useInvoiceBookings: () => ({ data: [] }) }));
+vi.mock("../../hooks/useInvoices", () => ({ useInvoice: mocks.invoice }));
 vi.mock("../../hooks/usePayments", () => ({ usePayments: mocks.payments }));
 vi.mock("../../hooks/creditNotes/useCreditNotes", () => ({ useCreditNotesForInvoice: mocks.credits }));
 vi.mock("../../hooks/invoiceDetail/useInvoiceDetailActions", () => ({ useInvoiceDetailActions: () => ({}) }));

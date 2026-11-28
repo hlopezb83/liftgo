@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toYMD } from "@/lib/date/toYMD";
+import { reportKeys } from "../lib/queryKeys";
 
 export interface UnitUtilizationRow {
   [key: string]: unknown;
@@ -30,7 +31,7 @@ export function useUtilizationByUnitReport(startDate: Date, endDate: Date) {
   const start = toYMD(startDate);
   const end = toYMD(endDate);
   return useQuery({
-    queryKey: ["report", "utilization-by-unit", start, end],
+    queryKey: reportKeys.utilizationByUnit(start, end),
     queryFn: async (): Promise<UnitUtilizationRow[]> => {
       const { data, error } = await supabase.rpc("report_utilization_by_unit", {
         _start: start,
@@ -56,7 +57,7 @@ export function useUtilizationByModelReportData(startDate: Date, endDate: Date) 
   const start = toYMD(startDate);
   const end = toYMD(endDate);
   return useQuery({
-    queryKey: ["report", "utilization-by-model", start, end],
+    queryKey: reportKeys.utilizationByModel(start, end),
     queryFn: async (): Promise<ModelRow[]> => {
       const { data, error } = await supabase.rpc("report_utilization_by_model", {
         _start: start,

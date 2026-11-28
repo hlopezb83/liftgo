@@ -1,0 +1,171 @@
+import { parseISO } from "date-fns";
+import { useMemo, useState } from "react";
+import { BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid, ResponsiveContainer } from "recharts";
+import { DataTableV2, useLiftgoTable, type ColumnDef } from "@/components/dataTable/v2";
+import { QueryErrorState } from "@/components/feedback/QueryErrorState";
+import { DownloadIcon } from "@/components/icons";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useChartSizing } from "@/lib/charts/useChartSizing";
+import { exportToCsv } from "@/lib/exportCsv";
+import { toYMD } from "@/lib/format/dateFormats";
+import { formatCurrency } from "@/lib/format/formatCurrency";
+import { formatMonthShortEsFromDate } from "@/lib/format/formatMonthEs";
+import { useLocation } from "@/lib/router-compat";
+import { useRevenueByMonthReport, useRevenueMonthInvoices, type RevenueMonthRow } from "../hooks/useRevenueByMonthReport";
+import { invoicesWithinRange, type DrilldownInvoice } from "../lib/drilldown";
+import { RevenueMonthDetailSheet } from "./drilldown/RevenueMonthDetailSheet";
+
+interface Props {
+  startDate: Date;
+  endDate: Date;
+}
+
+type Row = { key: string; month: string; invoiced: number; paid: number; count: number };
+
+const EMPTY_REVENUE_ROWS: RevenueMonthRow[] = [];
+const EMPTY_MONTH_INVOICES: DrilldownInvoice[] = [];
+
+const REVENUE_COLUMNS: ColumnDef<Row>[] = [
+  { id: "month", header: "Mes", accessorKey: "month", cell: ({ row }) => <span className="font-medium">{row.original.month}</span> },
+  { id: "count", header: "Facturas", accessorKey: "count", meta: { kind: "money" }, cell: ({ row }) => row.original.count },
+  { id: "invoiced", header: "Facturado", accessorKey: "invoiced", meta: { kind: "money" }, cell: ({ row }) => formatCurrency(row.original.invoiced) },
+  { id: "paid", header: "Pagado", accessorKey: "paid", meta: { kind: "money" }, cell: ({ row }) => formatCurrency(row.original.paid) },
+];
+
+// R7 Bloque 21.13: eje Y con formato compacto MXN ("$1.2M") para no recortar dígitos.
+const COMPACT_MXN = new Intl.NumberFormat("es-MX", {
+  style: "currency", currency: "MXN", notation: "compact", maximumFractionDigits: 1,
+});
+function compactMoneyMxn(n: number): string {
+  return Number.isFinite(n) ? COMPACT_MXN.format(n) : "";
+}
+
+function revenueQueryState(isError: boolean, isLoading: boolean, isFetching: boolean, retry: () => void) {
+  if (isError) return <QueryErrorState entity="el reporte de ingresos" onRetry={retry} isRetrying={isFetching} />;
+  if (isLoading) return <div role="status" className="rounded-lg border p-6 text-sm text-muted-foreground">Cargando ingresos…</div>;
+  return null;
+}
+
+export function RevenueReport({ startDate, endDate }: Props) {
+  const location = useLocation();
+  const returnParams = new URLSearchParams(location.search);
+  returnParams.set("from", toYMD(startDate));
+  returnParams.set("to", toYMD(endDate));
+  // FIX-FE-01: agregación server-side (patrón useProfitByModelReport).
+  // useInvoices() está capado a LIST_FETCH_LIMIT (501 filas) y el reporte
+  // subestimaba ingresos silenciosamente con más de 500 facturas.
+  const { tick, rotatedXAxis, moneyAxisWidth, chartHeightClass } = useChartSizing();
+  const { data: rows = EMPTY_REVENUE_ROWS, isLoading, isError, isFetching, refetch } = useRevenueByMonthReport(startDate, endDate);
+  const [selectedKey, setSelectedKey] = useState<string | null>(null);
+  const data = useMemo<Row[]>(
+    () =>
+      rows.map((r) => ({
+        key: r.monthKey,
+        month: formatMonthShortEsFromDate(parseISO(`${r.monthKey}-01`)),
+        invoiced: r.invoiced,
+        paid: r.paid,
+        count: r.invoiceCount,
+      })),
+    [rows],
+  );
+  const selected = data.find((row) => row.key === selectedKey);
+  // H-2: facturas en divisa sin tipo de cambio quedan fuera de los importes.
+  const fxMissingTotal = rows.reduce((s, r) => s + r.fxMissingCount, 0);
+
+  // Drilldown: solo las facturas del mes seleccionado (RPC, sin límite de filas).
+  // V27-01: el RPC devuelve el mes completo; recortamos al rango activo para
+  // que panel, contador y CSV coincidan con el resumen.
+  const {
+    data: monthInvoices = EMPTY_MONTH_INVOICES,
+    isLoading: monthLoading,
+    isError: monthError,
+    isFetching: monthFetching,
+    refetch: refetchMonth,
+  } = useRevenueMonthInvoices(selected?.key ?? null);
+  const selectedInvoices = useMemo(
+    () => invoicesWithinRange(monthInvoices, startDate, endDate),
+    [monthInvoices, startDate, endDate],
+  );
+
+  const table = useLiftgoTable<Row>({
+    data,
+    columns: REVENUE_COLUMNS,
+    getRowId: (r) => r.key,
+    paginated: false,
+  });
+
+
+  // R22-B: si la consulta falló, no mostramos ceros ni permitimos exportar.
+  const queryState = revenueQueryState(isError, isLoading, isFetching, () => { void refetch(); });
+  if (queryState) return queryState;
+
+  return (
+    <>
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between">
+          <CardTitle className="text-base">Ingresos</CardTitle>
+          <Button variant="outline" size="sm" disabled={data.length === 0} onClick={() => exportToCsv("reporte-ingresos.csv", data.map((row) => ({
+            Periodo: row.key,
+            Mes: row.month,
+            "Facturado MXN": row.invoiced,
+            "Pagado MXN": row.paid,
+            Facturas: row.count,
+          })))}>
+            <DownloadIcon className="h-4 w-4 mr-1" />Exportar CSV
+          </Button>
+        </CardHeader>
+        <CardContent>
+          <p className="mb-3 text-xs text-muted-foreground">
+            «Facturado» es el neto después de notas de crédito. «Pagado» suma cobros de las facturas emitidas en cada mes, aunque el cobro ocurra después.
+          </p>
+          {fxMissingTotal > 0 && (
+            <p className="mb-3 rounded-md border border-warning/30 bg-warning/10 px-3 py-2 text-xs text-muted-foreground">
+              {fxMissingTotal} factura{fxMissingTotal === 1 ? "" : "s"} en divisa sin tipo de cambio
+              {fxMissingTotal === 1 ? " no se incluyó" : " no se incluyeron"} en los importes. Captura el
+              tipo de cambio para que sumen al reporte.
+            </p>
+          )}
+          <div className={chartHeightClass}>
+
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={data}>
+                <CartesianGrid strokeDasharray="3 3" className="stroke-border" vertical={false} />
+                <XAxis dataKey="month" tick={tick} {...rotatedXAxis} />
+                <YAxis width={moneyAxisWidth} tickFormatter={(v) => compactMoneyMxn(Number(v))} tick={tick} />
+                <Tooltip formatter={(val) => formatCurrency(Number(val))} />
+                <Bar dataKey="invoiced" fill="hsl(var(--chart-3))" name="Facturado" radius={[4, 4, 0, 0]} />
+                <Bar dataKey="paid" fill="hsl(var(--chart-2))" name="Pagado" radius={[4, 4, 0, 0]} />
+              </BarChart>
+
+            </ResponsiveContainer>
+          </div>
+        </CardContent>
+      </Card>
+      <Card>
+        <CardContent className="p-0">
+          <DataTableV2
+            table={table}
+            emptyMessage="Sin facturas en el rango"
+            rowAction={{ columnId: "month", label: (r) => `Ver ingresos de ${r.month}` }}
+            onRowClick={(r) => setSelectedKey(r.key)}
+          />
+        </CardContent>
+      </Card>
+      <RevenueMonthDetailSheet
+        returnTo={`${location.pathname}?${returnParams.toString()}`}
+        open={Boolean(selected)}
+        onOpenChange={(o) => { if (!o) setSelectedKey(null); }}
+        monthLabel={selected?.month ?? null}
+        invoiced={selected?.invoiced ?? 0}
+        paid={selected?.paid ?? 0}
+        invoices={selectedInvoices}
+        isLoading={monthLoading}
+        isError={monthError}
+        isRetrying={monthFetching}
+        onRetry={() => { void refetchMonth(); }}
+      />
+    </>
+
+  );
+}

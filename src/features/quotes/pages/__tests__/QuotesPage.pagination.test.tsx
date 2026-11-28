@@ -4,7 +4,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { ReactNode } from "react";
 import { useLocation } from "@/lib/router-compat";
 import { TestRouter } from "@/test/router";
-import type { QuotesPageFilters } from "../../hooks/quotes/useQuotesPage";
+import type { QuotesPageFilters } from "../../hooks/useQuotesPage";
 import QuotesPage from "../QuotesPage";
 
 const state = vi.hoisted(() => ({ mobile: false, error: false, loading: false, retry: vi.fn(), requests: [] as QuotesPageFilters[] }));
@@ -13,8 +13,8 @@ vi.mock("@/contexts/pageActions", () => ({ usePageActions: () => undefined }));
 vi.mock("@/features/users", () => ({ useHasModuleAccess: () => false }));
 vi.mock("@/layouts/RoleGuard", () => ({ RoleGuard: () => null }));
 vi.mock("../../hooks/quoteDetail/useQuoteDetailData", () => ({ isPublicoGeneral: () => false }));
-vi.mock("../../hooks/quotes/useQuotes", () => ({ quoteQueries: { detail: vi.fn() } }));
-vi.mock("../../hooks/quotes/useQuotesPage", () => ({
+vi.mock("../../hooks/useQuotes", () => ({ quoteQueries: { detail: vi.fn() } }));
+vi.mock("../../hooks/useQuotesPage", () => ({
   useQuotesPage: (filters: QuotesPageFilters) => {
     state.requests.push(filters);
     const rows = Array.from({ length: 501 }, (_, index) => ({

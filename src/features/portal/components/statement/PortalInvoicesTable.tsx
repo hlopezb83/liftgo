@@ -9,11 +9,11 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { usePortalInvoicePayments } from "@/features/customers";
 import { getPaymentMethodLabel } from "@/features/invoices";
 import { formatDateMty } from "@/lib/format/dateFormats";
 import { formatCurrencyWithCode } from "@/lib/format/formatCurrency";
 import { Link } from "@/lib/router-compat-ui";
+import { usePortalInvoicePayments } from "../../hooks/useCustomerPortal";
 
 interface PortalPayment {
   id: string;

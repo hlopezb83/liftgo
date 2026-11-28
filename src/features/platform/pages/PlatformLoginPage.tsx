@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { AuthPage, useRecoveryStatus } from "@/features/auth";
@@ -11,10 +11,20 @@ export default function PlatformLoginPage() {
   const recovery = useRecoveryStatus();
   const { search } = useLocation();
   const destination = platformReturnDestination(search);
-  if (recovery !== "idle") return <AuthPage platform destination={destination} />;
+  if (recovery !== "idle") {
+    return (
+      <Suspense fallback={<PlatformLoginLoading />}>
+        <AuthPage platform destination={destination} />
+      </Suspense>
+    );
+  }
   if (isLoading) return <PlatformLoginLoading />;
   if (user) return <Navigate to={destination} replace />;
-  return <AuthPage platform destination={destination} />;
+  return (
+    <Suspense fallback={<PlatformLoginLoading />}>
+      <AuthPage platform destination={destination} />
+    </Suspense>
+  );
 }
 
 function PlatformLoginLoading() {

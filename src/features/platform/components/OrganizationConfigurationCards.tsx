@@ -6,7 +6,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import type { PlatformOrganizationDetail } from "@/lib/platformOrganizationDetail.types";
+import type { PlatformOrganizationDetail } from "../lib/platformOrganizationDetail.types";
 
 const DOCUMENT_LABELS: Record<string, string> = {
   quote: "Cotizaciones",

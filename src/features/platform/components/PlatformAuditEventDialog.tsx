@@ -6,7 +6,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import type { PlatformAuditEvent } from "@/lib/platformAudit.types";
+import { formatDateTimeMty } from "@/lib/format/dateFormats";
 import {
   AUDIT_ACTION_LABELS,
   AUDIT_FIELD_LABELS,
@@ -14,6 +14,7 @@ import {
   auditValue,
   PLATFORM_AUDIT_LABELS,
 } from "../lib/platformAuditLabels";
+import type { PlatformAuditEvent } from "../lib/platformAudit.types";
 
 export function PlatformAuditEventDialog({
   event,
@@ -64,7 +65,7 @@ export function PlatformAuditEventDialog({
                   (event.actor_id
                     ? "Operador sin nombre disponible"
                     : "Servicio / actor no disponible")}{" "}
-                · {new Date(event.occurred_at).toLocaleString("es-MX")}
+                · {formatDateTimeMty(event.occurred_at)}
               </p>
             </div>
             {event.reason && (

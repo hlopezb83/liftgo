@@ -10,16 +10,16 @@ import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import type { LineItem } from "@/lib/domain/invoiceHelpers";
 import { parseLineItems } from "@/lib/domain/lineItems";
 import { roundMoney, sumMoney } from "@/lib/money";
+import { type PaymentLike, sumPaymentsInInvoiceCurrency } from "@/lib/money/paymentCurrency";
 import { useParams } from "@/lib/router-compat";
 import { InvoiceDetailBody } from "../components/invoice-detail/InvoiceDetailBody";
 import { useCreditNotesForInvoice } from "../hooks/creditNotes/useCreditNotes";
 import { useInvoiceDetailActions } from "../hooks/invoiceDetail/useInvoiceDetailActions";
-import { useInvoiceBookings } from "../hooks/invoices/useInvoiceBookings";
-import { useInvoice } from "../hooks/invoices/useInvoices";
+import { useInvoiceBookings } from "../hooks/useInvoiceBookings";
+import { useInvoice } from "../hooks/useInvoices";
 import { usePayments } from "../hooks/usePayments";
 import { computeInvoiceCreditBalance } from "../lib/invoiceCreditBalance";
 import { computeInvoiceVisibility } from "../lib/invoiceVisibility";
-import { type PaymentLike, sumPaymentsInInvoiceCurrency } from "../lib/paymentCurrency";
 
 function computeCreditedAmount(creditNotes: Array<{ cfdi_status: string | null; status: string; cancellation_status: string | null; total: number }>): number {
   // E2: `sumMoney` en vez de `reduce` con floats crudos (mismo criterio que

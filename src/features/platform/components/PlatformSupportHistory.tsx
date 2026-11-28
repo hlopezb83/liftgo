@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { SUPPORT_SEVERITIES, SUPPORT_STATUSES, type SupportDetail } from "@/lib/platformSupport.types";
+import { SUPPORT_SEVERITIES, SUPPORT_STATUSES, type SupportDetail } from "@/lib/support/platformSupport.types";
 import { healthDate } from "../hooks/usePlatformHealth";
 
 const ACTIONS = { shared: "Diagnóstico compartido", withdrawn: "Diagnóstico retirado", expired: "Retención cumplida", updated: "Seguimiento actualizado" } as const;
