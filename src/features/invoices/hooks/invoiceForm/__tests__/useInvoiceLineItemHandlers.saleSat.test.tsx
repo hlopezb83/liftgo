@@ -55,7 +55,7 @@ describe("sale SAT additions with real form/field-array state", () => {
     { key: "invoice:historical", quoteId, quoteType: null },
     { key: "invoice:loading", isLoading: true },
   ])("adds conservatively for unresolved sources without clearing existing fields: %j", (source) => {
-    const historical = { ...sale, line_kind: "manual" as const, clave_prod_serv: "78181500", clave_unidad: "DAY" };
+    const historical = { ...sale, line_kind: "manual" as const, clave_prod_serv: "78121604", clave_unidad: "DAY" };
     const { result } = setup(source, [historical]);
     act(() => result.current.handlers.addLineItem());
     expect(result.current.form.getValues("lineItems.0")).toEqual(historical);
@@ -65,7 +65,7 @@ describe("sale SAT additions with real form/field-array state", () => {
   it("keeps rental defaults and does not infer a sale just from a quote ID", () => {
     const { result } = setup({ quoteId, quoteType: "rental" });
     act(() => result.current.handlers.addLineItem());
-    expect(result.current.form.getValues("lineItems.0")).toMatchObject({ line_kind: "manual", clave_prod_serv: "78181500", clave_unidad: "DAY" });
+    expect(result.current.form.getValues("lineItems.0")).toMatchObject({ line_kind: "manual", clave_prod_serv: "78121604", clave_unidad: "DAY" });
   });
 
   it("keeps unknown historical quote references conservative after the last row is deleted", () => {
@@ -94,7 +94,7 @@ describe("sale SAT additions with real form/field-array state", () => {
     act(() => result.current.handlers.removeLineItem(0));
     rerender({ source: { key: "same", quoteId, quoteType: "rental" } });
     act(() => result.current.handlers.addLineItem());
-    expect(result.current.form.getValues("lineItems.0")).toMatchObject({ line_kind: "manual", clave_prod_serv: "78181500", clave_unidad: "DAY" });
+    expect(result.current.form.getValues("lineItems.0")).toMatchObject({ line_kind: "manual", clave_prod_serv: "78121604", clave_unidad: "DAY" });
   });
 
   it("resets only the remembered sale context when the source changes to a confirmed rental", () => {
@@ -102,7 +102,7 @@ describe("sale SAT additions with real form/field-array state", () => {
     act(() => result.current.handlers.removeLineItem(0));
     rerender({ source: { key: "rental", quoteId, quoteType: "rental" } });
     act(() => result.current.handlers.addLineItem());
-    expect(result.current.form.getValues("lineItems.0")).toMatchObject({ line_kind: "manual", clave_prod_serv: "78181500", clave_unidad: "DAY" });
+    expect(result.current.form.getValues("lineItems.0")).toMatchObject({ line_kind: "manual", clave_prod_serv: "78121604", clave_unidad: "DAY" });
   });
 
   it("does not reuse the previous rental source defaults while the next quote is unresolved", () => {
@@ -163,7 +163,7 @@ describe("sale SAT prefill with real form state", () => {
   });
 
   it("does not rewrite historical sale codes when hydrating an existing invoice", async () => {
-    const historical = { ...sale, clave_prod_serv: "78181500", clave_unidad: "DAY" };
+    const historical = { ...sale, clave_prod_serv: "78121604", clave_unidad: "DAY" };
     const { result } = setupPrefill({ existing: { id: "old-invoice", customer_id: "customer", line_items: [historical] } });
     await waitFor(() => expect(result.current.form.getValues("lineItems")).toEqual([historical]));
     act(() => result.current.handlers.addLineItem());

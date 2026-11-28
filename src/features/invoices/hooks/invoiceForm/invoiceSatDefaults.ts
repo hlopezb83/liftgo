@@ -62,7 +62,7 @@ export function quoteLineSatDefaults(line: LineItemValues, source: InvoiceLineIt
   const explicit = line.sat_selection_required === true
     || requiresExplicitInvoiceSat(source, isSaleInvoiceSource(source) || line.line_kind === "sale", lineSourceQuoteIds([line]));
   return {
-    clave_prod_serv: explicit ? line.clave_prod_serv ?? "" : line.clave_prod_serv || "78181500",
+    clave_prod_serv: explicit ? line.clave_prod_serv ?? "" : line.clave_prod_serv || "78121604",
     clave_unidad: explicit ? line.clave_unidad ?? "" : line.clave_unidad || "DAY",
   };
 }

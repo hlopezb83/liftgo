@@ -176,7 +176,7 @@ describe("explicit equipment SAT catalog choices", () => {
     const values = () => JSON.parse(screen.getByLabelText("Partidas conservadas").textContent ?? "[]")[0];
     expect(values()).toMatchObject({ clave_prod_serv: "", clave_unidad: "" });
     fireEvent.keyDown(screen.getByRole("combobox", { name: "Clave SAT partida 1" }), { key: "ArrowDown" });
-    expect(screen.getByRole("option", { name: "78181500 - Alquiler de equipo de manejo de materiales" })).toBeInTheDocument();
+    expect(screen.getByRole("option", { name: "78121604 - Servicio de arriendo o leasing de montacargas" })).toBeInTheDocument();
     fireEvent.keyDown(screen.getByRole("listbox"), { key: "Escape" });
     expect(values()).toMatchObject({ clave_prod_serv: "", clave_unidad: "" });
     fireEvent.keyDown(screen.getByRole("combobox", { name: "Clave SAT partida 1" }), { key: "ArrowDown" });

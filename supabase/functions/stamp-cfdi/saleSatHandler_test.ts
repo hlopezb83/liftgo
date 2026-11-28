@@ -394,7 +394,7 @@ offlineTest(
     const products =
       (f.reads.payloads[0].items as Array<{ product: Record<string, unknown> }>)
         .map(({ product }) => [product.product_key, product.unit_key]);
-    assertEquals(products, [["78101803", "E48"], ["24101600", "H87"]]);
+    assertEquals(products, [["78121604", "E48"], ["24101600", "H87"]]);
   },
 );
 
@@ -408,7 +408,7 @@ offlineTest("known rental quote retains existing fallback", async () => {
     { product: Record<string, unknown> }
   >;
   assertEquals([items[0].product.product_key, items[0].product.unit_key], [
-    "78101803",
+    "78121604",
     "E48",
   ]);
 });
@@ -535,7 +535,7 @@ offlineTest(
         const products = (f.reads.payloads[0].items as Array<
           { product: Record<string, unknown> }
         >).map(({ product }) => [product.product_key, product.unit_key]);
-        assertEquals(products, [["78101803", "E48"], ["24101600", "H87"]]);
+        assertEquals(products, [["78121604", "E48"], ["24101600", "H87"]]);
       }
     }
     assertEquals(rental, { description: "Renta", source_quote_id: quoteId });

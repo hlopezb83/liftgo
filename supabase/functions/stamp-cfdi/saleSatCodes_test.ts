@@ -57,7 +57,7 @@ Deno.test("pure sale builder preserves explicit historical codes without blackli
     line_items: [
       { ...explicit, line_kind: "sale" },
       { line_kind: "sale", clave_prod_serv: "78181500", clave_unidad: "DAY" },
-      { line_kind: "sale", clave_prod_serv: "78101803", clave_unidad: "E48" },
+      { line_kind: "sale", clave_prod_serv: "78121604", clave_unidad: "E48" },
     ],
   };
   const before = structuredClone(invoice);
@@ -68,7 +68,7 @@ Deno.test("pure sale builder preserves explicit historical codes without blackli
     (result.payload.items as Array<{ product: Record<string, unknown> }>)
       .map(({ product }) => [product.product_key, product.unit_key]);
   assertEquals(products, [["24101600", "H87"], ["78181500", "DAY"], [
-    "78101803",
+    "78121604",
     "E48",
   ]]);
   assertEquals(invoice, before);
@@ -90,7 +90,7 @@ Deno.test("rental fallback is unchanged beside an explicitly classified sale", (
   const products =
     (result.payload.items as Array<{ product: Record<string, unknown> }>)
       .map(({ product }) => [product.product_key, product.unit_key]);
-  assertEquals(products, [["78101803", "E48"], ["24101600", "H87"]]);
+  assertEquals(products, [["78121604", "E48"], ["24101600", "H87"]]);
 });
 
 Deno.test("persisted selection marker gates an otherwise unlinked manual line", () => {

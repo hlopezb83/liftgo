@@ -188,7 +188,7 @@ export function useExtensionPrefill({
       "lineItems",
       items.map((i) => ({
         ...i,
-        clave_prod_serv: "78181500",
+        clave_prod_serv: "78121604",
         // La unidad SAT sigue al cobro real (MON/WEE/DAY/E48), no un DAY fijo.
         clave_unidad: i.clave_unidad,
         objeto_imp: "02",

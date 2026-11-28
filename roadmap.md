@@ -1,5 +1,10 @@
 # Roadmap operativo y estado de evidencia
 
+## Clave SAT de renta de montacargas (28 de noviembre de 2026)
+
+- [x] 78121604 como valor predeterminado de renta en pantalla y respaldo de timbrado; etiqueta de 78181500 corregida. 1,242 pruebas de facturación y 140 Deno de stamp-cfdi pasan.
+- [ ] Desplegar `stamp-cfdi` (espera autorización). Revisión de facturas históricas con el contador. CI completa pendiente.
+
 ## Clave SAT de logística (28 de noviembre de 2026)
 
 - [x] Valor predeterminado 81141601 en factura manual y código recurrente; etiqueta Logística. Conserva códigos explícitos, seguro, renta e impuestos.

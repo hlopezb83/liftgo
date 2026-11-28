@@ -170,7 +170,7 @@ export const EMPTY_CFDI: CfdiFormValues = {
 
 export const EMPTY_LINE: LineItemValues = {
   line_kind: "manual", description: "", quantity: 1, unit_price: 0, total: 0,
-  clave_prod_serv: "78181500", clave_unidad: "DAY", objeto_imp: "02",
+  clave_prod_serv: "78121604", clave_unidad: "DAY", objeto_imp: "02",
 };
 
 export const buildEmptyInvoiceValues = (): InvoiceFormValues => ({

@@ -96,7 +96,7 @@ describe("persistent SAT selection for unresolved invoice origins", () => {
     rerender({ source: { key: "rental", quoteId, quoteType: "rental" } });
     act(() => result.current.handlers.addLineItem());
     const line = result.current.form.getValues("lineItems.0");
-    expect(line).toMatchObject({ line_kind: "manual", clave_prod_serv: "78181500", clave_unidad: "DAY" });
+    expect(line).toMatchObject({ line_kind: "manual", clave_prod_serv: "78121604", clave_unidad: "DAY" });
     expect(line).not.toHaveProperty("sat_selection_required");
   });
 
@@ -124,12 +124,12 @@ describe("persistent SAT selection for unresolved invoice origins", () => {
     expect(reopened.lineItems[0]).not.toHaveProperty("sat_selection_required");
     const built = buildInvoicePayload({ invoiceId: "invoice-qa", invoice });
     expect(built.ok).toBe(true);
-    if (built.ok) expect(built.payload.items).toMatchObject([{ product: { product_key: "78181500", unit_key: "DAY" } }]);
+    if (built.ok) expect(built.payload.items).toMatchObject([{ product: { product_key: "78121604", unit_key: "DAY" } }]);
   });
 
   it("blocks a new unlinked row in a saved mixed invoice, then preserves selected and original codes", () => {
     const rental: LineItemValues = { description: "Renta", line_kind: "rental", quantity: 1, unit_price: 500, total: 500,
-      clave_prod_serv: "78181500", clave_unidad: "DAY" };
+      clave_prod_serv: "78121604", clave_unidad: "DAY" };
     const first = setup([original, rental]);
     act(() => first.result.current.handlers.addLineItem());
     fillDraft(first.result, 2);
@@ -148,7 +148,7 @@ describe("persistent SAT selection for unresolved invoice origins", () => {
     expect(built.ok).toBe(true);
     if (built.ok) expect(built.payload.items).toMatchObject([
       { product: { product_key: "78101800", unit_key: "E48" } },
-      { product: { product_key: "78181500", unit_key: "DAY" } },
+      { product: { product_key: "78121604", unit_key: "DAY" } },
       { product: { product_key: "24101603", unit_key: "H87" } },
     ]);
     expect(original).not.toHaveProperty("sat_selection_required");

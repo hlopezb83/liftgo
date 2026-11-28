@@ -30,7 +30,7 @@ describe("invoice quote SAT defaults", () => {
     { clave_prod_serv: "", clave_unidad: "" },
     { clave_prod_serv: "   ", clave_unidad: " " },
     // Presence is not proof of SAT catalog validity or manual provenance.
-    { clave_prod_serv: "78181500", clave_unidad: "DAY" },
+    { clave_prod_serv: "78121604", clave_unidad: "DAY" },
     { clave_prod_serv: "custom-unverified", clave_unidad: "ZZZ" },
   ])("preserves supplied sale SAT fields exactly: %j", (sat) => {
     expect(fromQuote({ quote_type: "sale", line_items: [{ ...line, ...sat }] }).lineItems[0]).toMatchObject(sat);
@@ -44,7 +44,7 @@ describe("invoice quote SAT defaults", () => {
   });
 
   it("retains rental defaults and explicit rental codes", () => {
-    expect(fromQuote({ quote_type: "rental" }).lineItems[0]).toMatchObject({ clave_prod_serv: "78181500", clave_unidad: "DAY" });
+    expect(fromQuote({ quote_type: "rental" }).lineItems[0]).toMatchObject({ clave_prod_serv: "78121604", clave_unidad: "DAY" });
     expect(fromQuote({ quote_type: "rental", line_items: [{ ...line, clave_prod_serv: "78181501", clave_unidad: "MON" }] }).lineItems[0])
       .toMatchObject({ clave_prod_serv: "78181501", clave_unidad: "MON" });
   });
@@ -83,7 +83,7 @@ describe("invoice quote SAT defaults", () => {
 
   it("leaves every historical line unchanged, including missing and rental-looking sale codes", () => {
     const historical = [line, { ...line, line_kind: "sale" as const },
-      { ...line, line_kind: "sale" as const, clave_prod_serv: "78181500", clave_unidad: "DAY", extra_snapshot: "preserved" }];
+      { ...line, line_kind: "sale" as const, clave_prod_serv: "78121604", clave_unidad: "DAY", extra_snapshot: "preserved" }];
     const snapshot = structuredClone(historical);
     const form = buildFromInvoice({ customer_id: "customer", line_items: historical }, []);
     expect(form.lineItems).toBe(historical);

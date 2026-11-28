@@ -1,3 +1,9 @@
+## [8.55.0] - 2026-11-28
+
+- Las nuevas partidas de renta (reservas, cotizaciones, extensiones y partidas manuales) usan la clave SAT 78121604 · Servicio de arriendo o leasing de montacargas.
+- El timbrado usa 78121604 cuando una partida de renta llega sin clave, en lugar de 78101803 (flete); el catálogo corrige la etiqueta de 78181500 (mantenimiento de vehículos).
+- Conserva claves explícitas, facturas ya timbradas, notas de crédito e impuestos. El timbrado requiere desplegar `stamp-cfdi` por separado.
+
 ## [8.54.3] - 2026-11-28
 
 - Los cargos de logística sin clave SAT explícita usan 81141601 en la factura manual y en el código del generador recurrente; el catálogo identifica esta clave como Logística.

@@ -66,7 +66,7 @@ describe("buildLinesForBooking", () => {
       [forklift],
     );
     expect(items[0]).toMatchObject({
-      clave_prod_serv: "78181500",
+      clave_prod_serv: "78121604",
       clave_unidad: "DAY",
       objeto_imp: "02",
     });

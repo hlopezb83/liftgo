@@ -66,7 +66,8 @@ export const MONEDA = [
 
 /** Common SAT product/service codes; choices only, never automatic defaults. */
 export const CLAVE_PROD_SERV = [
-  { code: "78181500", label: "78181500 - Alquiler de equipo de manejo de materiales" },
+  { code: "78121604", label: "78121604 - Servicio de arriendo o leasing de montacargas" },
+  { code: "78181500", label: "78181500 - Servicios de mantenimiento y reparación de vehículos" },
   { code: "78181501", label: "78181501 - Alquiler de montacargas" },
   { code: "78181600", label: "78181600 - Alquiler de equipo de transporte" },
   { code: "81141601", label: "81141601 - Logística" },

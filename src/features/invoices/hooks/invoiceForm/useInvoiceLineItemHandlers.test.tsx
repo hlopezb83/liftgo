@@ -35,7 +35,7 @@ describe("useInvoiceLineItemHandlers (useFieldArray integration)", () => {
     const item = result.current.form.getValues("lineItems.0");
     expect(item.description).toBe(EMPTY_LINE.description);
     expect(item.quantity).toBe(1);
-    expect(item.clave_prod_serv).toBe("78181500");
+    expect(item.clave_prod_serv).toBe("78121604");
     expect(item.clave_unidad).toBe("DAY");
   });
 

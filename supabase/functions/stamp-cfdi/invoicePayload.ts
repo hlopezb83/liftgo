@@ -97,7 +97,7 @@ function mapInvoiceLineItem(
       : taxRatePct;
   const productKey = explicitSat
     ? li.clave_prod_serv
-    : li.clave_prod_serv || "78101803";
+    : li.clave_prod_serv || "78121604";
   const unitKey = explicitSat ? li.clave_unidad : li.clave_unidad || "E48";
 
   const item: Record<string, unknown> = {

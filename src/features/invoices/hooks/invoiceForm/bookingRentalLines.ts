@@ -33,7 +33,7 @@ export interface InvoiceHandlerBooking {
 }
 
 const SAT_LINE_DEFAULTS = {
-  clave_prod_serv: "78181500",
+  clave_prod_serv: "78121604",
   clave_unidad: "DAY",
   objeto_imp: "02",
   line_kind: "rental",

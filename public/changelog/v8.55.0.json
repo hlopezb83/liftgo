@@ -1,0 +1,9 @@
+{
+  "description": "Las partidas de renta usan la clave SAT oficial de arriendo de montacargas.",
+  "changes": [
+    "Reservas, cotizaciones, extensiones y partidas nuevas usan 78121604 · Servicio de arriendo o leasing de montacargas.",
+    "El timbrado usa 78121604 cuando una partida de renta llega sin clave, en lugar de 78101803 (flete).",
+    "El catálogo corrige la etiqueta de 78181500 (mantenimiento de vehículos).",
+    "Se conservan claves explícitas, facturas timbradas, notas de crédito e impuestos."
+  ]
+}
