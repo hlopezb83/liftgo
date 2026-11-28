@@ -10,13 +10,16 @@ export { handleRequest };
 
 if (import.meta.main) {
   Deno.serve(
-    wrapEdgeFunction("reconcile-stamping-invoices", (req) =>
-      handleRequest(req, {
-        diagnostics: {
-          identify: setVerifiedEdgeIdentity,
-          capture: captureEdgeError,
-          withJob: withVerifiedEdgeJob,
-        },
-      })),
+    wrapEdgeFunction(
+      "reconcile-stamping-invoices",
+      (req) =>
+        handleRequest(req, {
+          diagnostics: {
+            identify: setVerifiedEdgeIdentity,
+            capture: captureEdgeError,
+            withJob: withVerifiedEdgeJob,
+          },
+        }),
+    ),
   );
 }

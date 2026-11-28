@@ -80,4 +80,19 @@ describe("clasificación del ruido de consola del smoke", () => {
       expect(verdict.ignored, text).toBe(true);
     }
   });
+
+  it("ignora ERR_FAILED de /api/sentry-tunnel solo cuando fue bloqueado como telemetría", () => {
+    const tunnelUrl = `${ORIGIN}/api/sentry-tunnel`;
+    const withoutTelemetry = classifyConsoleError(
+      { text: TRANSPORT, url: tunnelUrl },
+      ctx(tunnelUrl),
+    );
+    expect(withoutTelemetry.ignored).toBe(false);
+
+    const withTelemetry = classifyConsoleError(
+      { text: TRANSPORT, url: tunnelUrl },
+      { ...ctx(tunnelUrl), blockedTelemetry: new Set([tunnelUrl]) },
+    );
+    expect(withTelemetry.ignored).toBe(true);
+  });
 });

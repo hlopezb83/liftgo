@@ -26,6 +26,7 @@ import {
   OPERATION_TO_FUNCTION,
   type QueueResult,
   type QueueRow,
+  resolveEnvConfig,
 } from "./invokeTarget.ts";
 import {
   assertOwnedQueue,
@@ -53,18 +54,6 @@ const RUN_STALE_LIMIT = 5;
 const STALE_PROCESSING_MIN = 15;
 const QUEUE_COLUMNS =
   "id, organization_id, updated_at, operation, invoice_id, attempts, max_attempts, payload, status, deferrals, last_error";
-
-function resolveEnvConfig(envGet: (key: string) => string | undefined): {
-  serviceKey: string;
-  projectRef: string;
-} | null {
-  const serviceKey = envGet("SUPABASE_SERVICE_ROLE_KEY");
-  const projectRef =
-    (envGet("SUPABASE_URL") ?? "").match(/https:\/\/([^.]+)\./)?.[1] ??
-      envGet("SUPABASE_PROJECT_ID") ?? "";
-  if (!serviceKey || !projectRef) return null;
-  return { serviceKey, projectRef };
-}
 
 async function fetchQueueBatch(
   admin: AdminClient,
@@ -293,8 +282,13 @@ export async function handleRequest(
       break;
     }
     const rowParams = {
-      admin, row, nowIso, serviceKey: envCfg.serviceKey,
-      projectRef: envCfg.projectRef, envGet, deps,
+      admin,
+      row,
+      nowIso,
+      serviceKey: envCfg.serviceKey,
+      projectRef: envCfg.projectRef,
+      envGet,
+      deps,
     };
     results.push(
       await diag.withJob(
@@ -314,7 +308,9 @@ if (import.meta.main) {
     withJob: withVerifiedEdgeJob,
   };
   Deno.serve(
-    wrapEdgeFunction("process-cfdi-retry-queue", (req) =>
-      handleRequest(req, { diagnostics })),
+    wrapEdgeFunction(
+      "process-cfdi-retry-queue",
+      (req) => handleRequest(req, { diagnostics }),
+    ),
   );
 }

@@ -22,6 +22,20 @@ export function allowReadOnlyRequest(request: SmokeRequest, origin: string): boo
   }
 }
 
+/** Classifies an expected offline abort of first-party Sentry telemetry; never grants network permission. */
+export function expectedSentryTunnelAbort(request: SmokeRequest, origin: string): string | undefined {
+  if (request.method !== "POST") return undefined;
+  try {
+    const url = new URL(request.url);
+    if (url.origin !== origin || url.pathname !== "/api/sentry-tunnel" || url.search || url.username || url.password) {
+      return undefined;
+    }
+    return `${url.origin}${url.pathname}`;
+  } catch {
+    return undefined;
+  }
+}
+
 /** HTTP 200 containing a fallback HTML document is not a valid JS/CSS asset. */
 export function responseProblem(url: string, status: number, contentType: string): string | undefined {
   const path = new URL(url).pathname;

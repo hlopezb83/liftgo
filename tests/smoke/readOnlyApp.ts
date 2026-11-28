@@ -1,7 +1,7 @@
 import type { APIResponse, BrowserContext, Route } from "@playwright/test";
 import { normalizeUrl } from "./consoleNoise";
 import { expectedHostingScriptAbort } from "./hostingScriptNoise";
-import { allowReadOnlyRequest, responseProblem } from "./readOnlyPolicy";
+import { allowReadOnlyRequest, expectedSentryTunnelAbort, responseProblem } from "./readOnlyPolicy";
 
 // Do not include Playwright messages/stacks: they can contain URLs, headers or
 // credentials. Retain only an allowlisted failure category for diagnosis.
@@ -18,6 +18,7 @@ function failureKind(error: unknown): string {
 export async function guardReadOnlyApp(context: BrowserContext, origin: string) {
   const blocked = new Set<string>();
   const blockedHostingScripts = new Set<string>();
+  const blockedTelemetry = new Set<string>();
   const problems: string[] = [];
   const assets = new Set<string>();
   await context.routeWebSocket("**/*", (socket) => {
@@ -45,10 +46,12 @@ export async function guardReadOnlyApp(context: BrowserContext, origin: string) 
     if (!allowed) {
       blocked.add(normalizeUrl(url));
       const hostingScript = expectedHostingScriptAbort(smokeRequest, origin);
-      // These exact hosting scripts stay offline, like external telemetry.
-      // Every other same-origin request remains a regression, even if this
-      // URL was previously blocked as an expected GET script in this run.
+      const telemetry = expectedSentryTunnelAbort(smokeRequest, origin);
+      // These exact hosting scripts and first-party Sentry tunnel requests stay
+      // offline, like external telemetry. Every other same-origin request remains
+      // a regression, even if this URL was previously blocked in this run.
       if (hostingScript) blockedHostingScripts.add(hostingScript);
+      else if (telemetry) blockedTelemetry.add(telemetry);
       else if (new URL(url).origin === origin) problems.push(`Blocked ${request.method()} ${new URL(url).pathname}`);
       await finalize("abort");
       return;
@@ -87,5 +90,5 @@ export async function guardReadOnlyApp(context: BrowserContext, origin: string) 
       await Promise.all([...pending]);
     }
   };
-  return { blocked, blockedHostingScripts, problems, assets, closeAndDrain };
+  return { blocked, blockedHostingScripts, blockedTelemetry, problems, assets, closeAndDrain };
 }
