@@ -34,8 +34,7 @@ export function createClientSentryOptions(environment: string, dsn: string): Sen
   const privacy = createPrivacyOptions();
   const rawTunnel = import.meta.env.VITE_SENTRY_TUNNEL;
   const tunnel = rawTunnel === undefined ? DEFAULT_SENTRY_TUNNEL : (rawTunnel.trim() || undefined);
-  const defaultTracesRate = environment === "production" || environment === "preview" ? 0.05 : 0;
-  const tracesSampleRate = resolveSampleRate(import.meta.env.VITE_SENTRY_TRACES_SAMPLE_RATE, defaultTracesRate);
+  const tracesSampleRate = resolveSampleRate(import.meta.env.VITE_SENTRY_TRACES_SAMPLE_RATE, 0);
   return {
     dsn,
     tunnel,
@@ -47,7 +46,7 @@ export function createClientSentryOptions(environment: string, dsn: string): Sen
       return privacy.beforeSend(event);
     },
     enhanceFetchErrorMessages: "report-only",
-    // Trazas muestreadas al 5 % en producción/preview (sobrescribible vía VITE_SENTRY_TRACES_SAMPLE_RATE);
+    // Trazas desactivadas por defecto (opt-in vía VITE_SENTRY_TRACES_SAMPLE_RATE para cuidar cuota del free tier);
     // Session Replay permanece desactivado para conservar privacidad estricta.
     tracesSampleRate,
     replaysSessionSampleRate: 0,
