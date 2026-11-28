@@ -38,7 +38,16 @@ describe("CustomerSelector remote search", () => {
     expect(screen.getByLabelText("Contacto")).toHaveValue("contacto de B");
     select("Cliente A");
     expect(screen.getByLabelText("Contacto")).toHaveValue("a@example.com");
-    fireEvent.click(screen.getByRole("button", { name: "Limpiar cliente" }));
+    const trigger = screen.getByRole("combobox", { name: /Cliente A/ });
+    const clear = screen.getByRole("button", { name: "Limpiar cliente" });
+    expect(clear.tagName).toBe("BUTTON");
+    expect(clear).toHaveAttribute("type", "button");
+    expect(trigger).not.toContainElement(clear);
+    clear.focus();
+    fireEvent.click(clear);
+    expect(trigger).toHaveFocus();
+    expect(trigger).toHaveAttribute("aria-expanded", "false");
+    expect(screen.queryByRole("button", { name: "Limpiar cliente" })).not.toBeInTheDocument();
     expect(screen.getByLabelText("Contacto")).toHaveValue("");
     expect(screen.getByLabelText("Nombre del Cliente")).toHaveValue("");
   });

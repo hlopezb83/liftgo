@@ -118,7 +118,9 @@ async function handleNonHitPacResult(params: {
   const { pacResult, rawInvoiceId, mode, controls, json } = params;
   const facturapiId = "facturapi_id" in pacResult
     ? pacResult.facturapi_id
-    : typeof rawInvoiceId === "string" ? rawInvoiceId : null;
+    : typeof rawInvoiceId === "string"
+    ? rawInvoiceId
+    : null;
   const isPending = pacResult.kind === "pending";
   const saved = await controls.saveClaim({
     ...(facturapiId ? { facturapi_invoice_id: facturapiId } : {}),

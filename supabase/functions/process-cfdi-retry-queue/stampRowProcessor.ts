@@ -55,8 +55,7 @@ async function applyStampDecision(params: {
   if (stampDecision === "rejected") {
     await markOwnedQueueRow(admin, lease, {
       status: "exhausted",
-      last_error:
-        "El estado de la factura no permite reintentar su timbrado.",
+      last_error: "El estado de la factura no permite reintentar su timbrado.",
     });
     return { id: row.id, status: "exhausted" };
   }
