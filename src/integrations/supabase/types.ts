@@ -6547,6 +6547,14 @@ export type Database = {
         }
         Returns: string
       }
+      add_maintenance_part_quantity: {
+        Args: {
+          p_maintenance_log_id: string
+          p_part_id: string
+          p_quantity: number
+        }
+        Returns: Json
+      }
       adjust_part_stock: {
         Args: {
           p_expected_stock_quantity: number
@@ -7185,6 +7193,19 @@ export type Database = {
       get_customer_summary: { Args: { p_customer_id: string }; Returns: Json }
       get_dashboard_fleet_counts: { Args: never; Returns: Json }
       get_dashboard_stats: { Args: never; Returns: Json }
+      get_deliveries_page: {
+        Args: {
+          p_expected_organization_id: string
+          p_history?: string
+          p_page?: number
+          p_page_size?: number
+          p_search?: string
+          p_sort?: Json
+          p_status?: string
+          p_type?: string
+        }
+        Returns: Json
+      }
       get_effective_legal_template: {
         Args: { p_document_type?: string }
         Returns: {
@@ -7271,6 +7292,19 @@ export type Database = {
               p_page_size?: number
               p_search?: string
               p_sort?: Json
+            }
+            Returns: Json
+          }
+        | {
+            Args: {
+              p_category: string
+              p_expected_organization_id: string
+              p_low_stock: boolean
+              p_maintenance_stock: boolean
+              p_page: number
+              p_page_size: number
+              p_search: string
+              p_sort: Json
             }
             Returns: Json
           }
@@ -8963,6 +8997,16 @@ export type Database = {
           p_status: string
         }
         Returns: undefined
+      }
+      set_contract_deposit_status_checked: {
+        Args: {
+          p_amount?: number
+          p_contract_id: string
+          p_expected_updated_at: string
+          p_notes?: string
+          p_status: string
+        }
+        Returns: Json
       }
       share_my_support_report: {
         Args: {
